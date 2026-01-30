@@ -1,35 +1,35 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Animated, StyleSheet, Image } from 'react-native';
-import { Link } from 'expo-router';
-import { TextInput, Button, Provider, Text } from 'react-native-paper';
+import { View, Animated, StyleSheet } from 'react-native';
+import { Link, useRouter } from 'expo-router';
+import { TextInput, Button, Text } from 'react-native-paper';
+import DescriptiveLogo from '../assets/descriptive_logo.svg';
+
+const AnimatedLogo = Animated.createAnimatedComponent(DescriptiveLogo);
 
 export default function LoginScreen() {
-  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const logoScale = useRef(new Animated.Value(0.3)).current;
   const logoPosition = useRef(new Animated.Value(0)).current;
   const formOpacity = useRef(new Animated.Value(0)).current;
+  const router = useRouter();
 
   useEffect(() => {
-    // Sequence of animations
     Animated.sequence([
-      // 1. Fade in logo at center
-      Animated.timing(logoOpacity, {
+      Animated.timing(logoScale, {
         toValue: 1,
         duration: 1000,
         useNativeDriver: true,
       }),
-      // 2. Wait 2 seconds
       Animated.delay(2000),
-      // 3. Move logo up and fade in form simultaneously
       Animated.parallel([
         Animated.timing(logoPosition, {
-          toValue: -220, 
+          toValue: -220,
           duration: 800,
           useNativeDriver: true,
         }),
         Animated.timing(formOpacity, {
           toValue: 1,
           duration: 800,
-          delay: 400, // Start fading in form slightly after logo starts moving
+          delay: 400,
           useNativeDriver: true,
         }),
       ]),
@@ -43,6 +43,8 @@ export default function LoginScreen() {
     roundness: 10,
   }
 
+  const [showPassword, setShowPassword] = React.useState(false);
+
   return (
     <View style={styles.container}>
       {/* Animated Logo */}
@@ -50,19 +52,20 @@ export default function LoginScreen() {
         style={[
           styles.logoContainer,
           {
-            opacity: logoOpacity,
-            transform: [{ translateY: logoPosition }],
+            transform: [
+              { scale: logoScale },
+              { translateY: logoPosition }
+            ],
           },
         ]}
       >
-        <Image
-          source={require('../assets/descriptive_logo.png')} // Your descriptive logo
-          style={styles.logo}
-          resizeMode="contain"
+        <AnimatedLogo
+          width={250}
+          height={250}
         />
       </Animated.View>
 
-      {/* Animated Login Form */}
+      {/* Login Form */}
       <Animated.View style={[styles.formContainer, { opacity: formOpacity }]}>
         <TextInput
           label="Mobile Number"
@@ -74,14 +77,21 @@ export default function LoginScreen() {
         <TextInput
           label="Password"
           mode="outlined"
-          secureTextEntry
+          secureTextEntry={!showPassword}
           theme={theme}
           style={styles.input}
+          right={
+            <TextInput.Icon
+              icon={!showPassword ? 'eye-off' : 'eye'}
+              onPress={() => setShowPassword(!showPassword)}
+              color= '#48AAD9'
+            />  
+          }
         />
         <Text variant="bodySmall">Use at least 15 alphanumeric characters and symbols.</Text>
         <Link href="#" style={styles.forgotPassword}>Forgot Password?</Link>
         <View style={{ alignItems: 'center' }}>
-          <Button mode="contained" style={styles.loginButton}>
+          <Button mode="contained" style={styles.loginButton} onPress={() => router.push('/tabs/home')}>
             Mag-Login
           </Button>
           <Text style={styles.noAccountText}>Wala pang account?</Text>
@@ -104,10 +114,6 @@ const styles = StyleSheet.create({
   logoContainer: {
     position: 'absolute',
     alignItems: 'center',
-  },
-  logo: {
-    width: 250,
-    height: 250,
   },
   formContainer: {
     width: '80%',
