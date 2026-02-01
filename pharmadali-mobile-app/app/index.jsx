@@ -2,7 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { TextInput, Button, Text } from 'react-native-paper';
+import theme from '../shared/inputTheme';
 import DescriptiveLogo from '../assets/descriptive_logo.svg';
+import { useConfirmPasswordToggle } from '../shared/confirmPasswordToggle';
 
 const AnimatedLogo = Animated.createAnimatedComponent(DescriptiveLogo);
 
@@ -36,14 +38,7 @@ export default function LoginScreen() {
     ]).start();
   }, []);
 
-  const theme = {
-    colors: {
-      primary: '#48AAD9',
-    },
-    roundness: 10,
-  }
-
-  const [showPassword, setShowPassword] = React.useState(false);
+  const passwordToggleIcon = useConfirmPasswordToggle();
 
   return (
     <View style={styles.container}>
@@ -77,25 +72,19 @@ export default function LoginScreen() {
         <TextInput
           label="Password"
           mode="outlined"
-          secureTextEntry={!showPassword}
+          secureTextEntry={!passwordToggleIcon.showPassword}
           theme={theme}
           style={styles.input}
-          right={
-            <TextInput.Icon
-              icon={!showPassword ? 'eye-off' : 'eye'}
-              onPress={() => setShowPassword(!showPassword)}
-              color= '#48AAD9'
-            />  
-          }
-        />
+          right={passwordToggleIcon.icon}
+        />  
         <Text variant="bodySmall">Use at least 15 alphanumeric characters and symbols.</Text>
         <Link href="#" style={styles.forgotPassword}>Forgot Password?</Link>
         <View style={{ alignItems: 'center' }}>
-          <Button mode="contained" style={styles.loginButton} onPress={() => router.push('/tabs/home')}>
+          <Button mode="contained" style={styles.loginButton} onPress={() => router.push('/tabs/Home')}>
             Mag-Login
           </Button>
           <Text style={styles.noAccountText}>Wala pang account?</Text>
-          <Button mode="outlined" style={styles.registerButton} labelStyle={styles.registerButtonLabel}>
+          <Button mode="outlined" style={styles.registerButton} labelStyle={styles.registerButtonLabel} onPress={() => router.push('auth/Register')}>
             Mag-Register
           </Button>
         </View>
