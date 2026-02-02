@@ -78,7 +78,7 @@ export default function LoginScreen() {
           right={passwordToggleIcon.icon}
         />  
         <Text variant="bodySmall">Use at least 15 alphanumeric characters and symbols.</Text>
-        <Link href="#" style={styles.forgotPassword}>Forgot Password?</Link>
+        <Link href="auth/EnterMobileNumberFPW" style={styles.forgotPassword}>Forgot Password?</Link>
         <View style={{ alignItems: 'center' }}>
           <Button mode="contained" style={styles.loginButton} onPress={() => router.push('/tabs/Home')}>
             Mag-Login
