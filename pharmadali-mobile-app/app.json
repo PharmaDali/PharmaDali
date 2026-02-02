@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "scheme": "mobile",
+    "name": "PharmaDali",
+    "displayName": " ",
+    "slug": "mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/app_icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/app_icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/app_icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true,
+      "package": "com.gitofjames.mobile"
+    },
+    "web": {
+      "favicon": "./assets/app_icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "@react-native-community/datetimepicker"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9dc21ec8-6add-4b56-a96a-85d7d3fddfa3"
+      }
+    }
+  }
+}
