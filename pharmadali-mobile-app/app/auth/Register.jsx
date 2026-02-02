@@ -1,7 +1,7 @@
 import { StyleSheet, View, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import React, { useState } from 'react'
 import { TextInput, Button, Text } from 'react-native-paper'
-import DescriptiveLogo from '../../assets/descriptive_logo.svg'
+import DescriptiveLogo from '../../shared/components/DescriptiveLogo';
 import theme from '../../shared/inputTheme';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useConfirmPasswordToggle } from '../../shared/confirmPasswordToggle';
@@ -27,7 +27,7 @@ const Register = () => {
         contentContainerStyle={{ padding: 16, alignItems: 'center' }}
         showsVerticalScrollIndicator={false}
       >
-        <DescriptiveLogo width={250} height={200} />
+        <DescriptiveLogo />
         <View className="flex-1 border border-gray-300 p-3 rounded-lg">
           <View style={styles.registerLabel}>
             <Text variant="headlineSmall">Register</Text>
@@ -109,15 +109,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor: '#fff',
-  },
-  formContainer: {
-    borderColor: '#D9D9D9',
-    width: '100%',
-    borderStyle: 'solid',
-    borderWidth: 1,
-    padding: 16,
-    borderRadius: 8,
   },
   registerLabel: {
     marginBottom: 8,
