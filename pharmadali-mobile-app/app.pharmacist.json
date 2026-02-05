@@ -1,7 +1,7 @@
 {
   "expo": {
-    "scheme": "pharmadali",
-    "name": "PharmaDali",
+    "scheme": "pharmadalimobileapp",
+    "name": "PharmaDali for Pharmacists",
     "displayName": " ",
     "slug": "mobile",
     "version": "1.0.0",
@@ -23,7 +23,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.pharmadali.customer"
+      "package": "com.pharmadali.pharmacist"
     },
     "web": {
       "favicon": "./assets/app_icon.png"
@@ -37,7 +37,7 @@
       "eas": {
         "projectId": "9dc21ec8-6add-4b56-a96a-85d7d3fddfa3"
       },
-      "appType": "customer"
+      "appType": "pharmacist"
     }
   }
 }

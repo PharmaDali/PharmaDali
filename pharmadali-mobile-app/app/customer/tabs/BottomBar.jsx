@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { BottomNavigation } from 'react-native-paper';
-import homeIcon from '../../assets/icons/home_icon.svg';
-import homeIconFocused from '../../assets/icons/home_icon_focused.svg';
-import ordersIcon from '../../assets/icons/orders_icon.svg';
-import ordersIconFocused from '../../assets/icons/orders_icon_focused.svg';
-import accountIcon from '../../assets/icons/account_icon.svg';
-import accountIconFocused from '../../assets/icons/account_icon_focused.svg';
-import shopIcon from '../../assets/icons/shop_icon.svg';
-import shopIconFocused from '../../assets/icons/shop_icon_focused.svg';
-import notificationsIcon from '../../assets/icons/notifications_icon.svg';
-import notificationsIconFocused from '../../assets/icons/notifications_icon_focused.svg';
+import homeIcon from '@assets/icons/home_icon.svg';
+import homeIconFocused from '@assets/icons/home_icon_focused.svg';
+import ordersIcon from '@assets/icons/orders_icon.svg';
+import ordersIconFocused from '@assets/icons/orders_icon_focused.svg';
+import accountIcon from '@assets/icons/account_icon.svg';
+import accountIconFocused from '@assets/icons/account_icon_focused.svg';
+import shopIcon from '@assets/icons/shop_icon.svg';
+import shopIconFocused from '@assets/icons/shop_icon_focused.svg';
+import notificationsIcon from '@assets/icons/notifications_icon.svg';
+import notificationsIconFocused from '@assets/icons/notifications_icon_focused.svg';
 import HomeTab from './Home';
 import { Text } from 'react-native';
 

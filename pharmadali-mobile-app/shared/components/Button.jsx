@@ -13,7 +13,7 @@ const CustomButton = ({
   
   return (
     <Pressable
-      className={`rounded-lg items-center justify-center px-6 py-3 self-start ${disabled ? 'opacity-50' : ''} ${className}`}
+      className={`rounded-lg self-center items-center justify-center px-6 py-3 ${disabled ? 'opacity-50' : ''} ${className}`}
       style={[
         variant === 'filled' 
           ? { backgroundColor: colors.buttonColor } 

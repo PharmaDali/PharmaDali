@@ -4,18 +4,49 @@
     "appVersionSource": "remote"
   },
   "build": {
-    "development": {
+    "customer-development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "env": {
+        "APP_VARIANT": "app.json"
+      }
     },
-    "preview": {
+    "pharmacist-development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "APP_VARIANT": "app.pharmacist.json"
+      }
+    },
+    "customer-preview": {
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "APP_VARIANT": "app.json"
       }
     },
-    "production": {
-      "autoIncrement": true
+    "pharmacist-preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "APP_VARIANT": "app.pharmacist.json"
+      }
+    },
+    "customer-production": {
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "app.json"
+      }
+    },
+    "pharmacist-production": {
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "app.pharmacist.json"
+      }
     }
   },
   "submit": {

@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, Platform, ScrollView} from 'react-native'
 import React from 'react'
 import { TextInput } from 'react-native-paper'
-import CustomButton from '../../shared/components/Button';
-import { colors } from '../../shared/colorPallete'
-import DescriptiveLogo from '../../shared/components/DescriptiveLogo';
+import CustomButton from '@shared/components/Button';
+import { colors } from '@shared/colorPallete'
+import DescriptiveLogo from '@shared/components/DescriptiveLogo';
 import { useRouter } from 'expo-router';
-import theme from '../../shared/inputTheme';
+import theme from '@shared/inputTheme';
 
 const EnterMobileNumber = () => {
   const router = useRouter();
@@ -27,9 +27,13 @@ const EnterMobileNumber = () => {
             theme={theme}
             style={{ width: "100%", marginBottom: 16 }}
           />  
-          <CustomButton className="w-40 mt-2" title="I-submit" onPress={() => {
-            router.push('auth/EnterOTPFPW');
-          }} />
+          <CustomButton 
+            className="mt-4 w-40"
+            title="I-submit" 
+            onPress={() => {
+              router.push('/customer/auth/EnterOTPFPW');
+            }} 
+          />
       </ScrollView>
     </KeyboardAvoidingView>
   )

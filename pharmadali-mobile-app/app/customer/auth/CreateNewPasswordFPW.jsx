@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import React from 'react'
 import { TextInput } from 'react-native-paper'
-import { colors } from '../../shared/colorPallete'
-import theme  from '../../shared/inputTheme'
-import CustomButton from '../../shared/components/Button';
-import DescriptiveLogo from '../../shared/components/DescriptiveLogo';
-import { useConfirmPasswordToggle } from '../../shared/confirmPasswordToggle';
+import { colors } from '@shared/colorPallete'
+import theme  from '@shared/inputTheme'
+import CustomButton from '@shared/components/Button';
+import DescriptiveLogo from '@shared/components/DescriptiveLogo';
+import { useConfirmPasswordToggle } from '@shared/confirmPasswordToggle';
 
 const CreateNewPasswordFPW = () => {
 
@@ -41,7 +41,7 @@ const CreateNewPasswordFPW = () => {
               right={confirmPasswordToggleIcon.icon}
             />
           </View>
-          <CustomButton className="w-40 mt-4" title="I-reset ang password" onPress={() => {
+          <CustomButton className="w-50 mt-4" title="I-reset ang password" onPress={() => {
             // Handle password reset submission
           }} />
       </ScrollView>
