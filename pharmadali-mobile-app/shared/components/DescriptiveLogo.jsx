@@ -1,5 +1,5 @@
 import { View } from 'react-native'
-import DescriptiveLogoSVG from '../../assets/descriptive_logo.svg'
+import DescriptiveLogoSVG from '@assets/descriptive_logo.svg'
 
 const DescriptiveLogo = () => {
   return (
