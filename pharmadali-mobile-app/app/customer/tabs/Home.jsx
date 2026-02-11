@@ -1,24 +1,134 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { colors } from '@shared/colorPallete';
+import StoreIcon from '@assets/icons/store_icon.svg';
+import HomeCarousel from '@assets/icons/home_carousel.svg';
+import AddToCartIcon from '@assets/icons/add_to_cart_icon.svg';
+import BandaidImg from '@assets/images/bandaid_img.png';
+import BetadineImg from '@assets/images/betadine_img.png';
 
-export default function HomeTab() { 
+export default function HomeTab() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Home Screen</Text>
-      <Text>Welcome to the home tab!</Text>
-    </View>
+    <ScrollView 
+      className="bg-white"
+      style={{ flex: 1 }}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text className="text-3xl text-start px-4 py-6">
+        Magandang Araw, <Text className="font-bold" style={styles.userName}>Denmar!</Text>
+      </Text>
+      <View className="px-4">
+        <View className="flex-row items-center bg-green-100 rounded-full px-4 py-2 self-end shadow-sm border border-green-300">
+          <View className="w-6 h-6 bg-green-600 rounded-full mr-2 items-center justify-center">
+            <StoreIcon width={24} height={24} />
+          </View>
+          <Text className="text-sm text-gray-700">
+            <Text className="font-bold">Open til 9 PM </Text>
+            <Text className="text-green-600">|</Text> Lally's Pharmacy
+          </Text>
+        </View>
+      </View>
+      <View className="mt-6 items-center">
+        <HomeCarousel width="100%" height={170} />
+      </View>
+      <View>
+        <View className="flex-row items-center justify-between px-4 py-2 mt-4">
+          <Text className="text-2xl text-gray-600 font-bold px-4 py-2 mt-6">
+            Categories
+          </Text>
+          <Text className="text-md text-gray-600 font-semibold px-4 py-2 mt-6" style={styles.seeAllLink}>
+            See all
+          </Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
+          {categories.map((item, index) => (
+            <CategoryCard key={index} icon={item.icon} label={item.label} />
+          ))}
+        </ScrollView>
+      </View>
+      <View className="mt-4 mb-4">
+        <View className="flex-row items-center justify-between px-4 py-2">
+          <Text className="text-2xl text-gray-600 font-bold px-4 py-2 mt-6">
+            Bestseller Products
+          </Text>
+          <Text className="text-md text-gray-600 font-semibold px-4 py-2 mt-6" style={styles.seeAllLink}>
+            See all
+          </Text>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
+          {bestSellers.map((item, index) => (
+            <BestSellerProductCard
+              key={index}
+              img={item.img}
+              description={item.description}
+              category={item.category}
+              price={item.price}
+            />
+          ))}
+        </ScrollView>
+      </View>
+    </ScrollView>
+  );
+}
+
+const categories = [
+  { icon: '💊', label: 'Medicine' },
+  { icon: '🩹', label: 'First Aid' },
+  { icon: '🧴', label: 'Skin Care' },
+  { icon: '🦷', label: 'Dental' },
+  { icon: '👶', label: 'Baby Care' },
+  { icon: '💉', label: 'Vitamins' },
+];
+
+function CategoryCard({ icon, label }) {
+  return (
+    <TouchableOpacity className="items-center mr-4">
+      <View className="w-16 h-16 rounded-full bg-blue-200 items-center justify-center">
+        <Text className="text-2xl">{icon}</Text>
+      </View>
+      <Text className="text-xs mt-1 text-gray-600">{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+const bestSellers = [
+  { img: BandaidImg, description: 'MEDIPLAST Sterilized Gauze Pads 4x4', category: 'First Aid', price: '₱9.50' },
+  { img: BetadineImg, description: 'Betadine Antiseptic Povidone Iodine 10% 60ml', category: 'First Aid', price: '₱109.00' },
+  { img: BandaidImg, description: 'MEDIPLAST Sterilized Gauze Pads 4x4', category: 'First Aid', price: '₱9.50' },
+  { img: BetadineImg, description: 'Betadine Antiseptic Povidone Iodine 10% 60ml', category: 'First Aid', price: '₱109.00' },
+  { img: BandaidImg, description: 'MEDIPLAST Sterilized Gauze Pads 4x4', category: 'First Aid', price: '₱9.50' },
+  { img: BetadineImg, description: 'Betadine Antiseptic Povidone Iodine 10% 60ml', category: 'First Aid', price: '₱109.00' },
+  
+];
+
+function BestSellerProductCard({ img, description, category, price }) {
+  return (
+    <TouchableOpacity className="mr-3" style={{ width: 150 }}>
+      <View className="rounded-xl bg-gray-50 p-2 border border-gray-200">
+        <Image 
+          source={img} 
+          className="w-full rounded-lg"
+          style={{ height: 120 }}
+          resizeMode="contain"
+        />
+        <Text className="text-xs text-gray-600 mt-2">{category}</Text>
+        <Text className="text-sm mt-2" numberOfLines={2}>{description}</Text>
+        <View className="flex-row items-center justify-between mt-2">
+          <Text className="text-md font-bold" style={styles.price}>{price}</Text>
+          <AddToCartIcon width={28} height={28}/>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+  userName: {
+    color: colors.buttonColor
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
+  seeAllLink: {
+      color: colors.buttonColor
   },
+  price: {
+    color: colors.buttonColor
+  }
 });
