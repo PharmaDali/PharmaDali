@@ -27,11 +27,13 @@ export default function BottomBar() {
   const renderScene = () => null;
   
   return (
-    <BottomNavigation
+    <BottomNavigation.Bar
       navigationState={{ index, routes }}
-      onIndexChange={setIndex}
-      renderScene={renderScene}
-      barStyle={{ backgroundColor: '#fff' }}
+      onTabPress={({ route }) => {
+        const newIndex = routes.findIndex(r => r.key === route.key);
+        setIndex(newIndex);
+      }}
+      style={{ backgroundColor: '#fff' }}
       inactiveColor='#48AAD9'
       activeColor='#48AAD9'
       activeIndicatorStyle={{
