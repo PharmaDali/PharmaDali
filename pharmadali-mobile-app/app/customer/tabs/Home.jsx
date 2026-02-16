@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import { colors } from '@shared/colorPallete';
 import StoreIcon from '@assets/icons/store_icon.svg';
 import HomeCarousel from '@assets/icons/home_carousel.svg';
-import AddToCartIcon from '@assets/icons/add_to_cart_icon.svg';
+import ProductCard from '@shared/components/ProductCard';
 import BandaidImg from '@assets/images/bandaid_img.png';
 import BetadineImg from '@assets/images/betadine_img.png';
 
@@ -56,12 +56,13 @@ export default function HomeTab() {
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
           {bestSellers.map((item, index) => (
-            <BestSellerProductCard
+            <ProductCard
               key={index}
               img={item.img}
               description={item.description}
               category={item.category}
               price={item.price}
+              style={{ width: 150, marginRight: 12 }}
             />
           ))}
         </ScrollView>
@@ -100,27 +101,6 @@ const bestSellers = [
   
 ];
 
-function BestSellerProductCard({ img, description, category, price }) {
-  return (
-    <TouchableOpacity className="mr-3" style={{ width: 150 }}>
-      <View className="rounded-xl bg-gray-50 p-2 border border-gray-200">
-        <Image 
-          source={img} 
-          className="w-full rounded-lg"
-          style={{ height: 120 }}
-          resizeMode="contain"
-        />
-        <Text className="text-xs text-gray-600 mt-2">{category}</Text>
-        <Text className="text-sm mt-2" numberOfLines={2}>{description}</Text>
-        <View className="flex-row items-center justify-between mt-2">
-          <Text className="text-md font-bold" style={styles.price}>{price}</Text>
-          <AddToCartIcon width={28} height={28}/>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-}
-
 const styles = StyleSheet.create({
   userName: {
     color: colors.buttonColor
@@ -128,7 +108,4 @@ const styles = StyleSheet.create({
   seeAllLink: {
       color: colors.buttonColor
   },
-  price: {
-    color: colors.buttonColor
-  }
 });
