@@ -13,16 +13,16 @@ export default function HomeTab() {
       style={{ flex: 1 }}
       showsVerticalScrollIndicator={false}
     >
-      <Text className="text-3xl text-start px-4 py-6">
-        Magandang Araw, <Text className="font-bold" style={styles.userName}>Denmar!</Text>
+      <Text className="text-3xl text-start px-4 py-6" style={styles.greetingMedium}>
+        Magandang Araw, <Text style={styles.greetingBold}>Denmar!</Text>
       </Text>
       <View className="px-4">
         <View className="flex-row items-center bg-green-100 rounded-full px-4 py-2 self-end shadow-sm border border-green-300">
           <View className="w-6 h-6 bg-green-600 rounded-full mr-2 items-center justify-center">
             <StoreIcon width={24} height={24} />
           </View>
-          <Text className="text-sm text-gray-700">
-            <Text className="font-bold">Open til 9 PM </Text>
+          <Text className="text-sm text-gray-700" style={{ fontFamily: 'Poppins-Medium' }}>
+            <Text style={{ fontFamily: 'Poppins-Bold' }}>Open til 9 PM </Text>
             <Text className="text-green-600">|</Text> Lally's Pharmacy
           </Text>
         </View>
@@ -32,10 +32,10 @@ export default function HomeTab() {
       </View>
       <View>
         <View className="flex-row items-center justify-between px-4 py-2 mt-4">
-          <Text className="text-2xl text-gray-600 font-bold px-4 py-2 mt-6">
+          <Text className="text-2xl text-gray-600 px-2 py-2 mt-6" style={{ fontFamily: 'Poppins-Bold' }}>
             Categories
           </Text>
-          <Text className="text-md text-gray-600 font-semibold px-4 py-2 mt-6" style={styles.seeAllLink}>
+          <Text className="text-md text-gray-600 px-2 py-2 mt-6" style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}>
             See all
           </Text>
         </View>
@@ -47,10 +47,10 @@ export default function HomeTab() {
       </View>
       <View className="mt-4 mb-4">
         <View className="flex-row items-center justify-between px-4 py-2">
-          <Text className="text-2xl text-gray-600 font-bold px-4 py-2 mt-6">
+          <Text className="text-2xl text-gray-600 px-2 py-2 mt-6" style={{ fontFamily: 'Poppins-Bold' }}>
             Bestseller Products
           </Text>
-          <Text className="text-md text-gray-600 font-semibold px-4 py-2 mt-6" style={styles.seeAllLink}>
+          <Text className="text-md text-gray-600 px-2 py-2 mt-6" style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}>
             See all
           </Text>
         </View>
@@ -86,7 +86,7 @@ function CategoryCard({ icon, label }) {
       <View className="w-16 h-16 rounded-full bg-blue-200 items-center justify-center">
         <Text className="text-2xl">{icon}</Text>
       </View>
-      <Text className="text-xs mt-1 text-gray-600">{label}</Text>
+      <Text className="text-xs mt-1 text-gray-600" style={{ fontFamily: 'Poppins-Medium' }}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -102,10 +102,14 @@ const bestSellers = [
 ];
 
 const styles = StyleSheet.create({
-  userName: {
-    color: colors.buttonColor
+  greetingMedium: {
+    fontFamily: 'Modulus-Medium',
+  },
+  greetingBold: {
+    fontFamily: 'Modulus-Bold',
+    color: colors.buttonColor,
   },
   seeAllLink: {
-      color: colors.buttonColor
+    color: colors.buttonColor,
   },
 });

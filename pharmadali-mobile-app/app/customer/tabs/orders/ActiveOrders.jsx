@@ -40,8 +40,8 @@ function ActiveOrderCard({ order }) {
     <View className="border border-gray-200 bg-white rounded-2xl py-4 px-4 mt-4 mx-4 shadow-md elevation-2">
       <View className="flex-row justify-between items-start">
         <View>
-          <Text className="text-sm font-bold" style={styles.textColor}>Order #{order.orderNumber}</Text>
-          <Text className="text-xs text-gray-500 mt-1">{order.date}</Text>
+          <Text className="text-sm" style={styles.textColorBold}>Order #{order.orderNumber}</Text>
+          <Text className="text-xs text-gray-500 mt-1" style={{ fontFamily: 'Poppins-Medium' }}>{order.date}</Text>
         </View>
         <StatusBadge status={order.status} />
       </View>
@@ -55,13 +55,13 @@ function ActiveOrderCard({ order }) {
       <View className="border-b border-gray-200 my-3" />
 
       <View className="flex-row justify-between items-center">
-        <Text className="text-sm font-bold" style={styles.textColor}>Order Summary</Text>
-        <Text className="text-sm font-bold" style={styles.primaryLabel}>{order.orderSummary}</Text>
+        <Text className="text-sm" style={styles.textColorBold}>Order Summary</Text>
+        <Text className="text-sm" style={styles.primaryLabelBold}>{order.orderSummary}</Text>
       </View>
 
       <View className="items-center mt-4 mb-1">
         <TouchableOpacity className="rounded-xl border px-6 py-2" style={styles.cancelButton}>
-          <Text className="text-sm font-semibold" style={styles.primaryLabel}>Cancel Order</Text>
+          <Text className="text-sm" style={styles.primaryLabelBold}>Cancel Order</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -79,10 +79,12 @@ export default function ActiveOrders() {
 }
 
 const styles = StyleSheet.create({
-  primaryLabel: {
+  primaryLabelBold: {
+    fontFamily: 'Poppins-Bold',
     color: colors.buttonColor,
   },
-  textColor: {
+  textColorBold: {
+    fontFamily: 'Poppins-Bold',
     color: colors.textColor,
   },
   cancelButton: {
