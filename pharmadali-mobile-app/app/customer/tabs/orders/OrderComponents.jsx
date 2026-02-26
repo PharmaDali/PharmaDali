@@ -13,7 +13,7 @@ export function StatusBadge({ status }) {
   const color = statusColors[status] || statusColors.Pending;
   return (
     <View className="px-3 py-1 overflow-hidden" style={{ borderRadius: 8, backgroundColor: color.bg, borderWidth: 1, borderColor: color.border }}>
-      <Text className="text-xs font-semibold" style={{ color: color.text }}>{status}</Text>
+      <Text className="text-xs" style={{ color: color.text, fontFamily: 'Poppins-SemiBold' }}>{status}</Text>
     </View>
   );
 }
@@ -23,16 +23,16 @@ export function ProductRow({ product }) {
     <View className="flex-row mt-3">
       <Image source={product.img} className="w-16 h-16 rounded-lg" resizeMode="contain" />
       <View className="flex-1 ml-3">
-        <Text className="text-sm font-semibold" numberOfLines={2}>{product.description}</Text>
+        <Text className="text-sm" style={{ fontFamily: 'Poppins-SemiBold' }} numberOfLines={2}>{product.description}</Text>
         {/* //TODO: Add prescription icon here */}
         {product.prescriptionRequired && (
-          <Text className="text-xs mt-1" style={{ color: '#DC3545' }}>℞ Prescription Required</Text>
+          <Text className="text-xs mt-1" style={{ color: '#DC3545', fontFamily: 'Poppins-Medium' }}>℞ Prescription Required</Text>
         )}
         <View className="flex-row justify-between items-center mt-2">
-          <Text className="text-sm font-bold" style={styles.price}>{product.price}</Text>
+          <Text className="text-sm" style={styles.priceBold}>{product.price}</Text>
           <View className="items-end">
-            {product.quantity > 0 && <Text className="text-xs text-gray-500">{product.quantity}x</Text>}
-            <Text className="text-xs text-gray-500">Size: {product.size}</Text>
+            {product.quantity > 0 && <Text className="text-xs text-gray-500" style={{ fontFamily: 'Poppins-Medium' }}>{product.quantity}x</Text>}
+            <Text className="text-xs text-gray-500" style={{ fontFamily: 'Poppins-Medium' }}>Size: {product.size}</Text>
           </View>
         </View>
       </View>
@@ -41,7 +41,8 @@ export function ProductRow({ product }) {
 }
 
 const styles = StyleSheet.create({
-  price: {
+  priceBold: {
+    fontFamily: 'Poppins-Bold',
     color: colors.buttonColor,
   },
 });

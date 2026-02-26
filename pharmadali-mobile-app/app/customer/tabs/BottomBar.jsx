@@ -46,6 +46,7 @@ export default function BottomBar() {
             color: color,
             fontSize: 10,
             textAlign: 'center',
+            fontFamily: 'Poppins-Medium',
           }}
           numberOfLines={1}
         >

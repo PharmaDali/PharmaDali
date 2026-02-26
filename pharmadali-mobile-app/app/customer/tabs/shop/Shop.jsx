@@ -11,7 +11,7 @@ const Shop = () => {
       showsVerticalScrollIndicator={false}
     >
       <View>
-        <Text className="text-2xl font-bold p-5" style={styles.sectionLabel}>
+        <Text className="text-2xl p-5" style={styles.sectionLabelBold}>
           Categories
         </Text>
         {/* TODO: add catefories icon here */}
@@ -27,7 +27,7 @@ const Shop = () => {
         </View>
       </View>
       <View>
-        <Text className="text-2xl font-bold p-5" style={styles.categoriesTex}>
+        <Text className="text-2xl p-5" style={styles.sectionLabelBold}>
           Recently Viewed
         </Text>
       </View>
@@ -54,7 +54,7 @@ function CategoryCard({ icon, label }) {
       <View className="w-20 h-20 bg-gray-100 rounded-lg items-center justify-center">
         {icon}
       </View>
-      <Text className="text-sm mt-2 text-center" numberOfLines={2}>{label}</Text>
+      <Text className="text-sm mt-2 text-center" style={{ fontFamily: 'Poppins-Medium' }} numberOfLines={2}>{label}</Text>
     </View>
   );
 }
@@ -72,7 +72,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  sectionLabel: {
+  sectionLabelBold: {
+    fontFamily: 'Poppins-Bold',
     color: colors.textColor,
   },
 })

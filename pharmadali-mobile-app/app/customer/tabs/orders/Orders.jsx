@@ -12,13 +12,13 @@ const Orders = () => {
       <View className="items-center">
         <View className="flex-row items-center justify-center mt-5 rounded-2xl shadow-xl px-8 py-2 bg-white elevation-2 border border-gray-200">
           <TouchableOpacity onPress={() => setActiveTab('active')} className="px-4">
-            <Text className="text-lg font-semibold" style={activeTab === 'active' ? styles.activeTabLabel : styles.inactiveTabLabel}>
+            <Text className="text-lg" style={activeTab === 'active' ? styles.activeTabLabelBold : styles.inactiveTabLabelBold}>
               Active
             </Text>
             {activeTab === 'active' && <View className="mt-1 h-0.5" style={{ backgroundColor: colors.buttonColor }} />}
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setActiveTab('completed')} className="px-4">
-            <Text className="text-lg font-semibold" style={activeTab === 'completed' ? styles.activeTabLabel : styles.inactiveTabLabel}>
+            <Text className="text-lg" style={activeTab === 'completed' ? styles.activeTabLabelBold : styles.inactiveTabLabelBold}>
               Completed
             </Text>
             {activeTab === 'completed' && <View className="mt-1 h-0.5" style={{ backgroundColor: colors.buttonColor }} />}
@@ -38,10 +38,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  activeTabLabel: {
+  activeTabLabelBold: {
+    fontFamily: 'Poppins-SemiBold',
     color: colors.buttonColor,
   },
-  inactiveTabLabel: {
+  inactiveTabLabelBold: {
+    fontFamily: 'Poppins-SemiBold',
     color: '#999',
   },
 })

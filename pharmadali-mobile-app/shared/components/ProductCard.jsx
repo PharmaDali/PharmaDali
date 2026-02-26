@@ -12,10 +12,10 @@ export default function ProductCard({ img, description, category, price, style }
           style={{ height: 120 }}
           resizeMode="contain"
         />
-        <Text className="text-xs text-gray-600 mt-2">{category}</Text>
-        <Text className="text-sm mt-2" numberOfLines={2}>{description}</Text>
+        <Text className="text-xs text-gray-600 mt-2" style={{ fontFamily: 'Poppins-Medium' }}>{category}</Text>
+        <Text className="text-sm mt-2" style={{ fontFamily: 'Poppins-Medium' }} numberOfLines={2}>{description}</Text>
         <View className="flex-row items-center justify-between mt-2">
-          <Text className="text-md font-bold" style={styles.price}>{price}</Text>
+          <Text className="text-md" style={styles.priceBold}>{price}</Text>
           <AddToCartIcon width={28} height={28} />
         </View>
       </View>
@@ -24,7 +24,8 @@ export default function ProductCard({ img, description, category, price, style }
 }
 
 const styles = StyleSheet.create({
-  price: {
+  priceBold: {
+    fontFamily: 'Poppins-Bold',
     color: colors.buttonColor,
   },
 });
