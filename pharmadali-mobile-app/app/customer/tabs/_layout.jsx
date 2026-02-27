@@ -5,6 +5,7 @@ import TopBar from './TopBar';
 import { Slot, usePathname, useRouter } from 'expo-router';
 import { colors } from '@shared/colorPallete';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
+import { SelectionPhaseProvider, useSelectionPhase } from '@shared/SelectionPhaseContext';
 
 const detailHeaders = {
   '/customer/tabs/orders/ViewOrderDetails': 'Order Details',
@@ -22,17 +23,26 @@ function DetailTopBar({ title }) {
   )
 }
 
-export default function RootLayout() {
+function LayoutContent() {
   const pathname = usePathname()
   const detailTitle = detailHeaders[pathname]
+  const { selectionPhase } = useSelectionPhase()
 
   return (
+    <View style={styles.container}>
+      {!selectionPhase && (detailTitle ? <DetailTopBar title={detailTitle} /> : <TopBar />)}
+      <Slot />
+      {!selectionPhase && <BottomBar />}
+    </View>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <PaperProvider>
-      <View style={styles.container}>
-        {detailTitle ? <DetailTopBar title={detailTitle} /> : <TopBar />}
-        <Slot />
-        <BottomBar />
-      </View>
+      <SelectionPhaseProvider>
+        <LayoutContent />
+      </SelectionPhaseProvider>
     </PaperProvider>
   );
 }
