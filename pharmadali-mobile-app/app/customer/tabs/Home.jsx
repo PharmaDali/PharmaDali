@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { colors } from '@shared/colorPallete';
 import { useRouter } from 'expo-router';
@@ -6,10 +7,41 @@ import HomeCarousel from '@assets/icons/home_carousel.svg';
 import ProductCard from '@shared/components/ProductCard';
 import BandaidImg from '@assets/images/bandaid_img.png';
 import BetadineImg from '@assets/images/betadine_img.png';
+import SkeletonHome from '@shared/components/SkeletonHome';
+import BranchSelectionOverlay from '@shared/components/BranchSelectionOverlay';
+import { useSelectionPhase } from '@shared/SelectionPhaseContext';
 
 export default function HomeTab() {
-
   const route = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [showBranchOverlay, setShowBranchOverlay] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState(null);
+  const { setSelectionPhase } = useSelectionPhase();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+      setShowBranchOverlay(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleBranchSelect = (branch) => {
+    setSelectedBranch(branch);
+    setShowBranchOverlay(false);
+    setSelectionPhase(false);
+  };
+
+  if (loading) return <SkeletonHome />;
+
+  if (showBranchOverlay) {
+    return (
+      <View className="flex-1 bg-white">
+        <SkeletonHome />
+        <BranchSelectionOverlay visible={showBranchOverlay} onSelect={handleBranchSelect} />
+      </View>
+    );
+  }
 
   return (
     <ScrollView 
