@@ -25,7 +25,11 @@ export default function BottomBar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  const index = routes.findIndex(r => r.path === pathname) ?? 0;
+  const index = routes.findIndex(r => {
+    if (pathname === r.path) return true;
+    const dir = r.path.substring(0, r.path.lastIndexOf('/') + 1);
+    return dir !== '/customer/tabs/' && pathname.startsWith(dir);
+  });
 
   return (
     <BottomNavigation.Bar

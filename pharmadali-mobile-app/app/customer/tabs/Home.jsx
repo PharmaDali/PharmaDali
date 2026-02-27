@@ -1,5 +1,6 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { colors } from '@shared/colorPallete';
+import { useRouter } from 'expo-router';
 import StoreIcon from '@assets/icons/store_icon.svg';
 import HomeCarousel from '@assets/icons/home_carousel.svg';
 import ProductCard from '@shared/components/ProductCard';
@@ -7,6 +8,9 @@ import BandaidImg from '@assets/images/bandaid_img.png';
 import BetadineImg from '@assets/images/betadine_img.png';
 
 export default function HomeTab() {
+
+  const route = useRouter();
+
   return (
     <ScrollView 
       className="bg-white"
@@ -35,13 +39,15 @@ export default function HomeTab() {
           <Text className="text-2xl text-gray-600 px-2 py-2 mt-6" style={{ fontFamily: 'Poppins-Bold' }}>
             Categories
           </Text>
-          <Text className="text-md text-gray-600 px-2 py-2 mt-6" style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}>
+          <Text className="text-md text-gray-600 px-2 py-2 mt-6" style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}
+            onPress={() => route.push('/customer/tabs/shop/Shop')}
+          >
             See all
           </Text>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
           {categories.map((item, index) => (
-            <CategoryCard key={index} icon={item.icon} label={item.label} />
+            <CategoryCard key={index} icon={item.icon} label={item.label} onPress={() => route.push({ pathname: '/customer/tabs/shop/Categories', params: { category: item.label } })} />
           ))}
         </ScrollView>
       </View>
@@ -80,9 +86,9 @@ const categories = [
   { icon: '💉', label: 'Vitamins' },
 ];
 
-function CategoryCard({ icon, label }) {
+function CategoryCard({ icon, label, onPress }) {
   return (
-    <TouchableOpacity className="items-center mr-4">
+    <TouchableOpacity className="items-center mr-4" onPress={onPress}>
       <View className="w-16 h-16 rounded-full bg-blue-200 items-center justify-center">
         <Text className="text-2xl">{icon}</Text>
       </View>
