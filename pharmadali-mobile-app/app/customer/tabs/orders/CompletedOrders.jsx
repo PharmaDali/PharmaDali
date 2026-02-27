@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import { colors } from '@shared/colorPallete';
 import { StatusBadge, ProductRow } from './OrderComponents';
+import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg';
 import BetadineImg from '@assets/images/betadine_img.png';
 
 const completedOrders = [
@@ -24,7 +26,7 @@ const completedOrders = [
   },
 ];
 
-function CompletedOrderCard({ order }) {
+function CompletedOrderCard({ order, onViewDetails }) {
   return (
     <View className="border border-gray-200 bg-white rounded-2xl py-4 px-4 mt-4 mx-4 shadow-md elevation-2">
       <View className="flex-row justify-between items-start">
@@ -49,11 +51,9 @@ function CompletedOrderCard({ order }) {
       </View>
 
       <View className="items-center mt-4 mb-1">
-        <TouchableOpacity className="flex-row items-center rounded-xl px-6 py-2" style={styles.viewDetailsButton}>
+        <TouchableOpacity className="flex-row items-center rounded-xl px-6 py-2" style={styles.viewDetailsButton} onPress={onViewDetails}>
           <Text className="text-sm text-white mr-1" style={{ fontFamily: 'Poppins-SemiBold' }}>View Details</Text>
-
-          {/* //TODO: Add right arrow icon here */}
-          <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}></Text>
+          <ArrowForwardIcon width={13} height={13} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </View>
@@ -61,10 +61,16 @@ function CompletedOrderCard({ order }) {
 }
 
 export default function CompletedOrders() {
+  const router = useRouter()
+
+  const handleViewDetails = (order) => {
+    router.push({ pathname: '/customer/tabs/orders/ViewOrderDetails', params: { orderNumber: order.orderNumber } })
+  }
+
   return (
     <View className="mt-4 mb-4">
       {completedOrders.map((order, index) => (
-        <CompletedOrderCard key={index} order={order} />
+        <CompletedOrderCard key={index} order={order} onViewDetails={() => handleViewDetails(order)} />
       ))}
     </View>
   );
