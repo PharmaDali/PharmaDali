@@ -13,32 +13,29 @@ import { useSelectionPhase } from '@shared/SelectionPhaseContext';
 
 export default function HomeTab() {
   const route = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [showBranchOverlay, setShowBranchOverlay] = useState(false);
-  const [selectedBranch, setSelectedBranch] = useState(null);
-  const { setSelectionPhase } = useSelectionPhase();
+  const { selectionPhase, setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
+  const [loading, setLoading] = useState(!selectedBranch);
 
   useEffect(() => {
+    if (selectedBranch) return;
     const timer = setTimeout(() => {
       setLoading(false);
-      setShowBranchOverlay(true);
     }, 2000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [selectedBranch]);
 
   const handleBranchSelect = (branch) => {
     setSelectedBranch(branch);
-    setShowBranchOverlay(false);
     setSelectionPhase(false);
   };
 
   if (loading) return <SkeletonHome />;
 
-  if (showBranchOverlay) {
+  if (!selectedBranch) {
     return (
       <View className="flex-1 bg-white">
         <SkeletonHome />
-        <BranchSelectionOverlay visible={showBranchOverlay} onSelect={handleBranchSelect} />
+        <BranchSelectionOverlay visible={true} onSelect={handleBranchSelect} />
       </View>
     );
   }
