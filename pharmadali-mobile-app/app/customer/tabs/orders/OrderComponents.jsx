@@ -1,5 +1,6 @@
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { colors } from '@shared/colorPallete';
+import RxIcon from '@assets/icons/rx_icon.svg';
 
 const statusColors = {
   Pending:    { bg: '#E9E9E9', border: '#888888', text: '#333333' },
@@ -24,9 +25,11 @@ export function ProductRow({ product }) {
       <Image source={product.img} className="w-16 h-16 rounded-lg" resizeMode="contain" />
       <View className="flex-1 ml-3">
         <Text className="text-sm" style={{ fontFamily: 'Poppins-SemiBold' }} numberOfLines={2}>{product.description}</Text>
-        {/* //TODO: Add prescription icon here */}
         {product.prescriptionRequired && (
-          <Text className="text-xs mt-1" style={{ color: '#DC3545', fontFamily: 'Poppins-Medium' }}>℞ Prescription Required</Text>
+          <View className="flex-row items-center mt-1">
+            <RxIcon width={12} height={12} />
+            <Text className="text-xs ml-1" style={{ color: '#DC3545', fontFamily: 'Poppins-Medium' }}>Prescription Required</Text>
+          </View>
         )}
         <View className="flex-row justify-between items-center mt-2">
           <Text className="text-sm" style={styles.priceBold}>{product.price}</Text>
