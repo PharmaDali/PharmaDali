@@ -11,6 +11,14 @@ const detailHeaders = {
   '/customer/tabs/orders/ViewOrderDetails': 'Order Details',
 }
 
+const fullScreenRoutes = [
+  '/customer/tabs/cart/Cart',
+  '/customer/tabs/cart/ReviewOrder',
+  '/customer/tabs/cart/UploadPrescription',
+  '/customer/tabs/cart/PickupDetails',
+  '/customer/tabs/cart/OrderSubmitted',
+]
+
 function DetailTopBar({ title }) {
   const router = useRouter()
   return (
@@ -26,13 +34,14 @@ function DetailTopBar({ title }) {
 function LayoutContent() {
   const pathname = usePathname()
   const detailTitle = detailHeaders[pathname]
+  const isFullScreen = fullScreenRoutes.includes(pathname)
   const { selectionPhase } = useSelectionPhase()
 
   return (
     <View style={styles.container}>
-      {!selectionPhase && (detailTitle ? <DetailTopBar title={detailTitle} /> : <TopBar />)}
+      {!selectionPhase && !isFullScreen && (detailTitle ? <DetailTopBar title={detailTitle} /> : <TopBar />)}
       <Slot />
-      {!selectionPhase && <BottomBar />}
+      {!selectionPhase && !isFullScreen && <BottomBar />}
     </View>
   );
 }

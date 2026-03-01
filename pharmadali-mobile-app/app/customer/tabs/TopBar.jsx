@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native'
+import { useRouter } from 'expo-router'
 import MainLogo from '@shared/components/MainLogo'
 import { colors } from '@shared/colorPallete'
 import { TextInput } from 'react-native-paper'
@@ -7,11 +8,12 @@ import theme from '@shared/inputTheme'
 import React from 'react'
 
 const TopBar = () => {
+  const router = useRouter();
   return (
     <View style={{ backgroundColor: colors.buttonColor}} className="py-4 px-5 pt-8">
       <View className="flex-row items-center justify-between mb-[-30px]">
         <MainLogo />
-        <CartIcon width={30} height={30} />
+        <CartIcon width={30} height={30} onPress={() => router.push('/customer/tabs/cart/Cart')} />
       </View>
       <TextInput
         placeholder="Search"
