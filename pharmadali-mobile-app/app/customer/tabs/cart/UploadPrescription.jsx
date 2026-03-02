@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
 import { colors } from '@shared/colorPallete'
 import RxIcon from '@assets/icons/rx_icon.svg'
@@ -63,7 +64,7 @@ const UploadPrescription = () => {
   }
 
   return (
-    <View className="flex-1 bg-[#F1F4FF]">
+    <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
       <LogoHeader />
 
       <View className="pb-2 border-b border-gray-100">
@@ -140,7 +141,7 @@ const UploadPrescription = () => {
           <Text className="text-sm text-white" style={styles.fontSemiBold}>Next</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 

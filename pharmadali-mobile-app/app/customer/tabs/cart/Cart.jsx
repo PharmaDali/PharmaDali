@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '@shared/colorPallete'
 import RxIcon from '@assets/icons/rx_icon.svg'
 import BandaidImg from '@assets/images/bandaid_img.png'
@@ -148,7 +149,7 @@ const Cart = () => {
   const hasPrescription = cartItems.some((item) => item.prescriptionRequired)
 
   return (
-    <View className="flex-1 bg-[#F1F4FF]">
+    <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
       <View className="flex-row items-center justify-between px-5 pt-12 pb-4" style={styles.header}>
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
@@ -213,7 +214,7 @@ const Cart = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 

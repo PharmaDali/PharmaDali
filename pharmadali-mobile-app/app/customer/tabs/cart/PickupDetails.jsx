@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '@shared/colorPallete'
 import RedLocationIcon from '@assets/icons/red_location_icon.svg'
 import LogoHeader from '@shared/components/LogoHeader'
@@ -38,7 +39,7 @@ const PickupDetails = () => {
   const [selectedTime, setSelectedTime] = useState(1)
 
   return (
-    <View className="flex-1 bg-[#F1F4FF]">
+    <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
       <LogoHeader />
 
       <View className="pb-2 border-b border-gray-100">
@@ -121,7 +122,7 @@ const PickupDetails = () => {
           <Text className="text-sm text-white" style={styles.confirmPickupText}>Confirm Pickup</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 

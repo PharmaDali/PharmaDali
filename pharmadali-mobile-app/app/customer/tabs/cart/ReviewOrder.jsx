@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
 import { useRouter } from 'expo-router'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '@shared/colorPallete'
 import RxIcon from '@assets/icons/rx_icon.svg'
 import LogoHeader from '@shared/components/LogoHeader'
@@ -74,7 +75,7 @@ const ReviewOrder = () => {
   const hasPrescription = orderItems.some((item) => item.prescriptionRequired)
 
   return (
-    <View className="flex-1 bg-[#F1F4FF]">
+    <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
       <LogoHeader />
 
 
@@ -132,7 +133,7 @@ const ReviewOrder = () => {
           <Text className="text-sm text-white" style={styles.nextText}>Next</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   )
 }
 
