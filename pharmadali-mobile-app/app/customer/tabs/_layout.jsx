@@ -17,6 +17,7 @@ const fullScreenRoutes = [
   '/customer/tabs/cart/UploadPrescription',
   '/customer/tabs/cart/PickupDetails',
   '/customer/tabs/cart/OrderSubmitted',
+  '/customer/tabs/shop/ProductView',
 ]
 
 function DetailTopBar({ title }) {
