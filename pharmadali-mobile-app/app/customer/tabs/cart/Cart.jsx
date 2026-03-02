@@ -195,7 +195,7 @@ const Cart = () => {
         )}
       </ScrollView>
 
-      <View className="flex-row items-center justify-between bg-white px-4 py-3 border-t border-gray-200" style={styles.bottomBar}>
+      <View className="flex-row items-center justify-between bg-white px-4 py-3 border-t border-gray-200">
         <View className="flex-row items-center">
           <Checkbox checked={allSelected} onPress={toggleAll} />
           <Text className="text-sm" style={styles.fontMedium}>All</Text>
@@ -243,12 +243,5 @@ const styles = StyleSheet.create({
   totalPrice: {
     fontFamily: 'Poppins-Bold',
     color: colors.buttonColor,
-  },
-  bottomBar: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 5,
   },
 })
