@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import React, { useState } from 'react';
 import { colors } from '@shared/colorPallete';
-import { StatusBadge, ProductRow } from './OrderComponents';
+import { StatusBadge, ProductRow } from '@shared/components/OrderComponents';
 import CancelOrderOverlay from '@shared/components/CancelOrderOverlay';
 import BetadineImg from '@assets/images/betadine_img.png';
 

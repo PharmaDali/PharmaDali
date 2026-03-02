@@ -2,7 +2,7 @@ import { Text, View, ScrollView, TouchableOpacity, Image, StyleSheet } from 'rea
 import React, { useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { colors } from '@shared/colorPallete'
-import { StatusBadge, ProductRow } from './OrderComponents'
+import { StatusBadge, ProductRow } from '@shared/components/OrderComponents'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import BetadineImg from '@assets/images/betadine_img.png'
 import RecitDummy from '@assets/images/recit_dummy.png'
