@@ -10,7 +10,7 @@ import React from 'react'
 const TopBar = () => {
   const router = useRouter();
   return (
-    <View style={{ backgroundColor: colors.buttonColor}} className="py-4 px-5 pt-8">
+    <View style={{ backgroundColor: colors.buttonColor}} className="py-4 px-5 pt-3">
       <View className="flex-row items-center justify-between mb-[-30px]">
         <MainLogo />
         <CartIcon width={30} height={30} onPress={() => router.push('/customer/tabs/cart/Cart')} />
