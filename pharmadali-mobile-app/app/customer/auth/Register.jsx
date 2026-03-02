@@ -62,6 +62,7 @@ const Register = () => {
                 value={dateOfBirth}
                 mode="date"
                 display="default"
+                maximumDate={new Date()}
                 onChange={(event, selectedDate) => {
                   setShowDatePicker(false);
                   if (selectedDate) {

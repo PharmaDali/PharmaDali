@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { colors } from '@shared/colorPallete';
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router';
 import StoreIcon from '@assets/icons/store_icon.svg';
 import HomeCarousel from '@assets/icons/home_carousel.svg';
@@ -33,10 +34,10 @@ export default function HomeTab() {
 
   if (!selectedBranch) {
     return (
-      <View className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white">
         <SkeletonHome />
         <BranchSelectionOverlay visible={true} onSelect={handleBranchSelect} />
-      </View>
+      </SafeAreaView>
     );
   }
 
