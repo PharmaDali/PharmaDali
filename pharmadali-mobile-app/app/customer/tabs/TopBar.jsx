@@ -11,7 +11,7 @@ const TopBar = () => {
   const router = useRouter();
   return (
     <View style={{ backgroundColor: colors.buttonColor}} className="py-4 px-5 pt-3">
-      <View className="flex-row items-center justify-between mb-[-30px]">
+      <View className="flex-row items-center justify-between mb-[-20px]">
         <MainLogo />
         <TouchableOpacity onPress={() => router.push('/customer/tabs/cart/Cart')}>
           <CartIcon width={30} height={30} />
