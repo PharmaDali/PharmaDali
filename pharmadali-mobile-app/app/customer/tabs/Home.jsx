@@ -34,7 +34,7 @@ export default function HomeTab() {
 
   if (!selectedBranch) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+      <SafeAreaView className="flex-1 bg-white" edges={['bottom', 'top']}>
         <SkeletonHome />
         <BranchSelectionOverlay visible={true} onSelect={handleBranchSelect} />
       </SafeAreaView>
