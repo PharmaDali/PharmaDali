@@ -4,7 +4,7 @@ import MainLogoSVG from '@assets/main_logo.svg'
 const MainLogo = () => {
   return (
     <View>
-      <MainLogoSVG width={200} height={150} />
+      <MainLogoSVG width={200} height={100} />
     </View>
   )
 }
