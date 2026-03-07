@@ -59,30 +59,33 @@ const Notifications = () => {
       style={styles.container}
       showsVerticalScrollIndicator={false}
     >
-      <View className="flex-row justify-around px-5 pt-5 pb-3">
-        <TouchableOpacity onPress={() => setActiveTab('orders')}>
-          <Text
-            className="text-base"
-            style={activeTab === 'orders' ? styles.semiBoldText : styles.text}
-          >
-            Order Updates
-          </Text>
-          {activeTab === 'orders' && (
-            <View className="mt-1 h-0.5 rounded-full" style={{ backgroundColor: colors.buttonColor }} />
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setActiveTab('pharmadali')}>
-          <Text
-            className="text-base"
-            style={activeTab === 'pharmadali' ? styles.semiBoldText : styles.text}
-          >
-            PharmaDali Updates
-          </Text>
-          {activeTab === 'pharmadali' && (
-            <View className="mt-1 h-0.5 rounded-full" style={{ backgroundColor: colors.buttonColor }} />
-          )}
-        </TouchableOpacity>
+      <View className="items-center">
+        <View className="flex-row items-center gap-6 mt-5 rounded-2xl shadow-xl px-8 py-2 bg-white border border-gray-200 self-center">
+          <TouchableOpacity onPress={() => setActiveTab('orders')}>
+            <Text
+              className="text-base"
+              style={activeTab === 'orders' ? styles.semiBoldText : styles.text}
+            >
+              Order Updates
+            </Text>
+            {activeTab === 'orders' && (
+              <View className="mt-1 h-0.5 rounded-full" style={{ backgroundColor: colors.buttonColor }} />
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setActiveTab('pharmadali')}>
+            <Text
+              className="text-base"
+              style={activeTab === 'pharmadali' ? styles.semiBoldText : styles.text}
+            >
+              PharmaDali Updates
+            </Text>
+            {activeTab === 'pharmadali' && (
+              <View className="mt-1 h-0.5 rounded-full" style={{ backgroundColor: colors.buttonColor }} />
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
+      
 
       <View className="h-px bg-gray-200 mx-4" />
 
