@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/HomePage";
 import SalesReports from "./pages/SalesReports";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -10,6 +11,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route index element={<HomePage />} />
           <Route path="sales-reports" element={<SalesReports />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>
