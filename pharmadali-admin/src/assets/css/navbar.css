@@ -1,0 +1,22 @@
+.navbar-bar {
+  background: var(--pd-gradient-navbar);
+  z-index: 1001;
+}
+
+.hamburger-menu {
+  width: 30px;
+  height: 24px;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
+
+.hamburger-menu:hover {
+  transform: scale(1.1);
+}
+
+.hamburger-line {
+  display: block;
+  height: 3px;
+  background-color: white;
+  border-radius: 2px;
+}
