@@ -14,238 +14,138 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        .header-bar {
-            background: #96D2EE;
-            background: linear-gradient(90deg, rgba(150, 210, 238, 1) 0%, rgba(191, 225, 242, 1) 74%, rgba(255, 255, 255, 1) 100%);
-            position: sticky;
-            top: 0;
-            z-index: 1001;
-        }
-
-        .hamburger-line {
-            display: block;
-            height: 3px;
-            background-color: white;
-            border-radius: 2px;
-        }
-
-        .time-icon {
-            font-size: 24px;
-            color: #FFD700;
-        }
-
-        .time-icon.afternoon {
-            color: #FFA500;
-        }
-
-        .time-icon.evening {
-            color: #6B7280;
-        }
-
-        .hamburger-menu {
-            cursor: pointer;
-            transition: transform 0.3s ease;
         }
 
         .hamburger-menu:hover {
             transform: scale(1.1);
         }
 
-        .sidebar {
-            position: fixed;
-            top: 78px;
-            left: -350px;
-            width: 350px;
-            height: calc(100vh - 78px);
-            background: #F5F5F5;
-            box-shadow: 5px 4px 10px rgba(0, 0, 0, 0.1);
-            transition: left 0.3s ease;
-            z-index: 1000;
-            padding: 0;
-            overflow-y: auto;
-            border-top: none;
+        .menu-item:hover {
+            background-color: rgba(0, 166, 237, 0.05) !important;
+        }
+
+        .menu-item.active:hover {
+            background-color: #48AAD9 !important;
+        }
+
+        .sidebar,
+        .sidebar-toggle,
+        .hamburger-menu {
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle i {
+            transition: transform 0.3s ease;
         }
 
         .sidebar.active {
-            left: 0;
-        }
-
-        .sidebar-header {
-            background: linear-gradient(135deg, #96D2EE 0%, #BFE1F2 100%);
-            padding: 20px 15px;
-            position: relative;
-        }
-
-        .profile-img {
-            width: 45px;
-            height: 45px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 2px solid white;
-        }
-
-        .profile-name {
-            font-weight: 600;
-            font-size: 16px;
-            color: #333;
-            margin: 0;
-        }
-
-        .pharmacy-name {
-            font-size: 12px;
-            color: #FF4242;
-            margin: 0;
-        }
-
-        .sidebar-menu {
-            padding: 0;
-        }
-
-        .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 20px 20px;
-            color: #00A6ED;
-            text-decoration: none;
-            transition: all 0.2s ease;
-            position: relative;
-            font-size: 15px;
-        }
-
-        .menu-item:hover {
-            background: rgba(0, 166, 237, 0.05);
-        }
-
-        .menu-item.active {
-            background: #48AAD9;
-            color: white;
-        }
-
-        .menu-item i {
-            font-size: 18px;
-            width: 20px;
-            text-align: center;
-        }
-
-        .notification-badge {
-            position: absolute;
-            right: 20px;
-            background: #FF4242;
-            color: white;
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-weight: 600;
-        }
-
-        .menu-dots {
-            cursor: pointer;
-            font-size: 20px;
-            color: #333;
-        }
-
-        .menu-divider {
-            height: 1px;
-            background-color: #D0D0D0;
-            margin: 10px 15px;
-        }
-
-        .sidebar-overlay {
-            position: fixed;
-            top: 78px;
-            left: 0;
-            width: 100%;
-            height: calc(100% - 78px);
-            background: rgba(0, 0, 0, 0.5);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-            z-index: 999;
+            left: 0 !important;
         }
 
         .sidebar-overlay.active {
-            opacity: 1;
-            visibility: visible;
+            opacity: 1 !important;
+            visibility: visible !important;
         }
     </style>
 </head>
 
-<body>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+<body class="m-0 p-0" style="overflow-x: hidden; background: #E8F0FE;">
+    <div class="sidebar-overlay" id="sidebarOverlay"
+        style="position: fixed; top: 62px; left: 0; width: 100%; height: calc(100% - 62px); background: transparent; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; z-index: 999;"></div>
 
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
+    <div class="sidebar position-fixed p-0 overflow-auto" id="sidebar"
+        style="top: 62px; left: -250px; width: 250px; height: calc(100vh - 62px); background: #F5F5F5; box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08); z-index: 1000;">
+        <div class="position-relative"
+            style="background: linear-gradient(135deg, #96D2EE 0%, #BFE1F2 100%); padding: 20px 15px;">
             <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
-                    <img src="https://ui-avatars.com/api/?name=Denmar&background=4A90E2&color=fff&size=45" alt="Profile"
-                        class="profile-img">
+                    <div class="position-relative d-inline-block">
+                        <img src="https://ui-avatars.com/api/?name=Denmar&background=4A90E2&color=fff&size=45"
+                            alt="Profile" class="rounded-2"
+                            style="width: 45px; height: 45px; object-fit: cover; border: 2px solid white;">
+                        <span class="position-absolute rounded-circle"
+                            style="width: 10px; height: 10px; background: #22c55e; border: 2px solid white; bottom: -2px; left: -2px;"></span>
+                    </div>
                     <div>
-                        <p class="profile-name">Denmar</p>
-                        <p class="pharmacy-name">Laily's Pharmacy</p>
+                        <p class="fw-semibold m-0" style="font-size: 16px; color: #333;">Denmar</p>
+                        <p class="m-0" style="font-size: 12px; color: #FF4242;">Laily's Pharmacy</p>
                     </div>
                 </div>
-                <i class="fa-solid fa-ellipsis-vertical menu-dots"></i>
+                <i class="fa-solid fa-ellipsis-vertical" style="cursor: pointer; font-size: 20px; color: #333;"></i>
             </div>
         </div>
 
-        <nav class="sidebar-menu">
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-th-large"></i>
+        <nav class="p-0">
+            <a href="#" class="menu-item d-flex align-items-center gap-3 position-relative text-decoration-none"
+                style="padding: 14px 20px; color: #00A6ED; font-size: 14px;">
+                <i class="fa-solid fa-th-large" style="font-size: 16px; width: 20px; text-align: center;"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-store"></i>
+            <a href="#" class="menu-item d-flex align-items-center gap-3 position-relative text-decoration-none"
+                style="padding: 14px 20px; color: #00A6ED; font-size: 14px;">
+                <i class="fa-solid fa-store" style="font-size: 16px; width: 20px; text-align: center;"></i>
                 <span>POS</span>
             </a>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-chart-line"></i>
+            <a href="#" class="menu-item d-flex align-items-center gap-3 position-relative text-decoration-none"
+                style="padding: 14px 20px; color: #00A6ED; font-size: 14px;">
+                <i class="fa-solid fa-chart-line" style="font-size: 16px; width: 20px; text-align: center;"></i>
                 <span>Pickup Orders</span>
             </a>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-boxes"></i>
+            <a href="#" class="menu-item d-flex align-items-center gap-3 position-relative text-decoration-none"
+                style="padding: 14px 20px; color: #00A6ED; font-size: 14px;">
+                <i class="fa-solid fa-boxes" style="font-size: 16px; width: 20px; text-align: center;"></i>
                 <span>Inventory</span>
             </a>
-            <div class="menu-divider"></div>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-brain"></i>
+            <div style="height: 1px; background-color: #D0D0D0; margin: 5px 15px;"></div>
+            <a href="#" class="menu-item d-flex align-items-center gap-3 position-relative text-decoration-none"
+                style="padding: 14px 20px; color: #00A6ED; font-size: 14px;">
+                <i class="fa-solid fa-brain" style="font-size: 16px; width: 20px; text-align: center;"></i>
                 <span>AI Forecasting</span>
             </a>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-chart-bar"></i>
-                <span>Sales & Reports</span>
+            <a href="#" class="menu-item d-flex align-items-center gap-3 position-relative text-decoration-none"
+                style="padding: 14px 20px; color: #00A6ED; font-size: 14px;">
+                <i class="fa-solid fa-chart-bar" style="font-size: 16px; width: 20px; text-align: center;"></i>
+                <span>Sales &amp; Reports</span>
             </a>
-            <div class="menu-divider"></div>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-users"></i>
+            <div style="height: 1px; background-color: #D0D0D0; margin: 5px 15px;"></div>
+            <a href="#" class="menu-item d-flex align-items-center gap-3 position-relative text-decoration-none"
+                style="padding: 14px 20px; color: #00A6ED; font-size: 14px;">
+                <i class="fa-solid fa-users" style="font-size: 16px; width: 20px; text-align: center;"></i>
                 <span>Users</span>
             </a>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-bell"></i>
+            <a href="#" class="menu-item d-flex align-items-center gap-3 position-relative text-decoration-none"
+                style="padding: 14px 20px; color: #00A6ED; font-size: 14px;">
+                <i class="fa-solid fa-bell" style="font-size: 16px; width: 20px; text-align: center;"></i>
                 <span>Notifications</span>
-                <span class="notification-badge">01</span>
+                <span class="position-absolute rounded-pill fw-semibold"
+                    style="right: 20px; background: #FF4242; color: white; font-size: 11px; padding: 2px 8px;">01</span>
             </a>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-cog"></i>
+            <a href="#" class="menu-item d-flex align-items-center gap-3 position-relative text-decoration-none"
+                style="padding: 14px 20px; color: #00A6ED; font-size: 14px;">
+                <i class="fa-solid fa-cog" style="font-size: 16px; width: 20px; text-align: center;"></i>
                 <span>Settings</span>
             </a>
-            <a href="#" class="menu-item">
-                <i class="fa-solid fa-question-circle"></i>
+            <a href="#" class="menu-item d-flex align-items-center gap-3 position-relative text-decoration-none"
+                style="padding: 14px 20px; color: #00A6ED; font-size: 14px;">
+                <i class="fa-solid fa-question-circle" style="font-size: 16px; width: 20px; text-align: center;"></i>
                 <span>Get Technical Help</span>
             </a>
         </nav>
     </div>
 
-    <div class="d-flex align-items-center p-3 gap-3 header-bar">
-        <div class="d-flex flex-column justify-content-between hamburger-menu" style="width: 30px; height: 24px;"
-            id="hamburgerMenu">
-            <span class="hamburger-line"></span>
-            <span class="hamburger-line"></span>
-            <span class="hamburger-line"></span>
+    <button class="sidebar-toggle position-fixed d-flex align-items-center justify-content-center border-0"
+        id="sidebarToggle"
+        style="top: 80%; left: -250px; transform: translateY(-50%); width: 20px; height: 50px; background: #48AAD9; border-radius: 0 8px 8px 0; color: white; cursor: pointer; z-index: 1001; padding: 0; font-size: 12px;">
+        <i class="fa-solid fa-chevron-left"></i>
+    </button>
+
+    <div class="d-flex align-items-center p-3 gap-3 position-sticky top-0"
+        style="background: linear-gradient(90deg, rgba(150, 210, 238, 1) 0%, rgba(191, 225, 242, 1) 74%, rgba(255, 255, 255, 1) 100%); z-index: 1001;">
+        <div class="d-flex flex-column justify-content-between hamburger-menu"
+            style="width: 30px; height: 24px; cursor: pointer;" id="hamburgerMenu">
+            <span class="d-block" style="height: 3px; background-color: white; border-radius: 2px;"></span>
+            <span class="d-block" style="height: 3px; background-color: white; border-radius: 2px;"></span>
+            <span class="d-block" style="height: 3px; background-color: white; border-radius: 2px;"></span>
         </div>
 
         <div class="flex-shrink-0">
@@ -255,7 +155,7 @@
 
         <div class="d-flex align-items-center gap-3 ms-auto flex-shrink-0">
             <div class="d-flex align-items-center gap-2 fw-medium">
-                <i class="fa-solid fa-sun time-icon"></i>
+                <i class="fa-solid fa-sun" id="timeIcon" style="font-size: 24px; color: #FFD700;"></i>
                 <span class="greeting-text">Good Morning</span>
             </div>
             <div class="small">
@@ -285,21 +185,22 @@
             const now = new Date();
             const hour = now.getHours();
             const greetingText = document.querySelector('.greeting-text');
-            const timeIcon = document.querySelector('.time-icon');
+            const timeIcon = document.getElementById('timeIcon');
 
-            timeIcon.classList.remove('afternoon', 'evening', 'fa-sun', 'fa-cloud-sun', 'fa-moon');
+            timeIcon.classList.remove('fa-sun', 'fa-cloud-sun', 'fa-moon');
 
             if (hour < 12) {
                 greetingText.textContent = 'Good Morning';
                 timeIcon.classList.add('fa-sun');
+                timeIcon.style.color = '#FFD700';
             } else if (hour < 18) {
                 greetingText.textContent = 'Good Afternoon';
                 timeIcon.classList.add('fa-cloud-sun');
-                timeIcon.classList.add('afternoon');
+                timeIcon.style.color = '#FFA500';
             } else {
                 greetingText.textContent = 'Good Evening';
                 timeIcon.classList.add('fa-moon');
-                timeIcon.classList.add('evening');
+                timeIcon.style.color = '#6B7280';
             }
         }
 
@@ -313,14 +214,27 @@
         const hamburgerMenu = document.getElementById('hamburgerMenu');
         const sidebar = document.getElementById('sidebar');
         const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        let sidebarOpen = false;
 
         function toggleSidebar() {
-            sidebar.classList.toggle('active');
-            sidebarOverlay.classList.toggle('active');
+            sidebarOpen = !sidebarOpen;
+            if (sidebarOpen) {
+                sidebar.classList.add('active');
+                sidebarOverlay.classList.add('active');
+                sidebarToggle.style.left = '250px';
+                sidebarToggle.querySelector('i').style.transform = 'rotate(0deg)';
+            } else {
+                sidebar.classList.remove('active');
+                sidebarOverlay.classList.remove('active');
+                sidebarToggle.style.left = '0';
+                sidebarToggle.querySelector('i').style.transform = 'rotate(180deg)';
+            }
         }
 
         hamburgerMenu.addEventListener('click', toggleSidebar);
         sidebarOverlay.addEventListener('click', toggleSidebar);
+        sidebarToggle.addEventListener('click', toggleSidebar);
     </script>
 </body>
 
