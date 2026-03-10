@@ -1,0 +1,156 @@
+.page-title {
+  font-size: 28px;
+  color: var(--pd-primary);
+}
+
+.page-subtitle {
+  font-size: 14px;
+  color: var(--pd-text-muted);
+}
+
+.section-title {
+  font-size: 20px;
+  color: var(--pd-primary);
+  margin-bottom: 15px;
+}
+
+/* Revenue Cards */
+.revenue-card {
+  background: var(--pd-gradient-revenue);
+  border-radius: 12px;
+  padding: 15px 20px;
+  min-width: 180px;
+}
+
+.revenue-label {
+  font-size: 12px;
+  opacity: 0.95;
+  color: var(--pd-text-medium);
+}
+
+.revenue-currency {
+  font-size: 14px;
+  color: var(--pd-text-medium);
+}
+
+.revenue-amount {
+  font-size: 36px;
+  line-height: 1.1;
+  color: var(--pd-text-medium);
+}
+
+/* Filters */
+.filter-label {
+  font-size: 13px;
+  color: var(--pd-text-muted);
+}
+
+.filter-input {
+  border: 1.5px solid var(--pd-border);
+  border-radius: 25px;
+  padding: 8px 38px 8px 16px;
+  font-size: 13px;
+  color: var(--pd-text-placeholder);
+  min-width: 200px;
+}
+
+.filter-input.with-search-icon {
+  padding-left: 38px;
+  padding-right: 16px;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+  border-color: var(--pd-primary-dark);
+  outline: none;
+}
+
+.filter-input-icon,
+.filter-search-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--pd-text-placeholder);
+  font-size: 14px;
+}
+
+.filter-input-icon {
+  right: 14px;
+}
+
+.filter-search-icon {
+  left: 14px;
+  z-index: 1;
+}
+
+.filter-select {
+  border: 1.5px solid var(--pd-border);
+  border-radius: 25px;
+  padding: 8px 35px 8px 16px;
+  font-size: 13px;
+  color: var(--pd-text-placeholder);
+  min-width: 180px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2348AAD9' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+
+/* Data Cards */
+.data-card {
+  min-height: 320px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.forecast-th {
+  font-size: 13px;
+  color: #555;
+  padding: 8px 0;
+  border-bottom: 1.5px solid #eee;
+}
+
+.forecast-td {
+  font-size: 13px;
+  color: #000;
+  padding: 12px 0;
+  border-bottom: 1px solid #f3f3f3;
+}
+
+/* Stockout Risk */
+.stockout-title {
+  font-size: 17px;
+  color: var(--pd-primary);
+  margin-bottom: 18px;
+}
+
+.stockout-row {
+  padding: 10px 0;
+}
+
+.stockout-row.with-border {
+  border-bottom: 1px solid #f3f3f3;
+}
+
+.risk-label {
+  font-size: 10px;
+}
+
+.medicine-name {
+  font-size: 14px;
+  color: var(--pd-text-dark);
+}
+
+.units-value {
+  font-size: 18px;
+  color: var(--pd-primary);
+}
+
+.units-label {
+  font-size: 11px;
+  color: var(--pd-text-placeholder);
+}
+
+.date-label {
+  font-size: 11px;
+  color: var(--pd-text-light);
+}

@@ -1,0 +1,11 @@
+.main-content {
+  min-height: calc(100vh - var(--pd-navbar-height));
+  background: var(--pd-bg-main);
+  padding: 30px 35px;
+  margin-left: 0;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.sidebar-open {
+  margin-left: var(--pd-sidebar-width);
+}

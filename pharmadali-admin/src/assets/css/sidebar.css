@@ -1,0 +1,119 @@
+.sidebar-overlay {
+  position: fixed;
+  top: var(--pd-navbar-height);
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--pd-navbar-height));
+  background: transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  z-index: 999;
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.sidebar {
+  top: var(--pd-navbar-height);
+  left: calc(-1 * var(--pd-sidebar-width));
+  width: var(--pd-sidebar-width);
+  height: calc(100vh - var(--pd-navbar-height));
+  background: var(--pd-bg-sidebar);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.08);
+  z-index: 1000;
+  transition: left 0.3s ease;
+}
+
+.sidebar.active {
+  left: 0;
+}
+
+.sidebar-profile {
+  background: var(--pd-gradient-sidebar-profile);
+  padding: 20px 15px;
+}
+
+.profile-avatar {
+  width: 45px;
+  height: 45px;
+  object-fit: cover;
+  border: 2px solid white;
+}
+
+.online-indicator {
+  width: 10px;
+  height: 10px;
+  background: var(--pd-success);
+  border: 2px solid white;
+  bottom: -2px;
+  left: -2px;
+}
+
+.menu-item {
+  padding: 14px 20px;
+  color: var(--pd-menu-link);
+  font-size: 14px;
+}
+
+.menu-item:hover {
+  background-color: rgba(0, 166, 237, 0.05);
+  color: var(--pd-menu-link);
+}
+
+.menu-item.active {
+  background: var(--pd-primary-dark);
+  color: white;
+}
+
+.menu-item.active:hover {
+  background-color: var(--pd-primary-dark);
+}
+
+.menu-badge {
+  right: 20px;
+  background: var(--pd-danger);
+  color: white;
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background-color: var(--pd-divider);
+  margin: 5px 15px;
+}
+
+.sidebar-toggle {
+  top: 80%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 50px;
+  background: var(--pd-primary-dark);
+  border-radius: 0 8px 8px 0;
+  color: white;
+  cursor: pointer;
+  z-index: 1001;
+  padding: 0;
+  font-size: 12px;
+  transition: left 0.3s ease;
+}
+
+.sidebar-toggle i {
+  transition: transform 0.3s ease;
+}
+
+.sidebar-toggle.open {
+  left: var(--pd-sidebar-width);
+}
+
+.sidebar-toggle.open i {
+  transform: rotate(0deg);
+}
+
+.sidebar-toggle:not(.open) i {
+  transform: rotate(180deg);
+}
