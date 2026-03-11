@@ -90,7 +90,6 @@ function CurrentOrder({ items, paymentMethod, onPaymentChange, onCompleteSale, o
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
-      {/* Inner card: scrollable order table */}
       <div
         className="card border-1 shadow-sm"
         style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}
@@ -140,7 +139,6 @@ function CurrentOrder({ items, paymentMethod, onPaymentChange, onCompleteSale, o
         )}
       </div>
 
-      {/* Summary */}
       <div className="d-flex justify-content-between align-items-end px-1 pt-3 pb-2">
         <div>
           <div style={{ fontSize: 12, color: "#888" }}>No. of Items</div>
@@ -152,7 +150,6 @@ function CurrentOrder({ items, paymentMethod, onPaymentChange, onCompleteSale, o
         </div>
       </div>
 
-      {/* Payment Method */}
       <div className="pb-2">
         <div style={{ fontSize: 13, fontWeight: 600, color: "#444", marginBottom: 6 }}>Payment Method</div>
         <div className="d-flex gap-2">
@@ -181,7 +178,6 @@ function CurrentOrder({ items, paymentMethod, onPaymentChange, onCompleteSale, o
         </div>
       </div>
 
-      {/* Complete Sale */}
       <button
         className="btn w-100 py-2"
         style={{ background: "#2aabe2", color: "white", fontSize: 14, fontWeight: 600, borderRadius: 8 }}
