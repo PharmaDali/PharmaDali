@@ -9,3 +9,20 @@
 .main-content.sidebar-open {
   margin-left: var(--pd-sidebar-width);
 }
+
+.pos-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.pos-scroll::-webkit-scrollbar-track {
+  background: #f0f4f8;
+  border-radius: 10px;
+}
+.pos-scroll::-webkit-scrollbar-thumb {
+  background: var(--pd-primary);
+  border-radius: 10px;
+}
+.pos-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--pd-primary-dark);
+}
+
+
