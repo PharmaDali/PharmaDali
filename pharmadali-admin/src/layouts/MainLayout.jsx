@@ -10,7 +10,7 @@ function MainLayout() {
 
   return (
     <div className="layout-wrapper">
-      <NavBar onToggleSidebar={toggleSidebar} />
+      <NavBar onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
       <SideBar isOpen={sidebarOpen} onToggle={toggleSidebar} />
       <main
         className={`main-content${sidebarOpen ? " sidebar-open" : ""}`}
