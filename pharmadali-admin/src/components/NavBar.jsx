@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-function NavBar({ onToggleSidebar }) {
+function NavBar({ onToggleSidebar, sidebarOpen }) {
   const [time, setTime] = useState("");
   const [date, setDate] = useState("");
   const [greeting, setGreeting] = useState("Good Morning");
@@ -52,7 +52,7 @@ function NavBar({ onToggleSidebar }) {
   return (
     <div className="navbar-bar d-flex align-items-center p-3 gap-3 position-sticky top-0">
       <div
-        className="d-flex flex-column justify-content-between hamburger-menu"
+        className={`d-flex flex-column justify-content-between hamburger-menu${sidebarOpen ? " d-none" : ""}`}
         onClick={onToggleSidebar}
       >
         <span className="hamburger-line" />
