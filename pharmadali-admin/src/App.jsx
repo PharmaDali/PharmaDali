@@ -3,6 +3,7 @@ import MainLayout from "./layouts/MainLayout";
 import HomePage from "./pages/HomePage";
 import SalesReports from "./pages/SalesReports";
 import Settings from "./pages/Settings";
+import PosPage from "./pages/PosPage";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="sales-reports" element={<SalesReports />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="pos" element={<PosPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
