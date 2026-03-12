@@ -4,6 +4,7 @@ import DashBoard from "./pages/DashBoard";
 import SalesReports from "./pages/SalesReports";
 import Settings from "./pages/Settings";
 import PosPage from "./pages/PosPage";
+import PickUp from "./pages/PickUp";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="sales-reports" element={<SalesReports />} />
           <Route path="settings" element={<Settings />} />
           <Route path="pos" element={<PosPage />} />
+          <Route path="pick-up" element={<PickUp />} />
         </Route>
       </Routes>
     </BrowserRouter>

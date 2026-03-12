@@ -5,7 +5,7 @@ const MENU_SECTIONS = [
     items: [
       { to: "/", icon: "fa-th-large", label: "Dashboard" },
       { to: "/pos", icon: "fa-store", label: "POS" },
-      { to: "/pickup-orders", icon: "fa-chart-line", label: "Pickup Orders" },
+      { to: "/pick-up", icon: "fa-chart-line", label: "Pickup Orders" },
       { to: "/inventory", icon: "fa-boxes", label: "Inventory" },
     ],
   },
