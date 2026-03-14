@@ -5,6 +5,7 @@ import SalesReports from "./pages/SalesReports";
 import Settings from "./pages/Settings";
 import PosPage from "./pages/PosPage";
 import PickUp from "./pages/PickUp";
+import Notifications from "./pages/Notifications";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="pos" element={<PosPage />} />
           <Route path="pick-up" element={<PickUp />} />
+          <Route path="notifications" element={<Notifications />} />
         </Route>
       </Routes>
     </BrowserRouter>
