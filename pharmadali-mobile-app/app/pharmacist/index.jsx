@@ -21,7 +21,7 @@ export default function LoginScreen() {
         </Text>
         <TouchableOpacity className="rounded-lg bg-[#48AAD9] mt-10 px-6 py-3 mb-2" style={styles.semiBoldText}>
           <Link href="/pharmacist/auth/PharmacistLogin">
-            <Text className="text-white font-bold">Ilagay ang PIN Code</Text>
+            <Text className="text-white font-bold">Mag-login</Text>
           </Link>
         </TouchableOpacity>
         <Text>-Or-</Text>
