@@ -7,6 +7,8 @@ import AnimatedSplashLayout from '@shared/components/AnimatedSplashLayout';
 
 export default function LoginScreen() {
 
+  const router = useRouter();
+
   return (
     <AnimatedSplashLayout>
       <View className="items-center mt-10">
@@ -18,7 +20,7 @@ export default function LoginScreen() {
           For your security, we need to verify your identity
         </Text>
         <TouchableOpacity className="rounded-lg bg-[#48AAD9] mt-10 px-6 py-3 mb-2" style={styles.semiBoldText}>
-          <Link href="/pharmacist/auth/EnterPin">
+          <Link href="/pharmacist/auth/PharmacistLogin">
             <Text className="text-white font-bold">Ilagay ang PIN Code</Text>
           </Link>
         </TouchableOpacity>
