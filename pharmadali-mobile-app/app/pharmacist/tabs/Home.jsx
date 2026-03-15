@@ -30,14 +30,14 @@ const QuickStats = () => (
         Quick Stats
       </Text>
     </View>
-    <View className="flex-row justify-around">
-      <View className="flex-row bg-[#E8F8FF] p-4 rounded-lg items-center mt-4">
+    <View className="mt-4 flex-row flex-wrap gap-3">
+      <View className="flex-row bg-[#E8F8FF] p-4 rounded-lg items-center flex-1 min-w-[140px]">
         <Text style={styles.pendingCountText}>24</Text>
-        <Text className="ms-2">Pending Orders</Text>
+        <Text className="ms-2 flex-1" style={styles.statsLabelText}>Pending Orders</Text>
       </View>
-      <View className="flex-row bg-[#D7FAE4] p-4 rounded-lg items-center mt-4">
+      <View className="flex-row bg-[#D7FAE4] p-4 rounded-lg items-center flex-1 min-w-[140px]">
         <Text style={styles.completedCountText}>24</Text>
-        <Text className="ms-2">Completed Orders</Text>
+        <Text className="ms-2 flex-1" style={styles.statsLabelText}>Completed Orders</Text>
       </View>
     </View>
   </View>
@@ -157,6 +157,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Bold',
     fontSize: 24,
     color: '#60B17E',
+  },
+  statsLabelText: {
+    flexShrink: 1,
   },
   axisText: {
     fontFamily: 'Poppins-Medium',
