@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { TextInput, Button, Text } from 'react-native-paper';
+import { TextInput, Button } from 'react-native-paper';
 import theme from '@shared/inputTheme';
 import { useConfirmPasswordToggle } from '@shared/confirmPasswordToggle';
 import AnimatedSplashLayout from '@shared/components/AnimatedSplashLayout';
@@ -61,7 +61,6 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />  
       {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-      <Text variant="bodySmall">Use at least 15 alphanumeric characters and symbols.</Text>
       <Link href="/customer/auth/EnterMobileNumberFPW" style={styles.forgotPassword}>Forgot Password?</Link>
       <View style={{ alignItems: 'center' }}>
         <Button mode="contained" style={styles.loginButton} onPress={handleLogin} loading={isSubmitting} disabled={isSubmitting}>

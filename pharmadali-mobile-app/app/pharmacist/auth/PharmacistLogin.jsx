@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { TextInput, Button, Text as PaperText } from 'react-native-paper';
+import { TextInput, Button } from 'react-native-paper';
 import theme from '@shared/inputTheme';
 import { useConfirmPasswordToggle } from '@shared/confirmPasswordToggle';
 import { Ionicons } from '@expo/vector-icons';
@@ -42,7 +42,6 @@ const PharmacistLogin = () => {
         style={styles.input}
         right={passwordToggleIcon.icon}
       />  
-      <PaperText variant="bodySmall">Use at least 15 alphanumeric characters and symbols.</PaperText>
       <Link href="" style={styles.forgotPassword}>Forgot Password?</Link>
       <View style={{ alignItems: 'center' }}>
         <Button mode="contained" style={styles.loginButton} onPress={() => router.replace('/pharmacist/tabs/Home')}>

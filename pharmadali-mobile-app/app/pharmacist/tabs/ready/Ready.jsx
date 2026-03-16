@@ -1,12 +1,14 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
+import { ReadyTabs } from '@shared/components/pharmacist-ready-components'
 
 const Ready = () => {
+
+  const [activeTab, setActiveTab] = useState('For Pickup');
+
   return (
-    <View className="flex-1 justify-center items-center">
-      <Text className="text-2xl font-bold">Ready Tab</Text>
-      <Text className="text-lg">This page will display ready orders.</Text>
-      <Text className="text-sm text-gray-500">The contents and functionalities of this tab will be implemented soon!</Text>
+    <View className="flex-1">
+      <ReadyTabs activeTab={activeTab} onTabChange={setActiveTab} />
     </View>
   )
 }
