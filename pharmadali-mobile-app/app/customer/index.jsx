@@ -61,7 +61,6 @@ export default function LoginScreen() {
         onChangeText={setPassword}
       />  
       {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-      <Text variant="bodySmall">Use at least 15 alphanumeric characters and symbols.</Text>
       <Link href="/customer/auth/EnterMobileNumberFPW" style={styles.forgotPassword}>Forgot Password?</Link>
       <View style={{ alignItems: 'center' }}>
         <Button mode="contained" style={styles.loginButton} onPress={handleLogin} loading={isSubmitting} disabled={isSubmitting}>
