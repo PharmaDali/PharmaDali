@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { TextInput, Button, Text } from 'react-native-paper';
+import { TextInput, Button } from 'react-native-paper';
 import theme from '@shared/inputTheme';
 import { useConfirmPasswordToggle } from '@shared/confirmPasswordToggle';
 import AnimatedSplashLayout from '@shared/components/AnimatedSplashLayout';
