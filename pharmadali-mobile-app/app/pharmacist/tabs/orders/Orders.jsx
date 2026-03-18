@@ -1,12 +1,15 @@
 import { View, ScrollView } from 'react-native';
 import React, { useState } from 'react';
-import { OrderTabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@shared/components/pharmacist-orders-components';
+import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@shared/components/pharmacist-orders-and-ready-components';
 import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import FemaleIcon from '@assets/icons/person-icons/female_icon.svg';
 import RecitImg from '@assets/images/recit_dummy.png';
 
+const orderTabs = ['For Review', 'Preparing', 'Issues'];
+
 // Dummy data — replace with API data
+
 const initialOrders = [
   {
     orderNumber: '1028',
@@ -92,7 +95,7 @@ export default function Orders() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <OrderTabs activeTab={activeTab} onTabChange={setActiveTab} />
+      <Tabs activeTab={activeTab} onTabChange={setActiveTab} tabs={orderTabs} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {activeTab === 'For Review' &&

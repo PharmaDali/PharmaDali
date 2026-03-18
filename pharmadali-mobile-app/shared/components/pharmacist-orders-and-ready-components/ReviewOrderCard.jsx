@@ -2,6 +2,8 @@ import { View, Text, Image, TouchableOpacity, Modal, StyleSheet, Dimensions } fr
 import React, { useState } from 'react';
 import { colors } from '@shared/colorPallete';
 import RxIcon from '@assets/icons/rx_icon.svg';
+import SuccessIcon from '@assets/icons/success_icon.svg';
+import InfoIcon from '@assets/icons/red_info_icon.svg';
 import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg';
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg';
 import OrderCard from './OrderCard';
@@ -9,7 +11,7 @@ import OrderItemRow from './OrderItemRow';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-export default function ReviewOrderCard({ order, onApprove, onReject }) {
+export default function ReviewOrderCard({ order, onApprove, onReject, muteActions = false }) {
   const [expanded, setExpanded] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -76,17 +78,23 @@ export default function ReviewOrderCard({ order, onApprove, onReject }) {
                   <View className="flex-row justify-end gap-2 mb-3">
                     <TouchableOpacity
                       className="rounded-xl px-5 py-1.5"
-                      style={{ backgroundColor: '#4CAF50' }}
+                      style={muteActions ? styles.mutedApproveButton : styles.approveButton}
+                      disabled={muteActions}
                       onPress={() => onApprove?.(order, item)}
                     >
-                      <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Approve</Text>
+                      <View className="flex-row items-center">                       
+                        <Text className="text-sm" style={muteActions ? styles.mutedApproveText : styles.approveText}>Approve</Text>
+                      </View>
                     </TouchableOpacity>
                     <TouchableOpacity
                       className="rounded-xl px-5 py-1.5 border"
-                      style={{ borderColor: colors.accent, backgroundColor: 'transparent' }}
+                      style={muteActions ? styles.mutedRejectButton : styles.rejectButton}
+                      disabled={muteActions}
                       onPress={() => onReject?.(order, item)}
                     >
-                      <Text className="text-sm" style={{ fontFamily: 'Poppins-SemiBold', color: colors.accent }}>Reject</Text>
+                      <View className="flex-row items-center">          
+                        <Text className="text-sm" style={muteActions ? styles.mutedRejectText : styles.rejectText}>Reject</Text>
+                      </View>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -145,6 +153,37 @@ const styles = StyleSheet.create({
   rxText: {
     fontFamily: 'Poppins-SemiBold',
     color: '#DC3545',
+  },
+  approveButton: {
+    backgroundColor: '#4CAF50',
+  },
+  approveText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#FFFFFF',
+  },
+  rejectButton: {
+    borderColor: colors.accent,
+    backgroundColor: 'transparent',
+  },
+  rejectText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: colors.accent,
+  },
+  mutedApproveButton: {
+    backgroundColor: '#D8DDE3',
+    borderColor: '#D8DDE3',
+  },
+  mutedApproveText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#7A8594',
+  },
+  mutedRejectButton: {
+    borderColor: '#D8DDE3',
+    backgroundColor: '#F3F5F7',
+  },
+  mutedRejectText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#7A8594',
   },
   sectionTitle: {
     fontFamily: 'Poppins-Bold',

@@ -1,9 +1,7 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors } from '@shared/colorPallete';
 
-const tabs = ['For Pickup', 'Completed', 'Expired'];
-
-export default function OrderTabs({ activeTab, onTabChange }) {
+export default function Tabs({ activeTab, onTabChange, tabs }) {
   return (
     <View className="flex-row justify-around border border-gray-200 bg-white px-2 mx-3 mt-2 rounded-xl shadow-xl">
       {tabs.map((tab) => {
