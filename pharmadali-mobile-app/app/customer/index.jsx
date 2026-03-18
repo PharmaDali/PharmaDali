@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { TextInput, Button } from 'react-native-paper';
 import theme from '@shared/inputTheme';
@@ -27,9 +27,11 @@ export default function LoginScreen() {
     setIsSubmitting(true);
 
     try {
-      await loginCustomer({ email, password });
+      const token = await loginCustomer({ email, password });
 
-      // TODO: Persist token securely (e.g. expo-secure-store) before navigating.
+      // Persist token before navigating
+      await SecureStore.setItemAsync('token', token);
+
       router.replace('/customer/tabs/Home');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
@@ -59,7 +61,7 @@ export default function LoginScreen() {
         right={passwordToggleIcon.icon}
         value={password}
         onChangeText={setPassword}
-      />  
+      />
       {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
       <Link href="/customer/auth/EnterMobileNumberFPW" style={styles.forgotPassword}>Forgot Password?</Link>
       <View style={{ alignItems: 'center' }}>

@@ -47,6 +47,13 @@ const Register = () => {
             />
           </View>
           <View style={styles.primaryInfoContainer}>
+            <TextInput
+              label="Email"
+              mode="outlined"
+              keyboardType='email-address'
+              theme={theme}
+              style={{ marginBottom: 16 }}
+            />
             <Pressable onPress={() => setShowDatePicker(true)}>
               <TextInput
                 label="Date of Birth"
@@ -75,6 +82,12 @@ const Register = () => {
               label="Mobile Number"
               mode="outlined"
               keyboardType='phone-pad'
+              theme={theme}
+              style={{ marginTop: 16 }}
+            />
+            <TextInput
+              label="Address"
+              mode="outlined"
               theme={theme}
               style={{ marginTop: 16 }}
             />
