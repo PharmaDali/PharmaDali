@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { TextInput, Button } from 'react-native-paper';
 import theme from '@shared/inputTheme';
