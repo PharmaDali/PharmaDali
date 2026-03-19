@@ -62,6 +62,7 @@ const tabs = ["Primary", "Stocks", "Expiring", "Shortage", "System Alert"];
 
 function Notifications() {
   const [activeTab, setActiveTab] = useState("Primary");
+  const [selectedNotification, setSelectedNotification] = useState(null);
 
   const filteredNotifications = useMemo(() => {
     if (activeTab === "Primary") {
@@ -79,6 +80,103 @@ function Notifications() {
       (item) => item.type === tabTypeMap[activeTab]
     );
   }, [activeTab]);
+
+  const getDetailTitle = (type) => {
+    const titleMap = {
+      "Low Stocks": "Low Stock",
+      "Shortage Alert": "Shortage Alert",
+      "Expiry Warning": "Expiry Warning",
+      "System Alert": "System Alert",
+    };
+
+    return `${titleMap[type] || "Notification"}: [Product Name]`;
+  };
+
+  const getDetailTheme = (type) => {
+    const style = typeStyles[type] || typeStyles["System Alert"];
+
+    const themeMap = {
+      "Low Stocks": { bg: "#d2edf8", text: style.typeColor },
+      "Shortage Alert": { bg: "#fde3e1", text: style.typeColor },
+      "Expiry Warning": { bg: "#fdf0dd", text: style.typeColor },
+      "System Alert": { bg: "#eceaea", text: style.typeColor },
+    };
+
+    return themeMap[type] || { bg: "#eceaea", text: style.typeColor };
+  };
+
+  if (selectedNotification) {
+    const detailTheme = getDetailTheme(selectedNotification.type);
+
+    return (
+      <div className="p-3 p-md-4">
+        <button
+          type="button"
+          onClick={() => setSelectedNotification(null)}
+          style={{
+            border: "none",
+            background: "transparent",
+            padding: 0,
+            marginBottom: "16px",
+            color: "#23252b",
+            fontSize: "28px",
+            fontWeight: 700,
+            lineHeight: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+          }}
+        >
+          <i className="fa-solid fa-chevron-left" style={{ fontSize: "14px" }} />
+          <span>Notifications</span>
+        </button>
+
+        <div
+          style={{
+            backgroundColor: detailTheme.bg,
+            borderRadius: "16px",
+            minHeight: "560px",
+            padding: "34px 36px",
+          }}
+        >
+          <h2
+            style={{
+              color: detailTheme.text,
+              fontSize: "44px",
+              fontWeight: 700,
+              lineHeight: 1.15,
+              marginBottom: "34px",
+            }}
+          >
+            {getDetailTitle(selectedNotification.type)}
+          </h2>
+
+          <p
+            style={{
+              color: "#23252b",
+              fontSize: "36px",
+              lineHeight: 1.25,
+              maxWidth: "900px",
+              marginBottom: "42px",
+            }}
+          >
+            {selectedNotification.message}
+          </p>
+
+          <p
+            style={{
+              color: "#23252b",
+              fontSize: "36px",
+              lineHeight: 1.2,
+              marginBottom: "0",
+            }}
+          >
+            Reorder now!
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-3 p-md-4">
@@ -107,7 +205,10 @@ function Notifications() {
               <button
                 type="button"
                 className="nav-link"
-                onClick={() => setActiveTab(tab)}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setSelectedNotification(null);
+                }}
                 style={{
                   border: "none",
                   borderBottom: isActive ? "2px solid #45a9dd" : "2px solid transparent",
@@ -164,7 +265,7 @@ function Notifications() {
               const style = typeStyles[item.type] || typeStyles["System Alert"];
 
               return (
-                <tr key={item.id}>
+                <tr key={item.id} onClick={() => setSelectedNotification(item)} style={{ cursor: "pointer" }}>
                   <td
                     style={{
                       backgroundColor: "#f2efef",
@@ -174,7 +275,12 @@ function Notifications() {
                       padding: "9px 10px 9px 14px",
                     }}
                   >
-                    <input className="form-check-input" type="checkbox" style={{ borderColor: "#717171" }} />
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      style={{ borderColor: "#717171" }}
+                      onClick={(event) => event.stopPropagation()}
+                    />
                   </td>
                   <td style={{ backgroundColor: "#f2efef", border: "none", padding: "9px 8px" }}>
                     <span style={{ color: style.typeColor, fontWeight: 600 }}>{item.type}</span>
@@ -205,7 +311,11 @@ function Notifications() {
                       padding: "9px 14px 9px 8px",
                     }}
                   >
-                    <i className="fa-regular fa-trash-can" style={{ color: "#2a2a2a", fontSize: "12px" }} />
+                    <i
+                      className="fa-regular fa-trash-can"
+                      style={{ color: "#2a2a2a", fontSize: "12px" }}
+                      onClick={(event) => event.stopPropagation()}
+                    />
                   </td>
                 </tr>
               );
