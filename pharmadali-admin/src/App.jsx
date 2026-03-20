@@ -6,12 +6,19 @@ import Settings from "./pages/Settings";
 import PosPage from "./pages/PosPage";
 import PickUp from "./pages/PickUp";
 import Notifications from "./pages/Notifications";
+import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<MainLayout />}>
+        <Route path="/login" element={<Login />} />
+        <Route element={
+            <ProtectedRoute>
+              <MainLayout />
+            </ProtectedRoute>
+        }>
           <Route index element={<DashBoard />} />
           <Route path="sales-reports" element={<SalesReports />} />
           <Route path="settings" element={<Settings />} />
