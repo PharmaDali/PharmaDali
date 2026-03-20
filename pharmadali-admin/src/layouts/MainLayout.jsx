@@ -8,6 +8,7 @@ function MainLayout() {
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
 
+
   return (
     <div className="layout-wrapper">
       <NavBar onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />

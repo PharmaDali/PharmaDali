@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const MENU_SECTIONS = [
   {
@@ -39,6 +40,14 @@ const MENU_SECTIONS = [
 ];
 
 function SideBar({ isOpen, onToggle }) {
+
+  const navigate = useNavigate();
+  
+  const handleLogout = () => {
+    localStorage.removeItem("isAuthenticated");
+    navigate("/login", { replace: true });
+  };
+
   return (
     <>
       <div
@@ -47,7 +56,8 @@ function SideBar({ isOpen, onToggle }) {
       />
 
       <div
-        className={`sidebar position-fixed p-0 overflow-auto${isOpen ? " active" : ""}`}
+        className={`sidebar position-fixed p-0 overflow-y-auto${isOpen ? " active" : ""}`}
+      // style={{ overflowX: "visible" }}
       >
         <div className="sidebar-profile">
           <div className="d-flex align-items-center justify-content-between">
@@ -65,10 +75,32 @@ function SideBar({ isOpen, onToggle }) {
                 <p className="m-0 profile-pharmacy">Laily&#39;s Pharmacy</p>
               </div>
             </div>
-            <i
-              className="fa-solid fa-ellipsis-vertical"
-              style={{ cursor: "pointer", fontSize: 20, color: "#333" }}
-            />
+            <div className="dropdown">
+              <button
+                type="button"
+                className="btn p-0 border-0 bg-transparent"
+                style={{ cursor: "pointer", fontSize: 20, color: "#333" }}
+                data-bs-toggle="dropdown"
+                data-bs-offset="0,0"
+                data-bs-strategy="fixed"
+                aria-expanded="false"
+              >
+                <i className="fa-solid fa-ellipsis-vertical" />
+              </button>
+
+              <ul className="dropdown-menu">
+                <li>
+                  <a className="dropdown-item" href="#">
+                    <i className="bi bi-person text-black me-2">
+                    </i>My profile</a>
+                </li>
+                <li>
+                  <a className="dropdown-item " href="#" onClick={handleLogout}>
+                    <i className="bi bi-box-arrow-right text-danger me-2">
+                    </i>Logout</a>
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
