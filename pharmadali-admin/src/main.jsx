@@ -9,6 +9,7 @@ import './assets/css/sidebar.css'
 import './assets/css/layout.css'
 import './assets/css/sales-reports.css'
 import './assets/css/pickup.css'
+import './assets/css/login.css'
 import './index.css'
 import App from './App.jsx'
 

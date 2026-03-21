@@ -14,7 +14,6 @@ function Login() {
     e.preventDefault();
     setError("");
 
-    // Temporary credential for UI demonstration
     if (credentials.username === "admin" && credentials.password === "jamestheadmin") {
       localStorage.setItem("isAuthenticated", "true");
       navigate("/", { replace: true });
@@ -24,27 +23,47 @@ function Login() {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100">
-      <form onSubmit={handleLogin} className="p-4 border rounded w-25" >
-        <h2>Admin Login</h2>
-        {error && <p style={{ color: "red" }}>{error}</p>}
+    <div className="login-page">
+      <div className="login-brand-block" aria-hidden="true">
+        <div className="login-logo-stack">
+          <img src="/PhamaDali Logo v2.svg" alt="PharmaDali" className="login-logo login-logo-white" />
+          <img src="/descriptive_logo.svg" alt="PharmaDali" className="login-logo login-logo-blue" />
+        </div>
+      </div>
+
+      <form onSubmit={handleLogin} className="login-form-panel">
+        <h2 className="login-form-title">Log In</h2>
+
         <input
           type="text"
           name="username"
-          placeholder="Username"
+          placeholder="Admin ID"
           value={credentials.username}
           onChange={handleChange}
+          className="login-input"
           required
         />
+
         <input
           type="password"
           name="password"
           placeholder="Password"
           value={credentials.password}
           onChange={handleChange}
+          className="login-input"
           required
         />
-        <button type="submit">Login</button>
+
+        {error && <p className="login-error">{error}</p>}
+
+        <div className="login-form-footer">
+          <button type="button" className="login-forgot-btn">
+            Forgot Password?
+          </button>
+          <button type="submit" className="login-submit-btn">
+            Mag-login
+          </button>
+        </div>
       </form>
     </div>
   );
