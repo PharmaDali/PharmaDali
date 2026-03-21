@@ -60,12 +60,12 @@
   position: absolute;
   top: 50%;
   right: clamp(4vw, 10vw, 10vw);
-  width: min(36vw, 430px);
+  width: min(36vw, 450px);
   min-width: 320px;
   padding: 2rem 1.15rem 1.2rem;
   border-radius: 10px;
   border: 1px solid var(--pd-border);
-  background: #f4f4f4;
+  background: #ffffff;
   transform: translateY(-50%) translateX(48px);
   opacity: 0;
   animation: formReveal 3s ease-out 5s both;
