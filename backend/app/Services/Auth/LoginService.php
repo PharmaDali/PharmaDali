@@ -14,13 +14,13 @@ class LoginService
 
     public function handle(array $credentials, string $ip): JsonResponse
     {
-        $this->ensureIsNotRateLimited($ip);
+        $this->ensureIsNotRateLimited('login:' . $ip);
 
         if (!Auth::attempt([
             'email'    => $credentials['email'],
             'password' => $credentials['password'],
         ])) {
-            RateLimiter::hit($ip);
+            RateLimiter::hit('login:' . $ip);
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
@@ -29,12 +29,12 @@ class LoginService
 
         // Prevent pharmacists from using the customer login
         if ($user->role === 'pharmacist') {
-            RateLimiter::hit($ip);
+            RateLimiter::hit('login:' . $ip);
             Auth::logout();
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        RateLimiter::clear($ip);
+        RateLimiter::clear('login:' . $ip);
 
         $user->tokens()->delete();
 

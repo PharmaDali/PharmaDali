@@ -8,12 +8,15 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\RateLimiter;
+use App\Traits\ThrottlesLogins;
 
 class PharmacistLoginService
 {
+    use ThrottlesLogins;
+
     public function handle(array $credentials, string $ip): JsonResponse
     {
-        $this->ensureIsNotRateLimited($ip);
+        $this->ensureIsNotRateLimited('pharmacist_login:' . $ip);
 
         $pharmacist = Pharmacist::query()
             ->where('employee_number', $credentials['employee_number'])
@@ -21,11 +24,11 @@ class PharmacistLoginService
             ->first();
 
         if (!$this->isValidPharmacist($pharmacist, $credentials['password'])) {
-            RateLimiter::hit($ip);
+           RateLimiter::hit('pharmacist_login:' . $ip);
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        RateLimiter::clear($ip);
+        RateLimiter::clear('pharmacist_login:' . $ip);
 
         /** @var User $user */
         $user = $pharmacist->user;
@@ -51,13 +54,5 @@ class PharmacistLoginService
         }
 
         return Hash::check($password, $pharmacist->user->password);
-    }
-
-    private function ensureIsNotRateLimited(string $ip): void
-    {
-        if (RateLimiter::tooManyAttempts($ip, 5)) {
-            $seconds = RateLimiter::availableIn($ip);
-            abort(429, "Too many login attempts. Please try again in {$seconds} seconds.");
-        }
     }
 }

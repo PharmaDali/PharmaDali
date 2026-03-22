@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('pharmacist/login', [AuthController::class, 'pharmacistLogin']);
+Route::post('admin/login', [AuthController::class, 'adminLogin']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'userInfo']);
@@ -29,5 +30,18 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacist/profile', function (Request $request) {
             return response()->json($request->user()->load('pharmacist'));
         });
+    });
+
+    Route::middleware(['ability:branch_admin', 'admin.ip'])->group(function () {
+        Route::get('branch/dashboard', fn() =>
+            response()->json(['message' => 'Branch Admin dashboard'])
+        );
+        
+    });
+
+    Route::middleware(['ability:super_admin', 'admin.ip'])->group(function () {
+        Route::get('admin/dashboard', fn() =>
+            response()->json(['message' => 'Super Admin dashboard'])
+        );   
     });
 });
