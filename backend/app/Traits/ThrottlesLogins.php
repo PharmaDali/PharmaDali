@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\RateLimiter;
 
 trait ThrottlesLogins
 {
-    private function ensureIsNotRateLimited(string $ip, int $maxAttempts = 5): void
+    private function ensureIsNotRateLimited(string $key, int $maxAttempts = 5): void
     {
-        if (RateLimiter::tooManyAttempts($ip, $maxAttempts)) {
-            $seconds = RateLimiter::availableIn($ip);
+        if (RateLimiter::tooManyAttempts($key, $maxAttempts)) {
+            $seconds = RateLimiter::availableIn($key);
             abort(429, "Too many login attempts. Please try again in {$seconds} seconds.");
         }
     }
