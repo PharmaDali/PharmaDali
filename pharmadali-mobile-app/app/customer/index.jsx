@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { Link, useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
 import theme from '@shared/inputTheme';
 import { useConfirmPasswordToggle } from '@shared/confirmPasswordToggle';
@@ -30,7 +31,7 @@ export default function LoginScreen() {
       const token = await loginCustomer({ email, password });
 
       // Persist token before navigating
-      await SecureStore.setItemAsync('token', token);
+      await SecureStore.setItemAsync('token', JSON.stringify(token));
 
       router.replace('/customer/tabs/Home');
     } catch (error) {
