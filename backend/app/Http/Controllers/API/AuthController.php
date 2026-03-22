@@ -12,6 +12,8 @@ use App\Services\Auth\PharmacistLoginService;
 use App\Services\Auth\RegisterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Http\Requests\AdminLoginRequest;
+use App\Services\Auth\AdminLoginService;
 
 class AuthController extends Controller
 {
@@ -19,6 +21,7 @@ class AuthController extends Controller
         private readonly LoginService           $loginService,
         private readonly PharmacistLoginService $pharmacistLoginService,
         private readonly RegisterService        $registerService,
+        private readonly AdminLoginService      $adminLoginService,
     ) {}
 
     public function register(RegisterRequest $request): JsonResponse
@@ -39,6 +42,15 @@ class AuthController extends Controller
         return $this->pharmacistLoginService->handle(
             $request->validated(),
             $request->ip()
+        );
+    }
+
+    public function adminLogin(AdminLoginRequest $request): JsonResponse
+    {
+        return $this->adminLoginService->handle(
+            $request->validated(),
+            $request->ip(),
+            $request->userAgent() ?? 'Unknown'
         );
     }
 
