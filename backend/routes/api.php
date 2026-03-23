@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\BranchController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\PostController;
 use Illuminate\Http\Request;
@@ -42,6 +43,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['ability:super_admin'])->group(function () {
         Route::get('admin/dashboard', fn() =>
             response()->json(['message' => 'Super Admin dashboard'])
-        );   
+        );
+
+        Route::apiResource('branches', BranchController::class);
     });
 });
