@@ -1,24 +1,10 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { colors } from '@shared/colorPallete';
 import RedStoreIcon from '@assets/icons/red_store_icon.svg';
+import { getBranchDataInSelectionPhase } from '@shared/services/selectionPhaseService';
 
-const branches = [
-  {
-    id: 1,
-    name: "Lally's Pharmacy - Burgos Street Branch",
-    address: 'Poblacion 7, Tanauan City, Batangas',
-    hours: 'Open: 7 AM - 9 PM',
-    isOpen: true,
-  },
-  {
-    id: 2,
-    name: "Lally's Pharmacy - Victory Mall Branch",
-    address: 'Poblacion 7, Tanauan City, Batangas',
-    hours: 'Open: 8 AM - 6 PM',
-    isOpen: true,
-  },
-];
+const fallbackBranches = [];
 
 function BranchCard({ branch, onSelect }) {
   return (
@@ -50,6 +36,65 @@ function BranchCard({ branch, onSelect }) {
 }
 
 export default function BranchSelectionOverlay({ visible, onSelect }) {
+  const [remoteBranches, setRemoteBranches] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    if (!visible) return;
+
+    let isMounted = true;
+
+    async function fetchBranchData() {
+      setIsLoading(true);
+      setErrorMessage('');
+
+      try {
+        const data = await getBranchDataInSelectionPhase();
+        const normalized = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.data)
+            ? data.data
+            : [];
+
+        const mapped = normalized.map((item) => ({
+          id: item.id,
+          name: item.branch_name,
+          address: item.location,
+          hours: item.opening_hour && item.closing_hour ? `${item.opening_hour} - ${item.closing_hour}` : 'Store hours unavailable',
+          isOpen: typeof item.is_active === 'boolean' ? item.is_active : true,
+        }));
+
+        if (isMounted) {
+          setRemoteBranches(mapped);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage(error?.message || 'Failed to load branches.');
+          setRemoteBranches([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchBranchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [visible]);
+
+  const displayedBranches = useMemo(() => {
+    if (remoteBranches.length > 0) {
+      return remoteBranches;
+    }
+
+    return fallbackBranches;
+  }, [remoteBranches]);
+
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
@@ -57,7 +102,17 @@ export default function BranchSelectionOverlay({ visible, onSelect }) {
           <Text style={styles.title}>Select Your Pharmacy Branch</Text>
           <Text style={styles.subtitle}>Select Your Pharmacy Branch</Text>
           <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
-            {branches.map((branch) => (
+            {isLoading && <Text style={styles.stateText}>Loading branches...</Text>}
+
+            {!isLoading && errorMessage ? (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            ) : null}
+
+            {!isLoading && displayedBranches.length === 0 ? (
+              <Text style={styles.stateText}>No branches available.</Text>
+            ) : null}
+
+            {displayedBranches.map((branch) => (
               <BranchCard key={branch.id} branch={branch} onSelect={onSelect} />
             ))}
           </ScrollView>
@@ -100,5 +155,19 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-SemiBold',
     fontSize: 12,
     color: '#fff',
+  },
+  stateText: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  errorText: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 12,
+    color: '#D32F2F',
+    textAlign: 'center',
+    marginBottom: 12,
   },
 });

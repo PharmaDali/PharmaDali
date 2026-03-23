@@ -1,3 +1,5 @@
+import * as SecureStore from 'expo-secure-store';
+
 class ApiError extends Error {
   constructor(message, status, data) {
     super(message);
@@ -16,6 +18,30 @@ const getErrorMessage = (data, fallback) => {
   return data?.message?.trim() || fallback;
 };
 
+const getStoredToken = async () => {
+  const raw = await SecureStore.getItemAsync('token');
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+
+    if (typeof parsed === 'string') {
+      return parsed;
+    }
+
+    if (parsed?.token) {
+      return parsed.token;
+    }
+
+    return null;
+  } catch {
+    return raw;
+  }
+};
+
 export async function apiRequest(path, options = {}) {
   const baseUrl = getBaseUrl();
 
@@ -24,12 +50,19 @@ export async function apiRequest(path, options = {}) {
   }
 
   const { method = 'GET', body, headers = {} } = options;
+  const authToken = await getStoredToken();
+  const hasAuthorizationHeader = Object.keys(headers).some((key) => key.toLowerCase() === 'authorization');
+
+  const authHeader = authToken && !hasAuthorizationHeader
+    ? { Authorization: `Bearer ${authToken}` }
+    : {};
 
   const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
+      ...authHeader,
       ...headers,
     },
     body: body ? JSON.stringify(body) : undefined,
