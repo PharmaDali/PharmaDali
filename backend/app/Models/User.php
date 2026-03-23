@@ -14,6 +14,9 @@ use App\Models\Post;
 use App\Models\Pharmacist;
 use App\Models\Branch;
 
+/**
+ * @property string $role
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */

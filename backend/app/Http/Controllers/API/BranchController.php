@@ -7,9 +7,12 @@ use App\Http\Requests\BranchRequest;
 use App\Models\Branch;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class BranchController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
     * Display a listing of the resource.
     */
@@ -36,7 +39,8 @@ class BranchController extends Controller
     */
     public function show(string $id)
     {
-        //
+        $branch = Branch::findOrFail($id);
+        return response()->json($branch);
     }
 
     /**
@@ -44,14 +48,30 @@ class BranchController extends Controller
     */
     public function update(Request $request, string $id)
     {
-        //
+        $branch = Branch::findOrFail($id);
+        $branch->update($request->validated());
+
+        return response()->json([
+            'message' => 'Branch updated',
+            'branch' => $branch,
+        ]);
     }
 
     /**
     * Remove the specified resource from storage.
     */
-    public function destroy(string $id)
+    public function destroy(Branch $branch)
     {
-        //
+        $this->authorize('delete', $branch);
+
+        if ($branch->employees()->exists()) {
+            return response()->json([
+                'message' => 'Cannot delete branch with employees'
+            ], 400);
+        }
+
+        $branch->delete();
+
+        return response()->noContent();
     }
 }
