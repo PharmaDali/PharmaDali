@@ -16,6 +16,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'userInfo']);
     Route::post('logout', [AuthController::class, 'logout']);
 
+    Route::middleware('abilities:customer,pharmacist,branch_admin,super_admin')->group(function () {
+        Route::get('branches', [BranchController::class, 'index']);
+        Route::get('branches/{id}', [BranchController::class, 'show']);
+    });
+
     Route::middleware('ability:customer')->group(function () { 
         Route::apiResource('posts', PostController::class);
         Route::get('customer/dashboard', function () {
@@ -45,6 +50,6 @@ Route::middleware('auth:sanctum')->group(function () {
             response()->json(['message' => 'Super Admin dashboard'])
         );
 
-        Route::apiResource('branches', BranchController::class);
+        Route::apiResource('branches', BranchController::class)->except(['index', 'show']);
     });
 });
