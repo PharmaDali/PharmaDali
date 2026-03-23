@@ -32,14 +32,14 @@ Route::middleware('auth:sanctum')->group(function () {
         });
     });
 
-    Route::middleware(['ability:branch_admin', 'admin.ip'])->group(function () {
+    Route::middleware(['ability:branch_admin'])->group(function () {
         Route::get('branch/dashboard', fn() =>
             response()->json(['message' => 'Branch Admin dashboard'])
         );
         
     });
 
-    Route::middleware(['ability:super_admin', 'admin.ip'])->group(function () {
+    Route::middleware(['ability:super_admin'])->group(function () {
         Route::get('admin/dashboard', fn() =>
             response()->json(['message' => 'Super Admin dashboard'])
         );   
