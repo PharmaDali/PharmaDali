@@ -11,7 +11,7 @@ import OrderItemRow from './OrderItemRow';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-export default function ReviewOrderCard({ order, onApprove, onReject, muteActions = false }) {
+export default function ReviewOrderCard({ order, onApprove, onReject, onPending, muteActions = false }) {
   const [expanded, setExpanded] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
 
@@ -87,6 +87,16 @@ export default function ReviewOrderCard({ order, onApprove, onReject, muteAction
                       </View>
                     </TouchableOpacity>
                     <TouchableOpacity
+                      className="rounded-xl px-5 py-1.5"
+                      style={muteActions ? styles.mutedPendingButton : styles.pendingButton}
+                      disabled={muteActions}
+                      onPress={() => onPending?.(order, item)}
+                    >
+                      <View className="flex-row items-center">                       
+                        <Text className="text-sm" style={muteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
                       className="rounded-xl px-5 py-1.5 border"
                       style={muteActions ? styles.mutedRejectButton : styles.rejectButton}
                       disabled={muteActions}
@@ -154,6 +164,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-SemiBold',
     color: '#DC3545',
   },
+  pendingButton: {
+    backgroundColor: '#FFC107',
+  },
+  pendingText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#FFFFFF',
+  },
   approveButton: {
     backgroundColor: '#4CAF50',
   },
@@ -168,6 +185,14 @@ const styles = StyleSheet.create({
   rejectText: {
     fontFamily: 'Poppins-SemiBold',
     color: colors.accent,
+  },
+  mutedPendingButton: {
+    backgroundColor: '#D8DDE3',
+    borderColor: '#D8DDE3',
+  },
+  mutedPendingText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#7A8594',
   },
   mutedApproveButton: {
     backgroundColor: '#D8DDE3',

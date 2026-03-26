@@ -9,12 +9,19 @@ import OrderItemRow from './OrderItemRow';
 export default function IssueOrderCard({ order }) {
   const [expanded, setExpanded] = useState(false);
 
+  const issueItems = order.items.filter((item) => item.status === 'Rejected' || item.status === 'Pending');
   const rejectedItems = order.items.filter((item) => item.status === 'Rejected');
-  const rejectedCount = rejectedItems.length;
+  const pendingItems = order.items.filter((item) => item.status === 'Pending');
+  
+  const issueCount = issueItems.length;
 
-  const rejectionSummary = rejectedCount === 1
-    ? `1 item rejected: ${rejectedItems[0].rejectionReason || 'Invalid Prescription'}`
-    : `${rejectedCount} items rejected`;
+  let issueSummary = '';
+  if (issueCount === 1) {
+    const item = issueItems[0];
+    issueSummary = `1 item ${item.status.toLowerCase()}: ${item.rejectionReason || 'Requires attention'}`;
+  } else {
+    issueSummary = `${issueCount} items have issues`;
+  }
 
   const statusBadge = (
     <View className="px-3 py-1 rounded-lg border" style={styles.awaitingBadge}>
@@ -26,7 +33,7 @@ export default function IssueOrderCard({ order }) {
     <OrderCard order={order} statusBadge={statusBadge}>
       <View className="px-4 pb-2">
         <Text className="text-xs" style={{ fontFamily: 'Poppins-Medium', color: colors.textColor }}>
-          {rejectionSummary}
+          {issueSummary}
         </Text>
       </View>
 
@@ -48,19 +55,37 @@ export default function IssueOrderCard({ order }) {
       ) : (
         
         <View>
-          <View className="px-4 border-t border-gray-100">
-            <Text className="text-sm mt-3" style={styles.sectionTitle}>Rejected Items</Text>
-            {rejectedItems.map((item, idx) => (
-              <View key={idx}>
-                <OrderItemRow item={item} />
-                {item.rejectionReason && (
-                  <Text className="text-xs mb-2" style={{ fontFamily: 'Poppins-Medium', color: colors.accent }}>
-                    Reason: {item.rejectionReason}
-                  </Text>
-                )}
-              </View>
-            ))}
-          </View>
+          {rejectedItems.length > 0 && (
+            <View className="px-4 border-t border-gray-100">
+              <Text className="text-sm mt-3" style={styles.sectionTitle}>Rejected Items</Text>
+              {rejectedItems.map((item, idx) => (
+                <View key={idx}>
+                  <OrderItemRow item={item} />
+                  {item.rejectionReason && (
+                    <Text className="text-xs mb-2" style={{ fontFamily: 'Poppins-Medium', color: colors.accent }}>
+                      Reason: {item.rejectionReason}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {pendingItems.length > 0 && (
+            <View className="px-4 border-t border-gray-100">
+              <Text className="text-sm mt-3" style={styles.sectionTitle}>Pending Items</Text>
+              {pendingItems.map((item, idx) => (
+                <View key={idx}>
+                  <OrderItemRow item={item} />
+                  {item.rejectionReason && (
+                    <Text className="text-xs mb-2" style={{ fontFamily: 'Poppins-Medium', color: '#FFC107' }}>
+                      Reason: {item.rejectionReason}
+                    </Text>
+                  )}
+                </View>
+              ))}
+            </View>
+          )}
 
           <View className="flex-row justify-between items-center px-4 py-3 border-t border-gray-100">
             <Text className="text-sm" style={styles.sectionTitle}>Order Summary</Text>

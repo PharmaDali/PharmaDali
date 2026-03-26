@@ -89,6 +89,24 @@ export default function Orders() {
     );
   };
 
+  const handlePending = (order, item) => {
+    setOrders((prev) =>
+      prev.map((o) => {
+        if (o.orderNumber !== order.orderNumber) return o;
+
+        const updatedItems = o.items.map((i) =>
+          i === item ? { ...i, status: 'Pending', rejectionReason: 'Incomplete Information' } : i
+        );
+
+        return {
+          ...o,
+          items: updatedItems,
+          status: 'Issues',
+        };
+      })
+    );
+  };
+
   const handleMarkAsReady = (order) => {
     // TODO: handle mark as ready logic
   };
@@ -100,7 +118,7 @@ export default function Orders() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {activeTab === 'For Review' &&
           forReviewOrders.map((order, idx) => (
-            <ReviewOrderCard key={idx} order={order} onApprove={handleApprove} onReject={handleReject} />
+            <ReviewOrderCard key={idx} order={order} onApprove={handleApprove} onReject={handleReject} onPending={handlePending} />
           ))}
 
         {activeTab === 'Preparing' &&
