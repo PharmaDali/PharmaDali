@@ -51,7 +51,7 @@ const PickupDetails = () => {
           <View className="flex-row items-center justify-between">
             <View className="flex-row items-center">
               <RedLocationIcon width={18} height={18} />
-              <Text className="text-xs ml-2" style={styles.fontSemiBold}>Pickup at Burgos Street Branch</Text>
+              <Text className="text-xs ml-2" style={styles.fontSemiBold}>Pickup at Tinurik, Tanauan City, Batangas</Text>
             </View>
             <TouchableOpacity>
               <Text className="text-xs" style={styles.changeText}>Change</Text>
