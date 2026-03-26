@@ -88,7 +88,7 @@ const ReviewOrder = () => {
         <View className="flex-row items-start mx-4 mt-4 mb-3">
           <RedLocationIcon width={18} height={18} />
           <View className="ml-2">
-            <Text className="text-xs" style={styles.fontSemiBold}>Pickup at Burgos Street Branch</Text>
+            <Text className="text-xs" style={styles.fontSemiBold}>Pickup at Tinurik, Tanauan City, Batangas</Text>
             <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
               You can change this in the third step.
             </Text>
