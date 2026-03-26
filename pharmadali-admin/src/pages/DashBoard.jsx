@@ -119,14 +119,29 @@ function SalesTrend() {
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100">
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h6 className="fw-bold mb-0" style={{ fontSize: 16, color: "#2aabe2" }}>Sales Trend</h6>
-        <select
-          className="form-select form-select-sm"
-          style={{ width: "auto", fontSize: 13, borderRadius: 20, border: "1.5px solid #dde3ec", background: "#f5f8fb" }}
-          value={range}
-          onChange={(e) => setRange(e.target.value)}
-        >
-          {Object.keys(SALES_DATA).map((k) => <option key={k}>{k}</option>)}
-        </select>
+        <div className="position-relative">
+          <select
+            className="form-select form-select-sm pe-4"
+            style={{ 
+              width: "auto", 
+              fontSize: 13, 
+              borderRadius: 20, 
+              border: "1.5px solid #dde3ec", 
+              background: "#f5f8fb",
+              appearance: "none",
+              cursor: "pointer",
+              paddingRight: "2rem"
+            }}
+            value={range}
+            onChange={(e) => setRange(e.target.value)}
+          >
+            {Object.keys(SALES_DATA).map((k) => <option key={k}>{k}</option>)}
+          </select>
+          <i 
+            className="bi bi-chevron-down position-absolute top-50 translate-middle-y" 
+            style={{ right: 12, fontSize: 10, pointerEvents: "none", color: "#888" }}
+          ></i>
+        </div>
       </div>
       <div style={{ height: 240 }}>
         <Line data={data} options={options} />
