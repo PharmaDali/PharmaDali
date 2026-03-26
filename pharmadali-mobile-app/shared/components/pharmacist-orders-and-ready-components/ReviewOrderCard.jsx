@@ -78,22 +78,22 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                   <View className="flex-row justify-end gap-2 mb-3">
                     <TouchableOpacity
                       className="rounded-xl px-5 py-1.5"
-                      style={muteActions ? styles.mutedPendingButton : styles.pendingButton}
-                      disabled={muteActions}
-                      onPress={() => onPending?.(order, item)}
-                    >
-                      <View className="flex-row items-center">                       
-                        <Text className="text-sm" style={muteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
-                      </View>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className="rounded-xl px-5 py-1.5"
                       style={muteActions ? styles.mutedApproveButton : styles.approveButton}
                       disabled={muteActions}
                       onPress={() => onApprove?.(order, item)}
                     >
                       <View className="flex-row items-center">                       
                         <Text className="text-sm" style={muteActions ? styles.mutedApproveText : styles.approveText}>Approve</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="rounded-xl px-5 py-1.5"
+                      style={muteActions ? styles.mutedPendingButton : styles.pendingButton}
+                      disabled={muteActions}
+                      onPress={() => onPending?.(order, item)}
+                    >
+                      <View className="flex-row items-center">                       
+                        <Text className="text-sm" style={muteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
                       </View>
                     </TouchableOpacity>
                     <TouchableOpacity
