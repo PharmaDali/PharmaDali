@@ -8,10 +8,10 @@
     "swap:customer": "copy app.customer.json app.json /Y",
     "start:customer": "npm run swap:customer && expo start",
     "start:pharmacist": "npm run swap:pharmacist && expo start",
-    "android": "expo start --android",
+    "android": "expo run:android",
     "android:customer": "npm run swap:customer && expo start --android",
     "android:pharmacist": "npm run swap:pharmacist && expo start --android",
-    "ios": "expo start --ios",
+    "ios": "expo run:ios",
     "ios:customer": "npm run swap:customer && expo start --ios",
     "ios:pharmacist": "npm run swap:pharmacist && expo start --ios",
     "web": "expo start --web"

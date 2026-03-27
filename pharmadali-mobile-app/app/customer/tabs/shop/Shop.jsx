@@ -6,14 +6,14 @@ import BetadineImg from '@assets/images/betadine_img.png'
 import ProductCard from '@shared/components/ProductCard'
 
 const categories = [
-  { icon: '💊', label: 'Prescription Medicines' },
-  { icon: '💊', label: 'Over-the-Counter' },
-  { icon: '💊', label: 'Vitamins & Supplements' },
-  { icon: '💊', label: 'Baby & Kids' },
-  { icon: '💊', label: 'Personal Care' },
-  { icon: '💊', label: 'Medical Supplies' },
-  { icon: '💊', label: 'Chronic Care' },
-  { icon: '💊', label: 'Mother and Reproductive' },
+  { icon: '📋', label: 'Prescription Medicines' },
+  { icon: '🛒', label: 'Over-the-Counter' },
+  { icon: '🍎', label: 'Vitamins & Supplements' },
+  { icon: '👶', label: 'Baby & Kids' },
+  { icon: '🧴', label: 'Personal Care' },
+  { icon: '🩺', label: 'Medical Supplies' },
+  { icon: '⚕️', label: 'Chronic Care' },
+  { icon: '🤰', label: 'Mother and Reproductive' },
 ]
 
 const recentlyViewed = [
