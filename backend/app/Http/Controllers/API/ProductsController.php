@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Http\Controllers\API;
+
+use App\Http\Controllers\Controller;
+use App\Models\Products;
+use App\Http\Requests\CreateProductRequest;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
+use App\Http\Requests\UpdateProductsRequest;
+
+class ProductsController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $products = Products::all();
+        return response()->json([
+            'status' => 'success',
+            'data' => $products
+        ]);
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(CreateProductRequest $request)
+    {
+        Gate::authorize('create', Products::class);
+
+        $product = Products::create($request->validated());
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Product created successfully',
+            'data' => $product
+        ], 201);
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        $product = Products::findOrFail($id);
+        return response()->json([
+            'status' => 'success',
+            'data' => $product
+        ]);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(UpdateProductsRequest $request, string $id)
+    {
+        $product = Products::findOrFail($id);
+        Gate::authorize('update', $product);
+
+        $validated = $request->validated();
+
+        $product->update($validated);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Product updated successfully',
+            'data' => $product
+        ]);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        $product = Products::findOrFail($id);
+        Gate::authorize('delete', $product);
+
+        $product->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Product deleted successfully'
+        ]);
+    }
+}
