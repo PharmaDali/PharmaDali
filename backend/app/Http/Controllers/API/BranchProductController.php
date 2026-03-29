@@ -4,12 +4,12 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Models\Products;
-use App\Http\Requests\CreateProductRequest;
+use App\Http\Requests\CreateBranchProductRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use App\Http\Requests\UpdateProductsRequest;
+use App\Http\Requests\UpdateBranchProductsRequest;
 
-class ProductsController extends Controller
+class BranchProductController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -26,7 +26,7 @@ class ProductsController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateProductRequest $request)
+    public function store(CreateBranchProductRequest $request)
     {
         Gate::authorize('create', Products::class);
 
@@ -54,7 +54,7 @@ class ProductsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductsRequest $request, string $id)
+    public function update(UpdateBranchProductsRequest $request, string $id)
     {
         $product = Products::findOrFail($id);
         Gate::authorize('update', $product);
