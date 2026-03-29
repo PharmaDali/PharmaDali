@@ -2,7 +2,7 @@
 
 use App\Http\Controllers\API\BranchController;
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\ProductsController;
+use App\Http\Controllers\API\BranchProductController;
 use App\Http\Controllers\PostController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -14,8 +14,8 @@ Route::post('pharmacist/login', [AuthController::class, 'pharmacistLogin']);
 Route::post('admin/login', [AuthController::class, 'adminLogin']);
 
 // Public routes for products (can be restricted if needed)
-Route::get('products', [ProductsController::class, 'index']);
-Route::get('products/{id}', [ProductsController::class, 'show']);
+Route::get('products', [BranchProductController::class, 'index']);
+Route::get('products/{id}', [BranchProductController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'userInfo']);
@@ -48,9 +48,9 @@ Route::middleware('auth:sanctum')->group(function () {
             response()->json(['message' => 'Branch Admin dashboard'])
         );
 
-        Route::post('products', [ProductsController::class, 'store']);
-        Route::put('products/{id}', [ProductsController::class, 'update']);
-        Route::delete('products/{id}', [ProductsController::class, 'destroy']);
+        Route::post('products', [BranchProductController::class, 'store']);
+        Route::put('products/{id}', [BranchProductController::class, 'update']);
+        Route::delete('products/{id}', [BranchProductController::class, 'destroy']);
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {

@@ -133,7 +133,7 @@ class ProductsFactory extends Factory
             'description' => $this->faker->sentence(),
             'form' => $medicine['form'],
             'strength' => $medicine['strength'],
-            'category_id' => \App\Models\Category::factory(),
+            'category_id' => \App\Models\Category::inRandomOrder()->first()->id,
         ];
     }
 }
