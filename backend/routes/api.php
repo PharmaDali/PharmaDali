@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('products', [BranchProductController::class, 'index']);
         Route::get('products/{id}', [BranchProductController::class, 'show']);
         Route::get('branches/{branchId}/products', [BranchProductController::class, 'showBranchProducts']);
+        Route::get('branches/{branchId}/categories', [BranchProductController::class, 'showBranchCategories']);
     });
 
     Route::middleware('ability:customer')->group(function () {

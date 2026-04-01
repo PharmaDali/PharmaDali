@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ShowBranchProductRequest extends FormRequest
 {
@@ -32,6 +33,13 @@ class ShowBranchProductRequest extends FormRequest
     {
         return [
             'branch_id' => ['required', 'integer', 'exists:branches,id'],
+            'category_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('branch_products', 'category_id')->where(function ($query) {
+                    return $query->where('branch_id', $this->input('branch_id'));
+                }),
+            ],
         ];
     }
 }
