@@ -11,7 +11,7 @@ class ShowBranchProductService
     {
         $query = BranchProduct::query()
             ->with([
-                'product:id,product_name,generic_name,brand_name,description,form,strength',
+                'product:id,product_type,product_name,generic_name,brand_name,description,form,strength',
                 'category:id,category_name,description',
             ])
             ->where('branch_id', $branchId)

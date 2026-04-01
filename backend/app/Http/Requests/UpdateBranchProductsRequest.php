@@ -22,12 +22,13 @@ class UpdateBranchProductsRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'product_type'  => 'sometimes|string|in:medicine,non_medicine',
             'product_name'  => 'sometimes|string|max:255',
-            'generic_name'  => 'sometimes|string|max:255',
-            'brand_name'    => 'sometimes|string|max:255',
-            'description'   => 'sometimes|string',
-            'form'          => 'sometimes|string|max:255',
-            'strength'      => 'sometimes|string|max:255',
+            'generic_name'  => 'sometimes|nullable|required_if:product_type,medicine|string|max:255',
+            'brand_name'    => 'sometimes|nullable|string|max:255',
+            'description'   => 'sometimes|nullable|string',
+            'form'          => 'sometimes|nullable|required_if:product_type,medicine|string|max:255',
+            'strength'      => 'sometimes|nullable|required_if:product_type,medicine|string|max:255',
         ];
     }
 }
