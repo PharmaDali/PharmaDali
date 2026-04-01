@@ -3,7 +3,6 @@
 use App\Http\Controllers\API\BranchController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BranchProductController;
-use App\Http\Controllers\PostController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -29,7 +28,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware('ability:customer')->group(function () {
-        Route::apiResource('posts', PostController::class);
         Route::get('customer/dashboard', function () {
             return response()->json(['message' => 'Customer dashboard access granted']);
         });
