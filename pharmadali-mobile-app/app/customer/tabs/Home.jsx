@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { colors } from '@shared/colorPallete';
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -7,15 +7,39 @@ import StoreIcon from '@assets/icons/store_icon.svg';
 import HomeCarousel from '@assets/icons/home_carousel.svg';
 import ProductCard from '@shared/components/ProductCard';
 import BandaidImg from '@assets/images/bandaid_img.png';
-import BetadineImg from '@assets/images/betadine_img.png';
 import SkeletonHome from '@shared/components/SkeletonHome';
 import BranchSelectionOverlay from '@shared/components/BranchSelectionOverlay';
 import { useSelectionPhase } from '@shared/SelectionPhaseContext';
+import { getBranchCategories, getProducts } from '@shared/services/productService';
+
+function normalizeApiList(payload) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
+
+  return [];
+}
+
+function formatPrice(value) {
+  const amount = Number(value ?? 0);
+  if (Number.isNaN(amount)) {
+    return 'P0.00';
+  }
+
+  return `P${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
 
 export default function HomeTab() {
   const route = useRouter();
-  const { selectionPhase, setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
+  const { setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
+  const selectedBranchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null;
   const [loading, setLoading] = useState(!selectedBranch);
+  const [categories, setCategories] = useState([]);
+  const [branchProducts, setBranchProducts] = useState([]);
 
   useEffect(() => {
     if (selectedBranch) return;
@@ -25,8 +49,52 @@ export default function HomeTab() {
     return () => clearTimeout(timer);
   }, [selectedBranch]);
 
+  useEffect(() => {
+    if (!selectedBranchId) {
+      return;
+    }
+
+    let mounted = true;
+
+    async function loadBranchData() {
+      setLoading(true);
+
+      try {
+        const [categoriesPayload, productsPayload] = await Promise.all([
+          getBranchCategories(selectedBranchId),
+          getProducts(selectedBranchId),
+        ]);
+
+        if (!mounted) {
+          return;
+        }
+
+        setCategories(normalizeApiList(categoriesPayload));
+        setBranchProducts(normalizeApiList(productsPayload));
+      } catch (error) {
+        if (mounted) {
+          setCategories([]);
+          setBranchProducts([]);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    }
+
+    loadBranchData();
+
+    return () => {
+      mounted = false;
+    };
+  }, [selectedBranchId]);
+
   const handleBranchSelect = (branch) => {
-    setSelectedBranch(branch);
+    setSelectedBranch({
+      ...branch,
+      id: branch?.id ?? branch?.branch_id ?? null,
+    });
     setSelectionPhase(false);
   };
 
@@ -57,7 +125,7 @@ export default function HomeTab() {
           </View>
           <Text className="text-sm text-gray-700" style={{ fontFamily: 'Poppins-Medium' }}>
             <Text style={{ fontFamily: 'Poppins-Bold' }}>Open til 9 PM </Text>
-            <Text className="text-green-600">|</Text> Lally's Pharmacy
+            <Text className="text-green-600">|</Text> {selectedBranch?.name || 'Selected branch'}
           </Text>
         </View>
       </View>
@@ -76,28 +144,50 @@ export default function HomeTab() {
           </Text>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
-          {categories.map((item, index) => (
-            <CategoryCard key={index} icon={item.icon} label={item.label} onPress={() => route.push({ pathname: '/customer/tabs/shop/Categories', params: { category: item.label } })} />
-          ))}
+          {categories.map((item) => {
+            const label = item?.category_name || 'Category';
+
+            return (
+              <CategoryCard
+                key={item?.id || label}
+                icon="🛍️"
+                label={label}
+                onPress={() =>
+                  route.push({
+                    pathname: '/customer/tabs/shop/Categories',
+                    params: {
+                      category: label,
+                      categoryId: String(item?.id ?? ''),
+                    },
+                  })
+                }
+              />
+            );
+          })}
         </ScrollView>
       </View>
       <View className="mt-4 mb-4">
         <View className="flex-row items-center justify-between px-4 py-2">
           <Text className="text-2xl text-gray-600 px-2 py-2 mt-6" style={{ fontFamily: 'Poppins-Bold' }}>
-            Bestseller Products
+            Branch Products
           </Text>
-          <Text className="text-md text-gray-600 px-2 py-2 mt-6" style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}>
+          <Text
+            className="text-md text-gray-600 px-2 py-2 mt-6"
+            style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}
+            onPress={() => route.push('/customer/tabs/shop/Shop')}
+          >
             See all
           </Text>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
-          {bestSellers.map((item, index) => (
+          {branchProducts.map((item, index) => (
             <ProductCard
-              key={index}
-              img={item.img}
-              description={item.description}
-              category={item.category}
-              price={item.price}
+              key={`${item?.id ?? 'product'}-${index}`}
+              productId={String(item?.product_id ?? '')}
+              img={BandaidImg}
+              description={item?.product?.product_name || 'Unnamed product'}
+              category={item?.category?.category_name || 'Uncategorized'}
+              price={formatPrice(item?.selling_price)}
               style={{ width: 150, marginRight: 12 }}
             />
           ))}
@@ -106,15 +196,6 @@ export default function HomeTab() {
     </ScrollView>
   );
 }
-
-const categories = [
-  { icon: '💊', label: 'Medicine' },
-  { icon: '🩹', label: 'First Aid' },
-  { icon: '🧴', label: 'Skin Care' },
-  { icon: '🦷', label: 'Dental' },
-  { icon: '👶', label: 'Baby Care' },
-  { icon: '💉', label: 'Vitamins' },
-];
 
 function CategoryCard({ icon, label, onPress }) {
   return (
@@ -126,16 +207,6 @@ function CategoryCard({ icon, label, onPress }) {
     </TouchableOpacity>
   );
 }
-
-const bestSellers = [
-  { img: BandaidImg, description: 'MEDIPLAST Sterilized Gauze Pads 4x4', category: 'First Aid', price: '₱9.50' },
-  { img: BetadineImg, description: 'Betadine Antiseptic Povidone Iodine 10% 60ml', category: 'First Aid', price: '₱109.00' },
-  { img: BandaidImg, description: 'MEDIPLAST Sterilized Gauze Pads 4x4', category: 'First Aid', price: '₱9.50' },
-  { img: BetadineImg, description: 'Betadine Antiseptic Povidone Iodine 10% 60ml', category: 'First Aid', price: '₱109.00' },
-  { img: BandaidImg, description: 'MEDIPLAST Sterilized Gauze Pads 4x4', category: 'First Aid', price: '₱9.50' },
-  { img: BetadineImg, description: 'Betadine Antiseptic Povidone Iodine 10% 60ml', category: 'First Aid', price: '₱109.00' },
-  
-];
 
 const styles = StyleSheet.create({
   greetingMedium: {

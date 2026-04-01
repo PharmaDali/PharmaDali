@@ -17,15 +17,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'userInfo']);
     Route::post('logout', [AuthController::class, 'logout']);
 
-    Route::middleware('abilities:customer,pharmacist,branch_admin,super_admin')->group(function () {
-        Route::get('branches', [BranchController::class, 'index']);
-        Route::get('branches/{id}', [BranchController::class, 'show']);
+    Route::get('branches', [BranchController::class, 'index']);
+    Route::get('branches/{id}', [BranchController::class, 'show']);
 
-        Route::get('products', [BranchProductController::class, 'index']);
-        Route::get('products/{id}', [BranchProductController::class, 'show']);
-        Route::get('branches/{branchId}/products', [BranchProductController::class, 'showBranchProducts']);
-        Route::get('branches/{branchId}/categories', [BranchProductController::class, 'showBranchCategories']);
-    });
+    Route::get('products', [BranchProductController::class, 'index']);
+    Route::get('products/{id}', [BranchProductController::class, 'show']);
+    Route::get('branches/{branchId}/products', [BranchProductController::class, 'showBranchProducts']);
+    Route::get('branches/{branchId}/categories', [BranchProductController::class, 'showBranchCategories']);
 
     Route::middleware('ability:customer')->group(function () {
         Route::get('customer/dashboard', function () {

@@ -58,7 +58,7 @@ export default function BranchSelectionOverlay({ visible, onSelect }) {
             : [];
 
         const mapped = normalized.map((item) => ({
-          id: item.id,
+          id: item.id ?? item.branch_id,
           name: item.branch_name,
           address: item.location,
           hours: item.opening_hour && item.closing_hour ? `${item.opening_hour} - ${item.closing_hour}` : 'Store hours unavailable',
