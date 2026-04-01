@@ -3,7 +3,6 @@
 use App\Http\Controllers\API\BranchController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BranchProductController;
-use App\Http\Controllers\PostController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -13,9 +12,6 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('pharmacist/login', [AuthController::class, 'pharmacistLogin']);
 Route::post('admin/login', [AuthController::class, 'adminLogin']);
 
-// Public routes for products (can be restricted if needed)
-Route::get('products', [BranchProductController::class, 'index']);
-Route::get('products/{id}', [BranchProductController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'userInfo']);
@@ -24,16 +20,20 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware('abilities:customer,pharmacist,branch_admin,super_admin')->group(function () {
         Route::get('branches', [BranchController::class, 'index']);
         Route::get('branches/{id}', [BranchController::class, 'show']);
+
+        Route::get('products', [BranchProductController::class, 'index']);
+        Route::get('products/{id}', [BranchProductController::class, 'show']);
+        Route::get('branches/{branchId}/products', [BranchProductController::class, 'showBranchProducts']);
+        Route::get('branches/{branchId}/categories', [BranchProductController::class, 'showBranchCategories']);
     });
 
-    Route::middleware('ability:customer')->group(function () { 
-        Route::apiResource('posts', PostController::class);
+    Route::middleware('ability:customer')->group(function () {
         Route::get('customer/dashboard', function () {
             return response()->json(['message' => 'Customer dashboard access granted']);
         });
     });
 
-    Route::middleware('ability:pharmacist')->group(function () {  
+    Route::middleware('ability:pharmacist')->group(function () {
         Route::get('pharmacist/dashboard', function () {
             return response()->json(['message' => 'Pharmacist dashboard access granted']);
         });
@@ -44,7 +44,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware(['ability:branch_admin'])->group(function () {
-        Route::get('branch/dashboard', fn() =>
+        Route::get(
+            'branch/dashboard',
+            fn() =>
             response()->json(['message' => 'Branch Admin dashboard'])
         );
 
@@ -54,7 +56,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {
-        Route::get('admin/dashboard', fn() =>
+        Route::get(
+            'admin/dashboard',
+            fn() =>
             response()->json(['message' => 'Super Admin dashboard'])
         );
 

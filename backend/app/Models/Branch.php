@@ -30,4 +30,16 @@ class Branch extends Model
     {
         return $this->hasMany(User::class)->where('role', 'pharmacist');    
     }
+
+    public function branchProducts()
+    {
+        return $this->hasMany(BranchProduct::class);
+    }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'branch_products')
+            ->withPivot(['product_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
+            ->withTimestamps();
+    }
 }

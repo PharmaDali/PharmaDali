@@ -8,6 +8,9 @@ use App\Http\Requests\CreateBranchProductRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\UpdateBranchProductsRequest;
+use App\Http\Requests\ShowBranchProductRequest;
+use App\Services\BranchProduct\ShowBranchProductService;
+use App\Services\BranchProduct\ShowBranchCategoriesService;
 
 class BranchProductController extends Controller
 {
@@ -48,6 +51,37 @@ class BranchProductController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $product
+        ]);
+    }
+
+    /**
+     * Display branch-specific products for customer purchasing flow.
+     */
+    public function showBranchProducts(ShowBranchProductRequest $request, ShowBranchProductService $showBranchProductService)
+    {
+        $validated = $request->validated();
+        $branchProducts = $showBranchProductService->handle(
+            (int) $validated['branch_id'],
+            isset($validated['category_id']) ? (int) $validated['category_id'] : null,
+        );
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $branchProducts,
+        ]);
+    }
+
+    /**
+     * Display branch-specific categories available for purchasing flow.
+     */
+    public function showBranchCategories(ShowBranchProductRequest $request, ShowBranchCategoriesService $showBranchCategoriesService)
+    {
+        $validated = $request->validated();
+        $categories = $showBranchCategoriesService->handle((int) $validated['branch_id']);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $categories,
         ]);
     }
 
