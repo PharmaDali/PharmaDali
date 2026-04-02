@@ -35,7 +35,11 @@ export default function BottomBar() {
     <BottomNavigation.Bar
       navigationState={{ index: index >= 0 ? index : 0, routes }}
       onTabPress={({ route }) => {
-        router.push(route.path);
+        if (pathname === route.path) {
+          return;
+        }
+
+        router.replace(route.path);
       }}
       style={{ backgroundColor: '#fff' }}
       inactiveColor='#48AAD9'
