@@ -1,24 +1,31 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { login } from "../services/loginService";
 
 function Login() {
   const navigate = useNavigate();
-  const [credentials, setCredentials] = useState({ username: "", password: "" });
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setIsSubmitting(true);
 
-    if (credentials.username === "admin" && credentials.password === "jamestheadmin") {
+    try {
+      await login(credentials);
       localStorage.setItem("isAuthenticated", "true");
       navigate("/", { replace: true });
-    } else {
-      setError("Invalid username or password.");
+    } catch (err) {
+      setError(err?.message || "Invalid email or password.");
+      localStorage.removeItem("isAuthenticated");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -35,10 +42,10 @@ function Login() {
         <h2 className="login-form-title">Log In</h2>
 
         <input
-          type="text"
-          name="username"
-          placeholder="Admin ID"
-          value={credentials.username}
+          type="email"
+          name="email"
+          placeholder="Admin Email"
+          value={credentials.email}
           onChange={handleChange}
           className="login-input"
           required
@@ -61,7 +68,7 @@ function Login() {
             Forgot Password?
           </button>
           <button type="submit" className="login-submit-btn">
-            Mag-login
+            {isSubmitting ? "Logging in..." : "Mag-login"}
           </button>
         </div>
       </form>
