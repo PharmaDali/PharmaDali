@@ -33,6 +33,7 @@ class ShowBranchProductRequest extends FormRequest
     {
         return [
             'branch_id' => ['required', 'integer', 'exists:branches,id'],
+            'force_refresh' => ['sometimes', 'boolean'],
             'category_id' => [
                 'nullable',
                 'integer',
