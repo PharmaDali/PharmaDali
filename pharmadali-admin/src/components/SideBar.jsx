@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { logout } from "../services/loginService";
 
 const MENU_SECTIONS = [
   {
@@ -43,9 +44,15 @@ function SideBar({ isOpen, onToggle }) {
 
   const navigate = useNavigate();
   
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    navigate("/login", { replace: true });
+  const handleLogout = async (event) => {
+    event.preventDefault();
+
+    try {
+      await logout();
+    } finally {
+      localStorage.removeItem("isAuthenticated");
+      navigate("/login", { replace: true });
+    }
   };
 
   return (
