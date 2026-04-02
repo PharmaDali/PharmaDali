@@ -60,9 +60,12 @@ class BranchProductController extends Controller
     public function showBranchProducts(ShowBranchProductRequest $request, ShowBranchProductService $showBranchProductService)
     {
         $validated = $request->validated();
+        $forceRefresh = $request->boolean('force_refresh');
+
         $branchProducts = $showBranchProductService->handle(
             (int) $validated['branch_id'],
             isset($validated['category_id']) ? (int) $validated['category_id'] : null,
+            $forceRefresh,
         );
 
         return response()->json([
@@ -77,7 +80,8 @@ class BranchProductController extends Controller
     public function showBranchCategories(ShowBranchProductRequest $request, ShowBranchCategoriesService $showBranchCategoriesService)
     {
         $validated = $request->validated();
-        $categories = $showBranchCategoriesService->handle((int) $validated['branch_id']);
+        $forceRefresh = $request->boolean('force_refresh');
+        $categories = $showBranchCategoriesService->handle((int) $validated['branch_id'], $forceRefresh);
 
         return response()->json([
             'status' => 'success',

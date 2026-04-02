@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { colors } from '@shared/colorPallete';
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -40,6 +40,7 @@ export default function HomeTab() {
   const [loading, setLoading] = useState(!selectedBranch);
   const [categories, setCategories] = useState([]);
   const [branchProducts, setBranchProducts] = useState([]);
+  const previousBranchIdRef = useRef(null);
 
   useEffect(() => {
     if (selectedBranch) return;
@@ -55,14 +56,17 @@ export default function HomeTab() {
     }
 
     let mounted = true;
+    const hasBranchSwitched =
+      previousBranchIdRef.current !== null && previousBranchIdRef.current !== selectedBranchId;
+    previousBranchIdRef.current = selectedBranchId;
 
     async function loadBranchData() {
       setLoading(true);
 
       try {
         const [categoriesPayload, productsPayload] = await Promise.all([
-          getBranchCategories(selectedBranchId),
-          getProducts(selectedBranchId),
+          getBranchCategories(selectedBranchId, hasBranchSwitched),
+          getProducts(selectedBranchId, null, hasBranchSwitched),
         ]);
 
         if (!mounted) {
