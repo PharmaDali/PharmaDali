@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\AdminRegisterRequest;
+use App\Http\Requests\CustomerRegisterRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\PharmacistLoginRequest;
-use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\PharmacistRegisterRequest;
 use App\Models\User;
+use App\Services\Auth\AdminRegisterService;
+use App\Services\Auth\CustomerRegisterService;
 use App\Services\Auth\LoginService;
 use App\Services\Auth\PharmacistLoginService;
-use App\Services\Auth\RegisterService;
+use App\Services\Auth\PharmacistRegisterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Http\Requests\AdminLoginRequest;
@@ -18,15 +22,27 @@ use App\Services\Auth\AdminLoginService;
 class AuthController extends Controller
 {
     public function __construct(
+        private readonly CustomerRegisterService $customerRegisterService,
+        private readonly PharmacistRegisterService $pharmacistRegisterService,
+        private readonly AdminRegisterService $adminRegisterService,
         private readonly LoginService           $loginService,
         private readonly PharmacistLoginService $pharmacistLoginService,
-        private readonly RegisterService        $registerService,
         private readonly AdminLoginService      $adminLoginService,
     ) {}
 
-    public function register(RegisterRequest $request): JsonResponse
+    public function customerRegister(CustomerRegisterRequest $request): JsonResponse
     {
-        return $this->registerService->handle($request->validated());
+        return $this->customerRegisterService->handle($request->validated());
+    }
+
+    public function pharmacistRegister(PharmacistRegisterRequest $request): JsonResponse
+    {
+        return $this->pharmacistRegisterService->handle($request->validated());
+    }
+
+    public function adminRegister(AdminRegisterRequest $request): JsonResponse
+    {
+        return $this->adminRegisterService->handle($request->validated());
     }
 
     public function login(LoginRequest $request): JsonResponse
