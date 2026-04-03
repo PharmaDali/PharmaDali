@@ -3,9 +3,8 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
-class RegisterRequest extends FormRequest
+class PharmacistRegisterRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -22,9 +21,8 @@ class RegisterRequest extends FormRequest
             'mobile_number'   => ['required', 'string', 'max:20'],
             'date_of_birth'   => ['nullable', 'date'],
             'address'         => ['nullable', 'string', 'max:255'],
-            'role'            => ['sometimes', Rule::in(['customer', 'pharmacist', 'admin'])],
-            'employee_number' => ['required_if:role,pharmacist', 'nullable', 'string', 'max:255', 'unique:pharmacists,employee_number'],
-            'license_number'  => ['required_if:role,pharmacist', 'nullable', 'string', 'max:255', 'unique:pharmacists,license_number'],
+            'employee_number' => ['required', 'string', 'max:255', 'unique:pharmacists,employee_number'],
+            'license_number'  => ['required', 'string', 'max:255', 'unique:pharmacists,license_number'],
         ];
     }
 
@@ -39,8 +37,8 @@ class RegisterRequest extends FormRequest
             'password.min'             => 'Password must be at least 8 characters.',
             'password.confirmed'       => 'Password confirmation does not match.',
             'mobile_number.required'   => 'Mobile number is required.',
-            'employee_number.required_if' => 'Employee number is required for pharmacist accounts.',
-            'license_number.required_if'  => 'License number is required for pharmacist accounts.',
+            'employee_number.required' => 'Employee number is required.',
+            'license_number.required'  => 'License number is required.',
             'employee_number.unique'   => 'This employee number is already taken.',
             'license_number.unique'    => 'This license number is already taken.',
         ];

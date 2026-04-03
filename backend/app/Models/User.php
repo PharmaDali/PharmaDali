@@ -22,11 +22,6 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
-    public function posts(): HasMany
-    {
-        return $this->hasMany(Post::class);
-    }
-
     /**
      * The attributes that are mass assignable.
      *
@@ -56,6 +51,11 @@ class User extends Authenticatable
     public function hasRole(string $role): bool
     {
         return $this->role === $role;
+    }
+
+    public function customer(): HasOne
+    {
+        return $this->hasOne(Customer::class);
     }
 
     /**

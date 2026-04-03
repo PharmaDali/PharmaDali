@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
-Route::post('register', [AuthController::class, 'register']);
+Route::post('customer/register', [AuthController::class, 'customerRegister']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('pharmacist/login', [AuthController::class, 'pharmacistLogin']);
 Route::post('admin/login', [AuthController::class, 'adminLogin']);
@@ -59,6 +59,9 @@ Route::middleware('auth:sanctum')->group(function () {
             fn() =>
             response()->json(['message' => 'Super Admin dashboard'])
         );
+
+        Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
+        Route::post('admin/register', [AuthController::class, 'adminRegister']);
 
         Route::apiResource('branches', BranchController::class)->except(['index', 'show']);
     });
