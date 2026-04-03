@@ -27,14 +27,16 @@ class LoginService
         /** @var User $user */
         $user = Auth::user();
 
-        // Prevent pharmacists from using the customer login
-        if ($user->role === 'pharmacist') {
+        // This endpoint is customer-only; other roles should use dedicated login endpoints.
+        if ($user->role !== 'customer') {
             RateLimiter::hit('login:' . $ip);
             Auth::logout();
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
         RateLimiter::clear('login:' . $ip);
+
+        $customer = $user->customer()->firstOrCreate([]);
 
         $user->tokens()->delete();
 
@@ -44,7 +46,8 @@ class LoginService
             'token'      => $token,
             'token_type' => 'Bearer',
             'role'       => $user->role,
-            'user'       => $user,
+            'user'       => $user->load('customer'),
+            'customer_id' => $customer->id,
         ]);
     }
 
@@ -52,7 +55,6 @@ class LoginService
     {
         return match ($role) {
             'customer' => ['customer'],
-            'admin'    => [],
             default    => [],
         };
     }
