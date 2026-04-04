@@ -1,5 +1,6 @@
 import { useState } from "react";
 import adminMedsIcon from "../assets/icons/admin_meds.svg";
+import "../assets/css/pospage.css";
 
 const SAMPLE_PRODUCTS = [
   { id: 1, genericName: "Amoxicillin", brandName: "Amoxil",   strength: "500 mg Capsule",           price: 21.12, stocks: 120 },
@@ -139,7 +140,7 @@ function CurrentOrder({ items, paymentMethod, onPaymentChange, onCompleteSale, o
         )}
       </div>
 
-      <div className="d-flex justify-content-between align-items-end px-1 pt-3 pb-2">
+      <div className="d-flex justify-content-between align-items-end px-1 pt-3 pb-2 pos-order-meta">
         <div>
           <div style={{ fontSize: 12, color: "#888" }}>No. of Items</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: "#222" }}>{totalQty}</div>
@@ -152,7 +153,7 @@ function CurrentOrder({ items, paymentMethod, onPaymentChange, onCompleteSale, o
 
       <div className="pb-2">
         <div style={{ fontSize: 13, fontWeight: 600, color: "#444", marginBottom: 6 }}>Payment Method</div>
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-2 pos-payment-actions">
           <button
             className="btn flex-grow-1 py-2"
             style={{
@@ -222,20 +223,20 @@ function PosPage() {
 
   return (
     <div
-      className="d-flex flex-column flex-md-row gap-4"
-      style={{ height: "calc(90vh - 90px)", minHeight: 400 }}
+      className="d-flex flex-column flex-md-row gap-4 pos-page"
+      style={{ minHeight: 400 }}
     >
-      <div className="d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
-        <div className="card border-0 shadow-md" style={{ height: "calc(90vh - 130px)" }}>
+      <div className="d-flex flex-column flex-grow-1 pos-pane" style={{ minWidth: 0 }}>
+        <div className="card border-0 shadow-md pos-card pos-product-card">
           <div className="card-header bg-white border-0 d-flex align-items-center gap-3 flex-wrap pt-3 pb-2 px-3">
             <h6
-              className="fw-semibold mb-0 flex-shrink-0"
+              className="fw-semibold mb-0 flex-shrink-0 pos-title"
               style={{ color: "#222", fontSize: 20 }}
             >
               Product List
             </h6>
             <div
-              className="d-flex align-items-center gap-3 rounded-pill px-3 py-2 flex-grow-1 flex-md-grow-0"
+              className="d-flex align-items-center gap-3 rounded-pill px-3 py-2 flex-grow-1 flex-md-grow-0 pos-search"
               style={{
                 background: "#E3EBF3",
                 border: "1.5px solid #dde3ec",
@@ -261,7 +262,7 @@ function PosPage() {
               />
             </div>
           </div>
-          <div className="card-body p-3 pt-3 overflow-hidden" style={{ flex: 1, minHeight: 0 }}>
+          <div className="card-body p-3 pt-3 overflow-hidden pos-product-body" style={{ flex: 1, minHeight: 0 }}>
             <div className="card border-1 shadow-md" style={{ height: "100%", overflow: "hidden" }}>
               <div className="card-body d-flex flex-column p-0" style={{ flex: 1, minHeight: 0 }}>
                 {filtered.length > 0 ? (
@@ -280,19 +281,19 @@ function PosPage() {
       </div>
 
       <div
-        className="d-flex flex-column"
-        style={{ width: 500, flexShrink: 0, minWidth: 0 }}
+        className="d-flex flex-column pos-pane pos-order-pane"
+        style={{ minWidth: 0 }}
       >
-        <div className="card border-0 shadow-sm" style={{ height: "calc(90vh - 130px)" }}>
+        <div className="card border-0 shadow-sm pos-card pos-order-card">
           <div className="card-header bg-white border-0 d-flex align-items-center gap-3 flex-wrap pt-4 pb-2 px-3">
             <h6
-              className="fw-semibold mb-3 flex-shrink-0"
+              className="fw-semibold mb-3 flex-shrink-0 pos-title"
               style={{ color: "#222", fontSize: 20 }}
             >
               Current Order
             </h6>
           </div>
-          <div className="card-body p-3 pt-1 overflow-hidden" style={{ flex: 1, minHeight: 0 }}>
+          <div className="card-body p-3 pt-1 overflow-hidden pos-order-body" style={{ flex: 1, minHeight: 0 }}>
             <CurrentOrder
               items={orderItems}
               paymentMethod={paymentMethod}
