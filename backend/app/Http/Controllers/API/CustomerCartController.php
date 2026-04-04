@@ -23,4 +23,14 @@ class CustomerCartController extends Controller
             $request->validated(),
         );
     }
+
+    public function viewCart()
+    {   
+        return 0;
+    }
+
+    public function countCartItems(): JsonResponse
+    {
+        return $this->customerCartService->countCartItems(request()->user());
+    }
 }

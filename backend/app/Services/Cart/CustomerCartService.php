@@ -12,6 +12,30 @@ use Illuminate\Validation\ValidationException;
 
 class CustomerCartService
 {
+    public function countCartItems(?User $user): JsonResponse
+    {
+        if (!$user || $user->role !== 'customer') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Only customers can view cart counts.',
+            ], 403);
+        }
+
+        $count = CartItem::query()
+            ->whereHas('cart', function ($query) use ($user) {
+                $query->where('customer_id', $user->id)
+                    ->where('status', 'active');
+            })
+            ->sum('quantity');
+
+        return response()->json([
+            'status' => 'success',
+            'data' => [
+                'count' => (int) $count,
+            ],
+        ]);
+    }
+
     /**
      * Add a branch product to the authenticated customer's active cart.
      */
