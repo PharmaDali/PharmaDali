@@ -3,11 +3,20 @@ import { useRouter } from 'expo-router';
 import { colors } from '@shared/colorPallete';
 import AddToCartIcon from '@assets/icons/add_to_cart_icon.svg';
 
-export default function ProductCard({ img, description, category, price, style, productId }) {
+export default function ProductCard({ img, description, category, price, style, productId, onAddToCart }) {
   const router = useRouter();
 
   const handlePress = () => {
     router.push({ pathname: '/customer/tabs/shop/ProductView', params: { productId: productId || '1' } });
+  };
+
+  const handleAddToCartPress = (event) => {
+    event?.stopPropagation?.();
+
+    if (typeof onAddToCart === 'function') {
+      onAddToCart({ user_id, branch_id, ...productData });
+      return;
+    }
   };
 
   return (
@@ -21,11 +30,14 @@ export default function ProductCard({ img, description, category, price, style, 
         />
         <Text className="text-xs text-gray-600 mt-2" style={{ fontFamily: 'Poppins-Medium' }}>{category}</Text>
         <Text className="text-sm mt-2" style={{ fontFamily: 'Poppins-Medium' }} numberOfLines={2}>{description}</Text>
-        <View className="flex-row items-center justify-between mt-2">
-          <Text className="text-md" style={styles.priceBold}>{price}</Text>
-          <AddToCartIcon width={28} height={28} />
+        
+          <View className="flex-row items-center justify-between mt-2">
+            <Text className="text-md" style={styles.priceBold}>{price}</Text>
+            <TouchableOpacity onPress={handleAddToCartPress} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+              <AddToCartIcon width={28} height={28} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
     </TouchableOpacity>
   );
 }
