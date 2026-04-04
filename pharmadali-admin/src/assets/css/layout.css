@@ -2,12 +2,26 @@
   min-height: calc(100vh - var(--pd-navbar-height));
   background: var(--pd-bg-main);
   padding: 30px 35px;
+  width: 100%;
+  max-width: 100vw;
   margin-left: 0;
-  transition: margin-left 0.3s ease;
+  transition: padding 0.25s ease;
 }
 
 .main-content.sidebar-open {
-  margin-left: var(--pd-sidebar-width);
+  margin-left: 0;
+}
+
+@media (max-width: 991.98px) {
+  .main-content {
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .main-content {
+    padding: 16px 12px;
+  }
 }
 
 .pos-scroll::-webkit-scrollbar {

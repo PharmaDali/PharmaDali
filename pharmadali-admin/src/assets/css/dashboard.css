@@ -1,0 +1,142 @@
+.dashboard-page {
+  min-width: 0;
+}
+
+.dashboard-panel {
+  overflow: hidden;
+  border: 1px solid rgba(22, 39, 56, 0.04);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(2px);
+}
+
+.dashboard-stat-card {
+  min-height: 108px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.dashboard-stat-value {
+  font-size: clamp(1.35rem, 1.85vw, 1.75rem);
+  overflow-wrap: anywhere;
+}
+
+.dashboard-card-header {
+  flex-wrap: wrap;
+}
+
+.dashboard-range-select-wrap {
+  min-width: 170px;
+}
+
+.dashboard-range-select {
+  width: 100%;
+}
+
+.dashboard-chart-wrap {
+  height: 240px;
+}
+
+.inventory-divider {
+  width: 1px;
+  background: #eeeeee;
+  flex-shrink: 0;
+}
+
+.quick-insight-right,
+.forecast-right,
+.inventory-note {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 991.98px) {
+  .dashboard-panel {
+    padding: 1rem !important;
+  }
+
+  .dashboard-chart-wrap {
+    height: 220px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .dashboard-card-header {
+    align-items: stretch;
+  }
+
+  .dashboard-range-select-wrap {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dashboard-chart-wrap {
+    height: 205px;
+  }
+
+  .quick-insight-row,
+  .forecast-row,
+  .inventory-row {
+    gap: 0.6rem;
+    align-items: flex-start !important;
+  }
+
+  .quick-insight-right,
+  .forecast-right {
+    max-width: 52%;
+  }
+
+  .inventory-note {
+    max-width: 58%;
+    text-align: right;
+  }
+
+  .inventory-divider {
+    width: 100%;
+    height: 1px;
+    margin: 0.5rem 0 0.75rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .dashboard-page h4 {
+    font-size: 1.25rem;
+  }
+
+  .dashboard-page p {
+    margin-bottom: 1rem !important;
+  }
+
+  .dashboard-stat-card {
+    min-height: auto;
+  }
+
+  .dashboard-chart-wrap {
+    height: 190px;
+  }
+
+  .dashboard-range-select {
+    font-size: 12px !important;
+  }
+
+  .quick-insight-row,
+  .forecast-row,
+  .inventory-row {
+    flex-direction: column;
+  }
+
+  .quick-insight-right,
+  .forecast-right,
+  .inventory-note {
+    max-width: 100%;
+    width: 100%;
+    text-align: left !important;
+  }
+}
+
+@media (min-width: 1400px) {
+  .dashboard-panel {
+    padding: 1.35rem !important;
+  }
+
+  .dashboard-chart-wrap {
+    height: 260px;
+  }
+}

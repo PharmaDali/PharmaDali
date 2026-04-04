@@ -9,6 +9,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { useState } from "react";
+import "../assets/css/dashboard.css";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
@@ -74,11 +75,11 @@ function AiBadge() {
 function StatCard({ label, value, prefix, ai, bg }) {
   return (
     <div
-      className="rounded-3 p-3 flex-grow-1"
-      style={{ background: bg, minWidth: 120 }}
+      className="rounded-3 p-3 h-100 dashboard-stat-card"
+      style={{ background: bg }}
     >
       <div style={{ fontSize: 12, color: "#444444", marginBottom: 4 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1.1, color: "#1a2a3a" }}>
+      <div className="dashboard-stat-value" style={{ fontWeight: 800, lineHeight: 1.1, color: "#1a2a3a" }}>
         {prefix && <span style={{ fontSize: 13, fontWeight: 600, verticalAlign: "middle", marginRight: 2 }}>{prefix}</span>}
         {value}
         {ai && <AiBadge />}
@@ -110,20 +111,27 @@ function SalesTrend() {
     maintainAspectRatio: false,
     plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
     scales: {
-      x: { grid: { display: false }, ticks: { color: "#888", font: { size: 12 } } },
+      x: {
+        grid: { display: false },
+        ticks: {
+          color: "#888",
+          font: { size: 12 },
+          autoSkip: true,
+          maxTicksLimit: range === "Last 30 days" ? 6 : 8,
+        },
+      },
       y: { grid: { color: "#f0f4f8" }, ticks: { color: "#888", font: { size: 12 } }, beginAtZero: false },
     },
   };
 
   return (
-    <div className="card border-0 shadow-sm rounded-3 p-4 h-100">
-      <div className="d-flex align-items-center justify-content-between mb-3">
+    <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
+      <div className="dashboard-card-header d-flex align-items-md-center justify-content-between mb-3 gap-2">
         <h6 className="fw-bold mb-0" style={{ fontSize: 16, color: "#2aabe2" }}>Sales Trend</h6>
-        <div className="position-relative">
+        <div className="position-relative dashboard-range-select-wrap">
           <select
-            className="form-select form-select-sm pe-4"
+            className="form-select form-select-sm pe-4 dashboard-range-select"
             style={{ 
-              width: "auto", 
               fontSize: 13, 
               borderRadius: 20, 
               border: "1.5px solid #dde3ec", 
@@ -143,7 +151,7 @@ function SalesTrend() {
           ></i>
         </div>
       </div>
-      <div style={{ height: 240 }}>
+      <div className="dashboard-chart-wrap">
         <Line data={data} options={options} />
       </div>
     </div>
@@ -152,18 +160,18 @@ function SalesTrend() {
 
 function QuickInsights() {
   return (
-    <div className="card border-0 shadow-sm rounded-3 p-4 h-100">
+    <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Quick Insights</h6>
       <div className="d-flex flex-column gap-0">
         {QUICK_INSIGHTS.map((item, i) => (
           <div key={i}>
             {i > 0 && <hr className="my-2" />}
-            <div className="d-flex justify-content-between align-items-start">
+            <div className="d-flex justify-content-between align-items-start quick-insight-row">
               <div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>{item.category}</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>{item.main}</div>
               </div>
-              <div className="text-end">
+              <div className="text-end quick-insight-right">
                 <span style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>{item.right}</span>
                 <span style={{ fontSize: 11, color: "#aaa", marginLeft: 4 }}>{item.rightSub}</span>
               </div>
@@ -177,25 +185,25 @@ function QuickInsights() {
 
 function InventoryHealth() {
   return (
-    <div className="card border-0 shadow-sm rounded-3 p-4 h-100 d-flex flex-column">
+    <div className="card border-0 shadow-sm rounded-3 p-4 h-100 d-flex flex-column dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Inventory Health </h6>
-      <div className="d-flex flex-grow-1" style={{ minHeight: 0 }}>
-        <div className="pe-3" style={{ flex: 1 }}>
+      <div className="d-flex flex-column flex-md-row flex-grow-1" style={{ minHeight: 0 }}>
+        <div className="pe-md-3" style={{ flex: 1 }}>
           <div style={{ fontSize: 12, color: "#555", fontWeight: 600, marginBottom: 8 }}>
             Low Stock Items <AiBadge />
           </div>
           {LOW_STOCK.map((item, i) => (
-            <div key={i} className="d-flex justify-content-between align-items-center mb-3">
+            <div key={i} className="d-flex justify-content-between align-items-center mb-3 inventory-row">
               <div style={{ fontSize: 13, color: "#222" }}>{item.name}</div>
-              <div style={{ fontSize: 12, color: "#888" }}>{item.note}</div>
+              <div className="inventory-note" style={{ fontSize: 12, color: "#888" }}>{item.note}</div>
             </div>
           ))}
         </div>
-        <div style={{ width: 1, background: "#eee", flexShrink: 0 }} />
-        <div className="ps-3" style={{ flex: 1 }}>
+        <div className="inventory-divider" />
+        <div className="ps-md-3" style={{ flex: 1 }}>
           <div style={{ fontSize: 12, color: "#555", fontWeight: 600, marginBottom: 8 }}>Expiring Soon</div>
           {EXPIRING_SOON.map((item, i) => (
-            <div key={i} className="d-flex justify-content-between align-items-center mb-3">
+            <div key={i} className="d-flex justify-content-between align-items-center mb-3 inventory-row">
               <div style={{ fontWeight: 700, fontSize: 13, color: "#222" }}>{item.name}</div>
               <div style={{ fontSize: 13, color: "#555" }}>{item.days}</div>
             </div>
@@ -211,7 +219,7 @@ function InventoryHealth() {
 
 function ForecastPreview() {
   return (
-    <div className="card border-0 shadow-sm rounded-3 p-4 h-100 d-flex flex-column">
+    <div className="card border-0 shadow-sm rounded-3 p-4 h-100 d-flex flex-column dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>
         Forecast Preview <AiBadge />
       </h6>
@@ -219,12 +227,12 @@ function ForecastPreview() {
         {FORECAST.map((item, i) => (
           <div key={i}>
             {i > 0 && <hr className="my-2" />}
-            <div className="d-flex justify-content-between align-items-start">
+            <div className="d-flex justify-content-between align-items-start forecast-row">
               <div>
                 <div style={{ fontSize: 11, color: "#aaa" }}>{item.category}</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>{item.main}</div>
               </div>
-              <div className="text-end">
+              <div className="text-end forecast-right">
                 {item.right && <span style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>{item.right} </span>}
                 <span style={{ fontSize: 11, color: "#aaa" }}>{item.rightSub}</span>
               </div>
@@ -241,28 +249,32 @@ function ForecastPreview() {
 
 function DashBoard() {
   return (
-    <div>
+    <div className="dashboard-page">
       <h4 className="fw-bold mb-1" style={{ color: "#2aabe2" }}>Dashboard</h4>
       <p className="text-muted mb-4" style={{ fontSize: 13 }}>A quick data overview of the inventory.</p>
 
-      <div className="d-flex flex-wrap gap-3 mb-4">
-        {STAT_CARDS.map((c, i) => <StatCard key={i} {...c} />)}
+      <div className="row g-3 mb-4">
+        {STAT_CARDS.map((c, i) => (
+          <div key={i} className="col-12 col-sm-6 col-md-4 col-lg">
+            <StatCard {...c} />
+          </div>
+        ))}
       </div>
 
       <div className="row g-4 mb-4">
-        <div className="col-12 col-lg-7">
+        <div className="col-12 col-md-7 col-lg-8">
           <SalesTrend />
         </div>
-        <div className="col-12 col-lg-5">
+        <div className="col-12 col-md-5 col-lg-4">
           <QuickInsights />
         </div>
       </div>
 
       <div className="row g-4">
-        <div className="col-12 col-lg-6">
+        <div className="col-12 col-md-6 col-lg-6">
           <InventoryHealth />
         </div>
-        <div className="col-12 col-lg-6">
+        <div className="col-12 col-md-6 col-lg-6">
           <ForecastPreview />
         </div>
       </div>

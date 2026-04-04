@@ -1,6 +1,27 @@
 .navbar-bar {
   background: var(--pd-gradient-navbar);
   z-index: 1001;
+  min-width: 0;
+  min-height: var(--pd-navbar-height);
+}
+
+.navbar-logo {
+  height: 30px;
+  width: auto;
+  max-width: 100%;
+}
+
+.navbar-meta-wrap {
+  min-width: 0;
+}
+
+.navbar-greeting-wrap,
+.navbar-datetime {
+  white-space: nowrap;
+}
+
+.navbar-greeting-icon {
+  font-size: 22px;
 }
 
 .hamburger-menu {
@@ -19,4 +40,53 @@
   height: 3px;
   background-color: white;
   border-radius: 2px;
+}
+
+@media (max-width: 767.98px) {
+  .navbar-bar {
+    padding: 0 0.75rem !important;
+  }
+
+  .navbar-logo {
+    height: 26px;
+  }
+
+  .navbar-greeting-icon {
+    font-size: 18px;
+  }
+
+  .navbar-greeting-text {
+    font-size: 0.95rem;
+  }
+
+  .navbar-datetime {
+    font-size: 0.72rem;
+    line-height: 1.15;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .navbar-logo-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .navbar-meta-wrap {
+    gap: 0.45rem !important;
+  }
+
+  .navbar-greeting-text {
+    display: none;
+  }
+
+  .navbar-datetime {
+    text-align: right;
+    max-width: 115px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hamburger-menu {
+    width: 26px;
+  }
 }

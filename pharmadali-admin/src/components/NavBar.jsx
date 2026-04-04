@@ -50,7 +50,7 @@ function NavBar({ onToggleSidebar, sidebarOpen }) {
   }, []);
 
   return (
-    <div className="navbar-bar d-flex align-items-center p-3 gap-3 position-sticky top-0">
+    <div className="navbar-bar d-flex align-items-center p-3 gap-2 gap-sm-3 position-sticky top-0">
       <div
         className={`d-flex flex-column justify-content-between hamburger-menu${sidebarOpen ? " d-none" : ""}`}
         onClick={onToggleSidebar}
@@ -60,23 +60,23 @@ function NavBar({ onToggleSidebar, sidebarOpen }) {
         <span className="hamburger-line" />
       </div>
 
-      <div className="flex-shrink-0">
+      <div className="flex-shrink-0 navbar-logo-wrap">
         <img
           src="/main_logo.svg"
           alt="PharmaDali"
-          style={{ height: 30, width: "auto" }}
+          className="navbar-logo"
         />
       </div>
 
-      <div className="d-flex align-items-center gap-3 ms-auto flex-shrink-0">
-        <div className="d-flex align-items-center gap-2 fw-medium">
+      <div className="d-flex align-items-center gap-2 gap-sm-3 ms-auto navbar-meta-wrap">
+        <div className="d-flex align-items-center gap-2 fw-medium navbar-greeting-wrap">
           <i
-            className={`fa-solid ${iconClass}`}
-            style={{ fontSize: 24, color: iconColor }}
+            className={`fa-solid ${iconClass} navbar-greeting-icon`}
+            style={{ color: iconColor }}
           />
-          <span>{greeting}</span>
+          <span className="navbar-greeting-text">{greeting}</span>
         </div>
-        <div className="small">
+        <div className="small navbar-datetime">
           <div>{date}</div>
           <div>{time}</div>
         </div>
