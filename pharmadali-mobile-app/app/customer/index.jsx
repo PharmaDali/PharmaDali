@@ -3,11 +3,11 @@ import { View, StyleSheet, Text } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
-import theme from '@shared/inputTheme';
-import { useConfirmPasswordToggle } from '@shared/hooks/confirmPasswordToggle';
-import AnimatedSplashLayout from '@shared/components/AnimatedSplashLayout';
-import { loginCustomer } from '@shared/services/authService';
-import { validateCustomerLogin } from '@shared/validation/authValidation';
+import theme from '@src/shared/inputTheme';
+import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
+import AnimatedSplashLayout from '@src/shared/components/AnimatedSplashLayout';
+import { loginCustomer } from '@src/shared/services/authService';
+import { validateCustomerLogin } from '@src/shared/validation/authValidation';
 
 export default function LoginScreen() {
   const router = useRouter();

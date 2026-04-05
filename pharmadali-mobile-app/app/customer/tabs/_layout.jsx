@@ -1,11 +1,11 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
-import BottomBar from '@shared/components/customer-home/BottomBar';
-import TopBar from '@shared/components/customer-home/TopBar';
+import BottomBar from '@components/customer-home/BottomBar';
+import TopBar from '@components/customer-home/TopBar';
 import { Slot, usePathname, useRouter } from 'expo-router';
-import { colors } from '@shared/colorPalette';
+import { colors } from '@src/shared/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
-import { SelectionPhaseProvider, useSelectionPhase } from '@shared/SelectionPhaseContext';
+import { SelectionPhaseProvider, useSelectionPhase } from '@src/shared/SelectionPhaseContext';
 
 const detailHeaders = {
   '/customer/tabs/orders/ViewOrderDetails': 'Order Details',

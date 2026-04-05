@@ -3,10 +3,10 @@ import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
-import { colors } from '@shared/colorPalette'
+import { colors } from '@src/shared/colorPalette'
 import RxIcon from '@assets/icons/rx_icon.svg'
-import LogoHeader from '@shared/components/LogoHeader'
-import StepIndicator from '@shared/components/StepIndicator'
+import LogoHeader from '@src/shared/components/LogoHeader'
+import StepIndicator from '@src/shared/components/StepIndicator'
 import BetadineImg from '@assets/images/betadine_img.png'
 
 const prescriptionItems = [

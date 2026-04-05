@@ -2,9 +2,9 @@ import { Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import BandaidImg from '@assets/images/bandaid_img.png'
-import ProductCard from '@shared/components/ProductCard'
-import { useSelectionPhase } from '@shared/SelectionPhaseContext'
-import { getBranchCategories, getProducts } from '@shared/services/productService'
+import ProductCard from '@src/shared/components/ProductCard'
+import { useSelectionPhase } from '@src/shared/SelectionPhaseContext'
+import { getBranchCategories, getProducts } from '@src/shared/services/productService'
 
 function normalizeApiList(payload) {
   if (Array.isArray(payload)) {

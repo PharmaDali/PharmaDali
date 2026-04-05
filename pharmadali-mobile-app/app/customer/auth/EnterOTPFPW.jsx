@@ -1,9 +1,9 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, Platform, ScrollView, TextInput, } from 'react-native'
 import { Link } from 'expo-router'
-import DescriptiveLogo from '@shared/components/DescriptiveLogo';
+import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 import React, { useRef, useState } from 'react'
-import { colors } from '@shared/colorPalette';
-import CustomButton from '@shared/components/Button';
+import { colors } from '@src/shared/colorPalette';
+import CustomButton from '@src/shared/components/Button';
 import { useRouter } from 'expo-router';
 
 const EnterOTPFPW = () => {

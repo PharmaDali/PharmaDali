@@ -7,8 +7,9 @@ export const useConfirmPasswordToggle = () => {
     <TextInput.Icon
       icon={!showPassword ? 'eye-off' : 'eye'}
       onPress={() => setShowPassword(!showPassword)}
-      color='#48AAD9'
+      color="#48AAD9"
     />
   );
+
   return { showPassword, icon };
 };

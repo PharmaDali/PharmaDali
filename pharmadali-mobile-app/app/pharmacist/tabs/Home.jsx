@@ -6,7 +6,7 @@ import ForecastIcon from '@assets/icons/pharmacist_home/forecast_icon.svg'
 import DemandAlertIcon from '@assets/icons/pharmacist_home/demand_alert_icon.svg'
 import BiogesicImg from '@assets/images/biogesic_img.png'
 import SolmuxImg from '@assets/images/solmux_img.png'
-import { colors } from '@shared/colorPalette'
+import { colors } from '@src/shared/colorPalette'
 
 const TRENDING_MEDICINES = [
   { name: 'Biogesic', generic: 'Paracetamol', image: BiogesicImg },

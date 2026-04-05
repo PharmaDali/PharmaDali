@@ -2,11 +2,11 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-nati
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors } from '@shared/colorPalette'
+import { colors } from '@src/shared/colorPalette'
 import RedLocationIcon from '@assets/icons/red_location_icon.svg'
-import LogoHeader from '@shared/components/LogoHeader'
+import LogoHeader from '@src/shared/components/LogoHeader'
 import RedInfoIcon from '@assets/icons/red_info_icon.svg'
-import StepIndicator from '@shared/components/StepIndicator'
+import StepIndicator from '@src/shared/components/StepIndicator'
 
 const pickupDates = [
   'Today - Wed, January 4',
