@@ -1,47 +1,20 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native'
-import React, { useState } from 'react'
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native'
+import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '@shared/colorPallete'
 import RxIcon from '@assets/icons/rx_icon.svg'
 import BandaidImg from '@assets/images/bandaid_img.png'
-import BetadineImg from '@assets/images/betadine_img.png'
 import InfoIcon from '@assets/icons/red_info_icon.svg'
 import LocationIcon from '@assets/icons/red_location_icon.svg'
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg'
-
-const initialCartItems = [
-  {
-    id: 1,
-    img: BandaidImg,
-    description: 'OMRON MC-720 Digital Forehead Thermometer ...',
-    price: 3480.00,
-    size: 'N/A',
-    quantity: 1,
-    prescriptionRequired: false,
-    selected: false,
-  },
-  {
-    id: 2,
-    img: BetadineImg,
-    description: 'Imodium 2mg 4s - Diarrhea Medicine, Loperamide',
-    price: 80.25,
-    size: '2mg',
-    quantity: 1,
-    prescriptionRequired: false,
-    selected: true,
-  },
-  {
-    id: 3,
-    img: BetadineImg,
-    description: 'LACRYVISC Carbomer 10g [Prescription Required]',
-    price: 437.75,
-    size: '10g',
-    quantity: 1,
-    prescriptionRequired: true,
-    selected: false,
-  },
-]
+import {
+  buildCartViewState,
+  changeCartItemQuantity,
+  getCartItems,
+  toggleAllCartItems,
+  toggleCartItemSelection,
+} from '@shared/services/cartService'
 
 function Checkbox({ checked, onPress }) {
   return (
@@ -81,7 +54,7 @@ function CartItem({ item, onToggle, onIncrement, onDecrement }) {
   return (
     <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-3 mx-4">
       <Checkbox checked={item.selected} onPress={onToggle} />
-      <Image source={item.img} className="w-20 h-20 rounded-lg" resizeMode="contain" />
+      <Image source={BandaidImg} className="w-20 h-20 rounded-lg" resizeMode="contain" />
       <View className="flex-1 ml-3">
         <Text className="text-xs" style={styles.fontSemiBold} numberOfLines={2}>
           {item.description}
@@ -112,41 +85,59 @@ function CartItem({ item, onToggle, onIncrement, onDecrement }) {
 
 const Cart = () => {
   const router = useRouter()
-  const [cartItems, setCartItems] = useState(initialCartItems)
+  const [cartItems, setCartItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const loadCartItems = useCallback(async () => {
+    setLoading(true)
+    setErrorMessage('')
+
+    try {
+      const payload = await getCartItems()
+      setCartItems(payload.items)
+    } catch (error) {
+      setCartItems([])
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to load your cart items.')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadCartItems()
+  }, [loadCartItems])
 
   const toggleItem = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, selected: !item.selected } : item))
-    )
+    setCartItems((prev) => toggleCartItemSelection(prev, id))
   }
 
   const incrementQty = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity: item.quantity + 1 } : item))
-    )
+    setCartItems((prev) => changeCartItemQuantity(prev, id, 'increment'))
   }
 
   const decrementQty = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item
-      )
-    )
+    setCartItems((prev) => changeCartItemQuantity(prev, id, 'decrement'))
   }
 
-  const allSelected = cartItems.every((item) => item.selected)
+  const viewState = useMemo(() => buildCartViewState(cartItems), [cartItems])
+
+  const allSelected = viewState.allSelected
   const toggleAll = () => {
     const newVal = !allSelected
-    setCartItems((prev) => prev.map((item) => ({ ...item, selected: newVal })))
+    setCartItems((prev) => toggleAllCartItems(prev, newVal))
   }
 
   const clearAll = () => {
     setCartItems([])
   }
 
-  const selectedItems = cartItems.filter((item) => item.selected)
-  const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const hasPrescription = cartItems.some((item) => item.prescriptionRequired)
+  const total = viewState.total
+  const hasPrescription = viewState.hasPrescription
+  const branchLabel =
+    viewState.branchNames.length > 1
+      ? `${viewState.branchNames.length} branches selected`
+      : (viewState.branchNames[0] || 'No branch selected')
 
   return (
     <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
@@ -167,15 +158,40 @@ const Cart = () => {
       <View className="flex-row items-start bg-[#E8F4FD] rounded-xl mx-4 mt-4 p-3 border border-[#B8DEF0]">
         <LocationIcon width={17} height={17} />
         <View className="flex-1">
-          <Text className="text-xs" style={styles.fontSemiBold}>Pickup at Burgos Street Branch</Text>
+          <Text className="text-xs" style={styles.fontSemiBold}>Pickup at {branchLabel}</Text>
           <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
-            Availability depends on selected branch. You can change this in the next step.
+            Cart is grouped by your branch selections.
           </Text>
         </View>
       </View>
 
       <ScrollView className="flex-1 mt-4" showsVerticalScrollIndicator={false}>
-        {cartItems.map((item) => (
+        {loading && (
+          <View className="items-center py-10">
+            <ActivityIndicator size="large" color={colors.buttonColor} />
+            <Text className="mt-3 text-xs text-gray-500" style={styles.fontMedium}>Loading cart items...</Text>
+          </View>
+        )}
+
+        {!loading && !!errorMessage && (
+          <View className="mx-4 bg-[#FFEAEA] border border-[#FFCCCC] rounded-xl p-3 mb-3">
+            <Text className="text-xs text-[#B42318]" style={styles.fontMedium}>{errorMessage}</Text>
+            <TouchableOpacity onPress={loadCartItems} className="mt-2 self-start px-3 py-1.5 bg-[#48AAD9] rounded-lg">
+              <Text className="text-white text-xs" style={styles.fontSemiBold}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {!loading && !errorMessage && cartItems.length === 0 && (
+          <View className="mx-4 bg-white border border-gray-200 rounded-2xl p-5 items-center">
+            <Text className="text-sm text-gray-600" style={styles.fontSemiBold}>Your cart is empty</Text>
+            <Text className="text-xs text-gray-500 mt-1 text-center" style={styles.fontMedium}>
+              Add products from a branch to see them here.
+            </Text>
+          </View>
+        )}
+
+        {!loading && !errorMessage && cartItems.map((item) => (
           <CartItem
             key={item.id}
             item={item}

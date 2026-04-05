@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
         });
 
         Route::post('customer/cart/items', [CustomerCartController::class, 'addItem']);
+        Route::get('customer/cart/items', [CustomerCartController::class, 'viewCart']);
         Route::get('customer/cart/items/count', [CustomerCartController::class, 'countCartItems']);
     });
 
