@@ -4,7 +4,7 @@ import { TextInput, Button, Text } from 'react-native-paper'
 import DescriptiveLogo from '@shared/components/DescriptiveLogo';
 import theme from '@shared/inputTheme';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { useConfirmPasswordToggle } from '@shared/confirmPasswordToggle';
+import { useConfirmPasswordToggle } from '@shared/hooks/confirmPasswordToggle';
 
 const Register = () => {
   const [dateOfBirth, setDateOfBirth] = useState(new Date());

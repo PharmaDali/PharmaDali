@@ -5,7 +5,7 @@ import { colors } from '@shared/colorPalette'
 import theme  from '@shared/inputTheme'
 import CustomButton from '@shared/components/Button';
 import DescriptiveLogo from '@shared/components/DescriptiveLogo';
-import { useConfirmPasswordToggle } from '@shared/confirmPasswordToggle';
+import { useConfirmPasswordToggle } from '@shared/hooks/confirmPasswordToggle';
 
 const CreateNewPasswordFPW = () => {
 

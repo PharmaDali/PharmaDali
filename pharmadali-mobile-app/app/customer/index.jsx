@@ -4,7 +4,7 @@ import { Link, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
 import theme from '@shared/inputTheme';
-import { useConfirmPasswordToggle } from '@shared/confirmPasswordToggle';
+import { useConfirmPasswordToggle } from '@shared/hooks/confirmPasswordToggle';
 import AnimatedSplashLayout from '@shared/components/AnimatedSplashLayout';
 import { loginCustomer } from '@shared/services/authService';
 import { validateCustomerLogin } from '@shared/validation/authValidation';
