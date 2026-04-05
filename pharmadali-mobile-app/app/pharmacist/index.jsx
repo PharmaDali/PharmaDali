@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import CircularLogo from '@assets/circular_logo.svg';
-import { colors } from '@shared/colorPallete';
+import { colors } from '@shared/colorPalette';
 import AnimatedSplashLayout from '@shared/components/AnimatedSplashLayout';
 
 export default function LoginScreen() {

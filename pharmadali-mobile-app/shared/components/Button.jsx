@@ -1,5 +1,5 @@
 import { Text, Pressable } from 'react-native'
-import { colors } from '../colorPallete'
+import { colors } from '../colorPalette'
 import React from 'react'
 
 const CustomButton = ({ 

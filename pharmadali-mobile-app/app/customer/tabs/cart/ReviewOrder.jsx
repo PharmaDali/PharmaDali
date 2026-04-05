@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'rea
 import React from 'react'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors } from '@shared/colorPallete'
+import { colors } from '@shared/colorPalette'
 import RxIcon from '@assets/icons/rx_icon.svg'
 import LogoHeader from '@shared/components/LogoHeader'
 import RedLocationIcon from '@assets/icons/red_location_icon.svg'

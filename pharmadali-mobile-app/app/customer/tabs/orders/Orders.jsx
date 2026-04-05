@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
-import { colors } from '@shared/colorPallete';
+import { colors } from '@shared/colorPalette';
 import ActiveOrders from './ActiveOrders';
 import CompletedOrders from './CompletedOrders';
 

@@ -1,6 +1,6 @@
 import { View, Text, Image, TouchableOpacity, Modal, StyleSheet, Dimensions } from 'react-native';
 import React, { useState } from 'react';
-import { colors } from '@shared/colorPallete';
+import { colors } from '@shared/colorPalette';
 import RxIcon from '@assets/icons/rx_icon.svg';
 import SuccessIcon from '@assets/icons/success_icon.svg';
 import InfoIcon from '@assets/icons/red_info_icon.svg';

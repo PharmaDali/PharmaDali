@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { colors } from '@shared/colorPallete';
+import { colors } from '@shared/colorPalette';
 import RedStoreIcon from '@assets/icons/red_store_icon.svg';
 import { getBranchDataInSelectionPhase } from '@shared/services/selectionPhaseService';
 

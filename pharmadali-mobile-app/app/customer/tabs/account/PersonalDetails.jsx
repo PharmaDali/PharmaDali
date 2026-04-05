@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import { colors } from '@shared/colorPallete'
+import { colors } from '@shared/colorPalette'
 
 const PersonalDetails = () => {
   return (

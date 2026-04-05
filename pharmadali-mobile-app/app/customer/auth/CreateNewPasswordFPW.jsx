@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import React from 'react'
 import { TextInput } from 'react-native-paper'
-import { colors } from '@shared/colorPallete'
+import { colors } from '@shared/colorPalette'
 import theme  from '@shared/inputTheme'
 import CustomButton from '@shared/components/Button';
 import DescriptiveLogo from '@shared/components/DescriptiveLogo';

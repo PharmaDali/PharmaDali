@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, KeyboardAvoidingView, Platform, ScrollView} fro
 import React from 'react'
 import { TextInput } from 'react-native-paper'
 import CustomButton from '@shared/components/Button';
-import { colors } from '@shared/colorPallete'
+import { colors } from '@shared/colorPalette'
 import DescriptiveLogo from '@shared/components/DescriptiveLogo';
 import { useRouter } from 'expo-router';
 import theme from '@shared/inputTheme';
