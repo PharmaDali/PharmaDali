@@ -20,6 +20,6 @@ class CartItem extends Model
 
     public function branchProduct()
     {
-        return $this->belongsTo(BranchProduct::class);
+        return $this->belongsTo(BranchProduct::class, 'product_id');
     }
 }
