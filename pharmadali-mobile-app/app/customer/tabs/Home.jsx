@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { colors } from '@shared/colorPalette';
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -10,95 +10,15 @@ import BandaidImg from '@assets/images/bandaid_img.png';
 import SkeletonHome from '@shared/components/SkeletonHome';
 import BranchSelectionOverlay from '@shared/components/BranchSelectionOverlay';
 import { useSelectionPhase } from '@shared/SelectionPhaseContext';
-import { getBranchCategories, getProducts } from '@shared/services/productService';
-
-function normalizeApiList(payload) {
-  if (Array.isArray(payload)) {
-    return payload;
-  }
-
-  if (Array.isArray(payload?.data)) {
-    return payload.data;
-  }
-
-  return [];
-}
-
-function formatPrice(value) {
-  const amount = Number(value ?? 0);
-  if (Number.isNaN(amount)) {
-    return 'P0.00';
-  }
-
-  return `P${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+import { formatProductPrice, useHomeTab } from '@shared/hooks/useHomeTab';
 
 export default function HomeTab() {
   const route = useRouter();
   const { setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
-  const selectedBranchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null;
-  const [loading, setLoading] = useState(!selectedBranch);
-  const [categories, setCategories] = useState([]);
-  const [branchProducts, setBranchProducts] = useState([]);
-  const previousBranchIdRef = useRef(null);
-
-  useEffect(() => {
-    if (selectedBranch) return;
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [selectedBranch]);
-
-  useEffect(() => {
-    if (!selectedBranchId) {
-      return;
-    }
-
-    let mounted = true;
-    const hasBranchSwitched =
-      previousBranchIdRef.current !== null && previousBranchIdRef.current !== selectedBranchId;
-    previousBranchIdRef.current = selectedBranchId;
-
-    async function loadBranchData() {
-      setLoading(true);
-
-      try {
-        const [categoriesPayload, productsPayload] = await Promise.all([
-          getBranchCategories(selectedBranchId, hasBranchSwitched),
-          getProducts(selectedBranchId, null, hasBranchSwitched),
-        ]);
-
-        if (!mounted) {
-          return;
-        }
-
-        setCategories(normalizeApiList(categoriesPayload));
-        setBranchProducts(normalizeApiList(productsPayload));
-      } catch (error) {
-        if (mounted) {
-          setCategories([]);
-          setBranchProducts([]);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadBranchData();
-
-    return () => {
-      mounted = false;
-    };
-  }, [selectedBranchId]);
+  const { loading, categories, branchProducts, normalizeSelectedBranch } = useHomeTab(selectedBranch);
 
   const handleBranchSelect = (branch) => {
-    setSelectedBranch({
-      ...branch,
-      id: branch?.id ?? branch?.branch_id ?? null,
-    });
+    setSelectedBranch(normalizeSelectedBranch(branch));
     setSelectionPhase(false);
   };
 
@@ -191,7 +111,7 @@ export default function HomeTab() {
               img={BandaidImg}
               description={item?.product?.product_name || 'Unnamed product'}
               category={item?.category?.category_name || 'Uncategorized'}
-              price={formatPrice(item?.selling_price)}
+              price={formatProductPrice(item?.selling_price)}
               style={{ width: 150, marginRight: 12 }}
             />
           ))}

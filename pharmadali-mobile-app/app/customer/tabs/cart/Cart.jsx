@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native'
-import React, { useMemo, useState, useEffect, useCallback } from 'react'
+import React from 'react'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { colors } from '@shared/colorPalette'
@@ -8,13 +8,7 @@ import BandaidImg from '@assets/images/bandaid_img.png'
 import InfoIcon from '@assets/icons/red_info_icon.svg'
 import LocationIcon from '@assets/icons/red_location_icon.svg'
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg'
-import {
-  buildCartViewState,
-  changeCartItemQuantity,
-  getCartItems,
-  toggleAllCartItems,
-  toggleCartItemSelection,
-} from '@shared/services/cartService'
+import { useCartTab } from '@shared/hooks/useCartTab'
 
 function Checkbox({ checked, onPress }) {
   return (
@@ -85,59 +79,23 @@ function CartItem({ item, onToggle, onIncrement, onDecrement }) {
 
 const Cart = () => {
   const router = useRouter()
-  const [cartItems, setCartItems] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [errorMessage, setErrorMessage] = useState('')
-
-  const loadCartItems = useCallback(async () => {
-    setLoading(true)
-    setErrorMessage('')
-
-    try {
-      const payload = await getCartItems()
-      setCartItems(payload.items)
-    } catch (error) {
-      setCartItems([])
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to load your cart items.')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadCartItems()
-  }, [loadCartItems])
-
-  const toggleItem = (id) => {
-    setCartItems((prev) => toggleCartItemSelection(prev, id))
-  }
-
-  const incrementQty = (id) => {
-    setCartItems((prev) => changeCartItemQuantity(prev, id, 'increment'))
-  }
-
-  const decrementQty = (id) => {
-    setCartItems((prev) => changeCartItemQuantity(prev, id, 'decrement'))
-  }
-
-  const viewState = useMemo(() => buildCartViewState(cartItems), [cartItems])
+  const {
+    cartItems,
+    loading,
+    errorMessage,
+    loadCartItems,
+    toggleItem,
+    incrementQty,
+    decrementQty,
+    clearAll,
+    toggleAll,
+    viewState,
+    branchLabel,
+  } = useCartTab()
 
   const allSelected = viewState.allSelected
-  const toggleAll = () => {
-    const newVal = !allSelected
-    setCartItems((prev) => toggleAllCartItems(prev, newVal))
-  }
-
-  const clearAll = () => {
-    setCartItems([])
-  }
-
   const total = viewState.total
   const hasPrescription = viewState.hasPrescription
-  const branchLabel =
-    viewState.branchNames.length > 1
-      ? `${viewState.branchNames.length} branches selected`
-      : (viewState.branchNames[0] || 'No branch selected')
 
   return (
     <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
