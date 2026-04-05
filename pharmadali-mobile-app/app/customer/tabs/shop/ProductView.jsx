@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '@shared/colorPallete';
+import { colors } from '@src/shared/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
-import ImageSlider from '@shared/components/ImageSlider';
-import ProductCard from '@shared/components/ProductCard';
+import ImageSlider from '@src/shared/components/ImageSlider';
+import ProductCard from '@src/shared/components/ProductCard';
 import BandaidImg from '@assets/images/bandaid_img.png';
 import BetadineImg from '@assets/images/betadine_img.png';
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg';
@@ -141,3 +141,4 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Medium',
   },
 });
+

@@ -1,7 +1,7 @@
 import { Text, View, TouchableOpacity } from 'react-native'
 import { useRouter } from 'expo-router'
 import MainLogo from '@shared/components/MainLogo'
-import { colors } from '@shared/colorPallete'
+import { colors } from '@shared/colorPalette'
 import { TextInput } from 'react-native-paper'
 import CartIcon from '@assets/icons/cart_icon.svg'
 import theme from '@shared/inputTheme'

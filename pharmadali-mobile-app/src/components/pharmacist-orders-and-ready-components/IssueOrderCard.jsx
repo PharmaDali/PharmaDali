@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import React, { useState } from 'react';
-import { colors } from '@shared/colorPallete';
+import { colors } from '@shared/colorPalette';
 import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg';
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg';
 import OrderCard from './OrderCard';

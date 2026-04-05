@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors } from '@shared/colorPallete';
+import { colors } from '@shared/colorPalette';
 
 export default function Tabs({ activeTab, onTabChange, tabs }) {
   return (

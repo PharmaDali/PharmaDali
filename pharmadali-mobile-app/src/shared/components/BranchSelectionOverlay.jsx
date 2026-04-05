@@ -1,14 +1,74 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { colors } from '@shared/colorPallete';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors } from '@shared/colorPalette';
 import RedStoreIcon from '@assets/icons/red_store_icon.svg';
 import { getBranchDataInSelectionPhase } from '@shared/services/selectionPhaseService';
 
 const fallbackBranches = [];
 
+function parseTimeToMinutes(timeValue) {
+  if (!timeValue || typeof timeValue !== 'string') {
+    return null;
+  }
+
+  const [hoursRaw, minutesRaw] = timeValue.split(':');
+  const hours = Number(hoursRaw);
+  const minutes = Number(minutesRaw);
+
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
+    return null;
+  }
+
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return null;
+  }
+
+  return (hours * 60) + minutes;
+}
+
+function formatTimeToAmPm(timeValue) {
+  const minutes = parseTimeToMinutes(timeValue);
+
+  if (minutes === null) {
+    return null;
+  }
+
+  const hours24 = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const period = hours24 >= 12 ? 'PM' : 'AM';
+  const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+
+  return `${hours12}:${String(mins).padStart(2, '0')} ${period}`;
+}
+
+function isBranchOpenNow(openingHour, closingHour, now = new Date()) {
+  const openingMinutes = parseTimeToMinutes(openingHour);
+  const closingMinutes = parseTimeToMinutes(closingHour);
+
+  if (openingMinutes === null || closingMinutes === null) {
+    return false;
+  }
+
+  const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+
+  // Same opening and closing time is treated as closed/invalid schedule.
+  if (openingMinutes === closingMinutes) {
+    return false;
+  }
+
+  // Normal schedule (e.g., 08:00 - 20:00)
+  if (openingMinutes < closingMinutes) {
+    return currentMinutes >= openingMinutes && currentMinutes < closingMinutes;
+  }
+
+  // Overnight schedule (e.g., 20:00 - 06:00)
+  return currentMinutes >= openingMinutes || currentMinutes < closingMinutes;
+}
+
 function BranchCard({ branch, onSelect }) {
   return (
-    <View className="flex-row items-center border border-blue-200 rounded-xl px-3 py-3 mb-3" style={{ backgroundColor: '#F7FBFE' }}>
+    <View className="flex-row items-center border border-gray-300 rounded-xl px-3 py-3 mb-3" style={{ backgroundColor: '#F7FBFE' }}>
       <View className="mr-3">
         <RedStoreIcon width={32} height={32} />
       </View>
@@ -20,6 +80,11 @@ function BranchCard({ branch, onSelect }) {
           {branch.isOpen && (
             <View className="bg-green-500 rounded-full px-2 py-0.5 ml-2">
               <Text style={styles.openBadge}>Open now</Text>
+            </View>
+          )}
+          {!branch.isOpen && (
+            <View className="bg-red-500 rounded-full px-2 py-0.5 ml-2">
+              <Text style={styles.closedBadge}>Closed</Text>
             </View>
           )}
         </View>
@@ -36,6 +101,7 @@ function BranchCard({ branch, onSelect }) {
 }
 
 export default function BranchSelectionOverlay({ visible, onSelect }) {
+  const insets = useSafeAreaInsets();
   const [remoteBranches, setRemoteBranches] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -57,13 +123,24 @@ export default function BranchSelectionOverlay({ visible, onSelect }) {
             ? data.data
             : [];
 
-        const mapped = normalized.map((item) => ({
-          id: item.id ?? item.branch_id,
-          name: item.branch_name,
-          address: item.location,
-          hours: item.opening_hour && item.closing_hour ? `${item.opening_hour} - ${item.closing_hour}` : 'Store hours unavailable',
-          isOpen: typeof item.is_active === 'boolean' ? item.is_active : true,
-        }));
+        const mapped = normalized.map((item) => {
+          const formattedOpeningHour = formatTimeToAmPm(item.opening_hour);
+          const formattedClosingHour = formatTimeToAmPm(item.closing_hour);
+
+          return {
+            formattedOpeningHour,
+            formattedClosingHour,
+            id: item.id ?? item.branch_id,
+            name: item.branch_name,
+            address: item.location,
+            hours:
+              formattedOpeningHour && formattedClosingHour
+                ? `${formattedOpeningHour} - ${formattedClosingHour}`
+                : 'Store hours unavailable',
+            isOpen: isBranchOpenNow(item.opening_hour, item.closing_hour),
+            isOperating: typeof item.is_active === 'boolean' ? item.is_active : true,
+          };
+        });
 
         if (isMounted) {
           setRemoteBranches(mapped);
@@ -96,9 +173,9 @@ export default function BranchSelectionOverlay({ visible, onSelect }) {
   }, [remoteBranches]);
 
   return (
-    <Modal visible={visible} transparent animationType="slide">
-      <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
-        <View className="bg-white rounded-t-3xl px-5 pt-6 pb-8" style={{ maxHeight: '55%' }}>
+    <Modal visible={visible} transparent animationType="slide" statusBarTranslucent>
+      <View style={styles.backdrop}>
+        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 12) }]}>
           <Text style={styles.title}>Select Your Pharmacy Branch</Text>
           <Text style={styles.subtitle}>Select Your Pharmacy Branch</Text>
           <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
@@ -151,6 +228,11 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: '#fff',
   },
+  closedBadge: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 8,
+    color: '#fff',
+  },
   selectText: {
     fontFamily: 'Poppins-SemiBold',
     fontSize: 12,
@@ -169,5 +251,18 @@ const styles = StyleSheet.create({
     color: '#D32F2F',
     textAlign: 'center',
     marginBottom: 12,
+  },
+  backdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  sheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    maxHeight: '55%',
   },
 });

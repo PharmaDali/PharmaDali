@@ -1,6 +1,6 @@
 import { ScrollView, View } from 'react-native';
 import React, { useMemo, useState } from 'react';
-import { Tabs, ReadyOrderCard } from '@shared/components/pharmacist-orders-and-ready-components';
+import { Tabs, ReadyOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import FemaleIcon from '@assets/icons/person-icons/female_icon.svg';

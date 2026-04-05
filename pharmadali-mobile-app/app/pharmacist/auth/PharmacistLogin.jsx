@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { TextInput, Button } from 'react-native-paper';
-import theme from '@shared/inputTheme';
-import { useConfirmPasswordToggle } from '@shared/confirmPasswordToggle';
+import theme from '@src/shared/inputTheme';
+import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import DescriptiveLogo from '@shared/components/DescriptiveLogo';
+import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 
 const PharmacistLogin = () => {
 

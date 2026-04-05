@@ -1,11 +1,11 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, Platform, ScrollView} from 'react-native'
 import React from 'react'
 import { TextInput } from 'react-native-paper'
-import CustomButton from '@shared/components/Button';
-import { colors } from '@shared/colorPallete'
-import DescriptiveLogo from '@shared/components/DescriptiveLogo';
+import CustomButton from '@src/shared/components/Button';
+import { colors } from '@src/shared/colorPalette'
+import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 import { useRouter } from 'expo-router';
-import theme from '@shared/inputTheme';
+import theme from '@src/shared/inputTheme';
 
 const EnterMobileNumber = () => {
   const router = useRouter();

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
-import { colors } from '@shared/colorPallete'
+import { colors } from '@src/shared/colorPalette'
 import ClockIcon from '@assets/icons/clock_icon.svg'
 import PromotionsIcon from '@assets/icons/promotions_icon.svg'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
