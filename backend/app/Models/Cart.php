@@ -21,4 +21,9 @@ class Cart extends Model
     {
         return $this->belongsTo(Branch::class);
     }
+
+    public function items()
+    {
+        return $this->hasMany(CartItem::class);
+    }
 }
