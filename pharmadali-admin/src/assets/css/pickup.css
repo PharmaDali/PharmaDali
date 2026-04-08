@@ -130,3 +130,39 @@
 .pickup-view-btn:hover {
   background: var(--pd-primary-dark);
 }
+
+.pickup-order-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.pickup-order-details-item {
+  background: #f8fbff;
+  border: 1px solid #e2edf7;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pickup-order-details-item--wide {
+  grid-column: 1 / -1;
+}
+
+.pickup-order-details-label {
+  font-size: 12px;
+  color: var(--pd-text-muted);
+}
+
+.pickup-order-details-value {
+  font-size: 14px;
+  color: var(--pd-text-dark);
+}
+
+@media (max-width: 575.98px) {
+  .pickup-order-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
