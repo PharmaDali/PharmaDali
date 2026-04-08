@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Modal from "../components/Modal";
 
 const SAMPLE_ORDERS = [
   { id: "ORD-1025", customer: "Denmar Redondo",  items: 2,  total: "PHP 108.00",  status: "Ready" },
@@ -11,12 +12,20 @@ const SAMPLE_ORDERS = [
 function PickUp() {
   const [search, setSearch] = useState("");
   const [selectedIdx, setSelectedIdx] = useState(0);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [activeOrder, setActiveOrder] = useState(null);
 
   const filtered = SAMPLE_ORDERS.filter(
     (o) =>
       o.id.toLowerCase().includes(search.toLowerCase()) ||
       o.customer.toLowerCase().includes(search.toLowerCase())
   );
+
+  const openDetailsModal = (order, index) => {
+    setSelectedIdx(index);
+    setActiveOrder(order);
+    setIsDetailsOpen(true);
+  };
 
   return (
     <div className="pickup-outer-card">
@@ -69,13 +78,67 @@ function PickUp() {
                   <span className="pickup-status-ready">{order.status}</span>
                 </td>
                 <td className="pickup-col-center">
-                  <button className="pickup-view-btn">View Details</button>
+                  <button
+                    className="pickup-view-btn"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openDetailsModal(order, i);
+                    }}
+                  >
+                    View Details
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      <Modal
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
+        title="Pickup Order Details"
+        size="md"
+        footer={(
+          <>
+            <button
+              type="button"
+              className="btn btn-light"
+              onClick={() => setIsDetailsOpen(false)}
+            >
+              Close
+            </button>
+            <button type="button" className="btn btn-primary">
+              Mark As Released
+            </button>
+          </>
+        )}
+      >
+        {activeOrder && (
+          <div className="pickup-order-details-grid">
+            <div className="pickup-order-details-item">
+              <span className="pickup-order-details-label">Order ID</span>
+              <strong className="pickup-order-details-value">{activeOrder.id}</strong>
+            </div>
+            <div className="pickup-order-details-item">
+              <span className="pickup-order-details-label">Customer</span>
+              <strong className="pickup-order-details-value">{activeOrder.customer}</strong>
+            </div>
+            <div className="pickup-order-details-item">
+              <span className="pickup-order-details-label">Items</span>
+              <strong className="pickup-order-details-value">{activeOrder.items}</strong>
+            </div>
+            <div className="pickup-order-details-item">
+              <span className="pickup-order-details-label">Total</span>
+              <strong className="pickup-order-details-value">{activeOrder.total}</strong>
+            </div>
+            <div className="pickup-order-details-item pickup-order-details-item--wide">
+              <span className="pickup-order-details-label">Status</span>
+              <strong className="pickup-order-details-value pickup-status-ready">{activeOrder.status}</strong>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }
