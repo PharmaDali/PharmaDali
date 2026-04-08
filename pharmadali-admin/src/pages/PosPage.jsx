@@ -1,5 +1,6 @@
 import { useState } from "react";
 import adminMedsIcon from "../assets/icons/admin_meds.svg";
+import Modal from "../components/Modal";
 import "../assets/css/pospage.css";
 
 const SAMPLE_PRODUCTS = [
@@ -85,7 +86,13 @@ function ProductTable({ results, selectedId, onSelect }) {
 
 const ORDER_COL_WIDTHS = ["40%", "11%", "20%", "19%", "10%"];
 
-function CurrentOrder({ items, paymentMethod, onPaymentChange, onCompleteSale, onRemove }) {
+function CurrentOrder({
+  items,
+  paymentMethod,
+  onPaymentChange,
+  onCompleteSale,
+  onRemove,
+}) {
   const totalQty = items.reduce((s, i) => s + i.qty, 0);
   const orderTotal = items.reduce((s, i) => s + i.qty * i.product.price, 0);
 
@@ -195,6 +202,11 @@ function PosPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isPaymentResultModalOpen, setIsPaymentResultModalOpen] = useState(false);
+  const [cashReceived, setCashReceived] = useState("");
+  const [gcashReference, setGcashReference] = useState("");
+  const [paymentResult, setPaymentResult] = useState("success");
 
   function addToOrder(product) {
     setSelectedProduct(product);
@@ -220,6 +232,42 @@ function PosPage() {
           p.brandName.toLowerCase().includes(search.toLowerCase())
       )
     : [];
+
+  const totalQty = orderItems.reduce((sum, item) => sum + item.qty, 0);
+  const orderTotal = orderItems.reduce(
+    (sum, item) => sum + item.qty * item.product.price,
+    0
+  );
+
+  const openCompleteSaleModal = () => {
+    if (orderItems.length === 0) {
+      return;
+    }
+
+    setCashReceived(orderTotal.toFixed(2));
+    setGcashReference("");
+    setIsPaymentModalOpen(true);
+  };
+
+  const cashNumeric = Number(cashReceived);
+  const changeAmount = Number.isFinite(cashNumeric) ? cashNumeric - orderTotal : 0;
+  const isCashValid = Number.isFinite(cashNumeric) && cashNumeric >= orderTotal;
+  const isGcashValid = /^\d{13,}$/.test(gcashReference.trim());
+
+  const processPayment = () => {
+    const isSuccess = paymentMethod === "cash"
+      ? isCashValid
+      : isGcashValid && gcashReference.trim().startsWith("32");
+
+    setPaymentResult(isSuccess ? "success" : "failed");
+    setIsPaymentModalOpen(false);
+    setIsPaymentResultModalOpen(true);
+
+    if (isSuccess) {
+      setOrderItems([]);
+      setSelectedProduct(null);
+    }
+  };
 
   return (
     <div
@@ -299,11 +347,97 @@ function PosPage() {
               paymentMethod={paymentMethod}
               onPaymentChange={setPaymentMethod}
               onRemove={removeFromOrder}
-              onCompleteSale={() => { setOrderItems([]); setSelectedProduct(null); }}
+              onCompleteSale={openCompleteSaleModal}
             />
           </div>
         </div>
       </div>
+
+      <Modal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        title="Receive Payment"
+        size="sm"
+        className="pos-payment-modal"
+        footer={null}
+      >
+        <div className="pos-payment-meta">
+          <span>{paymentMethod === "cash" ? "Cash" : "GCash"}</span>
+          <span>
+            Order Total: <strong>PHP {orderTotal.toFixed(2)}</strong>
+          </span>
+        </div>
+
+        {paymentMethod === "cash" ? (
+          <>
+            <label className="pos-payment-label" htmlFor="pos-cash-received">
+              Enter Cash Received
+            </label>
+            <input
+              id="pos-cash-received"
+              type="number"
+              min="0"
+              step="0.01"
+              className="pos-payment-input"
+              value={cashReceived}
+              onChange={(event) => setCashReceived(event.target.value)}
+            />
+            <div className="pos-payment-change">
+              Change: <strong>PHP {Math.max(changeAmount, 0).toFixed(2)}</strong>
+            </div>
+          </>
+        ) : (
+          <>
+            <label className="pos-payment-label" htmlFor="pos-gcash-reference">
+              Enter GCash Reference No.
+            </label>
+            <input
+              id="pos-gcash-reference"
+              type="text"
+              inputMode="numeric"
+              className="pos-payment-input"
+              value={gcashReference}
+              onChange={(event) => setGcashReference(event.target.value.replace(/\D/g, ""))}
+              placeholder="3245535498983289324"
+            />
+          </>
+        )}
+
+        <button
+          type="button"
+          className="pos-payment-confirm-btn"
+          onClick={processPayment}
+          disabled={paymentMethod === "cash" ? !isCashValid : !isGcashValid}
+        >
+          Confirm
+        </button>
+      </Modal>
+
+      <Modal
+        isOpen={isPaymentResultModalOpen}
+        onClose={() => setIsPaymentResultModalOpen(false)}
+        size="sm"
+        showCloseButton={false}
+        className="pos-payment-result-modal"
+      >
+        <button
+          type="button"
+          className="pos-result-close"
+          onClick={() => setIsPaymentResultModalOpen(false)}
+          aria-label="Close payment result"
+        >
+          <i className="fa-solid fa-xmark" />
+        </button>
+
+        <div className="pos-result-content">
+          <i
+            className={`fa-regular ${paymentResult === "success" ? "fa-circle-check" : "fa-circle-xmark"} pos-result-icon ${paymentResult === "success" ? "is-success" : "is-failed"}`}
+          />
+          <p className="pos-result-text">
+            Payment {paymentResult === "success" ? "Successful" : "Unsuccessful"}
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }
