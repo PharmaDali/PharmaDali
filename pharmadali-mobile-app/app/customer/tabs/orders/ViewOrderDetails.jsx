@@ -1,7 +1,7 @@
 import { Text, View, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native'
 import React, { useState } from 'react'
 import { useLocalSearchParams, useRouter } from 'expo-router'
-import { colors } from '@src/shared/colorPalette'
+import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import BetadineImg from '@assets/images/betadine_img.png'

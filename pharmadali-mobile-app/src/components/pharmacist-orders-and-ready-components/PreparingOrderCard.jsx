@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { colors } from '@shared/colorPalette';
+import { colors } from '@shared/theme/colorPalette';
 import OrderCard from './OrderCard';
 import OrderItemRow from './OrderItemRow';
 

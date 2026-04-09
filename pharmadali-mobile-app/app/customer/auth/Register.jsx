@@ -2,7 +2,7 @@ import { StyleSheet, View, Pressable, KeyboardAvoidingView, Platform, ScrollView
 import React, { useState } from 'react'
 import { TextInput, Button, Text } from 'react-native-paper'
 import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
-import theme from '@src/shared/inputTheme';
+import theme from '@src/shared/theme/inputTheme';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
 

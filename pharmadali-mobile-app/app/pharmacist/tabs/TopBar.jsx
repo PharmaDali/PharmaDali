@@ -1,7 +1,7 @@
 import { View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { colors } from '@src/shared/colorPalette'
+import { colors } from '@src/shared/theme/colorPalette'
 import MainLogo from '@src/shared/components/MainLogo'
 import HamburgerMenuIcon from '@assets/icons/hamburger_menu_icon.svg'
 import ChatIcon from '@assets/icons/chat_icon.svg'

@@ -1,6 +1,6 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { colors } from '@shared/colorPalette';
+import { colors } from '@shared/theme/colorPalette';
 import AddToCartIcon from '@assets/icons/add_to_cart_icon.svg';
 
 export default function ProductCard({ img, description, category, price, style, productId, onAddToCart }) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { colors } from '@shared/colorPalette';
+import { colors } from '@src/shared/theme/colorPalette';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import StoreIcon from '@assets/icons/store_icon.svg';

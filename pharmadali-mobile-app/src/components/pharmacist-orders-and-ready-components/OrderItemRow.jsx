@@ -1,5 +1,5 @@
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { colors } from '@shared/colorPalette';
+import { colors } from '@shared/theme/colorPalette';
 import { StatusBadge } from '@shared/components/OrderComponents';
 
 export default function OrderItemRow({ item }) {

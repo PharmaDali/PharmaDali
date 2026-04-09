@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { TextInput, Button } from 'react-native-paper';
-import theme from '@src/shared/inputTheme';
+import theme from '@src/shared/theme/inputTheme';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';

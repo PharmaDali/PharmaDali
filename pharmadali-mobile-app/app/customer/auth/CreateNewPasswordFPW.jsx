@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
 import React from 'react'
 import { TextInput } from 'react-native-paper'
-import { colors } from '@src/shared/colorPalette'
-import theme  from '@src/shared/inputTheme'
+import { colors } from '@src/shared/theme/colorPalette'
+import theme  from '@src/shared/theme/inputTheme'
 import CustomButton from '@src/shared/components/Button';
 import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';

@@ -3,7 +3,7 @@ import { PaperProvider } from 'react-native-paper';
 import BottomBar from '@components/customer-home/BottomBar';
 import TopBar from '@components/customer-home/TopBar';
 import { Slot, usePathname, useRouter } from 'expo-router';
-import { colors } from '@src/shared/colorPalette';
+import { colors } from '@src/shared/theme/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
 import { SelectionPhaseProvider, useSelectionPhase } from '@src/shared/SelectionPhaseContext';
 
