@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
-import BottomBar from '@components/customer-home/BottomBar';
-import TopBar from '@components/customer-home/TopBar';
+import BottomBar from '@components/BottomBar';
+import TopBar from '@components/TopBar';
 import { Slot, usePathname, useRouter } from 'expo-router';
 import { colors } from '@src/shared/theme/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
