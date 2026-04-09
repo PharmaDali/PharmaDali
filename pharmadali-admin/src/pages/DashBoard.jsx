@@ -8,7 +8,8 @@ import {
   Tooltip,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { fetchOrdersCount } from "../services/dashboardService";
 import "../assets/css/dashboard.css";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
@@ -248,13 +249,48 @@ function ForecastPreview() {
 }
 
 function DashBoard() {
+  const [ordersCount, setOrdersCount] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadOrdersCount = async () => {
+      try {
+        const totalOrders = await fetchOrdersCount();
+        if (mounted) {
+          setOrdersCount(totalOrders);
+        }
+      } catch {
+        if (mounted) {
+          setOrdersCount(0);
+        }
+      }
+    };
+
+    loadOrdersCount();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const statCards = useMemo(
+    () =>
+      STAT_CARDS.map((card) =>
+        card.label === "Orders Today"
+          ? { ...card, value: ordersCount === null ? "..." : String(ordersCount) }
+          : card,
+      ),
+    [ordersCount],
+  );
+
   return (
     <div className="dashboard-page">
       <h4 className="fw-bold mb-1" style={{ color: "#2aabe2" }}>Dashboard</h4>
       <p className="text-muted mb-4" style={{ fontSize: 13 }}>A quick data overview of the inventory.</p>
 
       <div className="row g-3 mb-4">
-        {STAT_CARDS.map((c, i) => (
+        {statCards.map((c, i) => (
           <div key={i} className="col-12 col-sm-6 col-md-4 col-lg">
             <StatCard {...c} />
           </div>
