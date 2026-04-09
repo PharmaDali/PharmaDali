@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { colors } from '@src/shared/theme/colorPalette';
+import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import StoreIcon from '@assets/icons/store_icon.svg';
@@ -16,6 +17,11 @@ export default function HomeScreen() {
   const route = useRouter();
   const { setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
   const { loading, categories, branchProducts, normalizeSelectedBranch } = useHomeTab(selectedBranch);
+
+  const branchStatusLabel = selectedBranch?.isOpen
+    ? (selectedBranch?.formattedClosingHour ? `Open til ${selectedBranch.formattedClosingHour}` : 'Open now')
+    : (selectedBranch?.formattedOpeningHour ? `Closed | Opens ${selectedBranch.formattedOpeningHour}` : 'Closed');
+  const isBranchOpen = !!selectedBranch?.isOpen;
 
   const handleBranchSelect = (branch) => {
     setSelectedBranch(normalizeSelectedBranch(branch));
@@ -43,13 +49,13 @@ export default function HomeScreen() {
         Magandang Araw, <Text style={styles.greetingBold}>Denmar!</Text>
       </Text>
       <View className="px-4">
-        <View className="flex-row items-center bg-green-100 rounded-full px-4 py-2 self-end shadow-sm border border-green-300">
-          <View className="w-6 h-6 bg-green-600 rounded-full mr-2 items-center justify-center">
+        <View className={`flex-row items-center rounded-full px-4 py-2 self-end shadow-sm border ${isBranchOpen ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'}`}>
+          <View className={`w-6 h-6 rounded-full mr-2 items-center justify-center ${isBranchOpen ? 'bg-green-600' : 'bg-red-600'}`}>
             <StoreIcon width={24} height={24} />
           </View>
           <Text className="text-sm text-gray-700" style={{ fontFamily: 'Poppins-Medium' }}>
-            <Text style={{ fontFamily: 'Poppins-Bold' }}>Open til 9 PM </Text>
-            <Text className="text-green-600">|</Text> {selectedBranch?.name || 'Selected branch'}
+            <Text style={{ fontFamily: 'Poppins-Bold' }}>{branchStatusLabel} </Text>
+            <Text className={isBranchOpen ? 'text-green-600' : 'text-red-600'}>|</Text> {selectedBranch?.name || 'Selected branch'}
           </Text>
         </View>
       </View>
@@ -67,28 +73,20 @@ export default function HomeScreen() {
             See all
           </Text>
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
-          {categories.map((item) => {
-            const label = item?.category_name || 'Category';
 
-            return (
-              <CategoryCard
-                key={item?.id || label}
-                icon="🛍️"
-                label={label}
-                onPress={() =>
-                  route.push({
-                    pathname: '/customer/tabs/shop/Categories',
-                    params: {
-                      category: label,
-                      categoryId: String(item?.id ?? ''),
-                    },
-                  })
-                }
-              />
-            );
-          })}
-        </ScrollView>
+        <CategoriesSlider
+          categories={categories}
+          onCategoryPress={(item, label) =>
+            route.push({
+              pathname: '/customer/tabs/shop/Categories',
+              params: {
+                category: label,
+                categoryId: String(item?.id ?? ''),
+              },
+            })
+          }
+        />
+        
       </View>
       <View className="mt-4 mb-4">
         <View className="flex-row items-center justify-between px-4 py-2">
@@ -118,17 +116,6 @@ export default function HomeScreen() {
         </ScrollView>
       </View>
     </ScrollView>
-  );
-}
-
-function CategoryCard({ icon, label, onPress }) {
-  return (
-    <TouchableOpacity className="items-center mr-4" onPress={onPress}>
-      <View className="w-16 h-16 rounded-full bg-blue-200 items-center justify-center">
-        <Text className="text-2xl">{icon}</Text>
-      </View>
-      <Text className="text-xs mt-1 text-gray-600" style={{ fontFamily: 'Poppins-Medium' }}>{label}</Text>
-    </TouchableOpacity>
   );
 }
 

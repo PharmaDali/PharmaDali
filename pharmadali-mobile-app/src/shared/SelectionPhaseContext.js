@@ -5,14 +5,18 @@ const SelectionPhaseContext = createContext({
   setSelectionPhase: () => {},
   selectedBranch: null,
   setSelectedBranch: () => {},
+  operatingHours: null,
+  setOperatingHours: () => {},
 });
 
 export function SelectionPhaseProvider({ children }) {
   const [selectionPhase, setSelectionPhase] = useState(true);
   const [selectedBranch, setSelectedBranch] = useState(null);
 
+  const [operatingHours, setOperatingHours] = useState(null);
+
   return (
-    <SelectionPhaseContext.Provider value={{ selectionPhase, setSelectionPhase, selectedBranch, setSelectedBranch }}>
+    <SelectionPhaseContext.Provider value={{ selectionPhase, setSelectionPhase, selectedBranch, setSelectedBranch, operatingHours, setOperatingHours }}>
       {children}
     </SelectionPhaseContext.Provider>
   );
