@@ -75,4 +75,11 @@ class OrderController extends Controller
             $request->validated()['reason'],
         );
     }
+
+    public function countTotalOrders(): JsonResponse
+    {
+        return response()->json([
+            'total_orders' => $this->orderService->countTotalOrders(),
+        ]);
+    }
 }

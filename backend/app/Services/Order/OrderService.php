@@ -58,4 +58,9 @@ class OrderService
     {
         return $this->cancelPharmacistOrderService->handle($user, $order, $reason);
     }
+
+    public function countTotalOrders(): int
+    {
+        return (new CountTotalOrderService())->handle();
+    }
 }
