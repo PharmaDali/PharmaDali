@@ -113,6 +113,12 @@
   font-size: 13px;
 }
 
+.pickup-status-completed {
+  color: var(--pd-text-dark);
+  font-weight: 600;
+  font-size: 13px;
+}
+
 .pickup-view-btn {
   background: var(--pd-primary);
   color: #fff;

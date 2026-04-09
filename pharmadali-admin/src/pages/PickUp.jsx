@@ -10,21 +10,40 @@ const SAMPLE_ORDERS = [
 ];
 
 function PickUp() {
+  const [orders, setOrders] = useState(SAMPLE_ORDERS);
   const [search, setSearch] = useState("");
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
 
-  const filtered = SAMPLE_ORDERS.filter(
+  const filtered = orders.filter(
     (o) =>
       o.id.toLowerCase().includes(search.toLowerCase()) ||
       o.customer.toLowerCase().includes(search.toLowerCase())
   );
 
+  const getStatusClassName = (status) => {
+    if (status.toLowerCase() === "completed") return "pickup-status-completed";
+    return "pickup-status-ready";
+  };
+
   const openDetailsModal = (order, index) => {
     setSelectedIdx(index);
     setActiveOrder(order);
     setIsDetailsOpen(true);
+  };
+
+  const markAsReleased = () => {
+    if (!activeOrder || activeOrder.status.toLowerCase() === "completed") return;
+
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order === activeOrder ? { ...order, status: "Completed" } : order
+      )
+    );
+    setActiveOrder((prevOrder) =>
+      prevOrder ? { ...prevOrder, status: "Completed" } : prevOrder
+    );
   };
 
   return (
@@ -75,7 +94,7 @@ function PickUp() {
                 <td className="pickup-col-center">{order.items}</td>
                 <td className="pickup-col-center">{order.total}</td>
                 <td className="pickup-col-center">
-                  <span className="pickup-status-ready">{order.status}</span>
+                  <span className={getStatusClassName(order.status)}>{order.status}</span>
                 </td>
                 <td className="pickup-col-center">
                   <button
@@ -108,8 +127,13 @@ function PickUp() {
             >
               Close
             </button>
-            <button type="button" className="btn btn-primary">
-              Mark As Released
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={markAsReleased}
+              disabled={activeOrder?.status?.toLowerCase() === "completed"}
+            >
+              {activeOrder?.status?.toLowerCase() === "completed" ? "Completed" : "Mark As Released"}
             </button>
           </>
         )}
@@ -134,7 +158,9 @@ function PickUp() {
             </div>
             <div className="pickup-order-details-item pickup-order-details-item--wide">
               <span className="pickup-order-details-label">Status</span>
-              <strong className="pickup-order-details-value pickup-status-ready">{activeOrder.status}</strong>
+              <strong className={`pickup-order-details-value ${getStatusClassName(activeOrder.status)}`}>
+                {activeOrder.status}
+              </strong>
             </div>
           </div>
         )}
