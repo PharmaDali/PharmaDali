@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-import { colors } from '@shared/colorPalette'
+import { colors } from '@shared/theme/colorPalette'
 import ReviewOrderIcon from '@assets/icons/review_order_icon.svg'
 import UploadPrescriptionIcon from '@assets/icons/upload_prescription_icon.svg'
 import PickupDetailsIcon from '@assets/icons/pickup_details_icon.svg'

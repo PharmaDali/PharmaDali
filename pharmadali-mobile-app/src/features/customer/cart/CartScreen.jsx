@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, ActivityIn
 import React from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors } from '@shared/colorPalette';
+import { colors } from '@shared/theme/colorPalette';
 import RxIcon from '@assets/icons/rx_icon.svg';
 import BandaidImg from '@assets/images/bandaid_img.png';
 import InfoIcon from '@assets/icons/red_info_icon.svg';

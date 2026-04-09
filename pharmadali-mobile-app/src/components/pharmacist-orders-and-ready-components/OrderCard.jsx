@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { colors } from '@shared/colorPalette';
+import { colors } from '@shared/theme/colorPalette';
 
 export default function OrderCard({ order, statusBadge, children }) {
   return (

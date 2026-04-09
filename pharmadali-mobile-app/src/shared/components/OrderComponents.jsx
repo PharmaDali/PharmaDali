@@ -1,5 +1,5 @@
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { colors } from '@shared/colorPalette';
+import { colors } from '@shared/theme/colorPalette';
 import RxIcon from '@assets/icons/rx_icon.svg';
 
 const statusColors = {
