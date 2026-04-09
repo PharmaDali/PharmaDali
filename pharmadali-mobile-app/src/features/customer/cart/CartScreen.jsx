@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, ActivityIn
 import React from 'react';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '@shared/theme/colorPalette';
 import RxIcon from '@assets/icons/rx_icon.svg';
 import BandaidImg from '@assets/images/bandaid_img.png';
@@ -18,7 +19,7 @@ function Checkbox({ checked, onPress }) {
           checked ? 'bg-[#48AAD9] border-[#48AAD9]' : 'border-gray-300 bg-white'
         }`}
       >
-        {checked && <Text className="text-white text-[10px]">✓</Text>}
+        {checked && <MaterialCommunityIcons name="check" size={12} color="#FFFFFF" />}
       </View>
     </TouchableOpacity>
   );
@@ -96,6 +97,7 @@ export default function CartScreen() {
   const allSelected = viewState.allSelected;
   const total = viewState.total;
   const hasPrescription = viewState.hasPrescription;
+  const canProceed = viewState.selectedCount > 0;
 
   return (
     <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
@@ -181,8 +183,10 @@ export default function CartScreen() {
               ₱ {total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
             </Text>
           </View>
-          <TouchableOpacity className="bg-[#48AAD9] rounded-xl px-6 py-2.5"
+          <TouchableOpacity
+            className={`${canProceed ? 'bg-[#48AAD9]' : 'bg-gray-300'} rounded-xl px-6 py-2.5`}
             onPress={() => router.push('/customer/tabs/cart/ReviewOrder')}
+            disabled={!canProceed}
           >
             <Text className="text-sm text-white" style={styles.fontSemiBold}>Proceed</Text>
           </TouchableOpacity>
