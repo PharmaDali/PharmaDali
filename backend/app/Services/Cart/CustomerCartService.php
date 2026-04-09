@@ -25,8 +25,7 @@ class CustomerCartService
             ->whereHas('cart', function ($query) use ($user) {
                 $query->where('customer_id', $user->id)
                     ->where('status', 'active');
-            })
-            ->sum('quantity');
+            })->count();
 
         return response()->json([
             'status' => 'success',
