@@ -1,145 +1,363 @@
 import { useState } from "react";
 import Modal from "../components/Modal";
+import "../assets/css/pospage.css";
 
 const SAMPLE_ORDERS = [
-  { id: "ORD-1025", customer: "Denmar Redondo",  items: 2,  total: "PHP 108.00",  status: "Ready" },
-  { id: "ORD-1025", customer: "Abigail Barrion", items: 4,  total: "PHP 258.00",  status: "Ready" },
-  { id: "ORD-1025", customer: "Althea Alvarez",  items: 6,  total: "PHP 408.00",  status: "Ready" },
-  { id: "ORD-1025", customer: "James Mercado",   items: 8,  total: "PHP 1108.00", status: "Ready" },
-  { id: "ORD-1025", customer: "James Orlanes",   items: 10, total: "PHP 908.00",  status: "Ready" },
+  {
+    id: "ORD-1025",
+    customer: "Denmar Redondo",
+    contact: "09123451234",
+    items: 2,
+    total: "PHP 108.00",
+    status: "Ready",
+    orderDetails: ["Cetirizine | box x 1", "Bioflu | box x 1"],
+  },
+  {
+    id: "ORD-1026",
+    customer: "James Orlanes",
+    contact: "09129112233",
+    items: 10,
+    total: "PHP 908.00",
+    status: "Ready",
+    orderDetails: ["Paracetamol | box x 2", "Amoxicillin | box x 8"],
+  },
+  {
+    id: "ORD-1027",
+    customer: "James Mercado",
+    contact: "09134561234",
+    items: 8,
+    total: "PHP 1108.00",
+    status: "Ready",
+    orderDetails: ["Vitamin C | box x 3", "Loperamide | box x 5"],
+  },
+  {
+    id: "ORD-1028",
+    customer: "Abigail Barrion",
+    contact: "09131239876",
+    items: 4,
+    total: "PHP 258.00",
+    status: "Ready",
+    orderDetails: ["Loratadine | box x 2", "Ascorbic Acid | box x 2"],
+  },
+  {
+    id: "ORD-1029",
+    customer: "Althea Alvarez",
+    contact: "09136784521",
+    items: 6,
+    total: "PHP 408.00",
+    status: "Ready",
+    orderDetails: ["Mefenamic Acid | box x 3", "Cetirizine | box x 3"],
+  },
 ];
 
 function PickUp() {
+  const [orders, setOrders] = useState(SAMPLE_ORDERS);
   const [search, setSearch] = useState("");
-  const [selectedIdx, setSelectedIdx] = useState(0);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isPaymentResultModalOpen, setIsPaymentResultModalOpen] = useState(false);
+  const [cashReceived, setCashReceived] = useState("");
+  const [gcashReference, setGcashReference] = useState("");
+  const [paymentResult, setPaymentResult] = useState("success");
 
-  const filtered = SAMPLE_ORDERS.filter(
+  const filtered = orders.filter(
     (o) =>
       o.id.toLowerCase().includes(search.toLowerCase()) ||
       o.customer.toLowerCase().includes(search.toLowerCase())
   );
 
-  const openDetailsModal = (order, index) => {
-    setSelectedIdx(index);
+  const getStatusClassName = (status) => {
+    if (status.toLowerCase() === "completed") return "pickup-status-completed";
+    return "pickup-status-ready";
+  };
+
+  const parseAmount = (amountText) => Number(amountText.replace(/[^\d.]/g, ""));
+  const orderTotal = activeOrder ? parseAmount(activeOrder.total) : 0;
+  const cashNumeric = Number(cashReceived);
+  const changeAmount = Number.isFinite(cashNumeric) ? cashNumeric - orderTotal : 0;
+  const isCashValid = Number.isFinite(cashNumeric) && cashNumeric >= orderTotal;
+  const isGcashValid = /^\d{13,}$/.test(gcashReference.trim());
+
+  const openDetailsPanel = (order) => {
     setActiveOrder(order);
-    setIsDetailsOpen(true);
+  };
+
+  const openCompleteSaleModal = () => {
+    if (!activeOrder || activeOrder.status.toLowerCase() === "completed") {
+      return;
+    }
+
+    setCashReceived(orderTotal.toFixed(2));
+    setGcashReference("");
+    setIsPaymentModalOpen(true);
+  };
+
+  const processPayment = () => {
+    const isSuccess = paymentMethod === "cash"
+      ? isCashValid
+      : isGcashValid && gcashReference.trim().startsWith("32");
+
+    setPaymentResult(isSuccess ? "success" : "failed");
+    setIsPaymentModalOpen(false);
+    setIsPaymentResultModalOpen(true);
+
+    if (!isSuccess || !activeOrder) {
+      return;
+    }
+
+    setOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order.id === activeOrder.id
+          ? { ...order, status: "Completed" }
+          : order
+      )
+    );
+
+    setActiveOrder((prevOrder) =>
+      prevOrder
+        ? { ...prevOrder, status: "Completed" }
+        : prevOrder
+    );
   };
 
   return (
-    <div className="pickup-outer-card">
-      <div className="d-flex align-items-center justify-content-between gap-3 mb-3 flex-wrap">
-        <h1 className="fw-bold m-0 pickup-title">Pickup Orders</h1>
-        <div className="position-relative pickup-search-wrap">
-          <i className="fa-solid fa-magnifying-glass pickup-search-icon" />
-          <input
-            type="text"
-            className="pickup-search-input"
-            placeholder="Search an order by order ID or Customer Name"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
+    <>
+      <div className="pickup-layout">
+        <div className="pickup-outer-card">
+          <div className="d-flex align-items-center justify-content-between gap-3 mb-3 flex-wrap">
+            <h1 className="fw-bold m-0 pickup-title">Pickup Orders</h1>
+            <div className="position-relative pickup-search-wrap">
+              <i className="fa-solid fa-magnifying-glass pickup-search-icon" />
+              <input
+                type="text"
+                className="pickup-search-input"
+                placeholder="Search an order by order ID or Customer Name"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+          </div>
 
-      <div className="pickup-card">
-        <table className="pickup-table w-100">
-          <colgroup>
-            <col style={{ width: "12%" }} />
-            <col style={{ width: "22%" }} />
-            <col style={{ width: "10%" }} />
-            <col style={{ width: "18%" }} />
-            <col style={{ width: "15%" }} />
-            <col style={{ width: "23%" }} />
-          </colgroup>
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Customer</th>
-              <th className="pickup-col-center">Items</th>
-              <th className="pickup-col-center">Total</th>
-              <th className="pickup-col-center">Status</th>
-              <th className="pickup-col-center">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((order, i) => (
-              <tr
-                key={i}
-                className={i === selectedIdx ? "pickup-row-selected" : ""}
-                onClick={() => setSelectedIdx(i)}
-              >
-                <td>{order.id}</td>
-                <td>{order.customer}</td>
-                <td className="pickup-col-center">{order.items}</td>
-                <td className="pickup-col-center">{order.total}</td>
-                <td className="pickup-col-center">
-                  <span className="pickup-status-ready">{order.status}</span>
-                </td>
-                <td className="pickup-col-center">
-                  <button
-                    className="pickup-view-btn"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openDetailsModal(order, i);
-                    }}
+          <div className="pickup-card">
+            <table className="pickup-table w-100">
+              <colgroup>
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "26%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "14%" }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th className="pickup-col-center">Items</th>
+                  <th className="pickup-col-center">Total</th>
+                  <th className="pickup-col-center">Status</th>
+                  <th className="pickup-col-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((order) => (
+                  <tr
+                    key={order.id}
+                    className={activeOrder?.id === order.id ? "pickup-row-selected" : ""}
                   >
-                    View Details
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    <td>{order.id}</td>
+                    <td>{order.customer}</td>
+                    <td className="pickup-col-center">{order.items}</td>
+                    <td className="pickup-col-center">{order.total}</td>
+                    <td className="pickup-col-center">
+                      <span className={getStatusClassName(order.status)}>{order.status}</span>
+                    </td>
+                    <td className="pickup-col-center">
+                      <button
+                        className="pickup-view-btn"
+                        onClick={() => openDetailsPanel(order)}
+                      >
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {activeOrder && (
+          <aside className="pickup-details-panel">
+            <div className="pickup-details-header">
+              <h2>Order Details</h2>
+              <button
+                type="button"
+                className="pickup-details-close"
+                onClick={() => setActiveOrder(null)}
+                aria-label="Close order details"
+              >
+                <i className="fa-solid fa-xmark" />
+              </button>
+            </div>
+
+            <p className="pickup-details-customer">{activeOrder.customer}</p>
+            <p className="pickup-details-contact">Contact: {activeOrder.contact}</p>
+
+            <hr className="pickup-details-divider" />
+
+            <div className="pickup-details-section">
+              <p className="pickup-details-section-title">Order Details</p>
+              <ul className="pickup-details-list">
+                {activeOrder.orderDetails.map((item, index) => (
+                  <li key={`${activeOrder.id}-${index}`}>{item}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="pickup-details-row">
+              <span>Total Amount</span>
+              <strong>{activeOrder.total}</strong>
+            </div>
+
+            <hr className="pickup-details-divider" />
+
+            <div className="pickup-details-row pickup-details-status">
+              <span>Status:</span>
+              <strong className={getStatusClassName(activeOrder.status)}>{activeOrder.status}</strong>
+            </div>
+
+            <div className="pickup-payment-method-wrap">
+              <p className="pickup-details-section-title">Select Payment Method</p>
+              <div className="d-flex gap-2 pos-payment-actions">
+                <button
+                  className="btn flex-grow-1 py-2"
+                  style={{
+                    fontSize: 13,
+                    background: paymentMethod === "cash" ? "#2aabe2" : "white",
+                    color: paymentMethod === "cash" ? "white" : "#555",
+                    border: "1.5px solid #dde3ec",
+                    borderRadius: 8,
+                  }}
+                  onClick={() => setPaymentMethod("cash")}
+                  type="button"
+                >
+                  Cash
+                </button>
+                <button
+                  className="btn flex-grow-1 py-2"
+                  style={{
+                    fontSize: 13,
+                    background: paymentMethod === "gcash" ? "#2aabe2" : "white",
+                    color: paymentMethod === "gcash" ? "white" : "#555",
+                    border: "1.5px solid #dde3ec",
+                    borderRadius: 8,
+                  }}
+                  onClick={() => setPaymentMethod("gcash")}
+                  type="button"
+                >
+                  GCash
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="pickup-complete-sale-btn"
+              onClick={openCompleteSaleModal}
+              disabled={activeOrder.status.toLowerCase() === "completed"}
+            >
+              {activeOrder.status.toLowerCase() === "completed" ? "Completed" : "Complete Sale"}
+            </button>
+          </aside>
+        )}
       </div>
 
       <Modal
-        isOpen={isDetailsOpen}
-        onClose={() => setIsDetailsOpen(false)}
-        title="Pickup Order Details"
-        size="md"
-        footer={(
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        title="Receive Payment"
+        size="sm"
+        className="pos-payment-modal"
+        footer={null}
+      >
+        <div className="pos-payment-meta">
+          <span>{paymentMethod === "cash" ? "Cash" : "GCash"}</span>
+          <span>
+            Order Total: <strong>PHP {orderTotal.toFixed(2)}</strong>
+          </span>
+        </div>
+
+        {paymentMethod === "cash" ? (
           <>
-            <button
-              type="button"
-              className="btn btn-light"
-              onClick={() => setIsDetailsOpen(false)}
-            >
-              Close
-            </button>
-            <button type="button" className="btn btn-primary">
-              Mark As Released
-            </button>
+            <label className="pos-payment-label" htmlFor="pickup-cash-received">
+              Enter Cash Received
+            </label>
+            <input
+              id="pickup-cash-received"
+              type="number"
+              min="0"
+              step="0.01"
+              className="pos-payment-input"
+              value={cashReceived}
+              onChange={(event) => setCashReceived(event.target.value)}
+            />
+            <div className="pos-payment-change">
+              Change: <strong>PHP {Math.max(changeAmount, 0).toFixed(2)}</strong>
+            </div>
+          </>
+        ) : (
+          <>
+            <label className="pos-payment-label" htmlFor="pickup-gcash-reference">
+              Enter GCash Reference No.
+            </label>
+            <input
+              id="pickup-gcash-reference"
+              type="text"
+              inputMode="numeric"
+              className="pos-payment-input"
+              value={gcashReference}
+              onChange={(event) => setGcashReference(event.target.value.replace(/\D/g, ""))}
+              placeholder="3245535498983289324"
+            />
           </>
         )}
-      >
-        {activeOrder && (
-          <div className="pickup-order-details-grid">
-            <div className="pickup-order-details-item">
-              <span className="pickup-order-details-label">Order ID</span>
-              <strong className="pickup-order-details-value">{activeOrder.id}</strong>
-            </div>
-            <div className="pickup-order-details-item">
-              <span className="pickup-order-details-label">Customer</span>
-              <strong className="pickup-order-details-value">{activeOrder.customer}</strong>
-            </div>
-            <div className="pickup-order-details-item">
-              <span className="pickup-order-details-label">Items</span>
-              <strong className="pickup-order-details-value">{activeOrder.items}</strong>
-            </div>
-            <div className="pickup-order-details-item">
-              <span className="pickup-order-details-label">Total</span>
-              <strong className="pickup-order-details-value">{activeOrder.total}</strong>
-            </div>
-            <div className="pickup-order-details-item pickup-order-details-item--wide">
-              <span className="pickup-order-details-label">Status</span>
-              <strong className="pickup-order-details-value pickup-status-ready">{activeOrder.status}</strong>
-            </div>
-          </div>
-        )}
+
+        <button
+          type="button"
+          className="pos-payment-confirm-btn"
+          onClick={processPayment}
+          disabled={paymentMethod === "cash" ? !isCashValid : !isGcashValid}
+        >
+          Confirm
+        </button>
       </Modal>
-    </div>
+
+      <Modal
+        isOpen={isPaymentResultModalOpen}
+        onClose={() => setIsPaymentResultModalOpen(false)}
+        size="sm"
+        showCloseButton={false}
+        className="pos-payment-result-modal"
+      >
+        <button
+          type="button"
+          className="pos-result-close"
+          onClick={() => setIsPaymentResultModalOpen(false)}
+          aria-label="Close payment result"
+        >
+          <i className="fa-solid fa-xmark" />
+        </button>
+
+        <div className="pos-result-content">
+          <i
+            className={`fa-regular ${paymentResult === "success" ? "fa-circle-check" : "fa-circle-xmark"} pos-result-icon ${paymentResult === "success" ? "is-success" : "is-failed"}`}
+          />
+          <p className="pos-result-text">
+            Payment {paymentResult === "success" ? "Successful" : "Unsuccessful"}
+          </p>
+        </div>
+      </Modal>
+    </>
   );
 }
 

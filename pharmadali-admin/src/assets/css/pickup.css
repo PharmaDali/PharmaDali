@@ -4,6 +4,14 @@
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
   padding: 28px 28px 20px 28px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pickup-layout {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
 }
 
 .pickup-title {
@@ -54,6 +62,7 @@
   border-radius: 14px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  min-height: 430px;
 }
 
 .pickup-table {
@@ -113,6 +122,12 @@
   font-size: 13px;
 }
 
+.pickup-status-completed {
+  color: var(--pd-text-dark);
+  font-weight: 600;
+  font-size: 13px;
+}
+
 .pickup-view-btn {
   background: var(--pd-primary);
   color: #fff;
@@ -129,6 +144,126 @@
 
 .pickup-view-btn:hover {
   background: var(--pd-primary-dark);
+}
+
+.pickup-details-panel {
+  width: 320px;
+  min-width: 300px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e5edf5;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pickup-details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pickup-details-header h2 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.1;
+  color: var(--pd-text-dark);
+  font-weight: 700;
+}
+
+.pickup-details-close {
+  border: none;
+  background: transparent;
+  color: #444;
+  font-size: 20px;
+  padding: 0;
+}
+
+.pickup-details-customer {
+  margin: 8px 0 2px;
+  font-size: 14px;
+  color: #333;
+}
+
+.pickup-details-contact {
+  margin: 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.pickup-details-divider {
+  margin: 10px 0;
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pickup-details-section-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: #4b5563;
+  font-weight: 600;
+}
+
+.pickup-details-list {
+  margin: 0;
+  padding-left: 15px;
+  color: #374151;
+  font-size: 13px;
+}
+
+.pickup-details-list li + li {
+  margin-top: 2px;
+}
+
+.pickup-details-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #4b5563;
+}
+
+.pickup-details-row strong {
+  color: #1f2937;
+}
+
+.pickup-details-row strong.pickup-status-ready {
+  color: #01A768;
+}
+
+.pickup-details-row strong.pickup-status-completed {
+  color: var(--pd-text-dark);
+}
+
+.pickup-details-status {
+  margin-top: 4px;
+}
+
+.pickup-payment-method-wrap {
+  margin-top: 12px;
+  padding: 8px;
+  border: 1px solid #dbe7f2;
+  border-radius: 8px;
+  background: #f2f8fd;
+}
+
+.pickup-complete-sale-btn {
+  margin-top: auto;
+  width: 100%;
+  border: none;
+  border-radius: 8px;
+  background: #2aabe2;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px;
+}
+
+.pickup-complete-sale-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .pickup-order-details-grid {
@@ -162,6 +297,15 @@
 }
 
 @media (max-width: 575.98px) {
+  .pickup-layout {
+    flex-direction: column;
+  }
+
+  .pickup-details-panel {
+    width: 100%;
+    min-width: 0;
+  }
+
   .pickup-order-details-grid {
     grid-template-columns: 1fr;
   }
