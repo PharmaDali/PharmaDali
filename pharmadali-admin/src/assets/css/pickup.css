@@ -229,6 +229,14 @@
   color: #1f2937;
 }
 
+.pickup-details-row strong.pickup-status-ready {
+  color: #01A768;
+}
+
+.pickup-details-row strong.pickup-status-completed {
+  color: var(--pd-text-dark);
+}
+
 .pickup-details-status {
   margin-top: 4px;
 }
