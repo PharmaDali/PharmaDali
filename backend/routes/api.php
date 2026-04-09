@@ -72,6 +72,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('branch/orders', [OrderController::class, 'index']);
         Route::get('branch/orders/{order}', [OrderController::class, 'show']);
+        Route::get('branch/orders/count', [OrderController::class, 'countTotalOrders']);
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {
