@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, KeyboardAvoidingView, Platform, ScrollView, Tex
 import { Link } from 'expo-router'
 import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 import React, { useRef, useState } from 'react'
-import { colors } from '@src/shared/colorPalette';
+import { colors } from '@src/shared/theme/colorPalette';
 import CustomButton from '@src/shared/components/Button';
 import { useRouter } from 'expo-router';
 

@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useRouter } from 'expo-router';
-import { colors } from '@src/shared/colorPalette'
+import { colors } from '@src/shared/theme/colorPalette'
 import AccountIcon from '@assets/icons/account_icon.svg'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import EditIcon from '@assets/icons/edit_icon.svg'

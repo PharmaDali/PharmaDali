@@ -3,7 +3,7 @@ import { View, StyleSheet, Text } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
-import theme from '@src/shared/inputTheme';
+import theme from '@src/shared/theme/inputTheme';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
 import AnimatedSplashLayout from '@src/shared/components/AnimatedSplashLayout';
 import { loginCustomer } from '@src/shared/services/authService';
