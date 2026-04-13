@@ -17,16 +17,25 @@ class ViewCustomerCart
 			], 403);
 		}
 
+		$customerId = $user->customer?->id;
+
+		if (!$customerId) {
+			return response()->json([
+				'status' => 'error',
+				'message' => 'Customer profile not found.',
+			], 403);
+		}
+
 		$cartItems = CartItem::query()
 			->with([
 				'cart:id,customer_id,branch_id,status',
 				'cart.branch:id,branch_name,location',
 				'branchProduct:id,branch_id,product_id,category_id,stock,selling_price,is_available,expiry_date',
-				'branchProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength',
+				'branchProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,is_prescribed',
 				'branchProduct.category:id,category_name,description',
 			])
-			->whereHas('cart', function ($query) use ($user) {
-				$query->where('customer_id', $user->id)
+			->whereHas('cart', function ($query) use ($customerId) {
+				$query->where('customer_id', $customerId)
 					->where('status', 'active');
 			})
 			->latest('id')
@@ -35,6 +44,7 @@ class ViewCustomerCart
 		$items = $cartItems->map(function (CartItem $item) {
 			$quantity = (int) $item->quantity;
 			$unitPrice = (float) $item->price_snapshot;
+			$prescriptionRequired = (bool) ($item->branchProduct?->product?->is_prescribed ?? false);
 
 			return [
 				'id' => $item->id,
@@ -57,7 +67,9 @@ class ViewCustomerCart
 					'description' => $item->branchProduct?->product?->description,
 					'form' => $item->branchProduct?->product?->form,
 					'strength' => $item->branchProduct?->product?->strength,
+					'is_prescribed' => $prescriptionRequired,
 				],
+				'prescription_required' => $prescriptionRequired,
 				'category' => [
 					'id' => $item->branchProduct?->category?->id,
 					'category_name' => $item->branchProduct?->category?->category_name,

@@ -5,6 +5,7 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BranchProductController;
 use App\Http\Controllers\API\CustomerCartController;
 use App\Http\Controllers\API\OrderController;
+use App\Http\Controllers\API\OrderItemPrescription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -42,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('customer/orders/{order}/review', [OrderController::class, 'review']);
         Route::put('customer/orders/{order}', [OrderController::class, 'update']);
         Route::patch('customer/orders/{order}/cancel', [OrderController::class, 'cancel']);
+        Route::post('customer/order-items/{orderItem}/prescription', [OrderItemPrescription::class, 'upload']);
     });
 
     Route::middleware('ability:pharmacist')->group(function () {
