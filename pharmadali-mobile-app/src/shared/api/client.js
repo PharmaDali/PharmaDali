@@ -50,6 +50,7 @@ export async function apiRequest(path, options = {}) {
   }
 
   const { method = 'GET', body, headers = {} } = options;
+  const isFormDataBody = typeof FormData !== 'undefined' && body instanceof FormData;
   const authToken = await getStoredToken();
   const hasAuthorizationHeader = Object.keys(headers).some((key) => key.toLowerCase() === 'authorization');
 
@@ -57,15 +58,22 @@ export async function apiRequest(path, options = {}) {
     ? { Authorization: `Bearer ${authToken}` }
     : {};
 
+  const baseHeaders = {
+    Accept: 'application/json',
+    ...authHeader,
+    ...headers,
+  };
+
+  if (!isFormDataBody) {
+    baseHeaders['Content-Type'] = 'application/json';
+  }
+
   const response = await fetch(`${baseUrl}${path}`, {
     method,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      ...authHeader,
-      ...headers,
-    },
-    body: body ? JSON.stringify(body) : undefined,
+    headers: baseHeaders,
+    body: body
+      ? (isFormDataBody ? body : JSON.stringify(body))
+      : undefined,
   });
 
   const data = await response.json().catch(() => null);

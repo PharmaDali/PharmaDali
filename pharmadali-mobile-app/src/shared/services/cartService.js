@@ -44,6 +44,8 @@ function mapCartApiItem(item) {
     quantity: safeQuantity,
     selected: false,
     prescriptionRequired:
+      Boolean(item?.prescription_required) ||
+      Boolean(item?.product?.is_prescribed) ||
       hasRxMarker(categoryName) ||
       hasRxMarker(description) ||
       hasRxMarker(item?.product?.description),

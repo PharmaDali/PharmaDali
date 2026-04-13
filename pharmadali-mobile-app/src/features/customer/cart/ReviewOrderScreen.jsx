@@ -52,7 +52,7 @@ const ReviewOrderScreen = () => {
       <LogoHeader />
 
       <View className="pb-2 border-b border-gray-100">
-        <StepIndicator currentStep={0} />
+        <StepIndicator currentStep={0} hasPrescription={hasPrescription} />
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
@@ -102,7 +102,13 @@ const ReviewOrderScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity
           className={`flex-1 rounded-xl py-2.5 items-center ${orderItems.length === 0 ? 'bg-gray-300' : 'bg-[#48AAD9]'}`}
-          onPress={() => router.push('/customer/tabs/cart/UploadPrescription')}
+          onPress={() =>
+            router.push(
+              hasPrescription
+                ? '/customer/tabs/cart/UploadPrescription'
+                : '/customer/tabs/cart/PickupDetails',
+            )
+          }
           disabled={orderItems.length === 0}
         >
           <Text className="text-sm text-white" style={styles.nextText}>Next</Text>
