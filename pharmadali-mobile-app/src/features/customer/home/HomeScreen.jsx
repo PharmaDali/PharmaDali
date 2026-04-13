@@ -111,6 +111,7 @@ export default function HomeScreen() {
               description={item?.product?.product_name || 'Unnamed product'}
               category={item?.category?.category_name || 'Uncategorized'}
               price={formatProductPrice(item?.selling_price)}
+              isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
               style={{ width: 150, marginRight: 12 }}
             />
           ))}

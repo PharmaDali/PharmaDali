@@ -127,13 +127,14 @@ class ProductsFactory extends Factory
         $medicine = $this->faker->randomElement($medicines);
 
         return [
+            'product_type' => 'medicine',
             'product_name' => $medicine['product_name'],
             'generic_name' => $medicine['generic_name'],
             'brand_name' => $medicine['brand_name'],
             'description' => $this->faker->sentence(),
+            'is_prescribed' => $this->faker->boolean(30),
             'form' => $medicine['form'],
             'strength' => $medicine['strength'],
-            'category_id' => \App\Models\Category::inRandomOrder()->first()->id,
         ];
     }
 }
