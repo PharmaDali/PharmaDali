@@ -2,8 +2,9 @@ import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '@shared/theme/colorPalette';
 import AddToCartIcon from '@assets/icons/add_to_cart_icon.svg';
+import RxIcon from '@assets/icons/rx_icon.svg';
 
-export default function ProductCard({ img, description, category, price, style, productId, onAddToCart }) {
+export default function ProductCard({ img, description, category, price, style, productId, onAddToCart, isPrescribed = false }) {
   const router = useRouter();
 
   const handlePress = () => {
@@ -29,6 +30,12 @@ export default function ProductCard({ img, description, category, price, style, 
           resizeMode="contain"
         />
         <Text className="text-xs text-gray-600 mt-2" style={{ fontFamily: 'Poppins-Medium' }}>{category}</Text>
+        {isPrescribed && (
+          <View className="flex-row items-center mt-1">
+            <RxIcon width={12} height={12} />
+            <Text className="text-[10px] ml-1" style={styles.rxText}>Prescription Required</Text>
+          </View>
+        )}
         <Text className="text-sm mt-2" style={{ fontFamily: 'Poppins-Medium' }} numberOfLines={2}>{description}</Text>
         
           <View className="flex-row items-center justify-between mt-2">
@@ -46,5 +53,9 @@ const styles = StyleSheet.create({
   priceBold: {
     fontFamily: 'Poppins-Bold',
     color: colors.buttonColor,
+  },
+  rxText: {
+    fontFamily: 'Poppins-Medium',
+    color: '#DC3545',
   },
 });
