@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { colors } from '@src/shared/theme/colorPalette';
 import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import StoreIcon from '@assets/icons/store_icon.svg';
 import HomeCarousel from '@assets/icons/home_carousel.svg';
@@ -15,6 +15,7 @@ import { formatProductPrice, useHomeTab } from '@shared/hooks/useHomeTab';
 
 export default function HomeScreen() {
   const route = useRouter();
+  const insets = useSafeAreaInsets();
   const { setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
   const { loading, categories, branchProducts, normalizeSelectedBranch } = useHomeTab(selectedBranch);
 
@@ -32,17 +33,17 @@ export default function HomeScreen() {
 
   if (!selectedBranch) {
     return (
-      <SafeAreaView className="flex-1 bg-white" edges={['bottom', 'top']}>
+      <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
         <SkeletonHome />
         <BranchSelectionOverlay visible={true} onSelect={handleBranchSelect} />
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
     <ScrollView
       className="bg-white"
-      style={{ flex: 1 }}
+      style={{ flex: 1, paddingBottom: insets.bottom }}
       showsVerticalScrollIndicator={false}
     >
       <Text className="text-3xl text-start px-4 py-6" style={styles.greetingMedium}>

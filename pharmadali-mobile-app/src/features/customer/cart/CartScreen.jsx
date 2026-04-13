@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '@shared/theme/colorPalette';
 import RxIcon from '@assets/icons/rx_icon.svg';
@@ -80,6 +80,7 @@ function CartItem({ item, onToggle, onIncrement, onDecrement }) {
 
 export default function CartScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const {
     cartItems,
     loading,
@@ -100,7 +101,7 @@ export default function CartScreen() {
   const canProceed = viewState.selectedCount > 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
+    <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
       <View className="flex-row items-center justify-between px-5 pt-12 pb-4" style={styles.header}>
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
@@ -192,7 +193,7 @@ export default function CartScreen() {
           </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 

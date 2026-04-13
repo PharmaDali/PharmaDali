@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@src/shared/theme/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
 import ImageSlider from '@src/shared/components/ImageSlider';
@@ -44,13 +44,14 @@ const similarProducts = [
 
 const ProductView = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { productId } = useLocalSearchParams();
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   const product = productData[productId] || productData.default;
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+    <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
       <View className="flex-row items-center px-5 pt-12 pb-4" style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <ArrowBackIcon width={24} height={24} />
@@ -112,7 +113,7 @@ const ProductView = () => {
           </ScrollView>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

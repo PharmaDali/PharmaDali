@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
 import { colors } from '@src/shared/theme/colorPalette'
 import RxIcon from '@assets/icons/rx_icon.svg'
@@ -34,6 +34,7 @@ function PrescriptionItemRow({ item }) {
 
 const UploadPrescription = () => {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const [imageUri, setImageUri] = useState(null)
   const [confirmed, setConfirmed] = useState(false)
 
@@ -64,7 +65,7 @@ const UploadPrescription = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
+    <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
       <LogoHeader />
 
       <View className="pb-2 border-b border-gray-100">
@@ -141,7 +142,7 @@ const UploadPrescription = () => {
           <Text className="text-sm text-white" style={styles.fontSemiBold}>Next</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 

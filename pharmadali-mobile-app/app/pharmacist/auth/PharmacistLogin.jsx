@@ -4,16 +4,17 @@ import { TextInput, Button } from 'react-native-paper';
 import theme from '@src/shared/theme/inputTheme';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 
 const PharmacistLogin = () => {
 
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const passwordToggleIcon = useConfirmPasswordToggle();
 
   return (
-    <SafeAreaView className="flex-1 bg-white px-4">
+    <View className="flex-1 bg-white px-4" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
       <View className="flex-row items-center justify-between px-4 pb-2">
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color="#48AAD9" />
@@ -52,7 +53,7 @@ const PharmacistLogin = () => {
           Mag-Register
         </Button>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
