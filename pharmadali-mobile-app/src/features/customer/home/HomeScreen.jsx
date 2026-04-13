@@ -33,7 +33,7 @@ export default function HomeScreen() {
 
   if (!selectedBranch) {
     return (
-      <View className="flex-1 bg-white" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+      <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
         <SkeletonHome />
         <BranchSelectionOverlay visible={true} onSelect={handleBranchSelect} />
       </View>
@@ -43,7 +43,7 @@ export default function HomeScreen() {
   return (
     <ScrollView
       className="bg-white"
-      style={{ flex: 1, paddingTop: insets.top, paddingBottom: insets.bottom }}
+      style={{ flex: 1, paddingBottom: insets.bottom }}
       showsVerticalScrollIndicator={false}
     >
       <Text className="text-3xl text-start px-4 py-6" style={styles.greetingMedium}>
