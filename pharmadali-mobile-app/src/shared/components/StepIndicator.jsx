@@ -17,11 +17,19 @@ const stepIcons = [
   (active) => <PickupDetailsIcon width={18} height={18} color={active ? '#fff' : '#48AAD9'} />,
 ]
 
-export default function StepIndicator({ currentStep }) {
+export default function StepIndicator({ currentStep, hasPrescription = true }) {
+  const activeLabels = hasPrescription
+    ? stepLabels
+    : [stepLabels[0], stepLabels[2]]
+
+  const activeIcons = hasPrescription
+    ? stepIcons
+    : [stepIcons[0], stepIcons[2]]
+
   return (
     <View className="items-center mt-2 mb-3">
       <View className="flex-row items-center justify-center">
-        {stepIcons.map((iconFn, index) => (
+        {activeIcons.map((iconFn, index) => (
           <React.Fragment key={index}>
             <View
               className={`w-9 h-9 rounded-full items-center justify-center overflow-hidden ${
@@ -30,7 +38,7 @@ export default function StepIndicator({ currentStep }) {
             >
               {iconFn(index <= currentStep)}
             </View>
-            {index < stepIcons.length - 1 && (
+            {index < activeIcons.length - 1 && (
               <View
                 className={`h-[2px] w-16 ${
                   index < currentStep ? 'bg-[#48AAD9]' : 'bg-[#D0E4ED]'
@@ -41,7 +49,7 @@ export default function StepIndicator({ currentStep }) {
         ))}
       </View>
       <Text className="text-sm mt-2" style={styles.stepText}>
-        Step {currentStep + 1} of 3 - {stepLabels[currentStep]}
+        Step {currentStep + 1} of {activeLabels.length} - {activeLabels[currentStep]}
       </Text>
     </View>
   )

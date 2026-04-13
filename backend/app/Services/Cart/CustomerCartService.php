@@ -21,9 +21,18 @@ class CustomerCartService
             ], 403);
         }
 
+        $customerId = $user->customer?->id;
+
+        if (!$customerId) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Customer profile not found.',
+            ], 403);
+        }
+
         $count = CartItem::query()
-            ->whereHas('cart', function ($query) use ($user) {
-                $query->where('customer_id', $user->id)
+            ->whereHas('cart', function ($query) use ($customerId) {
+                $query->where('customer_id', $customerId)
                     ->where('status', 'active');
             })->count();
 
@@ -47,13 +56,23 @@ class CustomerCartService
             ], 403);
         }
 
+        $customerId = $user->customer?->id;
+
+        if (!$customerId) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Customer profile not found.',
+            ], 403);
+        }
+
         $branchId = (int) $payload['branch_id'];
         $branchProductId = (int) $payload['branch_product_id'];
         $quantityToAdd = (int) ($payload['quantity'] ?? 1);
 
         try {
-            $result = DB::transaction(function () use ($user, $branchId, $branchProductId, $quantityToAdd) {
+            $result = DB::transaction(function () use ($customerId, $branchId, $branchProductId, $quantityToAdd) {
                 $branchProduct = BranchProduct::query()
+                    ->with('product:id,is_prescribed')
                     ->lockForUpdate()
                     ->findOrFail($branchProductId);
 
@@ -76,7 +95,7 @@ class CustomerCartService
                 }
 
                 $cart = Cart::query()->firstOrCreate([
-                    'customer_id' => $user->id,
+                    'customer_id' => $customerId,
                     'branch_id' => $branchId,
                     'status' => 'active',
                 ]);
@@ -115,6 +134,7 @@ class CustomerCartService
                 return [
                     'cart' => $cart,
                     'cart_item' => $cartItem,
+                    'prescription_required' => (bool) ($branchProduct->product?->is_prescribed ?? false),
                     'was_created' => $wasCreated,
                 ];
             });
@@ -132,6 +152,7 @@ class CustomerCartService
             'data' => [
                 'cart' => $result['cart'],
                 'cart_item' => $result['cart_item'],
+                'prescription_required' => $result['prescription_required'],
             ],
         ], $result['was_created'] ? 201 : 200);
     }

@@ -29,7 +29,14 @@ export default function ProductCard({ img, description, category, price, style, 
           style={{ height: 120 }}
           resizeMode="contain"
         />
-        <Text className="text-xs text-gray-600 mt-2" style={{ fontFamily: 'Poppins-Medium' }}>{category}</Text>
+        <Text
+          className="text-xs text-gray-600 mt-2"
+          numberOfLines={1}
+          ellipsizeMode="tail"
+          style={{ fontFamily: 'Poppins-Medium' }}
+        >
+          {category}
+        </Text>
         {isPrescribed && (
           <View className="flex-row items-center mt-1">
             <RxIcon width={12} height={12} />

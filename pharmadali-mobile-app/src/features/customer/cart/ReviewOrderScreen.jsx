@@ -9,42 +9,12 @@ import RedLocationIcon from '@assets/icons/red_location_icon.svg'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import RedInfoIcon from '@assets/icons/red_info_icon.svg'
 import BandaidImg from '@assets/images/bandaid_img.png'
-import BetadineImg from '@assets/images/betadine_img.png'
-
-const orderItems = [
-  {
-    id: 1,
-    img: BetadineImg,
-    description: 'Imodium 2mg 4s - Diarrhea Medicine, Loperamide',
-    price: 80.25,
-    quantity: 1,
-    size: '2mg',
-    prescriptionRequired: false,
-  },
-  {
-    id: 2,
-    img: BetadineImg,
-    description: 'LACRYVISC Carbomer 10g',
-    price: 437.75,
-    quantity: 1,
-    size: '10g',
-    prescriptionRequired: true,
-  },
-  {
-    id: 3,
-    img: BandaidImg,
-    description: 'MEDIPLAST Sterilized Gauze Pads 4x4',
-    price: 9.50,
-    quantity: 1,
-    size: '4x4',
-    prescriptionRequired: false,
-  },
-]
+import { getCheckoutDraft } from '@shared/services/checkoutDraft'
 
 function OrderItemRow({ item }) {
   return (
     <View className="flex-row mt-3">
-      <Image source={item.img} className="w-16 h-16 rounded-lg" resizeMode="contain" />
+      <Image source={BandaidImg} className="w-16 h-16 rounded-lg" resizeMode="contain" />
       <View className="flex-1 ml-3">
         <Text className="text-xs" style={styles.fontSemiBold} numberOfLines={2}>
           {item.description}
@@ -72,7 +42,9 @@ function OrderItemRow({ item }) {
 const ReviewOrderScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const { items: orderItems, branchLabel, total: checkoutTotal } = getCheckoutDraft()
   const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const effectiveTotal = checkoutTotal > 0 ? checkoutTotal : total
   const hasPrescription = orderItems.some((item) => item.prescriptionRequired)
 
   return (
@@ -80,22 +52,25 @@ const ReviewOrderScreen = () => {
       <LogoHeader />
 
       <View className="pb-2 border-b border-gray-100">
-        <StepIndicator currentStep={0} />
+        <StepIndicator currentStep={0} hasPrescription={hasPrescription} />
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="flex-row items-start mx-4 mt-4 mb-3">
           <RedLocationIcon width={18} height={18} />
           <View className="ml-2">
-            <Text className="text-xs" style={styles.fontSemiBold}>Pickup at Tinurik, Tanauan City, Batangas</Text>
-            <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
-              You can change this in the third step.
-            </Text>
+            <Text className="text-xs" style={styles.fontSemiBold}>Pickup at {branchLabel || 'Selected branch'}</Text>
           </View>
         </View>
 
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 p-4">
           <Text className="text-sm" style={styles.fontBold}>Order Items</Text>
+
+          {orderItems.length === 0 && (
+            <Text className="text-xs text-gray-500 mt-3" style={styles.fontMedium}>
+              No selected items found. Please go back to cart and select products.
+            </Text>
+          )}
 
           {orderItems.map((item) => (
             <OrderItemRow key={item.id} item={item} />
@@ -105,7 +80,7 @@ const ReviewOrderScreen = () => {
           <View className="flex-row justify-between items-center">
             <Text className="text-sm" style={styles.fontBold}>Order Summary</Text>
             <Text className="text-sm" style={styles.priceText}>
-              ₱ {total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              ₱ {effectiveTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
             </Text>
           </View>
         </View>
@@ -126,8 +101,15 @@ const ReviewOrderScreen = () => {
           <Text className="text-sm" style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className="flex-1 bg-[#48AAD9] rounded-xl py-2.5 items-center"
-          onPress={() => router.push('/customer/tabs/cart/UploadPrescription')}
+          className={`flex-1 rounded-xl py-2.5 items-center ${orderItems.length === 0 ? 'bg-gray-300' : 'bg-[#48AAD9]'}`}
+          onPress={() =>
+            router.push(
+              hasPrescription
+                ? '/customer/tabs/cart/UploadPrescription'
+                : '/customer/tabs/cart/PickupDetails',
+            )
+          }
+          disabled={orderItems.length === 0}
         >
           <Text className="text-sm text-white" style={styles.nextText}>Next</Text>
         </TouchableOpacity>

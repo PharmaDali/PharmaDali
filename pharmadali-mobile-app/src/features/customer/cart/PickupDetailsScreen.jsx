@@ -7,6 +7,7 @@ import RedLocationIcon from '@assets/icons/red_location_icon.svg'
 import LogoHeader from '@src/shared/components/LogoHeader'
 import RedInfoIcon from '@assets/icons/red_info_icon.svg'
 import StepIndicator from '@src/shared/components/StepIndicator'
+import { getCheckoutDraft } from '@shared/services/checkoutDraft'
 
 const pickupDates = [
   'Today - Wed, January 4',
@@ -36,6 +37,8 @@ function RadioButton({ selected, onPress, label }) {
 const PickupDetailsScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const { items } = getCheckoutDraft()
+  const hasPrescription = items.some((item) => item.prescriptionRequired)
   const [selectedDate, setSelectedDate] = useState(2)
   const [selectedTime, setSelectedTime] = useState(1)
 
@@ -44,7 +47,7 @@ const PickupDetailsScreen = () => {
       <LogoHeader />
 
       <View className="pb-2 border-b border-gray-100">
-        <StepIndicator currentStep={2} />
+        <StepIndicator currentStep={hasPrescription ? 2 : 1} hasPrescription={hasPrescription} />
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>

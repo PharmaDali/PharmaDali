@@ -7,15 +7,8 @@ import { colors } from '@src/shared/theme/colorPalette'
 import LogoHeader from '@src/shared/components/LogoHeader'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import BetadineImg from '@assets/images/betadine_img.png'
-
-const prescriptionItems = [
-  {
-    id: 1,
-    img: BetadineImg,
-    description: 'LACRYVISC Carbomer 10g',
-    quantity: 1,
-  },
-]
+import { getCheckoutDraft } from '@shared/services/checkoutDraft'
+import { uploadOrderItemPrescription } from '@shared/services/prescriptionService'
 
 function PrescriptionItemRow({ item }) {
   return (
@@ -34,20 +27,31 @@ function PrescriptionItemRow({ item }) {
 const UploadPrescriptionScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const { items } = getCheckoutDraft()
+  const prescriptionItems = items.filter((item) => item.prescriptionRequired)
   const [imageUri, setImageUri] = useState(null)
+  const [imageAsset, setImageAsset] = useState(null)
   const [confirmed, setConfirmed] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState('')
+  const [uploadSuccess, setUploadSuccess] = useState(false)
 
   const pickFromGallery = async () => {
+    setUploadError('')
+    setUploadSuccess(false)
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.8,
     })
     if (!result.canceled) {
       setImageUri(result.assets[0].uri)
+      setImageAsset(result.assets[0])
     }
   }
 
   const takePhoto = async () => {
+    setUploadError('')
+    setUploadSuccess(false)
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
     if (status !== 'granted') return
     const result = await ImagePicker.launchCameraAsync({
@@ -55,12 +59,50 @@ const UploadPrescriptionScreen = () => {
     })
     if (!result.canceled) {
       setImageUri(result.assets[0].uri)
+      setImageAsset(result.assets[0])
     }
   }
 
   const clearImage = () => {
     setImageUri(null)
+    setImageAsset(null)
     setConfirmed(false)
+    setUploadError('')
+    setUploadSuccess(false)
+  }
+
+  const handleUpload = async () => {
+    if (!imageAsset) {
+      setUploadError('Please select an image first.')
+      return
+    }
+
+    if (!confirmed) {
+      setUploadError('Please confirm prescription validity before uploading.')
+      return
+    }
+
+    if (prescriptionItems.length === 0) {
+      setUploadError('No prescription-required items found.')
+      return
+    }
+
+    setUploading(true)
+    setUploadError('')
+
+    try {
+      for (const item of prescriptionItems) {
+        const orderItemId = item.orderItemId || item.id
+        await uploadOrderItemPrescription(orderItemId, imageAsset)
+      }
+
+      setUploadSuccess(true)
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : 'Failed to upload prescription image.')
+      setUploadSuccess(false)
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -74,6 +116,11 @@ const UploadPrescriptionScreen = () => {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-4 p-4">
           <Text className="text-sm" style={styles.fontBold}>Prescription Required for:</Text>
+          {prescriptionItems.length === 0 && (
+            <Text className="text-xs text-gray-500 mt-2" style={styles.fontMedium}>
+              No prescription items in this order.
+            </Text>
+          )}
           {prescriptionItems.map((item) => (
             <PrescriptionItemRow key={item.id} item={item} />
           ))}
@@ -103,8 +150,14 @@ const UploadPrescriptionScreen = () => {
                     <Text className="text-white text-xs">✕</Text>
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity className="border border-[#48AAD9] rounded-lg px-6 py-1.5 mt-3">
-                  <Text className="text-xs" style={styles.primarySemiBold}>Upload</Text>
+                <TouchableOpacity
+                  className={`rounded-lg px-6 py-1.5 mt-3 ${uploading ? 'bg-gray-200 border border-gray-300' : 'border border-[#48AAD9]'}`}
+                  onPress={handleUpload}
+                  disabled={uploading}
+                >
+                  <Text className="text-xs" style={uploading ? styles.fontMediumGray : styles.primarySemiBold}>
+                    {uploading ? 'Uploading...' : 'Upload'}
+                  </Text>
                 </TouchableOpacity>
               </View>
 
@@ -125,6 +178,16 @@ const UploadPrescriptionScreen = () => {
               </TouchableOpacity>
             </View>
           )}
+
+          {!!uploadError && (
+            <Text className="text-xs mt-3 text-[#B42318]" style={styles.fontMedium}>{uploadError}</Text>
+          )}
+
+          {uploadSuccess && (
+            <Text className="text-xs mt-3 text-green-700" style={styles.fontMedium}>
+              Prescription uploaded successfully.
+            </Text>
+          )}
         </View>
       </ScrollView>
 
@@ -137,6 +200,7 @@ const UploadPrescriptionScreen = () => {
         </TouchableOpacity>
         <TouchableOpacity className="flex-1 bg-[#48AAD9] rounded-xl py-2.5 items-center"
           onPress={() => router.push('/customer/tabs/cart/PickupDetails')}
+          disabled={prescriptionItems.length > 0 && !uploadSuccess}
         >
           <Text className="text-sm text-white" style={styles.fontSemiBold}>Next</Text>
         </TouchableOpacity>
