@@ -3,11 +3,17 @@ import React from 'react'
 
 function CategoryCard({ icon, label, onPress }) {
   return (
-    <TouchableOpacity className="items-center mr-4" onPress={onPress}>
+    <TouchableOpacity className="items-center mr-4 w-20" onPress={onPress}>
       <View className="w-16 h-16 rounded-full bg-blue-200 items-center justify-center">
         <Text className="text-2xl">{icon}</Text>
       </View>
-      <Text className="text-xs mt-1 text-gray-600" style={{ fontFamily: 'Poppins-Medium' }}>{label}</Text>
+      <Text
+        className="text-xs mt-1 text-gray-600 text-center"
+        numberOfLines={2}
+        style={{ fontFamily: 'Poppins-Medium', lineHeight: 14 }}
+      >
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
