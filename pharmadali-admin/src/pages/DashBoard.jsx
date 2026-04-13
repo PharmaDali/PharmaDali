@@ -101,27 +101,48 @@ function SalesTrend() {
       backgroundColor: "rgba(42,171,226,0.12)",
       fill: true,
       tension: 0.4,
-      pointBackgroundColor: "#2aabe2",
-      pointRadius: 4,
-      pointHoverRadius: 6,
+      pointBackgroundColor: "#ffffff",
+      pointBorderColor: "#2aabe2",
+      pointBorderWidth: 1.5,
+      pointRadius: 3.5,
+      pointHoverRadius: 5,
     }],
   };
 
   const options = {
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: {
+        top: 4,
+        right: 10,
+        bottom: 0,
+        left: 0,
+      },
+    },
     plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
     scales: {
       x: {
-        grid: { display: false },
+        grid: { color: "rgba(15, 23, 42, 0.04)" },
         ticks: {
-          color: "#888",
-          font: { size: 12 },
+          color: "#5f6670",
+          font: { size: 12, family: "Poppins" },
           autoSkip: true,
           maxTicksLimit: range === "Last 30 days" ? 6 : 8,
         },
       },
-      y: { grid: { color: "#f0f4f8" }, ticks: { color: "#888", font: { size: 12 } }, beginAtZero: false },
+      y: {
+        min: 10,
+        max: 60,
+        beginAtZero: false,
+        grid: { color: "rgba(15, 23, 42, 0.06)" },
+        ticks: {
+          stepSize: 10,
+          color: "#5f6670",
+          font: { size: 12, family: "Poppins" },
+          padding: 8,
+        },
+      },
     },
   };
 
