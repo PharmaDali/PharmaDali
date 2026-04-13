@@ -17,6 +17,7 @@ class Products extends Model
         'description',
         'form',
         'strength',
+        'is_prescribed',
     ];
 
     public function branchProducts()
