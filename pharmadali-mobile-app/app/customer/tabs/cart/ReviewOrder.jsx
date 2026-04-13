@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
 import { useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@src/shared/theme/colorPalette'
 import RxIcon from '@assets/icons/rx_icon.svg'
 import LogoHeader from '@src/shared/components/LogoHeader'
@@ -71,11 +71,12 @@ function OrderItemRow({ item }) {
 
 const ReviewOrder = () => {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const hasPrescription = orderItems.some((item) => item.prescriptionRequired)
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
+    <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
       <LogoHeader />
 
 
@@ -133,7 +134,7 @@ const ReviewOrder = () => {
           <Text className="text-sm text-white" style={styles.nextText}>Next</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 

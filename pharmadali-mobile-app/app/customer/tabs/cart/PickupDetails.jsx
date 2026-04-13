@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@src/shared/theme/colorPalette'
 import RedLocationIcon from '@assets/icons/red_location_icon.svg'
 import LogoHeader from '@src/shared/components/LogoHeader'
@@ -35,11 +35,12 @@ function RadioButton({ selected, onPress, label }) {
 
 const PickupDetails = () => {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const [selectedDate, setSelectedDate] = useState(2)
   const [selectedTime, setSelectedTime] = useState(1)
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
+    <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
       <LogoHeader />
 
       <View className="pb-2 border-b border-gray-100">
@@ -122,7 +123,7 @@ const PickupDetails = () => {
           <Text className="text-sm text-white" style={styles.confirmPickupText}>Confirm Pickup</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 

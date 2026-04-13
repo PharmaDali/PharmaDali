@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useRouter } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@src/shared/theme/colorPalette'
 import LogoHeader from '@src/shared/components/LogoHeader'
 import OrderSuccessIcon from '@assets/icons/success_icon.svg'
@@ -9,9 +9,10 @@ import BlueClockIcon from '@assets/icons/blue_clock_icon.svg'
 
 const OrderSubmitted = () => {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F1F4FF]" edges={['bottom']}>
+    <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
       <LogoHeader />
 
       <View className="flex-1 items-center justify-center px-6">
@@ -45,7 +46,7 @@ const OrderSubmitted = () => {
           <Text className="text-sm text-white" style={styles.fontSemiBold}>Return to Home</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   )
 }
 
