@@ -10,6 +10,7 @@ import InfoIcon from '@assets/icons/red_info_icon.svg';
 import LocationIcon from '@assets/icons/red_location_icon.svg';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
 import { useCartTab } from '@shared/hooks/useCartTab';
+import { setCheckoutDraft } from '@shared/services/checkoutDraft';
 
 function Checkbox({ checked, onPress }) {
   return (
@@ -99,6 +100,21 @@ export default function CartScreen() {
   const total = viewState.total;
   const hasPrescription = viewState.hasPrescription;
   const canProceed = viewState.selectedCount > 0;
+  const selectedItems = cartItems.filter((item) => item.selected);
+
+  const handleProceed = () => {
+    if (!selectedItems.length) {
+      return;
+    }
+
+    setCheckoutDraft({
+      items: selectedItems,
+      branchLabel,
+      total,
+    });
+
+    router.push('/customer/tabs/cart/ReviewOrder');
+  };
 
   return (
     <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
@@ -186,7 +202,7 @@ export default function CartScreen() {
           </View>
           <TouchableOpacity
             className={`${canProceed ? 'bg-[#48AAD9]' : 'bg-gray-300'} rounded-xl px-6 py-2.5`}
-            onPress={() => router.push('/customer/tabs/cart/ReviewOrder')}
+            onPress={handleProceed}
             disabled={!canProceed}
           >
             <Text className="text-sm text-white" style={styles.fontSemiBold}>Proceed</Text>
