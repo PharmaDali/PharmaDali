@@ -10,6 +10,9 @@ import BandaidImg from '@assets/images/bandaid_img.png';
 import BetadineImg from '@assets/images/betadine_img.png';
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg';
 import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg';
+import { addBranchProductToCart } from '@shared/utils/cartUtils';
+import ToastMessage from '@shared/components/ToastMessage';
+import { useToast } from '@shared/hooks/useToast';
 
 const productData = {
   1: {
@@ -45,13 +48,44 @@ const similarProducts = [
 const ProductView = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { productId } = useLocalSearchParams();
+  const { productId, branchProductId, branchId } = useLocalSearchParams();
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const { toast, showSuccess, showError } = useToast();
 
   const product = productData[productId] || productData.default;
 
+  const handleAddToCart = async () => {
+    setIsAdding(true);
+
+    const result = await addBranchProductToCart({
+      branchId,
+      branchProductId,
+      quantity: 1,
+      validationMessages: {
+        missingProduct: 'Please add this item from the Shop list.',
+        missingBranch: 'Please select a branch first.',
+      },
+    });
+
+    setIsAdding(false);
+
+    if (result.ok) {
+      showSuccess(result.message);
+      return;
+    }
+
+    showError(result.errorMessage);
+  };
+
   return (
     <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
+      <ToastMessage
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        topOffset={insets.top + 8}
+      />
       <View className="flex-row items-center px-5 pt-12 pb-4" style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <ArrowBackIcon width={24} height={24} />
@@ -70,10 +104,13 @@ const ProductView = () => {
 
         <View className="px-5 mb-4">
           <TouchableOpacity
-            className="bg-[#48AAD9] rounded-xl py-3 items-center"
-            onPress={() => {}}
+            className={`${isAdding ? 'bg-[#90cbe6]' : 'bg-[#48AAD9]'} rounded-xl py-3 items-center`}
+            onPress={handleAddToCart}
+            disabled={isAdding}
           >
-            <Text className="text-sm text-white" style={styles.fontSemiBold}>Add to cart</Text>
+            <Text className="text-sm text-white" style={styles.fontSemiBold}>
+              {isAdding ? 'Adding...' : 'Add to cart'}
+            </Text>
           </TouchableOpacity>
         </View>
 

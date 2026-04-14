@@ -4,18 +4,40 @@ import { colors } from '@shared/theme/colorPalette';
 import AddToCartIcon from '@assets/icons/add_to_cart_icon.svg';
 import RxIcon from '@assets/icons/rx_icon.svg';
 
-export default function ProductCard({ img, description, category, price, style, productId, onAddToCart, isPrescribed = false }) {
+export default function ProductCard({
+  img,
+  description,
+  category,
+  price,
+  style,
+  productId,
+  branchProductId,
+  branchId,
+  onAddToCart,
+  isPrescribed = false,
+}) {
   const router = useRouter();
 
   const handlePress = () => {
-    router.push({ pathname: '/customer/tabs/shop/ProductView', params: { productId: productId || '1' } });
+    router.push({
+      pathname: '/customer/tabs/shop/ProductView',
+      params: {
+        productId: productId || '1',
+        branchProductId: branchProductId ? String(branchProductId) : '',
+        branchId: branchId ? String(branchId) : '',
+      },
+    });
   };
 
   const handleAddToCartPress = (event) => {
     event?.stopPropagation?.();
 
     if (typeof onAddToCart === 'function') {
-      onAddToCart({ user_id, branch_id, ...productData });
+      onAddToCart({
+        productId,
+        branchProductId,
+        branchId,
+      });
       return;
     }
   };
