@@ -33,7 +33,6 @@ class Order extends Model
         'discount_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'scheduled_pickup_at' => 'datetime',
-        'picked_up_at' => 'datetime',
         'placed_at' => 'datetime',
         'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
