@@ -21,7 +21,37 @@ ChartJS.register(
     Tooltip,
 );
 
-const FORECAST_TREND = [32, 37, 41, 51, 54, 52, 58];
+const FORECAST_DATA = {
+    "Last 7 days": {
+        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        values: [32, 37, 41, 51, 54, 52, 58],
+    },
+    "Last 14 days": {
+        labels: [
+            "W1 Mon",
+            "W1 Tue",
+            "W1 Wed",
+            "W1 Thu",
+            "W1 Fri",
+            "W1 Sat",
+            "W1 Sun",
+            "W2 Mon",
+            "W2 Tue",
+            "W2 Wed",
+            "W2 Thu",
+            "W2 Fri",
+            "W2 Sat",
+            "W2 Sun",
+        ],
+        values: [24, 29, 33, 39, 44, 42, 47, 37, 41, 46, 53, 56, 55, 59],
+    },
+    "Last 30 days": {
+        labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
+        values: Array.from({ length: 30 }, (_, i) => 22 + Math.round(Math.sin(i / 3) * 9 + i * 1.05)),
+    },
+};
+
+const FORECAST_RANGES = Object.keys(FORECAST_DATA);
 
 const STOCKOUT_SUGGESTIONS = [
     { risk: "High", medicine: "Amoxicillin", units: 150, date: "March 7, 2026" },
@@ -74,12 +104,13 @@ const splitCellStyle = {
 
 function AIForecasting() {
     const [range, setRange] = useState("Last 7 days");
+    const { labels, values } = FORECAST_DATA[range];
 
     const chartData = {
-        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        labels,
         datasets: [
             {
-                data: FORECAST_TREND,
+                data: values,
                 borderColor: "#2aabe2",
                 backgroundColor: "rgba(42,171,226,0.12)",
                 fill: true,
@@ -116,6 +147,8 @@ function AIForecasting() {
                 ticks: {
                     color: "#5f6670",
                     font: { size: 12, family: "Poppins" },
+                    autoSkip: true,
+                    maxTicksLimit: range === "Last 30 days" ? 6 : 8,
                 },
             },
             y: {
@@ -147,13 +180,27 @@ function AIForecasting() {
                             <div className="position-relative aif-filter-wrap">
                                 <select
                                     className="form-select form-select-sm pe-4 aif-range-select"
+                                    style={{
+                                        fontSize: 13,
+                                        borderRadius: 20,
+                                        border: "1.5px solid #dde3ec",
+                                        background: "#f5f8fb",
+                                        appearance: "none",
+                                        cursor: "pointer",
+                                        paddingRight: "2rem",
+                                    }}
                                     value={range}
                                     onChange={(e) => setRange(e.target.value)}
                                     aria-label="Forecast period"
                                 >
-                                    <option>Last 7 days</option>
+                                    {FORECAST_RANGES.map((period) => (
+                                        <option key={period}>{period}</option>
+                                    ))}
                                 </select>
-                                <i className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon"></i>
+                                <i
+                                    className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon"
+                                    style={{ right: 12, fontSize: 10, pointerEvents: "none", color: "#888" }}
+                                ></i>
                             </div>
                         </div>
 
