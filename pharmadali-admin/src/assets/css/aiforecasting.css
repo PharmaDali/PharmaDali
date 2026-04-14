@@ -107,6 +107,14 @@
 
 .aif-table-scroll {
 	max-height: 236px;
+	overflow-x: hidden;
+	padding-right: 0;
+	padding-bottom: 4px;
+	border: 1px solid #e8edf4;
+	border-radius: 12px;
+	background: linear-gradient(180deg, #fbfdff 0%, #f6f9fc 100%);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+	scrollbar-gutter: stable both-edges;
 }
 
 .aif-table-card {
@@ -155,6 +163,7 @@
 
 .aif-stock-right {
 	text-align: right;
+	padding-right: 110px;
 }
 
 .aif-stock-right p {
@@ -183,6 +192,7 @@
 	width: 100%;
 	border-collapse: collapse;
 	table-layout: fixed;
+	min-width: 0;
 }
 
 .aif-col-medicine {
@@ -206,8 +216,13 @@
 	color: #7d8793;
 	font-size: 12px;
 	font-weight: 500;
-	padding: 0 12px 10px 0;
+	padding: 10px 12px 10px 0;
 	border-bottom: 1px solid #e9eef4;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: rgba(246, 250, 254, 0.97);
+	backdrop-filter: blur(2px);
 }
 
 .aif-table td {
@@ -217,6 +232,16 @@
 	font-weight: 500;
 	padding: 10px 12px 10px 0;
 	border-bottom: 1px solid #f1f4f8;
+	background-color: rgba(255, 255, 255, 0.84);
+	overflow-wrap: anywhere;
+}
+
+.aif-table tbody tr {
+	transition: background-color 0.18s ease;
+}
+
+.aif-table tbody tr:hover td {
+	background-color: #eef7fe;
 }
 
 .aif-table tbody tr:last-child td {
@@ -238,7 +263,7 @@
 .aif-cell-confidence,
 .aif-cell-demand,
 .aif-table-note {
-	white-space: nowrap;
+	white-space: normal;
 }
 
 .aif-predicted-table th:not(:last-child),
@@ -250,6 +275,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	flex-wrap: wrap;
 	gap: 10px;
 }
 
@@ -272,6 +298,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
+	flex-wrap: wrap;
 	gap: 8px;
 	width: 100%;
 }
@@ -283,18 +310,20 @@
 .aif-list-scroll::-webkit-scrollbar,
 .aif-table-scroll::-webkit-scrollbar {
 	width: 8px;
+	height: 8px;
 }
 
 .aif-list-scroll::-webkit-scrollbar-track,
 .aif-table-scroll::-webkit-scrollbar-track {
 	border-radius: 999px;
-	background: #eaf6fb;
+	background: #deebf5;
 }
 
 .aif-list-scroll::-webkit-scrollbar-thumb,
 .aif-table-scroll::-webkit-scrollbar-thumb {
 	border-radius: 999px;
-	background: #2aabe2;
+	background: linear-gradient(180deg, #2aabe2 0%, #1d8cc0 100%);
+	border: 1px solid #deebf5;
 }
 
 @media (max-width: 991.98px) {
@@ -361,6 +390,10 @@
 
 	.aif-table td {
 		font-size: 12px;
+	}
+
+	.aif-table {
+		min-width: 0;
 	}
 
 	.aif-table-sub,
