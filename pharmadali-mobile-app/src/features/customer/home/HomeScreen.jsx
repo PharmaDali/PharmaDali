@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { colors } from '@src/shared/theme/colorPalette';
 import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
@@ -12,12 +12,17 @@ import SkeletonHome from '@shared/components/SkeletonHome';
 import BranchSelectionOverlay from '@shared/components/BranchSelectionOverlay';
 import { useSelectionPhase } from '@shared/SelectionPhaseContext';
 import { formatProductPrice, useHomeTab } from '@shared/hooks/useHomeTab';
+import { addBranchProductToCart } from '@shared/utils/cartUtils';
+import ToastMessage from '@shared/components/ToastMessage';
+import { useToast } from '@shared/hooks/useToast';
 
 export default function HomeScreen() {
   const route = useRouter();
   const insets = useSafeAreaInsets();
   const { setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
   const { loading, categories, branchProducts, normalizeSelectedBranch } = useHomeTab(selectedBranch);
+  const [addingProductId, setAddingProductId] = useState(null);
+  const { toast, showSuccess, showError } = useToast();
 
   const branchStatusLabel = selectedBranch?.isOpen
     ? (selectedBranch?.formattedClosingHour ? `Open til ${selectedBranch.formattedClosingHour}` : 'Open now')
@@ -27,6 +32,31 @@ export default function HomeScreen() {
   const handleBranchSelect = (branch) => {
     setSelectedBranch(normalizeSelectedBranch(branch));
     setSelectionPhase(false);
+  };
+
+  const handleAddToCart = async ({ branchProductId }) => {
+    const branchId = selectedBranch?.id ?? selectedBranch?.branch_id;
+
+    setAddingProductId(branchProductId);
+
+    const result = await addBranchProductToCart({
+      branchId,
+      branchProductId,
+      quantity: 1,
+      validationMessages: {
+        missingBranch: 'Please select a branch and try again.',
+        missingProduct: 'Please select a branch and try again.',
+      },
+    });
+
+    setAddingProductId(null);
+
+    if (result.ok) {
+      showSuccess(result.message);
+      return;
+    }
+
+    showError(result.errorMessage);
   };
 
   if (loading) return <SkeletonHome />;
@@ -41,11 +71,18 @@ export default function HomeScreen() {
   }
 
   return (
-    <ScrollView
-      className="bg-white"
-      style={{ flex: 1, paddingBottom: insets.bottom }}
-      showsVerticalScrollIndicator={false}
-    >
+    <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
+      <ToastMessage
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        topOffset={insets.top + 8}
+      />
+      <ScrollView
+        className="bg-white"
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+      >
       <Text className="text-3xl text-start px-4 py-6" style={styles.greetingMedium}>
         Magandang Araw, <Text style={styles.greetingBold}>Denmar!</Text>
       </Text>
@@ -104,20 +141,30 @@ export default function HomeScreen() {
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
           {branchProducts.map((item, index) => (
-            <ProductCard
-              key={`${item?.id ?? 'product'}-${index}`}
-              productId={String(item?.product_id ?? '')}
-              img={BandaidImg}
-              description={item?.product?.product_name || 'Unnamed product'}
-              category={item?.category?.category_name || 'Uncategorized'}
-              price={formatProductPrice(item?.selling_price)}
-              isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
-              style={{ width: 150, marginRight: 12 }}
-            />
+            <View key={`${item?.id ?? 'product'}-${index}`}>
+              <ProductCard
+                productId={String(item?.product_id ?? '')}
+                branchProductId={item?.id}
+                branchId={selectedBranch?.id ?? selectedBranch?.branch_id ?? null}
+                img={BandaidImg}
+                description={item?.product?.product_name || 'Unnamed product'}
+                category={item?.category?.category_name || 'Uncategorized'}
+                price={formatProductPrice(item?.selling_price)}
+                isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
+                onAddToCart={handleAddToCart}
+                style={{ width: 150, marginRight: 12 }}
+              />
+              {addingProductId === item?.id && (
+                <Text className="mt-1 ml-2 text-[11px]" style={{ fontFamily: 'Poppins-Medium', color: '#48AAD9' }}>
+                  Adding...
+                </Text>
+              )}
+            </View>
           ))}
         </ScrollView>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

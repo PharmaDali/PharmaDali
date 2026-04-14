@@ -1,5 +1,15 @@
 import { apiRequest } from '@shared/api/client';
 
+function toPositiveInteger(value, fallback = 1) {
+  const parsed = Number(value);
+
+  if (Number.isFinite(parsed) && parsed > 0) {
+    return Math.floor(parsed);
+  }
+
+  return fallback;
+}
+
 function normalizeCartItems(payload) {
   if (Array.isArray(payload)) {
     return payload;
@@ -74,6 +84,22 @@ export async function getCartItems() {
       total_quantity: items.reduce((sum, item) => sum + item.quantity, 0),
       subtotal: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
     },
+  };
+}
+
+export async function addCartItem({ branchId, branchProductId, quantity = 1 }) {
+  const payload = await apiRequest('/customer/cart/items', {
+    method: 'POST',
+    body: {
+      branch_id: toPositiveInteger(branchId, 0),
+      branch_product_id: toPositiveInteger(branchProductId, 0),
+      quantity: toPositiveInteger(quantity, 1),
+    },
+  });
+
+  return {
+    message: payload?.message || 'Item added to cart successfully.',
+    data: payload?.data || null,
   };
 }
 

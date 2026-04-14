@@ -1,10 +1,14 @@
 import { Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import BandaidImg from '@assets/images/bandaid_img.png'
 import ProductCard from '@src/shared/components/ProductCard'
 import { useSelectionPhase } from '@src/shared/SelectionPhaseContext'
 import { getBranchCategories, getProducts } from '@src/shared/services/productService'
+import { addBranchProductToCart } from '@shared/utils/cartUtils'
+import ToastMessage from '@shared/components/ToastMessage'
+import { useToast } from '@shared/hooks/useToast'
 
 function normalizeApiList(payload) {
   if (Array.isArray(payload)) {
@@ -29,11 +33,14 @@ function formatPrice(value) {
 
 const Shop = () => {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const { selectedBranch } = useSelectionPhase()
   const selectedBranchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [addingProductId, setAddingProductId] = useState(null)
+  const { toast, showSuccess, showError } = useToast()
 
   useEffect(() => {
     if (!selectedBranchId) {
@@ -89,9 +96,39 @@ const Shop = () => {
     })
   }
 
+  const handleAddToCart = async ({ branchProductId }) => {
+    setAddingProductId(branchProductId)
+
+    const result = await addBranchProductToCart({
+      branchId: selectedBranchId,
+      branchProductId,
+      quantity: 1,
+      validationMessages: {
+        missingBranch: 'Please select a branch and try again.',
+        missingProduct: 'Please select a branch and try again.',
+      },
+    })
+
+    setAddingProductId(null)
+
+    if (result.ok) {
+      showSuccess(result.message)
+      return
+    }
+
+    showError(result.errorMessage)
+  }
+
   return (
-    <ScrollView className="flex-1 bg-white" showsVerticalScrollIndicator={false}>
-      <View>
+    <View className="flex-1 bg-white">
+      <ToastMessage
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        topOffset={insets.top + 8}
+      />
+      <ScrollView className="flex-1 bg-white" showsVerticalScrollIndicator={false}>
+        <View>
         <Text className="text-2xl p-5" style={{ fontFamily: 'Poppins-Bold', color: '#444' }}>
           Categories
         </Text>
@@ -121,12 +158,12 @@ const Shop = () => {
         </View>
       </View>
 
-      <View>
+        <View>
         <Text className="text-2xl p-5" style={{ fontFamily: 'Poppins-Bold', color: '#444' }}>
           Products
         </Text>
-      </View>
-      <View className="flex-row flex-wrap px-4">
+        </View>
+        <View className="flex-row flex-wrap px-4">
         {isLoading && (
           Array.from({ length: 4 }).map((_, index) => (
             <View key={`skeleton-${index}`} className="w-1/2 px-1 mb-4">
@@ -139,12 +176,20 @@ const Shop = () => {
           <View key={index} className="w-1/2 px-1 mb-4">
             <ProductCard
               productId={String(item?.product_id ?? '')}
+              branchProductId={item?.id}
+              branchId={selectedBranchId}
               img={BandaidImg}
               description={item?.product?.product_name || 'Unnamed product'}
               category={item?.category?.category_name || 'Uncategorized'}
               price={formatPrice(item?.selling_price)}
+              onAddToCart={handleAddToCart}
               style={{ width: 160 }}
             />
+            {addingProductId === item?.id && (
+              <Text className="mt-1 ml-1 text-[11px]" style={{ fontFamily: 'Poppins-Medium', color: '#48AAD9' }}>
+                Adding...
+              </Text>
+            )}
           </View>
         ))}
 
@@ -153,8 +198,9 @@ const Shop = () => {
             No products found for this branch.
           </Text>
         )}
-      </View>
-    </ScrollView>
+        </View>
+      </ScrollView>
+    </View>
   )
 }
 
