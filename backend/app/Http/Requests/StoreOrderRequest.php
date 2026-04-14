@@ -24,6 +24,7 @@ class StoreOrderRequest extends FormRequest
         return [
             'payment_method' => ['required', 'in:cash,gcash'],
             'scheduled_pickup_at' => ['nullable', 'date', 'after_or_equal:now'],
+            'picked_up_at' => ['nullable', 'string', 'max:255'],
             'note' => ['nullable', 'string', 'max:1000'],
         ];
     }

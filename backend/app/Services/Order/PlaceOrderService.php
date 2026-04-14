@@ -70,6 +70,7 @@ class PlaceOrderService
                 'discount_amount' => 0,
                 'total_amount' => 0,
                 'scheduled_pickup_at' => $payload['scheduled_pickup_at'] ?? null,
+                'picked_up_at' => $payload['picked_up_at'] ?? null,
                 'note' => $payload['note'] ?? null,
                 'placed_at' => $timestamp,
             ]);
