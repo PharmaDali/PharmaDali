@@ -57,9 +57,6 @@ const PickupDetailsScreen = () => {
               <RedLocationIcon width={18} height={18} />
               <Text className="text-xs ml-2" style={styles.fontSemiBold}>Pickup at Tinurik, Tanauan City, Batangas</Text>
             </View>
-            <TouchableOpacity>
-              <Text className="text-xs" style={styles.changeText}>Change</Text>
-            </TouchableOpacity>
           </View>
         </View>
 
