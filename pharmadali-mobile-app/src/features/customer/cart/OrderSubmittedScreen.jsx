@@ -1,15 +1,20 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@src/shared/theme/colorPalette'
 import LogoHeader from '@src/shared/components/LogoHeader'
 import OrderSuccessIcon from '@assets/icons/success_icon.svg'
 import BlueClockIcon from '@assets/icons/blue_clock_icon.svg'
+import { clearCheckoutDraft } from '@shared/services/checkoutDraft'
 
 const OrderSubmittedScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+
+  useEffect(() => {
+    clearCheckoutDraft()
+  }, [])
 
   return (
     <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>

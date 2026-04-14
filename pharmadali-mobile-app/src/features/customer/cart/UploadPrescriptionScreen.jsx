@@ -7,8 +7,7 @@ import { colors } from '@src/shared/theme/colorPalette'
 import LogoHeader from '@src/shared/components/LogoHeader'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import BetadineImg from '@assets/images/betadine_img.png'
-import { getCheckoutDraft } from '@shared/services/checkoutDraft'
-import { uploadOrderItemPrescription } from '@shared/services/prescriptionService'
+import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
 
 function PrescriptionItemRow({ item }) {
   return (
@@ -27,14 +26,16 @@ function PrescriptionItemRow({ item }) {
 const UploadPrescriptionScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const { items } = getCheckoutDraft()
+  const draft = getCheckoutDraft()
+  const { items } = draft
   const prescriptionItems = items.filter((item) => item.prescriptionRequired)
-  const [imageUri, setImageUri] = useState(null)
-  const [imageAsset, setImageAsset] = useState(null)
+  const [imageUri, setImageUri] = useState(draft?.prescriptionImage?.uri || null)
+  const [imageAsset, setImageAsset] = useState(draft?.prescriptionImage || null)
   const [confirmed, setConfirmed] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState('')
-  const [uploadSuccess, setUploadSuccess] = useState(false)
+  const [uploadSuccess, setUploadSuccess] = useState(Boolean(draft?.prescriptionPrepared))
+  const canProceed = uploadSuccess
 
   const pickFromGallery = async () => {
     setUploadError('')
@@ -46,6 +47,7 @@ const UploadPrescriptionScreen = () => {
     if (!result.canceled) {
       setImageUri(result.assets[0].uri)
       setImageAsset(result.assets[0])
+      setUploadSuccess(false)
     }
   }
 
@@ -60,6 +62,7 @@ const UploadPrescriptionScreen = () => {
     if (!result.canceled) {
       setImageUri(result.assets[0].uri)
       setImageAsset(result.assets[0])
+      setUploadSuccess(false)
     }
   }
 
@@ -69,6 +72,13 @@ const UploadPrescriptionScreen = () => {
     setConfirmed(false)
     setUploadError('')
     setUploadSuccess(false)
+
+    const currentDraft = getCheckoutDraft()
+    setCheckoutDraft({
+      ...currentDraft,
+      prescriptionImage: null,
+      prescriptionPrepared: false,
+    })
   }
 
   const handleUpload = async () => {
@@ -91,14 +101,21 @@ const UploadPrescriptionScreen = () => {
     setUploadError('')
 
     try {
-      for (const item of prescriptionItems) {
-        const orderItemId = item.orderItemId || item.id
-        await uploadOrderItemPrescription(orderItemId, imageAsset)
-      }
+      const currentDraft = getCheckoutDraft()
+
+      setCheckoutDraft({
+        ...currentDraft,
+        prescriptionImage: {
+          uri: imageAsset.uri,
+          fileName: imageAsset.fileName || `prescription-${Date.now()}.jpg`,
+          mimeType: imageAsset.mimeType || 'image/jpeg',
+        },
+        prescriptionPrepared: true,
+      })
 
       setUploadSuccess(true)
     } catch (error) {
-      setUploadError(error instanceof Error ? error.message : 'Failed to upload prescription image.')
+      setUploadError(error instanceof Error ? error.message : 'Failed to prepare prescription image.')
       setUploadSuccess(false)
     } finally {
       setUploading(false)
@@ -185,7 +202,7 @@ const UploadPrescriptionScreen = () => {
 
           {uploadSuccess && (
             <Text className="text-xs mt-3 text-green-700" style={styles.fontMedium}>
-              Prescription uploaded successfully.
+              Prescription prepared. It will be uploaded after Confirm Pickup.
             </Text>
           )}
         </View>
@@ -198,11 +215,17 @@ const UploadPrescriptionScreen = () => {
         >
           <Text className="text-sm" style={styles.primarySemiBold}>Go back</Text>
         </TouchableOpacity>
-        <TouchableOpacity className="flex-1 bg-[#48AAD9] rounded-xl py-2.5 items-center"
-          onPress={() => router.push('/customer/tabs/cart/PickupDetails')}
-          disabled={prescriptionItems.length > 0 && !uploadSuccess}
+        <TouchableOpacity className={`flex-1 rounded-xl py-2.5 items-center ${canProceed ? 'bg-[#48AAD9]' : 'bg-gray-300'}`}
+          onPress={() => {
+            if (!canProceed) {
+              return
+            }
+
+            router.push('/customer/tabs/cart/PickupDetails')
+          }}
+          disabled={!canProceed}
         >
-          <Text className="text-sm text-white" style={styles.fontSemiBold}>Next</Text>
+          <Text className={`text-sm ${canProceed ? 'text-white' : 'text-gray-500'}`} style={styles.fontSemiBold}>Next</Text>
         </TouchableOpacity>
       </View>
     </View>
