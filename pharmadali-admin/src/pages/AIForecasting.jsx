@@ -53,6 +53,25 @@ const riskClassMap = {
     Low: "aif-risk-low",
 };
 
+const stockRightStyle = {
+    textAlign: "right",
+    paddingRight: "10px",
+};
+
+const groupedCellStyle = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: "10px",
+};
+
+const splitCellStyle = {
+    ...groupedCellStyle,
+    gap: "8px",
+    width: "100%",
+};
+
 function AIForecasting() {
     const [range, setRange] = useState("Last 7 days");
 
@@ -160,7 +179,7 @@ function AIForecasting() {
                                         </p>
                                         <p className="aif-medicine-name">{item.medicine}</p>
                                     </div>
-                                    <div className="aif-stock-right">
+                                    <div className="aif-stock-right" style={stockRightStyle}>
                                         <p>
                                             <span className="aif-units-value">{item.units}</span>
                                             <span className="aif-units-label"> units</span>
@@ -200,7 +219,7 @@ function AIForecasting() {
                                     {PREDICTED_HIGH_DEMAND.map((row) => (
                                         <tr key={row.medicine}>
                                             <td className="aif-cell-primary">{row.medicine}</td>
-                                            <td className="aif-cell-demand">
+                                            <td className="aif-cell-demand" style={groupedCellStyle}>
                                                 <span className="aif-table-main">{row.demand}</span>
                                                 <span className="aif-table-sub">({row.period})</span>
                                             </td>
@@ -236,13 +255,13 @@ function AIForecasting() {
                                     {INVENTORY_HEALTH.map((row) => (
                                         <tr key={row.medicine}>
                                             <td>
-                                                <div className="aif-cell-split">
+                                                <div className="aif-cell-split" style={splitCellStyle}>
                                                     <span className="aif-table-main">{row.medicine}</span>
                                                     <span className="aif-table-sub aif-table-note">{row.lowStock}</span>
                                                 </div>
                                             </td>
                                             <td>
-                                                <div className="aif-cell-split">
+                                                <div className="aif-cell-split" style={splitCellStyle}>
                                                     <span className="aif-table-main">{row.medicine}</span>
                                                     <span className="aif-table-sub aif-table-note">{row.expiresIn}</span>
                                                 </div>
