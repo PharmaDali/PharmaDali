@@ -33,6 +33,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'branch_id',
+        'is_active',
         'date_of_birth',
         'mobile_number',
         'address',
