@@ -23,6 +23,8 @@ class ListOrdersService
                 'customer.user:id,first_name,last_name,email',
                 'branch:id,branch_name,location',
                 'items:id,order_id,branch_product_id,quantity,unit_price_snapshot,line_total,product_name',
+                'items.branchProduct:id,branch_id,product_id,selling_price',
+                'items.branchProduct.product:id,product_name,generic_name,brand_name,description,form,strength,is_prescribed',
             ])
             ->latest('id');
 

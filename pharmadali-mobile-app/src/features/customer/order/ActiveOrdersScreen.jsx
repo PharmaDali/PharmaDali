@@ -3,14 +3,13 @@ import React, { useState } from 'react'
 import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
 import CancelOrderOverlay from '@src/shared/components/CancelOrderOverlay'
-import { activeOrders } from './orderMockData'
 
 function ActiveOrderCard({ order, onCancel }) {
   return (
     <View className="border border-gray-200 bg-white rounded-2xl py-4 px-4 mt-4 mx-4 shadow-md elevation-2">
       <View className="flex-row justify-between items-start">
         <View>
-          <Text className="text-sm" style={styles.textColorBold}>Order #{order.orderNumber}</Text>
+          <Text className="text-sm" style={styles.textColorBold}>OID: {order.orderNumber}</Text>
           <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>{order.date}</Text>
         </View>
         <StatusBadge status={order.status} />
@@ -38,7 +37,7 @@ function ActiveOrderCard({ order, onCancel }) {
   )
 }
 
-export default function ActiveOrdersScreen() {
+export default function ActiveOrdersScreen({ orders = [] }) {
   const [cancelVisible, setCancelVisible] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
 
@@ -53,10 +52,19 @@ export default function ActiveOrdersScreen() {
     setSelectedOrder(null)
   }
 
+  if (!orders.length) {
+    return (
+      <View className="mx-4 mt-4 bg-white border border-gray-200 rounded-2xl p-5 items-center">
+        <Text className="text-sm text-gray-600" style={styles.textColorBold}>No active orders yet</Text>
+        <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>Your active orders will appear here.</Text>
+      </View>
+    )
+  }
+
   return (
     <View className="mt-4 mb-4">
-      {activeOrders.map((order, index) => (
-        <ActiveOrderCard key={index} order={order} onCancel={() => handleCancelPress(order)} />
+      {orders.map((order) => (
+        <ActiveOrderCard key={order.id || order.orderNumber} order={order} onCancel={() => handleCancelPress(order)} />
       ))}
 
       <CancelOrderOverlay

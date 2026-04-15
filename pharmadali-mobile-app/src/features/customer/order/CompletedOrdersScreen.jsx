@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router'
 import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
-import { completedOrders } from './orderMockData'
 
 function CompletedOrderCard({ order, onViewDetails }) {
   return (
@@ -39,17 +38,32 @@ function CompletedOrderCard({ order, onViewDetails }) {
   )
 }
 
-export default function CompletedOrdersScreen() {
+export default function CompletedOrdersScreen({ orders = [] }) {
   const router = useRouter()
 
   const handleViewDetails = (order) => {
-    router.push({ pathname: '/customer/tabs/orders/ViewOrderDetails', params: { orderNumber: order.orderNumber } })
+    router.push({
+      pathname: '/customer/tabs/orders/ViewOrderDetails',
+      params: {
+        orderId: String(order.id || ''),
+        orderNumber: order.orderNumber,
+      },
+    })
+  }
+
+  if (!orders.length) {
+    return (
+      <View className="mx-4 mt-4 bg-white border border-gray-200 rounded-2xl p-5 items-center">
+        <Text className="text-sm text-gray-600" style={styles.textColorBold}>No completed orders yet</Text>
+        <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>Completed and cancelled orders will appear here.</Text>
+      </View>
+    )
   }
 
   return (
     <View className="mt-4 mb-4">
-      {completedOrders.map((order, index) => (
-        <CompletedOrderCard key={index} order={order} onViewDetails={() => handleViewDetails(order)} />
+      {orders.map((order) => (
+        <CompletedOrderCard key={order.id || order.orderNumber} order={order} onViewDetails={() => handleViewDetails(order)} />
       ))}
     </View>
   )

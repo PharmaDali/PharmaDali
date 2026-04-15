@@ -20,3 +20,29 @@ export async function placeCustomerOrder({
     body,
   });
 }
+
+export async function fetchCustomerOrders() {
+  const payload = await apiRequest('/customer/orders', {
+    method: 'GET',
+  });
+
+  if (Array.isArray(payload?.data)) {
+    return payload.data;
+  }
+
+  return [];
+}
+
+export async function fetchCustomerOrderDetails(orderId) {
+  const numericId = Number(orderId);
+
+  if (!Number.isFinite(numericId) || numericId <= 0) {
+    throw new Error('Invalid order id.');
+  }
+
+  const payload = await apiRequest(`/customer/orders/${numericId}`, {
+    method: 'GET',
+  });
+
+  return payload?.data || null;
+}
