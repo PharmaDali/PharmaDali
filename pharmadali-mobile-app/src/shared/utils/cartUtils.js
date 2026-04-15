@@ -1,4 +1,5 @@
 import { addCartItem } from '@shared/services/cartService';
+import { notifyCartCountUpdated } from '@shared/services/cartCountEvents';
 
 function parsePositiveInteger(value) {
   const parsed = Number(value);
@@ -39,6 +40,8 @@ export async function addBranchProductToCart({
       branchProductId: normalizedBranchProductId,
       quantity,
     });
+
+    notifyCartCountUpdated();
 
     return {
       ok: true,
