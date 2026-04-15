@@ -61,20 +61,29 @@ function toStatusLabel(rawStatus) {
 }
 
 function mapOrderProduct(item) {
+  const branchProduct = item?.branchProduct || item?.branch_product || null
+  const product = branchProduct?.product || null
+
   const description =
     item?.product_name ||
-    item?.branchProduct?.product?.product_name ||
-    item?.branchProduct?.product?.brand_name ||
-    item?.branchProduct?.product?.generic_name ||
+    product?.product_name ||
+    product?.brand_name ||
+    product?.generic_name ||
     'Unnamed product'
+
+  const prescriptionRequired = Boolean(Number(product?.is_prescribed ?? 0))
+  const rxDescription = prescriptionRequired
+    ? (product?.description || 'Please provide a valid prescription for this medicine.')
+    : ''
 
   return {
     img: BetadineImg,
     description,
     price: formatCurrency(item?.unit_price_snapshot),
     quantity: Number(item?.quantity || 0),
-    size: item?.branchProduct?.product?.strength || item?.branchProduct?.product?.form || 'N/A',
-    prescriptionRequired: Boolean(item?.branchProduct?.product?.is_prescribed),
+    size: product?.strength || product?.form || 'N/A',
+    prescriptionRequired,
+    rxDescription,
   }
 }
 

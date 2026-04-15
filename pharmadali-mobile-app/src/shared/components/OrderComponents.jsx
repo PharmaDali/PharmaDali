@@ -32,9 +32,16 @@ export function ProductRow({ product }) {
       <View className="flex-1 ml-3">
         <Text className="text-sm" style={{ fontFamily: 'Poppins-SemiBold' }} numberOfLines={2}>{product.description}</Text>
         {product.prescriptionRequired && (
-          <View className="flex-row items-center mt-1">
-            <RxIcon width={12} height={12} />
-            <Text className="text-xs ml-1" style={{ color: '#DC3545', fontFamily: 'Poppins-Medium' }}>Prescription Required</Text>
+          <View className="mt-1">
+            <View className="flex-row items-center">
+              <RxIcon width={12} height={12} />
+              <Text className="text-xs ml-1" style={{ color: '#DC3545', fontFamily: 'Poppins-Medium' }}>Prescription Required</Text>
+            </View>
+            {!!product.rxDescription && (
+              <Text className="text-[11px] ml-4 mt-0.5" numberOfLines={2} style={{ color: '#7A7A7A', fontFamily: 'Poppins-Medium' }}>
+                {product.rxDescription}
+              </Text>
+            )}
           </View>
         )}
         <View className="flex-row justify-between items-center mt-2">

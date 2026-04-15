@@ -9,7 +9,7 @@ function ActiveOrderCard({ order, onCancel }) {
     <View className="border border-gray-200 bg-white rounded-2xl py-4 px-4 mt-4 mx-4 shadow-md elevation-2">
       <View className="flex-row justify-between items-start">
         <View>
-          <Text className="text-sm" style={styles.textColorBold}>Order #{order.orderNumber}</Text>
+          <Text className="text-sm" style={styles.textColorBold}>OID: {order.orderNumber}</Text>
           <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>{order.date}</Text>
         </View>
         <StatusBadge status={order.status} />
