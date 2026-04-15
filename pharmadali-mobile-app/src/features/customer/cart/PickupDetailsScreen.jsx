@@ -125,12 +125,16 @@ const PickupDetailsScreen = () => {
 
       const normalizedCustomerNote = customerNote.trim()
       const selectedBranchLabel = selectedBranch?.name || selectedDateLabel
+      const selectedCartItemIds = items
+        .map((item) => Number(item?.id))
+        .filter((id) => Number.isFinite(id) && id > 0)
 
       const orderPayload = await placeCustomerOrder({
         paymentMethod: 'cash',
         scheduledPickupAt: scheduledPickupAt.toISOString(),
         pickedUpAt: selectedBranchLabel,
         note: normalizedCustomerNote || null,
+        cartItemIds: selectedCartItemIds,
       })
 
       const order = orderPayload?.data || {}
