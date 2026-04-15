@@ -25,6 +25,8 @@ class UpdateOrderRequest extends FormRequest
             'payment_method' => ['sometimes', 'in:cash,gcash'],
             'scheduled_pickup_at' => ['sometimes', 'nullable', 'date', 'after_or_equal:now'],
             'note' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            'status' => ['sometimes', 'in:cancelled'],
+            'reason' => ['required_if:status,cancelled', 'string', 'max:1000'],
         ];
     }
 }

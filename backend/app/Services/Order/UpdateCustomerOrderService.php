@@ -10,8 +10,20 @@ class UpdateCustomerOrderService
 {
     private const CUSTOMER_EDITABLE_STATUSES = ['pending', 'reviewing'];
 
+    public function __construct(
+        private readonly CancelCustomerOrderService $cancelCustomerOrderService,
+    ) {}
+
     public function handle(?User $user, Order $order, array $payload): JsonResponse
     {
+        if (($payload['status'] ?? null) === 'cancelled') {
+            return $this->cancelCustomerOrderService->handle(
+                $user,
+                $order,
+                $payload['reason'],
+            );
+        }
+
         if (!$user || $user->role !== 'customer') {
             return response()->json([
                 'status' => 'error',

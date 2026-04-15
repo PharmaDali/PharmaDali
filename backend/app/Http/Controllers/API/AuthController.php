@@ -37,7 +37,10 @@ class AuthController extends Controller
 
     public function pharmacistRegister(PharmacistRegisterRequest $request): JsonResponse
     {
-        return $this->pharmacistRegisterService->handle($request->validated());
+        return $this->pharmacistRegisterService->handle(
+            $request->validated(),
+            $request->user(),
+        );
     }
 
     public function adminRegister(AdminRegisterRequest $request): JsonResponse

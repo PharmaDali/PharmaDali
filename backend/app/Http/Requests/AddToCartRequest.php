@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Cart;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AddToCartRequest extends FormRequest
@@ -11,7 +12,7 @@ class AddToCartRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return (bool) $this->user()?->can('create', Cart::class);
     }
 
     /**

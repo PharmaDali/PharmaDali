@@ -9,9 +9,21 @@ use Illuminate\Support\Facades\Hash;
 
 class PharmacistRegisterService
 {
-    public function handle(array $data): JsonResponse
+    public function handle(array $data, ?User $createdBy): JsonResponse
     {
-        $user = DB::transaction(function () use ($data) {
+        if (!$createdBy) {
+            return response()->json([
+                'message' => 'Unauthenticated.',
+            ], 401);
+        }
+
+        if (is_null($createdBy->branch_id)) {
+            return response()->json([
+                'message' => 'Branch admin must be assigned to a branch before registering pharmacists.',
+            ], 422);
+        }
+
+        $user = DB::transaction(function () use ($data, $createdBy) {
             $user = User::create([
                 'first_name'    => $data['first_name'],
                 'last_name'     => $data['last_name'],
@@ -21,6 +33,7 @@ class PharmacistRegisterService
                 'date_of_birth' => $data['date_of_birth'] ?? null,
                 'address'       => $data['address'] ?? null,
                 'role'          => 'pharmacist',
+                'branch_id'     => $createdBy->branch_id,
             ]);
 
             $user->pharmacist()->create([
@@ -31,7 +44,7 @@ class PharmacistRegisterService
             return $user;
         });
 
-        $user->load('pharmacist');
+        $user->load(['pharmacist', 'branch']);
 
         $token = $user->createToken('API Token', ['pharmacist'])->plainTextToken;
 
