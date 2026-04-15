@@ -73,6 +73,13 @@ const PickupDetailsScreen = () => {
     : 'Select pickup time'
 
   const confirmPickupValidationError = useMemo(() => {
+    if (items.length === 0) {
+      return 'No selected items found for checkout.'
+    }
+
+    if (hasPrescription && !prescriptionImage?.uri) {
+      return 'Please complete prescription upload first.'
+    }
 
     const scheduledPickupAt = selectedTime
       ? buildScheduledPickupDateTime(selectedDate, selectedTime)
