@@ -17,7 +17,8 @@ module.exports = function (api) {
             '@features': './src/features',
           }
         }
-      ]
+      ],
+      'react-native-reanimated/plugin'
     ],
   };
 };

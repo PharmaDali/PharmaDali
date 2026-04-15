@@ -26,6 +26,8 @@ class StoreOrderRequest extends FormRequest
             'scheduled_pickup_at' => ['nullable', 'date', 'after_or_equal:now'],
             'picked_up_at' => ['nullable', 'string', 'max:255'],
             'note' => ['nullable', 'string', 'max:1000'],
+            'cart_item_ids' => ['required', 'array', 'min:1'],
+            'cart_item_ids.*' => ['integer', 'distinct', 'exists:cart_items,id'],
         ];
     }
 }

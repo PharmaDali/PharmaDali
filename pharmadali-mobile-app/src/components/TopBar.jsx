@@ -5,9 +5,10 @@ import { colors } from '@shared/theme/colorPalette'
 import { TextInput } from 'react-native-paper'
 import CartIcon from '@assets/icons/cart_icon.svg'
 import theme from '@shared/theme/inputTheme'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { useFocusEffect } from '@react-navigation/native'
 import { getCartItemCount } from '@shared/services/cartService'
+import { subscribeCartCountUpdates } from '@shared/services/cartCountEvents'
 
 const TopBar = () => {
   const router = useRouter();
@@ -28,6 +29,14 @@ const TopBar = () => {
       loadCartCount();
     }, [loadCartCount]),
   );
+
+  useEffect(() => {
+    const unsubscribe = subscribeCartCountUpdates(() => {
+      loadCartCount();
+    });
+
+    return unsubscribe;
+  }, [loadCartCount]);
 
   return (
     <View style={{ backgroundColor: colors.buttonColor}} className="py-4 px-5 pt-3">

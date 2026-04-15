@@ -9,10 +9,32 @@ import StepIndicator from '@src/shared/components/StepIndicator'
 import BetadineImg from '@assets/images/betadine_img.png'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
 
+function resolveItemImageSource(item) {
+  const imageUri =
+    item?.imgUri ||
+    item?.imageUri ||
+    item?.image_url ||
+    item?.imageUrl ||
+    item?.product?.image_url ||
+    item?.product?.imageUrl
+
+  if (typeof imageUri === 'string' && imageUri.trim().length > 0) {
+    return { uri: imageUri }
+  }
+
+  if (item?.img) {
+    return item.img
+  }
+
+  return BetadineImg
+}
+
 function PrescriptionItemRow({ item }) {
+  const imageSource = resolveItemImageSource(item)
+
   return (
     <View className="flex-row items-center mt-3">
-      <Image source={item.img} className="w-14 h-14 rounded-lg" resizeMode="contain" />
+      <Image source={imageSource} className="w-14 h-14 rounded-lg" resizeMode="contain" />
       <View className="flex-1 ml-3">
         <Text className="text-xs" style={styles.fontMedium} numberOfLines={2}>
           {item.description}

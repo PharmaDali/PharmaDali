@@ -9,11 +9,14 @@ import LogoHeader from '@src/shared/components/LogoHeader'
 import RedInfoIcon from '@assets/icons/red_info_icon.svg'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
-import { placeCustomerOrder } from '@shared/services/orderService'
-import { uploadOrderItemPrescription } from '@shared/services/prescriptionService'
+import { submitCheckoutOrder } from '@shared/services/checkoutSubmissionService'
 import { useSelectionPhase } from '@shared/SelectionPhaseContext'
 import {
-  buildDateAtMinutes,
+  buildEffectivePickupBounds,
+  buildScheduledPickupDateTime,
+  validateScheduledPickupTime,
+} from '@shared/validation/pickupValidation'
+import {
   buildDynamicPickupDates,
   formatMinutesToAmPm,
   parseBranchOperatingMinutes,
@@ -37,11 +40,13 @@ const PickupDetailsScreen = () => {
   const insets = useSafeAreaInsets()
   const { selectedBranch } = useSelectionPhase()
   const { items, total, prescriptionImage } = getCheckoutDraft()
+
   const hasPrescription = items.some((item) => item.prescriptionRequired)
   const totalItems = items.reduce((sum, item) => sum + (Number(item?.quantity) || 0), 0)
   const effectiveTotal = total > 0
     ? total
     : items.reduce((sum, item) => sum + (Number(item?.price || 0) * (Number(item?.quantity) || 0)), 0)
+
   const [selectedDateIndex, setSelectedDateIndex] = useState(0)
   const [showTimePicker, setShowTimePicker] = useState(false)
   const [selectedTime, setSelectedTime] = useState(null)
@@ -50,42 +55,83 @@ const PickupDetailsScreen = () => {
   const [submitError, setSubmitError] = useState('')
 
   const pickupDates = useMemo(() => buildDynamicPickupDates(7), [])
-
   const selectedDate = pickupDates[selectedDateIndex]?.date || pickupDates[0]?.date || new Date()
+  const selectedDateLabel = pickupDates[selectedDateIndex]?.label || pickupDates[0]?.label || 'Selected day'
 
-  const operatingMinutes = useMemo(
-    () => parseBranchOperatingMinutes(selectedBranch),
-    [selectedBranch],
-  )
-
+  const operatingMinutes = useMemo(() => parseBranchOperatingMinutes(selectedBranch), [selectedBranch])
   const openingMinutes = operatingMinutes.openingMinutes
   const closingMinutes = operatingMinutes.closingMinutes
   const hasValidOperatingWindow = Number.isFinite(openingMinutes) && Number.isFinite(closingMinutes) && openingMinutes < closingMinutes
 
-  const openingDateTime = useMemo(() => buildDateAtMinutes(selectedDate, openingMinutes), [selectedDate, openingMinutes])
-  const closingDateTime = useMemo(() => buildDateAtMinutes(selectedDate, closingMinutes), [selectedDate, closingMinutes])
+  const { minimumDateTime, closingDateTime, hasWindowToday } = useMemo(
+    () => buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes),
+    [selectedDate, openingMinutes, closingMinutes],
+  )
+
+  const selectedTimeLabel = selectedTime
+    ? selectedTime.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true })
+    : 'Select pickup time'
+
+  const confirmPickupValidationError = useMemo(() => {
+
+    const scheduledPickupAt = selectedTime
+      ? buildScheduledPickupDateTime(selectedDate, selectedTime)
+      : null
+
+    return validateScheduledPickupTime({
+      scheduledDateTime: scheduledPickupAt,
+      hasValidOperatingWindow,
+      closingMinutes,
+      minimumDateTime,
+      closingDateTime,
+    })
+  }, [
+    items,
+    hasPrescription,
+    prescriptionImage,
+    selectedTime,
+    selectedDate,
+    hasValidOperatingWindow,
+    closingMinutes,
+    minimumDateTime,
+    closingDateTime,
+  ])
+
+  const isConfirmPickupDisabled = submitting || Boolean(confirmPickupValidationError)
 
   useEffect(() => {
-    if (!hasValidOperatingWindow) {
+    if (!hasValidOperatingWindow || !hasWindowToday) {
+      setSelectedTime(null)
       return
     }
 
-    const defaultTime = buildDateAtMinutes(selectedDate, openingMinutes)
-    setSelectedTime(defaultTime)
-  }, [selectedDate, openingMinutes, hasValidOperatingWindow])
+    if (selectedTime && selectedTime >= minimumDateTime && selectedTime <= closingDateTime) {
+      return
+    }
 
-  const handleTimePickerChange = (_event, pickedValue) => {
+    setSelectedTime(new Date(minimumDateTime))
+  }, [hasValidOperatingWindow, hasWindowToday, minimumDateTime, closingDateTime, selectedTime])
+
+  const handleTimePickerChange = (event, pickedValue) => {
     setShowTimePicker(false)
 
-    if (!pickedValue || !hasValidOperatingWindow) {
+    if (event?.type === 'dismissed' || !pickedValue || !hasValidOperatingWindow) {
       return
     }
 
-    const candidate = new Date(pickedValue)
-    const candidateMinutes = (candidate.getHours() * 60) + candidate.getMinutes()
+    const candidate = new Date(selectedDate)
+    candidate.setHours(pickedValue.getHours(), pickedValue.getMinutes(), 0, 0)
 
-    if (candidateMinutes < openingMinutes || candidateMinutes > closingMinutes) {
-      setSubmitError(`Pickup time must be between ${formatMinutesToAmPm(openingMinutes)} and ${formatMinutesToAmPm(closingMinutes)}.`)
+    const timeError = validateScheduledPickupTime({
+      scheduledDateTime: candidate,
+      hasValidOperatingWindow,
+      closingMinutes,
+      minimumDateTime,
+      closingDateTime,
+    })
+
+    if (timeError) {
+      setSubmitError(timeError)
       return
     }
 
@@ -94,69 +140,31 @@ const PickupDetailsScreen = () => {
   }
 
   const handleConfirmPickup = async () => {
-    if (items.length === 0) {
-      setSubmitError('No selected items found for checkout.')
+    if (confirmPickupValidationError) {
+      setSubmitError(confirmPickupValidationError)
       return
     }
 
-    if (hasPrescription && !prescriptionImage?.uri) {
-      setSubmitError('Please complete prescription upload first.')
-      return
-    }
-
-    if (!hasValidOperatingWindow) {
-      setSubmitError('Pharmacy operating hours are unavailable. Please reselect your branch.')
-      return
-    }
-
-    if (!selectedTime) {
-      setSubmitError('Please select a pickup time within pharmacy operating hours.')
-      return
-    }
+    const scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, selectedTime)
 
     setSubmitting(true)
     setSubmitError('')
 
     try {
-      const selectedDateLabel = pickupDates[selectedDateIndex]?.label || pickupDates[0]?.label
-
-      const scheduledPickupAt = new Date(selectedDate)
-      scheduledPickupAt.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0)
-
       const normalizedCustomerNote = customerNote.trim()
       const selectedBranchLabel = selectedBranch?.name || selectedDateLabel
-
-      const orderPayload = await placeCustomerOrder({
-        paymentMethod: 'cash',
-        scheduledPickupAt: scheduledPickupAt.toISOString(),
-        pickedUpAt: selectedBranchLabel,
-        note: normalizedCustomerNote || null,
+      const { orderId } = await submitCheckoutOrder({
+        items,
+        hasPrescription,
+        prescriptionImage,
+        selectedBranchLabel,
+        scheduledPickupAt,
+        customerNote: normalizedCustomerNote,
       })
-
-      const order = orderPayload?.data || {}
-      const orderItems = Array.isArray(order?.items) ? order.items : []
-
-      if (hasPrescription) {
-        const prescriptionItems = items.filter((item) => item.prescriptionRequired)
-
-        for (const item of prescriptionItems) {
-          const matchedOrderItem = orderItems.find(
-            (orderItem) => Number(orderItem?.branch_product_id) === Number(item?.branchProductId),
-          )
-
-          const orderItemId = Number(matchedOrderItem?.id || 0)
-
-          if (!orderItemId) {
-            throw new Error('Unable to match prescription item to the created order.')
-          }
-
-          await uploadOrderItemPrescription(orderItemId, prescriptionImage)
-        }
-      }
 
       setCheckoutDraft({
         ...getCheckoutDraft(),
-        orderId: Number(order?.id ?? 0) || null,
+        orderId,
       })
 
       router.replace('/customer/tabs/cart/OrderSubmitted')
@@ -177,13 +185,11 @@ const PickupDetailsScreen = () => {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-4 p-4">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <RedLocationIcon width={18} height={18} />
-              <Text className="text-xs ml-2" style={styles.fontSemiBold}>
-                Pickup at {selectedBranch?.name || 'Selected branch'}
-              </Text>
-            </View>
+          <View className="flex-row items-center">
+            <RedLocationIcon width={18} height={18} />
+            <Text className="text-xs ml-2" style={styles.fontSemiBold}>
+              Pickup at {selectedBranch?.name || 'Selected branch'}
+            </Text>
           </View>
         </View>
 
@@ -193,46 +199,59 @@ const PickupDetailsScreen = () => {
             <RadioButton
               key={pickupDate.key}
               selected={selectedDateIndex === index}
-              onPress={() => setSelectedDateIndex(index)}
+              onPress={() => {
+                setSubmitError('')
+                setSelectedDateIndex(index)
+              }}
               label={pickupDate.label}
             />
           ))}
 
           <Text className="text-sm mt-4 mb-2" style={styles.fontBold}>Pickup Time</Text>
           <TouchableOpacity
-            className={`rounded-xl border px-3 py-3 ${hasValidOperatingWindow ? 'border-[#48AAD9]' : 'border-gray-300 bg-gray-100'}`}
-            disabled={!hasValidOperatingWindow}
+            className={`rounded-xl border px-3 py-3 ${hasValidOperatingWindow && hasWindowToday ? 'border-[#48AAD9] bg-[#F8FCFF]' : 'border-gray-300 bg-gray-100'}`}
+            disabled={!hasValidOperatingWindow || !hasWindowToday}
             onPress={() => {
               setSubmitError('')
               setShowTimePicker(true)
             }}
           >
             <View className="flex-row items-center justify-between">
-              <Text className="text-xs" style={styles.fontSemiBold}>
-                {selectedTime
-                  ? selectedTime.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true })
-                  : 'Select pickup time'}
-              </Text>
+              <Text className="text-xs" style={styles.fontSemiBold}>{selectedTimeLabel}</Text>
               <Text className="text-[10px]" style={styles.primarySemiBold}>Choose</Text>
             </View>
             <Text className="text-[10px] text-gray-500 mt-1" style={styles.fontMedium}>
-              {hasValidOperatingWindow
-                ? `Available between ${formatMinutesToAmPm(openingMinutes)} and ${formatMinutesToAmPm(closingMinutes)}`
-                : 'Operating hours unavailable for this branch'}
+              {hasValidOperatingWindow && hasWindowToday
+                ? `Available between ${minimumDateTime.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true })} and ${formatMinutesToAmPm(closingMinutes)}`
+                : hasValidOperatingWindow
+                  ? 'No pickup slots left today. Please choose another date.'
+                  : 'Operating hours unavailable for this branch'}
             </Text>
             <Text className="text-[10px] text-gray-400 mt-0.5" style={styles.fontMedium}>
-              {selectedTime
-                ? 'Tap to change time'
-                : 'Tap to pick a time'}
+              {selectedTime ? 'Tap to change time' : 'Tap to pick a time'}
             </Text>
           </TouchableOpacity>
 
-          {showTimePicker && hasValidOperatingWindow && (
+          {!!selectedTime && (
+            <View className="mt-2 rounded-lg bg-[#EEF7FD] border border-[#D4EAF8] px-3 py-2">
+              <Text className="text-[10px]" style={styles.fontMedium}>
+                Pickup schedule: <Text style={styles.fontSemiBold}>{selectedDateLabel}, {selectedTimeLabel}</Text>
+              </Text>
+            </View>
+          )}
+
+          {!!submitError && (
+            <View className="mt-2 rounded-lg bg-[#FFF1F1] border border-[#FFD7D7] px-3 py-2">
+              <Text className="text-[10px] text-[#B42318]" style={styles.fontMedium}>{submitError}</Text>
+            </View>
+          )}
+
+          {showTimePicker && hasValidOperatingWindow && hasWindowToday && (
             <DateTimePicker
               mode="time"
-              value={selectedTime || openingDateTime}
+              value={selectedTime || minimumDateTime}
               onChange={handleTimePickerChange}
-              minimumDate={openingDateTime}
+              minimumDate={minimumDateTime}
               maximumDate={closingDateTime}
               minuteInterval={15}
             />
@@ -291,20 +310,17 @@ const PickupDetailsScreen = () => {
         >
           <Text className="text-sm" style={styles.primarySemiBold}>Go back</Text>
         </TouchableOpacity>
-        <TouchableOpacity className={`flex-1 rounded-xl py-2.5 items-center ${submitting ? 'bg-gray-300' : 'bg-[#48AAD9]'}`}
+
+        <TouchableOpacity
+          className={`flex-1 rounded-xl py-2.5 items-center ${isConfirmPickupDisabled ? 'bg-gray-300' : 'bg-[#48AAD9]'}`}
           onPress={handleConfirmPickup}
-          disabled={submitting}
+          disabled={isConfirmPickupDisabled}
         >
-          <Text className={`text-sm ${submitting ? 'text-gray-500' : 'text-white'}`} style={styles.confirmPickupText}>
+          <Text className={`text-sm ${isConfirmPickupDisabled ? 'text-gray-500' : 'text-white'}`} style={styles.confirmPickupText}>
             {submitting ? 'Submitting...' : 'Confirm Pickup'}
           </Text>
         </TouchableOpacity>
       </View>
-      {!!submitError && (
-        <View className="px-6 pb-3 bg-white">
-          <Text className="text-xs text-[#B42318]" style={styles.fontMedium}>{submitError}</Text>
-        </View>
-      )}
     </View>
   )
 }
