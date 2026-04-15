@@ -15,6 +15,7 @@ export default function ProductCard({
   branchId,
   onAddToCart,
   isPrescribed = false,
+  isAvailable = true,
 }) {
   const router = useRouter();
 
@@ -31,6 +32,10 @@ export default function ProductCard({
 
   const handleAddToCartPress = (event) => {
     event?.stopPropagation?.();
+
+    if (!isAvailable) {
+      return;
+    }
 
     if (typeof onAddToCart === 'function') {
       onAddToCart({
@@ -69,7 +74,12 @@ export default function ProductCard({
         
           <View className="flex-row items-center justify-between mt-2">
             <Text className="text-md" style={styles.priceBold}>{price}</Text>
-            <TouchableOpacity onPress={handleAddToCartPress} hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}>
+            <TouchableOpacity
+              onPress={handleAddToCartPress}
+              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+              disabled={!isAvailable}
+              style={!isAvailable ? styles.addToCartDisabled : null}
+            >
               <AddToCartIcon width={28} height={28} />
             </TouchableOpacity>
           </View>
@@ -86,5 +96,8 @@ const styles = StyleSheet.create({
   rxText: {
     fontFamily: 'Poppins-Medium',
     color: '#DC3545',
+  },
+  addToCartDisabled: {
+    opacity: 0.35,
   },
 });

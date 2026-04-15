@@ -71,7 +71,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
+    <View className="flex-1 bg-white">
       <ToastMessage
         visible={toast.visible}
         message={toast.message}
@@ -151,14 +151,16 @@ export default function HomeScreen() {
                 category={item?.category?.category_name || 'Uncategorized'}
                 price={formatProductPrice(item?.selling_price)}
                 isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
+                isAvailable={
+                  item?.is_available == null
+                    ? true
+                    : (typeof item?.is_available === 'boolean'
+                      ? item.is_available
+                      : Number(item.is_available) === 1)
+                }
                 onAddToCart={handleAddToCart}
                 style={{ width: 150, marginRight: 12 }}
               />
-              {addingProductId === item?.id && (
-                <Text className="mt-1 ml-2 text-[11px]" style={{ fontFamily: 'Poppins-Medium', color: '#48AAD9' }}>
-                  Adding...
-                </Text>
-              )}
             </View>
           ))}
         </ScrollView>
