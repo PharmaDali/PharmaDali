@@ -1,17 +1,86 @@
-import { Text, View, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native'
-import React, { useState } from 'react'
+import { ActivityIndicator, Text, View, ScrollView, TouchableOpacity, Image, StyleSheet } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { useLocalSearchParams } from 'expo-router'
 import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
 import RecitDummy from '@assets/images/recit_dummy.png'
-import { orderDetailsMap } from './orderMockData'
+import { fetchCustomerOrderDetails } from '@shared/services/orderService'
+import { mapApiOrderToViewModel } from './orderMappers'
 
 export default function ViewOrderDetailsScreen() {
-  const { orderNumber } = useLocalSearchParams()
+  const { orderId, orderNumber } = useLocalSearchParams()
+  const resolvedOrderId = Array.isArray(orderId) ? orderId[0] : orderId
+  const resolvedOrderNumber = Array.isArray(orderNumber) ? orderNumber[0] : orderNumber
   const [prescriptionConfirmed, setPrescriptionConfirmed] = useState(false)
+  const [order, setOrder] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [errorMessage, setErrorMessage] = useState('')
 
-  const order = orderDetailsMap[orderNumber] || orderDetailsMap['04']
-  const isRejected = order.status === 'Rejected'
+  useEffect(() => {
+    let mounted = true
+
+    const loadOrder = async () => {
+      setLoading(true)
+      setErrorMessage('')
+
+      try {
+        const payload = await fetchCustomerOrderDetails(resolvedOrderId)
+        if (mounted) {
+          setOrder(mapApiOrderToViewModel(payload))
+        }
+      } catch (error) {
+        if (mounted) {
+          setOrder(null)
+          setErrorMessage(error instanceof Error ? error.message : 'Unable to load order details.')
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    if (!resolvedOrderId) {
+      setLoading(false)
+      setErrorMessage('Invalid order reference.')
+      return () => {
+        mounted = false
+      }
+    }
+
+    loadOrder()
+
+    return () => {
+      mounted = false
+    }
+  }, [resolvedOrderId])
+
+  if (loading) {
+    return (
+      <View className="flex-1 bg-[#F1F4FF] items-center justify-center px-6">
+        <ActivityIndicator size="large" color={colors.buttonColor} />
+        <Text className="text-xs text-gray-500 mt-3" style={styles.fontMedium}>Loading order details...</Text>
+      </View>
+    )
+  }
+
+  if (errorMessage || !order) {
+    return (
+      <View className="flex-1 bg-[#F1F4FF] items-center justify-center px-6">
+        <View className="w-full bg-white border border-[#FFD7D7] rounded-2xl p-4">
+          <Text className="text-sm text-[#B42318]" style={styles.textBold}>Unable to load order</Text>
+          <Text className="text-xs text-[#B42318] mt-1" style={styles.fontMedium}>
+            {errorMessage || 'Order data is unavailable.'}
+          </Text>
+          {!!resolvedOrderNumber && (
+            <Text className="text-xs text-gray-500 mt-2" style={styles.fontMedium}>Reference: #{resolvedOrderNumber}</Text>
+          )}
+        </View>
+      </View>
+    )
+  }
+
+  const isRejected = ['Rejected', 'Cancelled'].includes(order.status)
   const hasPrescriptionProduct = order.products.some((p) => p.prescriptionRequired)
 
   return (

@@ -1,11 +1,19 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
+import { ActivityIndicator, StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { colors } from '@src/shared/theme/colorPalette'
 import ActiveOrdersScreen from './ActiveOrdersScreen'
 import CompletedOrdersScreen from './CompletedOrdersScreen'
+import { useCustomerOrders } from './useCustomerOrders'
 
 export default function OrdersScreen() {
   const [activeTab, setActiveTab] = useState('active')
+  const {
+    loading,
+    errorMessage,
+    activeOrders,
+    completedOrders,
+    reloadOrders,
+  } = useCustomerOrders()
 
   return (
     <ScrollView style={styles.container}>
@@ -26,7 +34,27 @@ export default function OrdersScreen() {
         </View>
       </View>
 
-      {activeTab === 'active' ? <ActiveOrdersScreen /> : <CompletedOrdersScreen />}
+      {loading && (
+        <View className="items-center py-10">
+          <ActivityIndicator size="large" color={colors.buttonColor} />
+          <Text className="mt-3 text-xs text-gray-500" style={styles.helperText}>Loading your orders...</Text>
+        </View>
+      )}
+
+      {!loading && !!errorMessage && (
+        <View className="mx-4 mt-4 bg-[#FFF1F1] border border-[#FFD7D7] rounded-xl p-3">
+          <Text className="text-xs text-[#B42318]" style={styles.helperText}>{errorMessage}</Text>
+          <TouchableOpacity onPress={reloadOrders} className="mt-2 self-start px-3 py-1.5 bg-[#48AAD9] rounded-lg">
+            <Text className="text-white text-xs" style={styles.tabLabel}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {!loading && !errorMessage && (
+        activeTab === 'active'
+          ? <ActiveOrdersScreen orders={activeOrders} />
+          : <CompletedOrdersScreen orders={completedOrders} />
+      )}
     </ScrollView>
   )
 }
@@ -40,8 +68,14 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-SemiBold',
     color: colors.buttonColor,
   },
+  tabLabel: {
+    fontFamily: 'Poppins-SemiBold',
+  },
   inactiveTabLabelBold: {
     fontFamily: 'Poppins-SemiBold',
     color: '#999',
+  },
+  helperText: {
+    fontFamily: 'Poppins-Medium',
   },
 })
