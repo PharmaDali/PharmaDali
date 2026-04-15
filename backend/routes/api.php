@@ -68,6 +68,8 @@ Route::middleware('auth:sanctum')->group(function () {
             response()->json(['message' => 'Branch Admin dashboard'])
         );
 
+        Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
+
         Route::post('products', [BranchProductController::class, 'store']);
         Route::put('products/{id}', [BranchProductController::class, 'update']);
         Route::delete('products/{id}', [BranchProductController::class, 'destroy']);
@@ -84,7 +86,6 @@ Route::middleware('auth:sanctum')->group(function () {
             response()->json(['message' => 'Super Admin dashboard'])
         );
 
-        Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
         Route::post('admin/register', [AuthController::class, 'adminRegister']);
 
         Route::apiResource('branches', BranchController::class)->except(['index', 'show']);
