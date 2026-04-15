@@ -1,17 +1,46 @@
+import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
 import theme from '@src/shared/theme/inputTheme';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
+import { loginPharmacist } from '@src/shared/services/authService';
+import { validatePharmacistLogin } from '@src/shared/validation/authValidation';
 
 const PharmacistLogin = () => {
 
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const passwordToggleIcon = useConfirmPasswordToggle();
+  const [employeeNumber, setEmployeeNumber] = React.useState('');
+  const [password, setPassword] = React.useState('');
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState('');
+
+  const handleLogin = async () => {
+    const validationMessage = validatePharmacistLogin({ employeeNumber, password });
+    if (validationMessage) {
+      setErrorMessage(validationMessage);
+      return;
+    }
+
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    try {
+      const token = await loginPharmacist({ employeeNumber, password });
+      await SecureStore.setItemAsync('token', JSON.stringify(token));
+      router.replace('/pharmacist/tabs/Home');
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <View className="flex-1 bg-white px-4" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
@@ -34,6 +63,8 @@ const PharmacistLogin = () => {
         mode="outlined"
         theme={theme}
         style={styles.input}
+        value={employeeNumber}
+        onChangeText={setEmployeeNumber}
       />
       <TextInput
         label="Password"
@@ -42,10 +73,13 @@ const PharmacistLogin = () => {
         theme={theme}
         style={styles.input}
         right={passwordToggleIcon.icon}
+        value={password}
+        onChangeText={setPassword}
       />  
+      {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
       <Link href="" style={styles.forgotPassword}>Forgot Password?</Link>
       <View style={{ alignItems: 'center' }}>
-        <Button mode="contained" style={styles.loginButton} onPress={() => router.replace('/pharmacist/tabs/Home')}>
+        <Button mode="contained" style={styles.loginButton} onPress={handleLogin} loading={isSubmitting} disabled={isSubmitting}>
           Mag-Login
         </Button>
         <Text style={styles.noAccountText}>Wala pang account?</Text>
