@@ -1,9 +1,10 @@
-import { ActivityIndicator, StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { colors } from '@src/shared/theme/colorPalette'
 import ActiveOrdersScreen from './ActiveOrdersScreen'
 import CompletedOrdersScreen from './CompletedOrdersScreen'
 import { useCustomerOrders } from './useCustomerOrders'
+import SkeletonOrders from '@shared/components/SkeletonOrders'
 
 export default function OrdersScreen() {
   const [activeTab, setActiveTab] = useState('active')
@@ -35,10 +36,7 @@ export default function OrdersScreen() {
       </View>
 
       {loading && (
-        <View className="items-center py-10">
-          <ActivityIndicator size="large" color={colors.buttonColor} />
-          <Text className="mt-3 text-xs text-gray-500" style={styles.helperText}>Loading your orders...</Text>
-        </View>
+        <SkeletonOrders />
       )}
 
       {!loading && !!errorMessage && (
