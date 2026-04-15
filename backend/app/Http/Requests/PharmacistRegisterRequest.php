@@ -2,13 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Pharmacist;
 use Illuminate\Foundation\Http\FormRequest;
 
 class PharmacistRegisterRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return (bool) $this->user()?->can('create', Pharmacist::class);
     }
 
     public function rules(): array
