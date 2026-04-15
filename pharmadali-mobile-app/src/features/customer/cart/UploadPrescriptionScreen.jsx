@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
@@ -8,6 +8,14 @@ import LogoHeader from '@src/shared/components/LogoHeader'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import BetadineImg from '@assets/images/betadine_img.png'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
+
+const MAX_PRESCRIPTION_SIZE_BYTES = 5 * 1024 * 1024
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
 
 function resolveItemImageSource(item) {
   const imageUri =
@@ -55,9 +63,46 @@ const UploadPrescriptionScreen = () => {
   const [imageAsset, setImageAsset] = useState(draft?.prescriptionImage || null)
   const [confirmed, setConfirmed] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadError, setUploadError] = useState('')
   const [uploadSuccess, setUploadSuccess] = useState(Boolean(draft?.prescriptionPrepared))
+  const uploadTimerRef = useRef(null)
   const canProceed = uploadSuccess
+
+  useEffect(() => {
+    return () => {
+      if (uploadTimerRef.current) {
+        clearInterval(uploadTimerRef.current)
+      }
+    }
+  }, [])
+
+  const startUploadProgress = () => {
+    if (uploadTimerRef.current) {
+      clearInterval(uploadTimerRef.current)
+    }
+
+    setUploadProgress(0)
+
+    uploadTimerRef.current = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 90) {
+          return prev
+        }
+
+        return Math.min(90, prev + 6)
+      })
+    }, 120)
+  }
+
+  const stopUploadProgress = (isSuccess) => {
+    if (uploadTimerRef.current) {
+      clearInterval(uploadTimerRef.current)
+      uploadTimerRef.current = null
+    }
+
+    setUploadProgress(isSuccess ? 100 : 0)
+  }
 
   const pickFromGallery = async () => {
     setUploadError('')
@@ -94,6 +139,7 @@ const UploadPrescriptionScreen = () => {
     setConfirmed(false)
     setUploadError('')
     setUploadSuccess(false)
+    setUploadProgress(0)
 
     const currentDraft = getCheckoutDraft()
     setCheckoutDraft({
@@ -114,6 +160,11 @@ const UploadPrescriptionScreen = () => {
       return
     }
 
+    if (Number(imageAsset?.fileSize || 0) > MAX_PRESCRIPTION_SIZE_BYTES) {
+      setUploadError('Image is too large. Maximum allowed size is 5 MB.')
+      return
+    }
+
     if (prescriptionItems.length === 0) {
       setUploadError('No prescription-required items found.')
       return
@@ -121,8 +172,12 @@ const UploadPrescriptionScreen = () => {
 
     setUploading(true)
     setUploadError('')
+    setUploadSuccess(false)
+    startUploadProgress()
 
     try {
+      await sleep(800)
+
       const currentDraft = getCheckoutDraft()
 
       setCheckoutDraft({
@@ -135,10 +190,14 @@ const UploadPrescriptionScreen = () => {
         prescriptionPrepared: true,
       })
 
+      stopUploadProgress(true)
+      await sleep(250)
+
       setUploadSuccess(true)
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : 'Failed to prepare prescription image.')
       setUploadSuccess(false)
+      stopUploadProgress(false)
     } finally {
       setUploading(false)
     }
@@ -177,6 +236,12 @@ const UploadPrescriptionScreen = () => {
             </TouchableOpacity>
           </View>
 
+          <View className="mt-2 rounded-lg bg-[#FFF9E8] border border-[#F6E1A6] px-3 py-2">
+            <Text className="text-[11px] text-[#8A6A00]" style={styles.fontMedium}>
+              Notice: Maximum prescription image size is 5 MB.
+            </Text>
+          </View>
+
           {imageUri && (
             <View className="bg-white rounded-2xl border border-gray-200 mt-4 p-4">
               <View className="items-center">
@@ -198,6 +263,20 @@ const UploadPrescriptionScreen = () => {
                     {uploading ? 'Uploading...' : 'Upload'}
                   </Text>
                 </TouchableOpacity>
+
+                {uploading && (
+                  <View className="w-full mt-3">
+                    <View className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
+                      <View
+                        className="h-full bg-[#48AAD9]"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </View>
+                    <Text className="text-[11px] text-gray-500 mt-1 text-right" style={styles.fontMedium}>
+                      {Math.round(uploadProgress)}%
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <TouchableOpacity
