@@ -169,12 +169,14 @@ function AIForecasting() {
 
     return (
         <section className="dashboard-page aif-page">
-            <h4 className="fw-bold mb-1 aif-title">Forecasting</h4>
+            <h4 className="fw-bold mb-1" style={{ color: "rgb(42, 171, 226)" }}>
+                Forecasting
+            </h4>
             <p className="text-muted mb-3 aif-subtitle">AI-driven predictive analytics related to the pharmacy.</p>
 
-            <div className="row g-3 mb-3">
+            <div className="row g-4 mb-4">
                 <div className="col-12 col-md-7 col-lg-7">
-                    <article className="card border-0 shadow-sm rounded-3 p-3 h-100 dashboard-panel aif-card">
+                    <article className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel aif-card">
                         <div className="aif-chart-head">
                             <h6 className="fw-bold mb-0 aif-chart-title">Demand Forecast Chart</h6>
                             <div className="position-relative aif-filter-wrap">
@@ -204,14 +206,14 @@ function AIForecasting() {
                             </div>
                         </div>
 
-                        <div className="aif-chart-wrap">
+                        <div className="dashboard-chart-wrap">
                             <Line data={chartData} options={chartOptions} />
                         </div>
                     </article>
                 </div>
 
                 <div className="col-12 col-md-5 col-lg-5">
-                    <article className="card border-0 shadow-sm rounded-3 p-3 h-100 dashboard-panel aif-card">
+                    <article className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel aif-card">
                         <h6 className="aif-panel-title">
                             <span className="aif-panel-title-text">Stockout Risk &amp; Reorder Suggestions</span>
                             <span className="aif-ai-badge">AI</span>
@@ -240,9 +242,9 @@ function AIForecasting() {
                 </div>
             </div>
 
-            <div className="row g-3">
+            <div className="row g-4">
                 <div className="col-12 col-md-6">
-                    <article className="card border-0 shadow-sm rounded-3 p-3 h-100 dashboard-panel aif-card">
+                    <article className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel aif-card">
                         <h6 className="aif-panel-title">
                             <span className="aif-panel-title-text">Predicted High-Demand Medicines</span>
                             <span className="aif-ai-badge">AI</span>
@@ -280,7 +282,7 @@ function AIForecasting() {
                 </div>
 
                 <div className="col-12 col-md-6">
-                    <article className="card border-0 shadow-sm rounded-3 p-3 h-100 dashboard-panel aif-card">
+                    <article className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel aif-card">
                         <h6 className="aif-panel-title">
                             <span className="aif-panel-title-text">Inventory Health</span>
                             <span className="aif-ai-badge">AI</span>
