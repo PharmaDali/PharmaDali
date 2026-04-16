@@ -54,7 +54,9 @@ const STOCKOUT_RISKS = [
 function SalesReports() {
   return (
     <div>
-      <h1 className="fw-bold m-0 page-title">Sales &amp; Report</h1>
+      <h4 className="fw-bold m-1" style={{ color: "rgb(42, 171, 226)" }}>
+        Sales &amp; Report
+      </h4>
       <p className="m-0 page-subtitle">
         Sales and reports related to the pharmacy.
       </p>
