@@ -53,6 +53,7 @@ const SAMPLE_ORDERS = [
 function PickUp() {
   const [orders, setOrders] = useState(SAMPLE_ORDERS);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
   const [activeOrder, setActiveOrder] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -61,11 +62,16 @@ function PickUp() {
   const [gcashReference, setGcashReference] = useState("");
   const [paymentResult, setPaymentResult] = useState("success");
 
-  const filtered = orders.filter(
-    (o) =>
-      o.id.toLowerCase().includes(search.toLowerCase()) ||
-      o.customer.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = orders.filter((order) => {
+    const matchesSearch =
+      order.id.toLowerCase().includes(search.toLowerCase()) ||
+      order.customer.toLowerCase().includes(search.toLowerCase());
+    const matchesStatus =
+      statusFilter === "All" ||
+      order.status.toLowerCase() === statusFilter.toLowerCase();
+
+    return matchesSearch && matchesStatus;
+  });
 
   const getStatusClassName = (status) => {
     if (status.toLowerCase() === "completed") return "pickup-status-completed";
@@ -127,15 +133,30 @@ function PickUp() {
         <div className="pickup-outer-card">
           <div className="d-flex align-items-center justify-content-between gap-3 mb-3 flex-wrap">
             <h1 className="fw-bold m-0 pickup-title">Pickup Orders</h1>
-            <div className="position-relative pickup-search-wrap">
-              <i className="fa-solid fa-magnifying-glass pickup-search-icon" />
-              <input
-                type="text"
-                className="pickup-search-input"
-                placeholder="Search an order by order ID or Customer Name"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+            <div className="pickup-toolbar-actions">
+              <div className="position-relative pickup-search-wrap">
+                <i className="fa-solid fa-magnifying-glass pickup-search-icon" />
+                <input
+                  type="text"
+                  className="pickup-search-input"
+                  placeholder="Search an order by order ID or Customer Name"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <div className="pickup-filter-wrap">
+                <select
+                  className="pickup-filter-select"
+                  value={statusFilter}
+                  onChange={(event) => setStatusFilter(event.target.value)}
+                  aria-label="Filter pickup orders by status"
+                >
+                  <option value="All">All</option>
+                  <option value="Ready">Ready</option>
+                  <option value="Completed">Completed</option>
+                </select>
+                <i className="fa-solid fa-chevron-down pickup-filter-chevron" aria-hidden="true" />
+              </div>
             </div>
           </div>
 

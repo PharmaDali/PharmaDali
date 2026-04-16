@@ -19,13 +19,13 @@ const SAMPLE_PRODUCTS = [
   { id: 13,genericName: "Paracetamol", brandName: "Biogesic", strength: "500 mg Tablet",            price: 1.50,  stocks: 600 },
 ];
 
-function EmptyState() {
+function EmptyState({ minHeight = 260, iconWidth = 150, className = "" }) {
   return (
     <div
-      className="d-flex flex-column align-items-center justify-content-center h-100"
-      style={{ minHeight: 260 }}
+      className={`d-flex flex-column align-items-center justify-content-center h-100 ${className}`.trim()}
+      style={{ minHeight }}
     >
-      <img src={adminMedsIcon} alt="No items" width={150} className="mb-2" />
+      <img src={adminMedsIcon} alt="No items" width={iconWidth} className="mb-2" />
       <p className="mb-0" style={{ fontSize: 13, color: "#b5bec8" }}>
         Search for items
       </p>
@@ -95,12 +95,13 @@ function CurrentOrder({
 }) {
   const totalQty = items.reduce((s, i) => s + i.qty, 0);
   const orderTotal = items.reduce((s, i) => s + i.qty * i.product.price, 0);
+  const isOrderEmpty = items.length === 0;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
       <div
-        className="card border-1 shadow-sm"
-        style={{ flex: 1, minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}
+        className="card border-1 shadow-sm pos-order-items-card"
+        style={{ flex: "0 0 auto", minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}
       >
         <table className="table mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
           <colgroup>
@@ -116,10 +117,14 @@ function CurrentOrder({
             </tr>
           </thead>
         </table>
-        {items.length === 0 ? (
-          <EmptyState />
+        {isOrderEmpty ? (
+          <EmptyState
+            minHeight="var(--pos-order-items-viewport)"
+            iconWidth={92}
+            className="pos-order-empty-state"
+          />
         ) : (
-          <div className="pos-scroll" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+          <div className="pos-scroll pos-order-items-scroll" style={{ minHeight: 0, overflowY: "auto" }}>
             <table className="table mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
               <colgroup>
                 {ORDER_COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
@@ -158,8 +163,8 @@ function CurrentOrder({
         </div>
       </div>
 
-      <div className="pb-2">
-        <div style={{ fontSize: 13, fontWeight: 600, color: "#444", marginBottom: 6 }}>Payment Method</div>
+      <div className="pb-2 pos-order-payment-wrap">
+        <div className="pos-order-payment-title">Payment Method</div>
         <div className="d-flex gap-2 pos-payment-actions">
           <button
             className="btn flex-grow-1 py-2"
@@ -187,9 +192,9 @@ function CurrentOrder({
       </div>
 
       <button
-        className="btn w-100 py-2"
-        style={{ background: "#2aabe2", color: "white", fontSize: 14, fontWeight: 600, borderRadius: 8 }}
+        className="btn w-100 py-2 mt-auto pos-order-complete-btn"
         onClick={onCompleteSale}
+        disabled={isOrderEmpty}
       >
         Complete Sale
       </button>
@@ -233,7 +238,6 @@ function PosPage() {
       )
     : [];
 
-  const totalQty = orderItems.reduce((sum, item) => sum + item.qty, 0);
   const orderTotal = orderItems.reduce(
     (sum, item) => sum + item.qty * item.product.price,
     0
@@ -270,10 +274,7 @@ function PosPage() {
   };
 
   return (
-    <div
-      className="d-flex flex-column flex-md-row gap-4 pos-page"
-      style={{ minHeight: 400 }}
-    >
+    <div className="d-flex flex-column flex-md-row gap-4 pos-page">
       <div className="d-flex flex-column flex-grow-1 pos-pane" style={{ minWidth: 0 }}>
         <div className="card border-0 shadow-md pos-card pos-product-card">
           <div className="card-header bg-white border-0 d-flex align-items-center gap-3 flex-wrap pt-3 pb-2 px-3">
@@ -335,7 +336,7 @@ function PosPage() {
         <div className="card border-0 shadow-sm pos-card pos-order-card">
           <div className="card-header bg-white border-0 d-flex align-items-center gap-3 flex-wrap pt-4 pb-2 px-3">
             <h6
-              className="fw-semibold mb-3 flex-shrink-0 pos-title"
+              className="fw-semibold mb-0 flex-shrink-0 pos-title"
               style={{ color: "#222", fontSize: 20 }}
             >
               Current Order

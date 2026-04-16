@@ -2,6 +2,22 @@ import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../services/loginService";
 
+const VISUAL_UNREAD_BADGE = 1;
+
+const formatUnreadBadge = (count) => {
+  const numericCount = Number(count);
+
+  if (!Number.isFinite(numericCount) || numericCount <= 0) {
+    return null;
+  }
+
+  if (numericCount > 99) {
+    return "99+";
+  }
+
+  return String(Math.trunc(numericCount)).padStart(2, "0");
+};
+
 const MENU_SECTIONS = [
   {
     items: [
@@ -28,7 +44,7 @@ const MENU_SECTIONS = [
         to: "/notifications",
         icon: "fa-bell",
         label: "Notifications",
-        badge: "01",
+        badgeKey: "notifications",
       },
       { to: "/settings", icon: "fa-cog", label: "Settings" },
       {
@@ -40,9 +56,12 @@ const MENU_SECTIONS = [
   },
 ];
 
-function SideBar({ isOpen, onToggle }) {
+function SideBar({ isOpen, onToggle, unreadNotificationsCount = null }) {
 
   const navigate = useNavigate();
+  const notificationsBadge = formatUnreadBadge(
+    unreadNotificationsCount ?? VISUAL_UNREAD_BADGE
+  );
   
   const handleLogout = async (event) => {
     event.preventDefault();
@@ -115,7 +134,13 @@ function SideBar({ isOpen, onToggle }) {
           {MENU_SECTIONS.map((section, sIdx) => (
             <div key={sIdx}>
               {sIdx > 0 && <div className="sidebar-divider" />}
-              {section.items.map((item) => (
+              {section.items.map((item) => {
+                const badgeValue =
+                  item.badgeKey === "notifications"
+                    ? notificationsBadge
+                    : null;
+
+                return (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -133,13 +158,14 @@ function SideBar({ isOpen, onToggle }) {
                     }}
                   />
                   <span>{item.label}</span>
-                  {item.badge && (
+                  {badgeValue && (
                     <span className="menu-badge position-absolute rounded-pill fw-semibold">
-                      {item.badge}
+                      {badgeValue}
                     </span>
                   )}
                 </NavLink>
-              ))}
+                );
+              })}
             </div>
           ))}
         </nav>
