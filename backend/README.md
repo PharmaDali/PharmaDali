@@ -95,17 +95,3 @@ serve-lan.bat
 ```
 
 LAN mode runs on `http://<your-local-ip>:3000`
-
-## 7) Optional frontend assets (if needed)
-
-```bash
-npm run dev
-```
-
-## Useful commands
-
-```bash
-php artisan test
-php artisan config:clear
-php artisan optimize:clear
-```
