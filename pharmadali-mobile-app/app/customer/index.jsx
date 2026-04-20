@@ -62,6 +62,7 @@ export default function LoginScreen() {
         right={passwordToggleIcon.icon}
         value={password}
         onChangeText={setPassword}
+        autoCapitalize='none'
       />
       {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
       <Link href="/customer/auth/EnterMobileNumberFPW" style={styles.forgotPassword}>Forgot Password?</Link>
