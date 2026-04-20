@@ -74,7 +74,7 @@ const Register = () => {
 
       setTimeout(() => {
         router.replace('/customer');
-      }, 5000);
+      }, 3000);
 
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
