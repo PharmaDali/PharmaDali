@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -14,21 +13,20 @@ class SuperAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        if (User::where('role', 'super_admin')->exists()) {
-            $this->command->info('Super admin already exists. Skipping seeding.');
-            return;
-        }
+        $superAdminEmail = env('SUPER_ADMIN_EMAIL', 'superadmin@pharmadali.com');
 
-        User::create([
-            'first_name'    => env('SUPER_ADMIN_FIRST_NAME', 'Super'),
-            'last_name'     => env('SUPER_ADMIN_LAST_NAME', 'Admin'),
-            'email'         => env('SUPER_ADMIN_EMAIL'),
-            'password'      => Hash::make(env('SUPER_ADMIN_PASSWORD')),
-            'role'          => 'super_admin',
-            'mobile_number' => env('SUPER_ADMIN_MOBILE', '00000000000'),
-            'is_active'     => true,
-        ]);
+        User::updateOrCreate(
+            ['email' => $superAdminEmail],
+            [
+                'first_name'    => env('SUPER_ADMIN_FIRST_NAME', 'Super'),
+                'last_name'     => env('SUPER_ADMIN_LAST_NAME', 'Admin'),
+                'password'      => Hash::make(env('SUPER_ADMIN_PASSWORD', 'admin1234')),
+                'role'          => 'super_admin',
+                'mobile_number' => env('SUPER_ADMIN_MOBILE', '00000000000'),
+                'is_active'     => true,
+            ]
+        );
 
-        $this->command->info('Super admin created successfully.');
+        $this->command->info('Super admin ensured successfully.');
     }
 }
