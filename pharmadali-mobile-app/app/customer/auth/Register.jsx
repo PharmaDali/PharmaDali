@@ -93,6 +93,7 @@ const Register = () => {
         message={toast.message}
         type={toast.type}
         topOffset={Platform.OS === 'ios' ? 12 : 16}
+        useSafeAreaTop={true}
       />
 
       <KeyboardAvoidingView

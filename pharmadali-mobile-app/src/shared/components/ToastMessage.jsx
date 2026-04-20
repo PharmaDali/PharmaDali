@@ -27,6 +27,7 @@ export default function ToastMessage({
   message,
   type = 'info',
   topOffset = 12,
+  useSafeAreaTop = false,
 }) {
   const insets = useSafeAreaInsets();
 
@@ -35,12 +36,13 @@ export default function ToastMessage({
   }
 
   const theme = toastTheme[type] || toastTheme.info;
+  const computedTopOffset = topOffset + (useSafeAreaTop ? insets.top : 0);
 
   return (
     <View
       pointerEvents="none"
       className="absolute inset-x-0 z-50 items-center px-4"
-      style={{ top: insets.top + topOffset }}
+      style={{ top: computedTopOffset }}
     >
       <Animated.View
         entering={FadeInDown.duration(220)}
