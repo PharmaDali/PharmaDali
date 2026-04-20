@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Branch;
 
@@ -13,11 +12,15 @@ class BranchSeeder extends Seeder
      */
     public function run(): void
     {
-        Branch::create([
-            'branch_name' => 'Main Branch',
-            'location' => '123 Tinurik, Tanauan City, Batangas',
-            'contact_number' => '09987654321',
-            'is_active' => true
-        ]);
+        Branch::updateOrCreate(
+            ['branch_name' => 'Main Branch'],
+            [
+                'location' => '123 Tinurik, Tanauan City, Batangas',
+                'contact_number' => '09987654321',
+                'opening_hour' => '09:00:00',
+                'closing_hour' => '21:00:00',
+                'is_active' => true,
+            ]
+        );
     }
 }
