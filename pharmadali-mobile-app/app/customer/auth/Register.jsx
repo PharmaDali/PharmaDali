@@ -9,6 +9,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
 import { registerCustomer } from '@src/shared/services/authService';
 import { validateCustomerRegistration } from '@src/shared/validation/authValidation';
+import ToastMessage from '@src/shared/components/ToastMessage';
+import { useToast } from '@src/shared/hooks/useToast';
 
 const Register = () => {
   const router = useRouter();
@@ -25,6 +27,7 @@ const Register = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const passwordToggleIcon = useConfirmPasswordToggle();
   const confirmPasswordToggleIcon = useConfirmPasswordToggle();
+  const { toast, showSuccess } = useToast();
 
   const formatDate = (date) => {
     return date.toLocaleDateString();
@@ -67,7 +70,12 @@ const Register = () => {
         },
       });
 
-      router.replace('/customer');
+      showSuccess('Registration successful! Please log in.');
+
+      setTimeout(() => {
+        router.replace('/customer');
+      }, 5000);
+
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
     } finally {
@@ -80,6 +88,13 @@ const Register = () => {
       style={styles.safeArea}
       edges={['top', 'bottom']}
     >
+      <ToastMessage
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        topOffset={Platform.OS === 'ios' ? 12 : 16}
+      />
+
       <KeyboardAvoidingView
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -96,109 +111,110 @@ const Register = () => {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
-        <DescriptiveLogo />
-        <View className="flex-1 border border-gray-300 p-3 rounded-lg">
-          <View style={styles.registerLabel}>
-            <Text variant="headlineSmall">Register</Text>
-          </View>
-          <View style={styles.nameContainer}>
-            <TextInput
-              label="Last Name"
-              mode="outlined"
-              theme={theme}
-              value={lastName}
-              onChangeText={setLastName}
-              style={styles.input}
-            />
-            <TextInput
-              label="First Name"
-              mode="outlined"
-              theme={theme}
-              value={firstName}
-              onChangeText={setFirstName}
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.primaryInfoContainer}>
-            <TextInput
-              label="Email"
-              mode="outlined"
-              keyboardType='email-address'
-              theme={theme}
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize='none'
-              style={{ marginBottom: 16 }}
-            />
-            <Pressable onPress={() => setShowDatePicker(true)}>
+          <DescriptiveLogo />
+          
+          <View className="flex-1 border border-gray-300 p-3 rounded-lg">
+            <View style={styles.registerLabel}>
+              <Text variant="headlineSmall">Register</Text>
+            </View>
+            <View style={styles.nameContainer}>
               <TextInput
-                label="Date of Birth"
+                label="Last Name"
                 mode="outlined"
                 theme={theme}
-                value={formatDate(dateOfBirth)}
-                editable={false}
-                right={<TextInput.Icon icon="calendar" />}
+                value={lastName}
+                onChangeText={setLastName}
+                style={styles.input}
               />
-            </Pressable>
-            {showDatePicker && (
-              <DateTimePicker
-                value={dateOfBirth}
-                mode="date"
-                display="default"
-                maximumDate={new Date()}
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(false);
-                  if (selectedDate) {
-                    setDateOfBirth(selectedDate);
-                  }
-                }}
+              <TextInput
+                label="First Name"
+                mode="outlined"
+                theme={theme}
+                value={firstName}
+                onChangeText={setFirstName}
+                style={styles.input}
               />
-            )}
-            <TextInput
-              label="Mobile Number"
-              mode="outlined"
-              keyboardType='phone-pad'
-              theme={theme}
-              style={{ marginTop: 16 }}
-              value={mobileNumber}
-              onChangeText={setMobileNumber}
-            />
-            <TextInput
-              label="Address"
-              mode="outlined"
-              theme={theme}
-              style={{ marginTop: 16 }}
-              value={address}
-              onChangeText={setAddress}
-            />
-            <TextInput
-              label="Password"
-              mode="outlined"
-              secureTextEntry={!passwordToggleIcon.showPassword}
-              theme={theme}
-              value={password}
-              onChangeText={setPassword}
-              style={{ marginTop: 16 }}
-              right={passwordToggleIcon.icon}
-              autoCapitalize='none'
-            />
-            <TextInput
-              label="Confirm Password"
-              mode="outlined"
-              secureTextEntry={!confirmPasswordToggleIcon.showPassword}
-              theme={theme}
-              style={{ marginTop: 16 }}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              right={confirmPasswordToggleIcon.icon}
-              autoCapitalize='none'
-            />
-            {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+            </View>
+            <View style={styles.primaryInfoContainer}>
+              <TextInput
+                label="Email"
+                mode="outlined"
+                keyboardType='email-address'
+                theme={theme}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize='none'
+                style={{ marginBottom: 16 }}
+              />
+              <Pressable onPress={() => setShowDatePicker(true)}>
+                <TextInput
+                  label="Date of Birth"
+                  mode="outlined"
+                  theme={theme}
+                  value={formatDate(dateOfBirth)}
+                  editable={false}
+                  right={<TextInput.Icon icon="calendar" />}
+                />
+              </Pressable>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={dateOfBirth}
+                  mode="date"
+                  display="default"
+                  maximumDate={new Date()}
+                  onChange={(event, selectedDate) => {
+                    setShowDatePicker(false);
+                    if (selectedDate) {
+                      setDateOfBirth(selectedDate);
+                    }
+                  }}
+                />
+              )}
+              <TextInput
+                label="Mobile Number"
+                mode="outlined"
+                keyboardType='phone-pad'
+                theme={theme}
+                style={{ marginTop: 16 }}
+                value={mobileNumber}
+                onChangeText={setMobileNumber}
+              />
+              <TextInput
+                label="Address"
+                mode="outlined"
+                theme={theme}
+                style={{ marginTop: 16 }}
+                value={address}
+                onChangeText={setAddress}
+              />
+              <TextInput
+                label="Password"
+                mode="outlined"
+                secureTextEntry={!passwordToggleIcon.showPassword}
+                theme={theme}
+                value={password}
+                onChangeText={setPassword}
+                style={{ marginTop: 16 }}
+                right={passwordToggleIcon.icon}
+                autoCapitalize='none'
+              />
+              <TextInput
+                label="Confirm Password"
+                mode="outlined"
+                secureTextEntry={!confirmPasswordToggleIcon.showPassword}
+                theme={theme}
+                style={{ marginTop: 16 }}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                right={confirmPasswordToggleIcon.icon}
+                autoCapitalize='none'
+              />
+              {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+            </View>
           </View>
-        </View>
-        <Button mode="contained" style={{ marginTop: 16, borderRadius: 10 }} buttonColor="#48AAD9" textColor="#FFFFFF" onPress={handleRegister} loading={isSubmitting} disabled={isSubmitting}>
-          Mag-Register
-        </Button>
+          <Button mode="contained" style={{ marginTop: 16, borderRadius: 10 }} buttonColor="#48AAD9" textColor="#FFFFFF" onPress={handleRegister} loading={isSubmitting} disabled={isSubmitting}>
+            Mag-Register
+          </Button>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

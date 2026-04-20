@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const toastTheme = {
   success: {
@@ -27,6 +28,8 @@ export default function ToastMessage({
   type = 'info',
   topOffset = 12,
 }) {
+  const insets = useSafeAreaInsets();
+
   if (!visible || !message) {
     return null;
   }
@@ -37,7 +40,7 @@ export default function ToastMessage({
     <View
       pointerEvents="none"
       className="absolute inset-x-0 z-50 items-center px-4"
-      style={{ top: topOffset }}
+      style={{ top: insets.top + topOffset }}
     >
       <Animated.View
         entering={FadeInDown.duration(220)}
