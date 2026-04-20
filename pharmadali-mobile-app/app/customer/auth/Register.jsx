@@ -74,7 +74,7 @@ const Register = () => {
 
       setTimeout(() => {
         router.replace('/customer');
-      }, 5000);
+      }, 3000);
 
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
@@ -93,6 +93,7 @@ const Register = () => {
         message={toast.message}
         type={toast.type}
         topOffset={Platform.OS === 'ios' ? 12 : 16}
+        useSafeAreaTop={true}
       />
 
       <KeyboardAvoidingView
