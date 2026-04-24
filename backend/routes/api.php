@@ -58,8 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('pharmacist/orders', [OrderController::class, 'index']);
         Route::get('pharmacist/orders/{order}', [OrderController::class, 'show']);
-        Route::patch('pharmacist/orders/{order}/reject', [OrderController::class, 'reject']);
-        Route::patch('pharmacist/orders/{order}/cancel', [OrderController::class, 'cancelByPharmacist']);
+        Route::patch('pharmacist/orders/{order}/status', [OrderController::class, 'updateStatusByPharmacist']);
     });
 
     Route::middleware(['ability:branch_admin'])->group(function () {

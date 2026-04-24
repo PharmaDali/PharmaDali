@@ -15,8 +15,7 @@ class OrderService
         private readonly ReviewOrderService $reviewOrderService,
         private readonly UpdateCustomerOrderService $updateCustomerOrderService,
         private readonly CancelCustomerOrderService $cancelCustomerOrderService,
-        private readonly RejectPharmacistOrderService $rejectPharmacistOrderService,
-        private readonly CancelPharmacistOrderService $cancelPharmacistOrderService,
+        private readonly UpdateOrderStatusByPharmacistService $updateOrderStatusByPharmacistService,
     ) {}
 
     public function index(?User $user): JsonResponse
@@ -49,14 +48,14 @@ class OrderService
         return $this->cancelCustomerOrderService->handle($user, $order, $reason);
     }
 
-    public function rejectByPharmacist(?User $user, Order $order, string $reason): JsonResponse
+    public function updateStatusByPharmacist(?User $user, Order $order, string $action, ?string $reason = null): JsonResponse
     {
-        return $this->rejectPharmacistOrderService->handle($user, $order, $reason);
-    }
-
-    public function cancelByPharmacist(?User $user, Order $order, string $reason): JsonResponse
-    {
-        return $this->cancelPharmacistOrderService->handle($user, $order, $reason);
+        return $this->updateOrderStatusByPharmacistService->handle(
+            $user,
+            $order,
+            $action,
+            $reason,
+        );
     }
 
     public function countTotalOrders(): int
