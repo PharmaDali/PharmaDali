@@ -1,13 +1,54 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router';
 import { colors } from '@src/shared/theme/colorPalette'
 import AccountIcon from '@assets/icons/account_icon.svg'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import EditIcon from '@assets/icons/edit_icon.svg'
+import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
 
 const Account = () => {
   const router = useRouter();
+
+  const [profile, setProfile] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProfile = async () => {
+      try {
+        setErrorMessage('');
+        const response = await getPharmacistProfile();
+
+        if (isMounted) {
+          setProfile(response?.data ?? null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setProfile(null);
+          setErrorMessage(error?.message || 'Failed to load profile.');
+        }
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const firstName = profile?.user?.first_name ?? '';
+  const lastName = profile?.user?.last_name ?? '';
+  const fullName = useMemo(() => {
+    const value = `${firstName} ${lastName}`.trim();
+    return value || 'Pharmacist';
+  }, [firstName, lastName]);
+
+  const contactNumber = profile?.user?.mobile_number || 'No contact number';
+  const initial = (firstName || fullName || 'P').charAt(0).toUpperCase();
+
   return (
     <View style={styles.container}>
       <View style={styles.card} className="m-4 p-6 my-10 rounded-xl border border-gray-200 items-center">
@@ -17,7 +58,7 @@ const Account = () => {
           <View className="w-20 h-20 rounded-full items-center justify-center overflow-hidden"
             style={styles.defaultPicture}>
             <Text style={styles.textBold} className="text-3xl">
-              D
+              {initial}
             </Text>
           </View>
           <TouchableOpacity className="w-6 h-6 rounded-full items-center justify-center -mt-3 ml-10">
@@ -25,8 +66,11 @@ const Account = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.textSemiBoldDark} className="text-lg mt-2">Denver Redondo</Text>
-        <Text style={styles.textLight} className="text-sm">09123456789</Text>
+        <Text style={styles.textSemiBoldDark} className="text-lg mt-2">{fullName}</Text>
+        <Text style={styles.textLight} className="text-sm">{contactNumber}</Text>
+        {!!errorMessage && (
+          <Text style={styles.errorText} className="text-xs mt-2 text-center">{errorMessage}</Text>
+        )}
       </View>
 
       <TouchableOpacity
@@ -68,6 +112,10 @@ const styles = StyleSheet.create({
   textLight: {
     fontFamily: 'Poppins-Medium',
     color: '#999',
+  },
+  errorText: {
+    fontFamily: 'Poppins-Medium',
+    color: '#CC3A3A',
   },
   card: {
     backgroundColor: '#fff',

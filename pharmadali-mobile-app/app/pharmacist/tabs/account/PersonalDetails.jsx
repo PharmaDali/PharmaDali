@@ -1,8 +1,45 @@
 import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { colors } from '@src/shared/theme/colorPalette'
+import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
 
 const PersonalDetails = () => {
+  const [profile, setProfile] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProfile = async () => {
+      try {
+        setErrorMessage('');
+        const response = await getPharmacistProfile();
+
+        if (isMounted) {
+          setProfile(response?.data ?? null);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setProfile(null);
+          setErrorMessage(error?.message || 'Failed to load personal details.');
+        }
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const birthday = useMemo(() => {
+    const value = profile?.user?.date_of_birth;
+    return value || 'Not set';
+  }, [profile?.user?.date_of_birth]);
+
+  const contactNumber = profile?.user?.mobile_number || 'Not set';
+
   return (
     <View style={styles.container}>
       <View className="items-center justify-center mt-10 bg-white border border-gray-300 rounded-xl px-4 py-6 mx-4">
@@ -15,12 +52,16 @@ const PersonalDetails = () => {
             <Text style={styles.labelText}>Contact Number: </Text>
           </View>
           <View>
-            <Text style={styles.text}>Denver</Text>
-            <Text style={styles.text}>Redondo</Text>
-            <Text style={styles.text}>08/12/2004</Text>
-            <Text style={styles.text}>09123456789</Text>
+            <Text style={styles.text}>{profile?.user?.first_name || '-'}</Text>
+            <Text style={styles.text}>{profile?.user?.last_name || '-'}</Text>
+            <Text style={styles.text}>{birthday}</Text>
+            <Text style={styles.text}>{contactNumber}</Text>
           </View>
         </View>
+
+        {!!errorMessage && (
+          <Text style={styles.errorText} className="mt-4 text-xs text-center">{errorMessage}</Text>
+        )}
       </View>
     </View>
   )
@@ -44,5 +85,9 @@ const styles = StyleSheet.create({
   labelText: {
     fontFamily: 'Poppins-Medium',
     color: '#888888',
+  },
+  errorText: {
+    fontFamily: 'Poppins-Medium',
+    color: '#CC3A3A',
   },
 })
