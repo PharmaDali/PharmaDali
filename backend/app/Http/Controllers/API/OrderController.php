@@ -4,8 +4,8 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CancelOrderRequest;
-use App\Http\Requests\RejectOrderRequest;
 use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\UpdatePharmacistOrderStatusRequest;
 use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Order;
 use App\Services\Order\OrderService;
@@ -58,21 +58,15 @@ class OrderController extends Controller
         );
     }
 
-    public function reject(RejectOrderRequest $request, Order $order): JsonResponse
+    public function updateStatusByPharmacist(UpdatePharmacistOrderStatusRequest $request, Order $order): JsonResponse
     {
-        return $this->orderService->rejectByPharmacist(
-            $request->user(),
-            $order,
-            $request->validated()['reason'],
-        );
-    }
+        $payload = $request->validated();
 
-    public function cancelByPharmacist(CancelOrderRequest $request, Order $order): JsonResponse
-    {
-        return $this->orderService->cancelByPharmacist(
+        return $this->orderService->updateStatusByPharmacist(
             $request->user(),
             $order,
-            $request->validated()['reason'],
+            $payload['action'],
+            $payload['reason'] ?? null,
         );
     }
 
