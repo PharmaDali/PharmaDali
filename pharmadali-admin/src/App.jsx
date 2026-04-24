@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AIForecasting from "./pages/AIForecasting";
 import Inventory from "./pages/Inventory";
+import Pharmacists from "./pages/Pharmacists";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
           <Route path="notifications" element={<Notifications />} />
           <Route path="ai-forecasting" element={<AIForecasting />} />
           <Route path="inventory" element={<Inventory />} />
+          <Route path="pharmacists" element={<Pharmacists />} />
         </Route>
       </Routes>
     </BrowserRouter>

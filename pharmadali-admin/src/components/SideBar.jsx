@@ -39,7 +39,7 @@ const MENU_SECTIONS = [
   },
   {
     items: [
-      { to: "/users", icon: "fa-users", label: "Users" },
+      { to: "/pharmacists", icon: "fa-user-nurse", label: "Pharmacists" },
       {
         to: "/notifications",
         icon: "fa-bell",
