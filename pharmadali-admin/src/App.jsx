@@ -9,6 +9,7 @@ import Notifications from "./pages/Notifications";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AIForecasting from "./pages/AIForecasting";
+import Inventory from "./pages/Inventory";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="pick-up" element={<PickUp />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="ai-forecasting" element={<AIForecasting />} />
+          <Route path="inventory" element={<Inventory />} />
         </Route>
       </Routes>
     </BrowserRouter>
