@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class OrderItem extends Model
 {
@@ -31,5 +32,10 @@ class OrderItem extends Model
     public function branchProduct()
     {
         return $this->belongsTo(BranchProduct::class);
+    }
+
+    public function orderItemPrescription(): HasOne
+    {
+        return $this->hasOne(OrderItemPrescription::class);
     }
 }

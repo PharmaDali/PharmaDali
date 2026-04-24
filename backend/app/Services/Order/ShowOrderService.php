@@ -44,9 +44,12 @@ class ShowOrderService
                 'customer:id,user_id',
                 'customer.user:id,first_name,last_name,email',
                 'branch:id,branch_name,location',
+                'verifier:id,first_name,last_name,email,branch_id,role',
                 'items:id,order_id,branch_product_id,quantity,unit_price_snapshot,line_total,product_name',
                 'items.branchProduct:id,branch_id,product_id,selling_price',
                 'items.branchProduct.product:id,product_name,generic_name,brand_name,description,form,strength,is_prescribed',
+                'items.orderItemPrescription:id,order_item_id,prescription_image_path,status,verified_by,verified_at,rejection_reason',
+                'items.orderItemPrescription.verifier:id,first_name,last_name,email,branch_id,role',
             ]),
         ]);
     }

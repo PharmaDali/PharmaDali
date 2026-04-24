@@ -14,6 +14,8 @@ class Order extends Model
         'customer_id',
         'branch_id',
         'status',
+        'verified_by',
+        'verified_at',
         'payment_method',
         'payment_status',
         'subtotal',
@@ -33,6 +35,7 @@ class Order extends Model
         'discount_amount' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'scheduled_pickup_at' => 'datetime',
+        'verified_at' => 'datetime',
         'placed_at' => 'datetime',
         'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
@@ -51,5 +54,10 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 }
