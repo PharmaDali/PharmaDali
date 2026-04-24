@@ -7,6 +7,7 @@ use App\Http\Controllers\API\CustomerCartController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\OrderItemPrescription;
 use App\Http\Controllers\API\PharmacistProfileController;
+use App\Http\Controllers\API\CustomerProfileController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -32,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('customer/dashboard', function () {
             return response()->json(['message' => 'Customer dashboard access granted']);
         });
+
+        Route::get('customer/profile', [CustomerProfileController::class, 'show']);
 
         Route::post('customer/cart/items', [CustomerCartController::class, 'addItem']);
         Route::get('customer/cart/items', [CustomerCartController::class, 'viewCart']);
