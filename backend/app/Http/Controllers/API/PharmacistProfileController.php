@@ -14,6 +14,6 @@ class PharmacistProfileController extends Controller
 
     public function show(): JsonResponse
     {
-        return $this->displayPharmacistProfile->handle(request()->user());
+        return $this->displayPharmacistProfile->handle(request()->user()?->pharmacist);
     }
 }
