@@ -273,7 +273,7 @@
   border: 1px solid rgba(22, 39, 56, 0.04);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 4px 12px rgba(31, 41, 55, 0.06);
-  padding: 0.78rem 0.95rem;
+  padding: 0.9rem 1rem;
 }
 
 .tech-help-faq-card.open {
@@ -312,6 +312,11 @@
 
 .tech-help-faq-title {
   font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+}
+
+.tech-help-faq-grid-wrap {
+  max-width: 1220px;
+  margin: 0 auto;
 }
 
 @media (max-width: 991.98px) {
