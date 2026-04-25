@@ -1,6 +1,6 @@
-# PharmaDali Mobile App Setup (Expo)
+# PharmaDali Customer App Setup (Expo)
 
-This folder contains the React Native Expo app for both Customer and Pharmacist roles.
+This folder contains the React Native Expo app for Customer 
 
 ## Prerequisites
 
@@ -12,7 +12,7 @@ This folder contains the React Native Expo app for both Customer and Pharmacist 
 ## 1) Install dependencies
 
 ```bash
-cd pharmadali-mobile-app
+cd customer-mobile-app
 npm install
 ```
 
@@ -50,50 +50,10 @@ Use the `IPv4 Address` of your active network adapter.
 
 After editing `.env`, fully restart Expo (`npm start`) so new env values are loaded.
 
-## 3) Choose app role
-
-Customer app:
+## 3) Start development server
 
 ```bash
-npm run swap:customer
-```
-
-Pharmacist app:
-
-```bash
-npm run swap:pharmacist
-```
-
-## 4) Start development server
-
-Start with selected role:
-
-```bash
-npm run start:customer
-```
-
-or
-
-```bash
-npm run start:pharmacist
-```
-
-General start command:
-
-```bash
-npm start
-```
-
-## 5) Run on Android
-
-```bash
-npm run android:customer
-```
-
-or
-
-```bash
-npm run android:pharmacist
+npx expo start
 ```
 
 ## Backend and Redis dependency
