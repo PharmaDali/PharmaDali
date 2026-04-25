@@ -1,0 +1,28 @@
+import { apiRequest } from '@shared/api/client';
+
+export async function registerCustomer({ credentials }){
+  return apiRequest('/customer/register', {
+    method: 'POST',
+    body: {
+      first_name: credentials.firstName.trim(),
+      last_name: credentials.lastName.trim(),
+      email: credentials.email.trim(),
+      password: credentials.password,
+      password_confirmation: credentials.confirmPassword,
+      mobile_number: credentials.mobileNumber.trim(),
+      date_of_birth: credentials.dateOfBirth?.trim() || null,
+      address: credentials.address?.trim() || null,
+    }
+
+  })
+}
+
+export async function loginCustomer({ email, password }) {
+  return apiRequest('/login', {
+    method: 'POST',
+    body: {
+      email: email.trim(),
+      password,
+    },
+  });
+}
