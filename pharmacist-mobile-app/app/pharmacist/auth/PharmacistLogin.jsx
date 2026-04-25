@@ -33,7 +33,7 @@ const PharmacistLogin = () => {
 
     try {
       const token = await loginPharmacist({ employeeNumber, password });
-      await SecureStore.setItemAsync('token', JSON.stringify(token));
+      await SecureStore.setItemAsync('pharmacist_token', JSON.stringify(token));
       router.replace('/pharmacist/tabs/Home');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');

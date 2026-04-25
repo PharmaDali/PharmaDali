@@ -31,7 +31,7 @@ export default function LoginScreen() {
       const token = await loginCustomer({ email, password });
 
       // Persist token before navigating
-      await SecureStore.setItemAsync('token', JSON.stringify(token));
+      await SecureStore.setItemAsync('customer_token', JSON.stringify(token));
 
       router.replace('/customer/tabs/Home');
     } catch (error) {

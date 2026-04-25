@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
-import RecitImg from '@assets/images/recit_dummy.png';
 import { getBranchOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
 
 const orderTabs = ['For Review', 'Preparing', 'Issues'];
@@ -24,6 +23,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
     const customer = order?.customer?.user;
     const itemStatus = order?.status === 'cancelled' ? 'Rejected' : 'Pending';
     const itemReason = order?.cancellation_reason || 'Requires attention';
+    const baseUrl = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/+$/, '').replace(/\/api$/, '');
 
     return {
       id: order.id,
@@ -35,12 +35,11 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
       items: (order?.items || []).map((item) => {
-        const prescriptionRequired = Boolean(
-          item?.branchProduct?.product?.is_prescribed ??
-          item?.is_prescribed ??
-          item?.requires_prescription ??
-          true
-        );
+        const product = item?.branch_product?.product;
+        const prescription = item?.order_item_prescription;
+        
+        const prescriptionRequired = Boolean(product?.is_prescribed);
+        const hasPrescriptionImage = Boolean(prescription?.prescription_image_path);
 
         return {
           img: BetadineImg,
@@ -49,7 +48,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
           quantity: item?.quantity ?? 0,
           size: '-',
           prescriptionRequired,
-          prescriptionImage: RecitImg,
+          prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,
           status: itemStatus,
           rejectionReason: itemReason,
         };
