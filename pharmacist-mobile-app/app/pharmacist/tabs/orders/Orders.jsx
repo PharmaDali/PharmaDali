@@ -1,6 +1,7 @@
 import { View, ScrollView, Text } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
+import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
 import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { getBranchOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
@@ -63,6 +64,11 @@ export default function Orders() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Reason Overlay State
+  const [overlayVisible, setOverlayVisible] = useState(false);
+  const [overlayAction, setOverlayAction] = useState('reject'); // 'reject' or 'pending'
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
   const loadOrders = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -102,34 +108,28 @@ export default function Orders() {
     }
   };
 
-  const handleReject = async (order) => {
-    const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
-    const reason = 'Invalid Prescription';
-
-    if (!orderId) {
-      return;
-    }
-
-    try {
-      await updateOrderStatusByPharmacist(orderId, 'reject', reason);
-      await loadOrders();
-    } catch {
-      return;
-    }
+  const handleReject = (order) => {
+    setSelectedOrder(order);
+    setOverlayAction('reject');
+    setOverlayVisible(true);
   };
 
-  const handlePending = async (order) => {
-    const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
+  const handlePending = (order) => {
+    setSelectedOrder(order);
+    setOverlayAction('pending');
+    setOverlayVisible(true);
+  };
 
-    if (!orderId) {
-      return;
-    }
+  const handleReasonSubmit = async (reason) => {
+    const orderId = selectedOrder?.id ?? selectedOrder?.orderId ?? selectedOrder?.orderNumber;
+    if (!orderId) return;
 
     try {
-      await updateOrderStatusByPharmacist(orderId, 'pending');
+      await updateOrderStatusByPharmacist(orderId, overlayAction, reason);
+      setOverlayVisible(false);
       await loadOrders();
     } catch {
-      return;
+      // Handle error if needed
     }
   };
 
@@ -171,6 +171,13 @@ export default function Orders() {
 
         <View className="h-4" />
       </ScrollView>
+
+      <ActionReasonOverlay
+        visible={overlayVisible}
+        actionType={overlayAction}
+        onClose={() => setOverlayVisible(false)}
+        onSubmit={handleReasonSubmit}
+      />
     </View>
   );
 }
