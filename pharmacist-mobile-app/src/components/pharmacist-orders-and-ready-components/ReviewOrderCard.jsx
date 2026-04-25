@@ -44,70 +44,142 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
         </View>
       ) : (
         <View>
-          {/* OTC Items */}
-          {otcItems.length > 0 && (
-            <View className="px-4 border-t border-gray-100">
-              <Text className="text-sm mt-3" style={styles.sectionTitle}>OTC Items</Text>
+          {/* OTC Items and Summary for Non-RX orders when expanded */}
+          {rxItems.length === 0 && (
+            <View className="px-4 border-t border-gray-100 mb-3">
+              <Text className="text-sm mt-3" style={styles.sectionTitle}>Order Items</Text>
               {otcItems.map((item, idx) => (
                 <OrderItemRow key={idx} item={item} />
               ))}
-            </View>
-          )}
 
-          {rxItems.length > 0 && (
-            <View className="px-4 border-t border-gray-100 mt-1">
-              <Text className="text-sm mt-3" style={styles.sectionTitle}>Requires Approval</Text>
-              {rxItems.map((item, idx) => (
-                <View key={idx}>
-                  <OrderItemRow item={item} />
-                </View>
-              ))}
-
-              {prescriptionImage && (
-                <TouchableOpacity
-                  className="rounded-lg overflow-hidden border border-gray-200 mb-2"
-                  activeOpacity={0.8}
-                  onPress={() => setPreviewImage(prescriptionImage)}
-                >
-                  <Image
-                    source={prescriptionImage}
-                    className="w-full h-28"
-                    resizeMode="cover"
-                  />
-                </TouchableOpacity>
-              )}
-
-              <View className="flex-row justify-end gap-2 mb-3 mt-2">
+              <View className="flex-row justify-end gap-2 mt-4">
                 <TouchableOpacity
                   className="rounded-xl px-5 py-1.5"
                   style={muteActions ? styles.mutedApproveButton : styles.approveButton}
                   disabled={muteActions}
                   onPress={() => onApprove?.(order)}
                 >
-                  <View className="flex-row items-center">
-                    <Text className="text-sm" style={muteActions ? styles.mutedApproveText : styles.approveText}>Approve</Text>
-                  </View>
+                  <Text className="text-sm" style={muteActions ? styles.mutedApproveText : styles.approveText}>Approve</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="rounded-xl px-5 py-1.5"
+                  className="rounded-xl px-4 py-1.5"
                   style={muteActions ? styles.mutedPendingButton : styles.pendingButton}
                   disabled={muteActions}
                   onPress={() => onPending?.(order)}
                 >
-                  <View className="flex-row items-center">
-                    <Text className="text-sm" style={muteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
-                  </View>
+                  <Text className="text-sm" style={muteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  className="rounded-xl px-5 py-1.5 border"
+                  className="rounded-xl px-4 py-1.5 border"
                   style={muteActions ? styles.mutedRejectButton : styles.rejectButton}
                   disabled={muteActions}
                   onPress={() => onReject?.(order)}
                 >
-                  <View className="flex-row items-center">
-                    <Text className="text-sm" style={muteActions ? styles.mutedRejectText : styles.rejectText}>Reject</Text>
-                  </View>
+                  <Text className="text-sm" style={muteActions ? styles.mutedRejectText : styles.rejectText}>Reject</Text>
                 </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Rx Items/Approval Section */}
+          {rxItems.length > 0 && (
+            <View className="mx-2 mb-4 mt-2">
+              {/* OTC Items within an RX order (No BG) */}
+              {otcItems.length > 0 && (
+                <View className="px-2 mb-2">
+                  <Text className="text-sm" style={styles.sectionTitle}>OTC Items</Text>
+                  {otcItems.map((item, idx) => (
+                    <OrderItemRow key={idx} item={item} />
+                  ))}
+                </View>
+              )}
+
+              {/* Approval Box (With BG) */}
+              <View className="p-3 rounded-2xl" style={{ backgroundColor: '#EBF3F7' }}>
+                <Text className="text-sm mt-1" style={styles.sectionTitle}>Requires Approval</Text>
+                {rxItems.map((item, idx) => (
+                  <View key={idx}>
+                    <OrderItemRow item={item} />
+                  </View>
+                ))}
+
+                {prescriptionImage && (
+                  <View className="flex-row items-center gap-3 mt-3">
+                    <TouchableOpacity
+                      className="flex-1 rounded-lg overflow-hidden border border-gray-200"
+                      activeOpacity={0.8}
+                      onPress={() => setPreviewImage(prescriptionImage)}
+                    >
+                      <Image
+                        source={prescriptionImage}
+                        className="w-full h-32"
+                        resizeMode="cover"
+                      />
+                    </TouchableOpacity>
+
+                    <View className="gap-2">
+                      <TouchableOpacity
+                        className="rounded-xl px-6 py-2"
+                        style={muteActions ? styles.mutedApproveButton : styles.approveButton}
+                        disabled={muteActions}
+                        onPress={() => onApprove?.(order)}
+                      >
+                        <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Approve</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="rounded-xl px-6 py-2"
+                        style={muteActions ? styles.mutedPendingButton : styles.pendingButton}
+                        disabled={muteActions}
+                        onPress={() => onPending?.(order)}
+                      >
+                        <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Pending</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="rounded-xl px-6 py-2 border"
+                        style={muteActions ? styles.mutedRejectButton : styles.rejectButton}
+                        disabled={muteActions}
+                        onPress={() => onReject?.(order)}
+                      >
+                        <Text className="text-sm" style={muteActions ? styles.mutedRejectText : styles.rejectText}>Reject</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                {!prescriptionImage && (
+                  <View className="flex-row justify-end gap-2 mb-2 mt-2">
+                    <TouchableOpacity
+                      className="rounded-xl px-5 py-1.5"
+                      style={muteActions ? styles.mutedApproveButton : styles.approveButton}
+                      disabled={muteActions}
+                      onPress={() => onApprove?.(order)}
+                    >
+                      <View className="flex-row items-center">
+                        <Text className="text-sm" style={muteActions ? styles.mutedApproveText : styles.approveText}>Approve</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="rounded-xl px-4 py-1.5"
+                      style={muteActions ? styles.mutedPendingButton : styles.pendingButton}
+                      disabled={muteActions}
+                      onPress={() => onPending?.(order)}
+                    >
+                      <View className="flex-row items-center">
+                        <Text className="text-sm" style={muteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
+                      </View>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      className="rounded-xl px-4 py-1.5 border"
+                      style={muteActions ? styles.mutedRejectButton : styles.rejectButton}
+                      disabled={muteActions}
+                      onPress={() => onReject?.(order)}
+                    >
+                      <View className="flex-row items-center">
+                        <Text className="text-sm" style={muteActions ? styles.mutedRejectText : styles.rejectText}>Reject</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
             </View>
           )}
@@ -160,31 +232,31 @@ const styles = StyleSheet.create({
     borderColor: '#E8A0A0',
     backgroundColor: '#FFF0F0',
   },
-  rxText: {
+  otpText: {
     fontFamily: 'Poppins-SemiBold',
-    color: '#DC3545',
+    color: '#EAB308',
   },
   pendingButton: {
-    backgroundColor: '#FFC107',
+    backgroundColor: '#EAB308',
   },
   pendingText: {
     fontFamily: 'Poppins-SemiBold',
     color: '#FFFFFF',
   },
   approveButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#22C55E',
   },
   approveText: {
     fontFamily: 'Poppins-SemiBold',
     color: '#FFFFFF',
   },
   rejectButton: {
-    borderColor: colors.accent,
+    borderColor: '#DC3545',
     backgroundColor: 'transparent',
   },
   rejectText: {
     fontFamily: 'Poppins-SemiBold',
-    color: colors.accent,
+    color: '#DC3545',
   },
   mutedPendingButton: {
     backgroundColor: '#D8DDE3',
