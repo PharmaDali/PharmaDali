@@ -5,52 +5,6 @@ const REVENUE_CARDS = [
   { label: "Monthly Revenue", amount: "20,003" },
 ];
 
-const FORECAST_DATA = [
-  { units: "85 units", period: "next 7 days", confidence: "92%" },
-  { units: "120 units", period: "next 7 days", confidence: "95%" },
-  { units: "70 units", period: "next 7 days", confidence: "88%" },
-  { units: "65 units", period: "next 7 days", confidence: "90%" },
-  { units: "40 units", period: "next 7 days", confidence: "84%" },
-];
-
-const STOCKOUT_RISKS = [
-  {
-    risk: "High",
-    color: "#ef4444",
-    name: "Amoxicillin",
-    units: 150,
-    date: "March 7, 2026",
-  },
-  {
-    risk: "High",
-    color: "#ef4444",
-    name: "Paracetamol",
-    units: 100,
-    date: "March 7, 2026",
-  },
-  {
-    risk: "Medium",
-    color: "#f59e0b",
-    name: "Cetirizine",
-    units: 80,
-    date: "March 9, 2026",
-  },
-  {
-    risk: "Medium",
-    color: "#f59e0b",
-    name: "Ibuprofen",
-    units: 70,
-    date: "March 10, 2026",
-  },
-  {
-    risk: "Low",
-    color: "#22c55e",
-    name: "Salbutamol Inhaler",
-    units: 30,
-    date: "March 14, 2026",
-  },
-];
-
 function SalesReports() {
   return (
     <div>
@@ -116,59 +70,11 @@ function SalesReports() {
 
         <div className="row g-3">
           <div className="col-lg-7">
-            <div className="bg-white rounded-3 p-4 data-card">
-              <table className="w-100">
-                <thead>
-                  <tr>
-                    <th className="fw-semibold forecast-th">Medicine</th>
-                    <th className="fw-semibold forecast-th"></th>
-                    <th className="fw-semibold forecast-th"></th>
-                    <th className="fw-semibold forecast-th">Confidence</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {FORECAST_DATA.map((row, idx) => (
-                    <tr key={idx}>
-                      <td className="forecast-td"></td>
-                      <td className="forecast-td">{row.units}</td>
-                      <td className="forecast-td">({row.period})</td>
-                      <td className="forecast-td">{row.confidence}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <div className="bg-white rounded-3 p-4 data-card data-card-maximized" />
           </div>
 
           <div className="col-lg-5">
-            <div className="bg-white rounded-3 p-3 data-card">
-              <h3 className="fw-bold stockout-title">
-                Stockout Risk &amp; Reorder Suggestions
-              </h3>
-              {STOCKOUT_RISKS.map((item, idx) => (
-                <div
-                  key={idx}
-                  className={`d-flex justify-content-between align-items-start stockout-row${idx < STOCKOUT_RISKS.length - 1 ? " with-border" : ""}`}
-                >
-                  <div>
-                    <div
-                      className="fw-medium text-capitalize risk-label"
-                      style={{ color: item.color }}
-                    >
-                      {item.risk} risk level
-                    </div>
-                    <div className="fw-semibold medicine-name">{item.name}</div>
-                  </div>
-                  <div className="text-end">
-                    <div>
-                      <span className="fw-bold units-value">{item.units}</span>{" "}
-                      <span className="units-label">units</span>
-                    </div>
-                    <div className="date-label">{item.date}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <div className="bg-white rounded-3 p-3 data-card data-card-maximized" />
           </div>
         </div>
       </div>

@@ -94,28 +94,6 @@
   line-height: 1.62;
 }
 
-.tech-help-badge-copy {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f5f9fd;
-  border: 1px solid #e2edf6;
-  border-radius: 999px;
-  padding: 0.36rem 0.75rem;
-}
-
-.tech-help-badge-copy span {
-  color: #6b7280;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.tech-help-badge-copy strong {
-  color: #1f2937;
-  font-size: 12px;
-  font-weight: 700;
-}
-
 .tech-help-version-label {
   display: inline-flex;
   align-items: center;
