@@ -21,13 +21,22 @@ React + Vite admin web application.
 
 Read setup guide: [pharmadali-admin/README.md](pharmadali-admin/README.md)
 
-### `pharmadali-mobile-app/`
+### `customer-mobile-app/`
 React Native + Expo mobile application.
 
-- Supports both customer and pharmacist app flows.
+- Supports customer app flows.
 - Uses role-based app config and environment-driven API URL.
 
-Read setup guide: [pharmadali-mobile-app/README.md](pharmadali-mobile-app/README.md)
+Read setup guide: [customer-mobile-app/README.md](customer-mobile-app/README.md)
+
+
+### `pharmacist-mobile-app/`
+React Native + Expo mobile application.
+
+- Supports pharmacist app flows.
+- Uses role-based app config and environment-driven API URL.
+
+Read setup guide: [pharmacist-mobile-app/README.md](pharmacist-mobile-app/README.md)
 
 ## Setup Navigation
 
@@ -40,8 +49,11 @@ cd backend
 cd ..\pharmadali-admin
 # Read and follow pharmadali-admin/README.md
 
-cd ..\pharmadali-mobile-app
-# Read and follow pharmadali-mobile-app/README.md
+cd ..\customer-mobile-app
+# Read and follow customer-mobile-app/README.md
+
+cd ..\pharmacist-mobile-app
+# Read and follow pharmacist-mobile-app/README.md
 ```
 
 This root README is intentionally a high-level guide only.
