@@ -19,7 +19,7 @@ const getErrorMessage = (data, fallback) => {
 };
 
 const getStoredToken = async () => {
-  const raw = await SecureStore.getItemAsync('token');
+  const raw = await SecureStore.getItemAsync('pharmacist_token');
 
   if (!raw) {
     return null;
