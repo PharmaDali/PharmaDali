@@ -170,6 +170,23 @@
   font-weight: 700;
 }
 
+.tech-help-contact-subtitle {
+  max-width: 700px;
+  font-size: 13px;
+}
+
+.tech-help-contact-layout {
+  align-items: stretch;
+}
+
+.tech-help-contact-form-card {
+  padding: 1.2rem 1.2rem 1.1rem;
+}
+
+.tech-help-contact-side-card {
+  padding: 1.2rem 1.1rem;
+}
+
 .tech-help-input {
   border-radius: 10px;
   border: 1px solid #dbe3ec;
@@ -185,10 +202,16 @@
 
 .tech-help-textarea {
   resize: none;
+  min-height: 140px;
+}
+
+.tech-help-contact-actions {
+  padding-top: 0.15rem;
 }
 
 .tech-help-submit-btn {
   min-width: 220px;
+  min-height: 42px;
   border-radius: 9px;
   background: #2aabe2;
   border: 1px solid #2aabe2;
@@ -206,6 +229,7 @@
 
 .tech-help-callback-btn {
   min-width: 220px;
+  min-height: 42px;
   border-radius: 9px;
   background: #fff;
   border: 1.5px solid #2aabe2;
@@ -233,9 +257,20 @@
   padding: 0.85rem;
 }
 
+.tech-help-channel-highlight {
+  border: 1px solid #dbe6f2;
+}
+
 .tech-help-live-chat i {
   color: #1f2937;
   font-size: 14px;
+  margin-top: 2px;
+}
+
+.tech-help-channel-item i {
+  width: 22px;
+  text-align: center;
+  color: #111827;
   margin-top: 2px;
 }
 

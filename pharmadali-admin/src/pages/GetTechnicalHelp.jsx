@@ -167,9 +167,13 @@ function ContactSupportView({ onBack }) {
                 Contact Support
             </h4>
 
-            <div className="row g-4">
+            <p className="text-muted mb-4 tech-help-contact-subtitle">
+                Tell us what happened and our support team will respond as soon as possible.
+            </p>
+
+            <div className="row g-4 tech-help-contact-layout">
                 <div className="col-12 col-xl-8">
-                    <article className="tech-help-card">
+                    <article className="tech-help-card tech-help-contact-form-card">
                         <form onSubmit={handleSubmit}>
                             <label htmlFor="issue-summary" className="form-label tech-help-form-label">
                                 Issue Summary
@@ -191,7 +195,7 @@ function ContactSupportView({ onBack }) {
                                 placeholder="Provide details, steps to reproduce, and expected behavior"
                             />
 
-                            <div className="d-flex flex-wrap justify-content-between gap-2 mt-4">
+                            <div className="d-flex flex-wrap justify-content-between gap-2 mt-4 tech-help-contact-actions">
                                 <button type="submit" className="btn tech-help-submit-btn">
                                     Submit Support Ticket
                                 </button>
@@ -211,10 +215,10 @@ function ContactSupportView({ onBack }) {
                 </div>
 
                 <div className="col-12 col-xl-4">
-                    <article className="tech-help-card h-100">
+                    <article className="tech-help-card tech-help-contact-side-card h-100">
                         <h6 className="tech-help-card-title mb-4">Support Channels</h6>
 
-                        <div className="tech-help-live-chat mb-4">
+                        <div className="tech-help-live-chat tech-help-channel-highlight mb-4">
                             <div className="d-flex align-items-start gap-2 mb-3">
                                 <i className="fa-solid fa-message" aria-hidden="true" />
                                 <div>
@@ -228,7 +232,7 @@ function ContactSupportView({ onBack }) {
                         </div>
 
                         <div className="d-flex flex-column gap-3">
-                            <div className="d-flex align-items-start gap-2">
+                            <div className="d-flex align-items-start gap-2 tech-help-channel-item">
                                 <i className="fa-solid fa-phone" aria-hidden="true" />
                                 <div>
                                     <h6 className="mb-1">Phone Support</h6>
@@ -236,7 +240,7 @@ function ContactSupportView({ onBack }) {
                                 </div>
                             </div>
 
-                            <div className="d-flex align-items-start gap-2">
+                            <div className="d-flex align-items-start gap-2 tech-help-channel-item">
                                 <i className="fa-regular fa-envelope" aria-hidden="true" />
                                 <div>
                                     <h6 className="mb-1">Mail Support</h6>
