@@ -48,7 +48,7 @@ const MENU_SECTIONS = [
       },
       { to: "/settings", icon: "fa-cog", label: "Settings" },
       {
-        to: "/help",
+        to: "/get-technical-help",
         icon: "fa-question-circle",
         label: "Get Technical Help",
       },

@@ -11,6 +11,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AIForecasting from "./pages/AIForecasting";
 import Inventory from "./pages/Inventory";
 import Pharmacists from "./pages/Pharmacists";
+import GetTechnicalHelp from "./pages/GetTechnicalHelp";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="ai-forecasting" element={<AIForecasting />} />
           <Route path="inventory" element={<Inventory />} />
           <Route path="pharmacists" element={<Pharmacists />} />
+          <Route path="get-technical-help" element={<GetTechnicalHelp />} />
         </Route>
       </Routes>
     </BrowserRouter>
