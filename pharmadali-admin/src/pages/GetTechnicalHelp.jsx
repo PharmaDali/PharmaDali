@@ -633,11 +633,11 @@ function TroubleShootingView({ onBack }) {
                 </p>
             </header>
 
-            <div className="row g-4">
-                <div className="col-12 col-xl-6 d-flex flex-column gap-2">
+            <div className="row g-4 tech-help-faq-grid-wrap">
+                <div className="col-12 col-xl-6 d-flex flex-column gap-3">
                     {leftColumn.map(renderFaqItem)}
                 </div>
-                <div className="col-12 col-xl-6 d-flex flex-column gap-2">
+                <div className="col-12 col-xl-6 d-flex flex-column gap-3">
                     {rightColumn.map(renderFaqItem)}
                 </div>
             </div>
