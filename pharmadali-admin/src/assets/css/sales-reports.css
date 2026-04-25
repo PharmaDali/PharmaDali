@@ -98,6 +98,7 @@
 
 /* Data Cards */
 .data-card {
+  height: 320px;
   min-height: 320px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
