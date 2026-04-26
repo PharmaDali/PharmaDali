@@ -1,79 +1,123 @@
-import { ScrollView, View } from 'react-native';
-import React, { useMemo, useState } from 'react';
+import { ScrollView, View, Text } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Tabs, ReadyOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import FemaleIcon from '@assets/icons/person-icons/female_icon.svg';
 import RecitImg from '@assets/images/recit_dummy.png';
 import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
+import { getBranchOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
 
 const readyTabs = ['For Pickup', 'Completed', 'Expired'];
 
-const initialReadyOrders = [
-  {
-    orderNumber: '2001',
-    customerName: 'Denmar Redondo',
-    customerAvatar: MaleIcon,
-    pickupTime: `${formatDateToMMDDYYYY('2026-01-07')} 3 PM - 6 PM`, 
-    submittedAgo: '10 mins ago',
-    orderTotal: '527.50',
-    status: 'For Pickup',
-    items: [
-      { img: BetadineImg, description: 'Imodium 2mg 4s - Diarrhea Medicine, Loperamide', price: '80.25', quantity: 1, size: '2mg' },
-      { img: BetadineImg, description: 'MEDIPLAST Sterilized Gauze Pads 4x4', price: '9.50', quantity: 1, size: '4x4' },
-      { img: BetadineImg, description: 'LACRYVISC Carbomer 10g', price: '437.75', quantity: 1, size: '10g', prescriptionRequired: true, prescriptionImage: RecitImg },
-    ],
-  },
-  {
-    orderNumber: '2002',
-    customerName: 'Jane Doe',
-    customerAvatar: FemaleIcon,
-    pickupTime: `${formatDateToMMDDYYYY('2026-01-07')} 3 PM - 6 PM`,
-    submittedAgo: '30 mins ago',
-    orderTotal: '339.00',
-    status: 'Completed',
-    items: [
-      { img: BetadineImg, description: 'Berocca Effervescent Tablet Orange Flavor 15s', price: '339.00', quantity: 1, size: '15s' },
-      { img: BetadineImg, description: 'LACRYVISC Carbomer 10g', price: '437.75', quantity: 1, size: '10g', prescriptionRequired: true, prescriptionImage: RecitImg },
-    ],
-  },
-  {
-    orderNumber: '2003',
-    customerName: 'John Smith',
-    customerAvatar: MaleIcon,
-    pickupTime: `${formatDateToMMDDYYYY('2026-01-06')} 3 PM - 6 PM`,
-    submittedAgo: '1 day ago',
-    orderTotal: '180.75',
-    status: 'Expired',
-    items: [
-      { img: BetadineImg, description: 'Paracetamol 500mg 10s', price: '120.75', quantity: 1, size: '500mg' },
-      { img: BetadineImg, description: 'Vitamin C 500mg 20s', price: '60.00', quantity: 1, size: '500mg' },
-    ],
-  },
-];
+const mapApiStatusToTabStatus = (status) => {
+  const s = String(status || '').toLowerCase();
+  if (s === 'ready_for_pickup') return 'For Pickup';
+  if (s === 'completed') return 'Completed';
+  if (s === 'overdue') return 'Expired';
+  return null;
+};
+
+const mapApiOrdersToUiOrders = (apiOrders) => {
+  if (!Array.isArray(apiOrders)) return [];
+
+  return apiOrders.map((order) => {
+    const customer = order?.customer?.user;
+    const baseUrl = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/+$/, '').replace(/\/api$/, '');
+
+    return {
+      id: order.id,
+      orderNumber: order.order_number || String(order.id),
+      customerName: `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim() || 'Customer',
+      customerAvatar: MaleIcon,
+      pickupTime: formatDateToMMDDYYYY(order?.scheduled_pickup_at) || 'Schedule not set',
+      submittedAgo: formatDateToMMDDYYYY(order?.created_at) || 'Recently',
+      orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
+      status: mapApiStatusToTabStatus(order?.status),
+      items: (order?.items || []).map((item) => {
+        const product = item?.branch_product?.product;
+        const prescription = item?.order_item_prescription;
+        const prescriptionRequired = Boolean(product?.is_prescribed);
+        const hasPrescriptionImage = Boolean(prescription?.prescription_image_path);
+
+        return {
+          img: BetadineImg,
+          description: item?.product_name || 'Medicine item',
+          price: Number(item?.unit_price_snapshot ?? 0).toFixed(2),
+          quantity: item?.quantity ?? 0,
+          size: product?.strength || '-',
+          prescriptionRequired,
+          prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,
+        };
+      }),
+    };
+  }).filter(order => order.status !== null);
+};
 
 const Ready = () => {
   const [activeTab, setActiveTab] = useState('For Pickup');
-  const [readyOrders, setReadyOrders] = useState(initialReadyOrders);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleMarkAsCompleted = (order) => {
-    setReadyOrders((prev) =>
-      prev.map((o) =>
-        o.orderNumber === order.orderNumber
-          ? { ...o, status: 'Completed' }
-          : o
-      )
-    );
+  const loadOrders = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const data = await getBranchOrders();
+      setOrders(mapApiOrdersToUiOrders(data));
+    } catch (e) {
+      setError(e?.message || 'Failed to load orders.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
+
+  const handleMarkAsCompleted = async (order) => {
+    try {
+      await updateOrderStatusByPharmacist(order.id, 'complete');
+      await loadOrders();
+    } catch {
+      // Handle error
+    }
   };
 
+  const counts = useMemo(() => {
+    return readyTabs.reduce((acc, tab) => {
+      acc[tab] = orders.filter((o) => o.status === tab).length;
+      return acc;
+    }, {});
+  }, [orders]);
+
   const filteredOrders = useMemo(
-    () => readyOrders.filter((order) => order.status === activeTab),
-    [activeTab, readyOrders]
+    () => orders.filter((order) => order.status === activeTab),
+    [activeTab, orders]
   );
 
   return (
     <View className="flex-1 bg-gray-50">
-      <Tabs activeTab={activeTab} onTabChange={setActiveTab} tabs={readyTabs} />
+      <Tabs 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        tabs={readyTabs} 
+        counts={counts}
+      />
+
+      {loading && (
+        <Text className="px-4 py-2" style={{ fontFamily: 'Poppins-Medium', color: '#666' }}>
+          Loading orders...
+        </Text>
+      )}
+
+      {!!error && (
+        <Text className="px-4 pb-2" style={{ fontFamily: 'Poppins-Medium', color: '#CC3A3A' }}>
+          {error}
+        </Text>
+      )}
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {filteredOrders.map((order, idx) => (

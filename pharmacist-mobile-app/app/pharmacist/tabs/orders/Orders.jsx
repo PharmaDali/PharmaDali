@@ -11,8 +11,10 @@ const orderTabs = ['For Review', 'Preparing', 'Issues'];
 
 
 const mapApiStatusToTabStatus = (status) => {
-  if (['pending', 'reviewing'].includes(status)) return 'For Review';
-  if (['preparing', 'ready_for_pickup'].includes(status)) return 'Preparing';
+  const s = String(status || '').toLowerCase();
+  if (['pending', 'reviewing'].includes(s)) return 'For Review';
+  if (s === 'preparing') return 'Preparing';
+  if (['cancelled', 'rejected', 'stand_by'].includes(s)) return 'Issues';
   return 'Issues';
 };
 
@@ -36,12 +38,20 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       submittedAgo: formatDateToMMDDYYYY(order?.created_at) || 'Recently',
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
+      apiStatus: String(order?.status || '').toLowerCase(),
+      cancellationReason: order?.cancellation_reason || '',
       items: (order?.items || []).map((item) => {
         const product = item?.branch_product?.product;
         const prescription = item?.order_item_prescription;
         
         const prescriptionRequired = Boolean(product?.is_prescribed);
         const hasPrescriptionImage = Boolean(prescription?.prescription_image_path);
+
+        const apiStatus = String(order?.status || '').toLowerCase();
+        let itemDisplayStatus = 'For Review';
+        if (apiStatus === 'cancelled' || apiStatus === 'rejected') itemDisplayStatus = 'Rejected';
+        if (apiStatus === 'stand_by') itemDisplayStatus = 'Awaiting Customer Response';
+        if (apiStatus === 'preparing') itemDisplayStatus = 'Preparing';
 
         return {
           img: BetadineImg,
@@ -51,8 +61,8 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
           size: product?.strength || '-',
           prescriptionRequired,
           prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,
-          status: itemStatus,
-          rejectionReason: itemReason,
+          status: itemDisplayStatus,
+          rejectionReason: order?.cancellation_reason || 'Requires attention',
         };
       }),
     };
@@ -94,6 +104,12 @@ export default function Orders() {
   const preparingOrders = orders.filter((o) => o.status === 'Preparing');
   const issueOrders = orders.filter((o) => o.status === 'Issues');
 
+  const tabCounts = {
+    'For Review': forReviewOrders.length,
+    'Preparing': preparingOrders.length,
+    'Issues': issueOrders.length,
+  };
+
   const handleApprove = async (order) => {
     const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
 
@@ -104,18 +120,21 @@ export default function Orders() {
     try {
       await updateOrderStatusByPharmacist(orderId, 'approve');
       await loadOrders();
-    } catch {
-      return;
+    } catch (e) {
+      console.error('[Orders] Error approving order:', e);
+      setError(e?.message || 'Failed to approve order.');
     }
   };
 
   const handleReject = (order) => {
+    setError('');
     setSelectedOrder(order);
     setOverlayAction('reject');
     setOverlayVisible(true);
   };
 
   const handlePending = (order) => {
+    setError('');
     setSelectedOrder(order);
     setOverlayAction('pending');
     setOverlayVisible(true);
@@ -129,18 +148,34 @@ export default function Orders() {
       await updateOrderStatusByPharmacist(orderId, overlayAction, reason);
       setOverlayVisible(false);
       await loadOrders();
-    } catch {
-      // Handle error if needed
+    } catch (e) {
+      console.error(`[Orders] Error marking order as ${overlayAction}:`, e);
+      setError(e?.message || `Failed to mark order as ${overlayAction}.`);
+      setOverlayVisible(false);
     }
   };
 
-  const handleMarkAsReady = (order) => {
-    // TODO: handle mark as ready logic
+  const handleMarkAsReady = async (order) => {
+    const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
+    if (!orderId) return;
+
+    try {
+      await updateOrderStatusByPharmacist(orderId, 'ready');
+      await loadOrders();
+    } catch (e) {
+      console.error('[Orders] Error marking order as ready:', e);
+      setError(e?.message || 'Failed to mark order as ready.');
+    }
   };
 
   return (
     <View className="flex-1 bg-gray-50">
-      <Tabs activeTab={activeTab} onTabChange={setActiveTab} tabs={orderTabs} />
+      <Tabs 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        tabs={orderTabs} 
+        counts={tabCounts}
+      />
 
       {loading && (
         <Text className="px-4 py-2" style={{ fontFamily: 'Poppins-Medium', color: '#666' }}>

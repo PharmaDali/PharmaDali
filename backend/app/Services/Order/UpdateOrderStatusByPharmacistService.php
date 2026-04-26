@@ -10,12 +10,16 @@ class UpdateOrderStatusByPharmacistService
 {
     private const ACTION_TO_STATUS = [
         'approve' => 'preparing',
-        'pending' => 'pending',
+        'ready' => 'ready_for_pickup',
+        'complete' => 'completed',
+        'pending' => 'stand_by',
         'reject' => 'cancelled',
     ];
 
     private const ACTION_ALLOWED_CURRENT_STATUSES = [
         'approve' => ['pending', 'reviewing'],
+        'ready' => ['preparing'],
+        'complete' => ['ready_for_pickup'],
         'pending' => ['pending', 'reviewing', 'preparing', 'ready_for_pickup'],
         'reject' => ['pending', 'reviewing', 'preparing', 'ready_for_pickup'],
     ];
@@ -79,10 +83,17 @@ class UpdateOrderStatusByPharmacistService
             $updatePayload['cancellation_reason'] = 'Rejected by pharmacist: ' . trim((string) $reason);
         }
 
+        if ($nextStatus === 'completed') {
+            $updatePayload['completed_at'] = now();
+            $updatePayload['picked_up_at'] = now();
+        }
+
         $order->update($updatePayload);
 
         $successMessage = match ($action) {
             'approve' => 'Order approved successfully.',
+            'ready' => 'Order marked as ready for pickup.',
+            'complete' => 'Order marked as completed.',
             'pending' => 'Order marked as pending successfully.',
             default => 'Order rejected successfully.',
         };
