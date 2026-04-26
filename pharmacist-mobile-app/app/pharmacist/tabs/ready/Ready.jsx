@@ -79,17 +79,19 @@ const Ready = () => {
 
   const handleMarkAsCompleted = async (order) => {
     try {
-      // Assuming 'complete' is an action in backend or just update to completed
-      // For now we'll use a hypothetical 'complete' action if supported, 
-      // or we might need to add it to backend.
-      // If backend only has approve/ready/pending/reject, we might need 'complete'.
-      // Let's check backend list again or assume we need to add it.
       await updateOrderStatusByPharmacist(order.id, 'complete');
       await loadOrders();
     } catch {
       // Handle error
     }
   };
+
+  const counts = useMemo(() => {
+    return readyTabs.reduce((acc, tab) => {
+      acc[tab] = orders.filter((o) => o.status === tab).length;
+      return acc;
+    }, {});
+  }, [orders]);
 
   const filteredOrders = useMemo(
     () => orders.filter((order) => order.status === activeTab),
@@ -98,7 +100,12 @@ const Ready = () => {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <Tabs activeTab={activeTab} onTabChange={setActiveTab} tabs={readyTabs} />
+      <Tabs 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        tabs={readyTabs} 
+        counts={counts}
+      />
 
       {loading && (
         <Text className="px-4 py-2" style={{ fontFamily: 'Poppins-Medium', color: '#666' }}>

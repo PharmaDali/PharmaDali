@@ -104,6 +104,12 @@ export default function Orders() {
   const preparingOrders = orders.filter((o) => o.status === 'Preparing');
   const issueOrders = orders.filter((o) => o.status === 'Issues');
 
+  const tabCounts = {
+    'For Review': forReviewOrders.length,
+    'Preparing': preparingOrders.length,
+    'Issues': issueOrders.length,
+  };
+
   const handleApprove = async (order) => {
     const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
 
@@ -164,7 +170,12 @@ export default function Orders() {
 
   return (
     <View className="flex-1 bg-gray-50">
-      <Tabs activeTab={activeTab} onTabChange={setActiveTab} tabs={orderTabs} />
+      <Tabs 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab} 
+        tabs={orderTabs} 
+        counts={tabCounts}
+      />
 
       {loading && (
         <Text className="px-4 py-2" style={{ fontFamily: 'Poppins-Medium', color: '#666' }}>
