@@ -23,7 +23,15 @@ export default function IssueOrderCard({ order }) {
     issueSummary = `${issueCount} items have issues`;
   }
 
-  const statusBadge = (
+  const isRejectedByPharmacist = order.apiStatus === 'cancelled' && order.cancellationReason?.toLowerCase().includes('rejected by pharmacist');
+
+  const statusBadge = order.apiStatus === 'cancelled' || order.apiStatus === 'rejected' ? (
+    <View className="px-3 py-1 rounded-lg border" style={styles.rejectedBadge}>
+      <Text className="text-xs" style={styles.rejectedText}>
+        {isRejectedByPharmacist ? 'Rejected' : 'Cancelled'}
+      </Text>
+    </View>
+  ) : (
     <View className="px-3 py-1 rounded-lg border" style={styles.awaitingBadge}>
       <Text className="text-xs" style={styles.awaitingText}>Awaiting Customer Action</Text>
     </View>
@@ -120,6 +128,14 @@ const styles = StyleSheet.create({
   awaitingText: {
     fontFamily: 'Poppins-SemiBold',
     color: '#0C5460',
+  },
+  rejectedBadge: {
+    borderColor: '#CC3A3A',
+    backgroundColor: '#FCEAEA',
+  },
+  rejectedText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#CC3A3A',
   },
   sectionTitle: {
     fontFamily: 'Poppins-Bold',
