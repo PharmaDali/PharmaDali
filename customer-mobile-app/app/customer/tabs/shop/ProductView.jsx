@@ -39,10 +39,10 @@ const productData = {
 };
 
 const similarProducts = [
-  { img: BandaidImg, description: 'OMRON TH839S Digital Ear Thermometer for Baby...', category: 'First Aid Accessories', price: '₱1,918.75' },
-  { img: BetadineImg, description: 'SAFEPLUS Infrared Forehead Thermometer', category: 'First Aid Accessories', price: '₱1,118.75' },
-  { img: BandaidImg, description: 'MEDIPLAST Sterilized Gauze Pads 4x4', category: 'First Aid', price: '₱9.50' },
-  { img: BetadineImg, description: 'Betadine Antiseptic Povidone Iodine 10% 60ml', category: 'First Aid', price: '₱109.00' },
+  { img: BandaidImg, description: 'OMRON TH839S Digital Ear Thermometer for Baby...', category: 'First Aid Accessories', price: 'PHP 1,918.75' },
+  { img: BetadineImg, description: 'SAFEPLUS Infrared Forehead Thermometer', category: 'First Aid Accessories', price: 'PHP 1,118.75' },
+  { img: BandaidImg, description: 'MEDIPLAST Sterilized Gauze Pads 4x4', category: 'First Aid', price: 'PHP 9.50' },
+  { img: BetadineImg, description: 'Betadine Antiseptic Povidone Iodine 10% 60ml', category: 'First Aid', price: 'PHP 109.00' },
 ];
 
 const ProductView = () => {
@@ -98,7 +98,7 @@ const ProductView = () => {
         <View className="px-5 pt-4 pb-3">
           <Text className="text-base" style={styles.productName}>{product.name}</Text>
           <Text className="text-xl mt-2" style={styles.priceText}>
-            ₱{product.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            PHP {product.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
           </Text>
         </View>
 

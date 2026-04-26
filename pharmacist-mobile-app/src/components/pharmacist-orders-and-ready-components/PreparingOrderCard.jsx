@@ -15,7 +15,7 @@ export default function PreparingOrderCard({ order, onMarkAsReady }) {
 
       <View className="flex-row justify-between items-center px-4 py-3 border-t border-gray-100">
         <Text className="text-sm" style={styles.sectionTitle}>Order Summary</Text>
-        <Text className="text-base" style={styles.totalPrice}>₱{order.orderTotal}</Text>
+        <Text className="text-base" style={styles.totalPrice}>PHP {order.orderTotal}</Text>
       </View>
 
       <View className="items-end px-4 pb-4">

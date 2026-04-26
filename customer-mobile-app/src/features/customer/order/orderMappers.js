@@ -17,10 +17,10 @@ const STATUS_LABELS = {
 function formatCurrency(value) {
   const amount = Number(value)
   if (!Number.isFinite(amount)) {
-    return '₱0.00'
+    return 'PHP 0.00'
   }
 
-  return `₱${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  return `PHP ${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 function formatOrderDate(value) {

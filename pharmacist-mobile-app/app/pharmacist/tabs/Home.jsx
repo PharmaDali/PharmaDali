@@ -7,6 +7,7 @@ import DemandAlertIcon from '@assets/icons/pharmacist_home/demand_alert_icon.svg
 import BiogesicImg from '@assets/images/biogesic_img.png'
 import SolmuxImg from '@assets/images/solmux_img.png'
 import { colors } from '@src/shared/theme/colorPalette'
+import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils'
 
 const TRENDING_MEDICINES = [
   { name: 'Biogesic', generic: 'Paracetamol', image: BiogesicImg },
@@ -49,7 +50,7 @@ const DemandForecast = () => (
       <ForecastIcon width={22} height={22} />
       <Text className="ms-2" style={styles.titleText}>AI Demand Forecast</Text>
     </View>
-    <Text style={styles.subtitleText}>Friday, February 6 ▾</Text>
+    <Text style={styles.subtitleText}>{formatDateToMMDDYYYY('2026-02-06')} ▾</Text>
 
     <View className="mt-3 mb-2">
       <LineChart

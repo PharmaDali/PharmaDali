@@ -5,6 +5,7 @@ import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
 import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { getBranchOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
+import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
 
 const orderTabs = ['For Review', 'Preparing', 'Issues'];
 
@@ -31,8 +32,8 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       orderNumber: order.order_number || String(order.id),
       customerName: `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim() || 'Customer',
       customerAvatar: MaleIcon,
-      pickupTime: order?.scheduled_pickup_at || 'Schedule not set',
-      submittedAgo: 'Recently',
+      pickupTime: formatDateToMMDDYYYY(order?.scheduled_pickup_at) || 'Schedule not set',
+      submittedAgo: formatDateToMMDDYYYY(order?.created_at) || 'Recently',
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
       items: (order?.items || []).map((item) => {
@@ -47,7 +48,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
           description: item?.product_name || 'Medicine item',
           price: Number(item?.unit_price_snapshot ?? 0).toFixed(2),
           quantity: item?.quantity ?? 0,
-          size: '-',
+          size: product?.strength || '-',
           prescriptionRequired,
           prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,
           status: itemStatus,

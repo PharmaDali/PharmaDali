@@ -5,6 +5,7 @@ import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import FemaleIcon from '@assets/icons/person-icons/female_icon.svg';
 import RecitImg from '@assets/images/recit_dummy.png';
+import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
 
 const readyTabs = ['For Pickup', 'Completed', 'Expired'];
 
@@ -13,7 +14,7 @@ const initialReadyOrders = [
     orderNumber: '2001',
     customerName: 'Denmar Redondo',
     customerAvatar: MaleIcon,
-    pickupTime: 'Today, January 7 3 PM - 6 PM', 
+    pickupTime: `${formatDateToMMDDYYYY('2026-01-07')} 3 PM - 6 PM`, 
     submittedAgo: '10 mins ago',
     orderTotal: '527.50',
     status: 'For Pickup',
@@ -27,7 +28,7 @@ const initialReadyOrders = [
     orderNumber: '2002',
     customerName: 'Jane Doe',
     customerAvatar: FemaleIcon,
-    pickupTime: 'Today, January 7 3 PM - 6 PM',
+    pickupTime: `${formatDateToMMDDYYYY('2026-01-07')} 3 PM - 6 PM`,
     submittedAgo: '30 mins ago',
     orderTotal: '339.00',
     status: 'Completed',
@@ -40,7 +41,7 @@ const initialReadyOrders = [
     orderNumber: '2003',
     customerName: 'John Smith',
     customerAvatar: MaleIcon,
-    pickupTime: 'Yesterday, January 6 3 PM - 6 PM',
+    pickupTime: `${formatDateToMMDDYYYY('2026-01-06')} 3 PM - 6 PM`,
     submittedAgo: '1 day ago',
     orderTotal: '180.75',
     status: 'Expired',
