@@ -22,7 +22,7 @@ export default function OrderItemRow({ item }) {
 
         <View className="flex-row justify-between items-center mt-1">
           <Text className="text-sm" style={styles.price}>
-            ₱{item.price}
+            PHP {item.price}
           </Text>
           <Text className="text-xs text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
             Size: {item.size}

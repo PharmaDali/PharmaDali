@@ -66,7 +66,7 @@ function CartItem({ item, onToggle, onIncrement, onDecrement }) {
         </Text>
         <View className="flex-row justify-between items-center mt-1">
           <Text className="text-sm" style={styles.priceText}>
-            ₱{item.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            PHP {item.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
           </Text>
           <QuantityControl
             quantity={item.quantity}
@@ -197,7 +197,7 @@ export default function CartScreen() {
           <View className="mr-4">
             <Text className="text-xs text-gray-500" style={styles.fontMedium}>Total:</Text>
             <Text className="text-base" style={styles.totalPrice}>
-              ₱ {total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              PHP {total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
             </Text>
           </View>
           <TouchableOpacity

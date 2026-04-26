@@ -43,11 +43,11 @@ function PriceRangeSection({ priceMin, priceMax, setPriceMin, setPriceMax, onRes
 
       <View className="flex-row items-center justify-center gap-3 mb-6">
         <View className="flex-1 rounded-full border border-gray-300 px-4 py-2">
-          <Text className="text-center text-sm" style={styles.textMedium}>₱{Math.round(priceMin)}</Text>
+          <Text className="text-center text-sm" style={styles.textMedium}>PHP {Math.round(priceMin)}</Text>
         </View>
         <Text className="text-gray-400" style={styles.fontMedium}>–</Text>
         <View className="flex-1 rounded-full border border-gray-300 px-4 py-2">
-          <Text className="text-center text-sm" style={styles.textMedium}>₱{Math.round(priceMax)}</Text>
+          <Text className="text-center text-sm" style={styles.textMedium}>PHP {Math.round(priceMax)}</Text>
         </View>
       </View>
     </>
