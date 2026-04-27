@@ -173,7 +173,7 @@ function CurrentOrder({
               background: paymentMethod === "cash" ? "#2aabe2" : "white",
               color: paymentMethod === "cash" ? "white" : "#555",
               border: "1.5px solid #dde3ec",
-              borderRadius: 8,
+              borderRadius: "var(--pd-radius-md)",
             }}
             onClick={() => onPaymentChange("cash")}
           >Cash</button>
@@ -184,7 +184,7 @@ function CurrentOrder({
               background: paymentMethod === "gcash" ? "#2aabe2" : "white",
               color: paymentMethod === "gcash" ? "white" : "#555",
               border: "1.5px solid #dde3ec",
-              borderRadius: 8,
+              borderRadius: "var(--pd-radius-md)",
             }}
             onClick={() => onPaymentChange("gcash")}
           >GCash</button>

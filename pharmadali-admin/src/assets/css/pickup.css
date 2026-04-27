@@ -6,7 +6,7 @@
 
 .pickup-outer-card {
   background: #fff;
-  border-radius: 16px;
+  border-radius: var(--pd-radius-md);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
   padding: 28px 28px 20px;
   flex: 1;
@@ -52,7 +52,7 @@
 .pickup-search-input {
   width: 100%;
   border: 1.5px solid var(--pd-border);
-  border-radius: 10px;
+  border-radius: var(--pd-radius-md);
   font-size: 13px;
   font-family: var(--pd-font-family);
   color: var(--pd-text-dark);
@@ -107,7 +107,7 @@
 }
 
 .pickup-card {
-  border-radius: 14px;
+  border-radius: var(--pd-radius-md);
   overflow: hidden;
   min-height: 430px;
   flex: 1;
@@ -180,7 +180,7 @@
   background: var(--pd-primary);
   color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--pd-radius-md);
   font-size: 13px;
 }
 
@@ -200,7 +200,7 @@
 .pickup-details-panel {
   width: 320px;
   min-width: 300px;
-  border-radius: 10px;
+  border-radius: var(--pd-radius-md);
   border: 1px solid #e5edf5;
   padding: 14px;
   display: flex;
@@ -292,7 +292,7 @@
   margin-top: 12px;
   padding: 8px;
   border: 1px solid #dbe7f2;
-  border-radius: 8px;
+  border-radius: var(--pd-radius-md);
   background: #f2f8fd;
 }
 
@@ -317,7 +317,7 @@
 .pickup-order-details-item {
   background: #f8fbff;
   border: 1px solid #e2edf7;
-  border-radius: 10px;
+  border-radius: var(--pd-radius-md);
   padding: 12px;
   display: flex;
   flex-direction: column;

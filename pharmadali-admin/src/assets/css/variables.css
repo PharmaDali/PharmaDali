@@ -32,6 +32,7 @@
   /* layout */
   --pd-navbar-height: 62px;
   --pd-sidebar-width: 250px;
+  --pd-radius-md: 12px;
 
   /* font */
   --pd-font-family: "Poppins", sans-serif;

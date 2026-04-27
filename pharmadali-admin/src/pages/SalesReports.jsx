@@ -7,13 +7,11 @@ const REVENUE_CARDS = [
 
 function SalesReports() {
   return (
-    <div>
-      <h4 className="fw-bold m-1" style={{ color: "rgb(42, 171, 226)" }}>
-        Sales &amp; Report
-      </h4>
-      <p className="m-0 page-subtitle">
-        Sales and reports related to the pharmacy.
-      </p>
+    <section>
+      <header className="admin-page-header">
+        <h4 className="fw-bold mb-1 admin-page-title">Sales &amp; Reports</h4>
+        <p className="admin-page-subtitle">Sales and reports for pharmacy operations.</p>
+      </header>
 
       <div className="mt-4">
         <h2 className="fw-semibold section-title">Sales Summary</h2>
@@ -78,7 +76,7 @@ function SalesReports() {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

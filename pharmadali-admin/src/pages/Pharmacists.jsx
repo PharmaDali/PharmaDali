@@ -26,11 +26,11 @@ function Pharmacists() {
 
 	return (
 		<section className="dashboard-page pharmacists-page">
-			<h4 className="fw-bold mb-1" style={{ color: "#2aabe2" }}>
+			<h4 className="fw-bold mb-1 admin-page-title">
 				Pharmacist
 			</h4>
-			<p className="text-muted mb-4" style={{ fontSize: 13 }}>
-				List of pharmacist accounts related in the pharmacy.
+			<p className="admin-page-subtitle mb-4">
+				List of pharmacist accounts in the pharmacy.
 			</p>
 
 			<div className="d-flex justify-content-end mb-3">

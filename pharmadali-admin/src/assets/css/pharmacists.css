@@ -3,7 +3,7 @@
 }
 
 .pharmacists-add-btn {
-  border-radius: 9px;
+  border-radius: var(--pd-radius-md);
   background: #2aabe2;
   border: 1px solid #2aabe2;
   color: #fff;
@@ -20,7 +20,7 @@
 
 .pharmacists-card {
   border: 1px solid rgba(22, 39, 56, 0.04);
-  border-radius: 12px;
+  border-radius: var(--pd-radius-md);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 1px 2px rgba(31, 41, 55, 0.05);
   backdrop-filter: blur(2px);
@@ -73,7 +73,7 @@
 
 .pharmacists-search {
   height: 40px;
-  border-radius: 8px;
+  border-radius: var(--pd-radius-md);
   border: 1px solid #dbe3ec;
   background: #f0f4f8;
   color: #374151;
@@ -91,7 +91,7 @@
 .pharmacists-table-scroll {
   overflow: auto;
   max-height: 430px;
-  border-radius: 10px;
+  border-radius: var(--pd-radius-md);
 }
 
 .pharmacists-table {
@@ -111,11 +111,11 @@
 }
 
 .pharmacists-table thead th:first-child {
-  border-top-left-radius: 10px;
+  border-top-left-radius: var(--pd-radius-md);
 }
 
 .pharmacists-table thead th:last-child {
-  border-top-right-radius: 10px;
+  border-top-right-radius: var(--pd-radius-md);
 }
 
 .pharmacists-table tbody td {
