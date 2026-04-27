@@ -19,8 +19,8 @@ export function StatusBadge({ status }) {
   const color = statusColors[normalizedStatus] || statusColors.pending;
 
   return (
-    <View className="px-3 py-1 overflow-hidden" style={{ borderRadius: 8, backgroundColor: color.bg, borderWidth: 1, borderColor: color.border }}>
-      <Text className="text-xs" style={{ color: color.text, fontFamily: 'Poppins-SemiBold' }}>{status || 'Pending'}</Text>
+    <View className="px-2 py-0.5 overflow-hidden" style={{ borderRadius: 6, backgroundColor: color.bg, borderWidth: 1, borderColor: color.border }}>
+      <Text className="text-[10px]" style={{ color: color.text, fontFamily: 'Poppins-SemiBold' }}>{status || 'Pending'}</Text>
     </View>
   );
 }

@@ -54,7 +54,7 @@ const PickupDetailsScreen = () => {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  const pickupDates = useMemo(() => buildDynamicPickupDates(7), [])
+  const pickupDates = useMemo(() => buildDynamicPickupDates(2), [])
   const selectedDate = pickupDates[selectedDateIndex]?.date || pickupDates[0]?.date || new Date()
   const selectedDateLabel = pickupDates[selectedDateIndex]?.label || pickupDates[0]?.label || 'Selected day'
 
@@ -295,7 +295,7 @@ const PickupDetailsScreen = () => {
           <View className="flex-row justify-between items-center">
             <Text className="text-xs" style={styles.fontBold}>Total Items: {totalItems}</Text>
             <Text className="text-xs">
-              <Text style={styles.fontBold}>Estimated Total: </Text>
+              <Text style={styles.fontBold}>Total: </Text>
               <Text style={styles.priceText}>PHP {effectiveTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</Text>
             </Text>
           </View>
