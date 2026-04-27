@@ -37,14 +37,7 @@
 }
 
 .aif-filter-wrap {
-	min-width: 180px;
-}
-
-.aif-range-select {
-	border-radius: var(--pd-radius-md);
-	border: 1.5px solid #dde3ec;
-	background: #f5f8fb;
-	color: #7d8793;
+	min-width: 170px;
 }
 
 .aif-range-icon {

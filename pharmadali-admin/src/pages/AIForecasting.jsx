@@ -187,9 +187,9 @@ function AIForecasting() {
                     <article className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel aif-card">
                         <div className="aif-chart-head">
                             <h6 className="fw-bold mb-0 aif-chart-title">Demand Forecast Chart</h6>
-                            <div className="position-relative aif-filter-wrap">
+                            <div className="position-relative pd-range-select-wrap aif-filter-wrap">
                                 <select
-                                    className="form-select form-select-sm pe-4 dashboard-range-select aif-range-select"
+                                    className="form-select form-select-sm pe-4 pd-range-select"
                                     value={range}
                                     onChange={(e) => setRange(e.target.value)}
                                     aria-label="Forecast period"

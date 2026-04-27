@@ -285,10 +285,11 @@ function PosPage() {
               Product List
             </h6>
             <div
-              className="d-flex align-items-center gap-3 rounded-pill px-3 py-2 flex-grow-1 flex-md-grow-0 pos-search"
+              className="d-flex align-items-center gap-3 px-3 py-2 flex-grow-1 flex-md-grow-0 pos-search"
               style={{
-                background: "#E3EBF3",
+                background: "#f4f7fb",
                 border: "1.5px solid #dde3ec",
+                borderRadius: "var(--pd-radius-md)",
                 width: 300,
               }}
             >
@@ -304,7 +305,7 @@ function PosPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
                   fontSize: 13,
-                  color: "#555",
+                  color: "#374151",
                   outline: "none",
                   boxShadow: "none",
                 }}

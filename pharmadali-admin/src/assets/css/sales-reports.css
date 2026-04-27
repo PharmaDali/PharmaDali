@@ -50,7 +50,8 @@
   border-radius: var(--pd-radius-md);
   padding: 8px 38px 8px 16px;
   font-size: 13px;
-  color: var(--pd-text-placeholder);
+  color: #ffffff;
+  background: #808790;
   min-width: 200px;
 }
 
@@ -70,7 +71,7 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--pd-text-placeholder);
+  color: rgba(255,255,255,0.9);
   font-size: 14px;
 }
 
