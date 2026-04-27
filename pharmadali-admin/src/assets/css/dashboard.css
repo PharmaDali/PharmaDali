@@ -2,6 +2,15 @@
   min-width: 0;
 }
 
+.dashboard-title {
+  color: var(--pd-primary);
+}
+
+.dashboard-subtitle {
+  font-size: 13px;
+  color: var(--pd-text-muted);
+}
+
 .dashboard-panel {
   overflow: hidden;
   border: 1px solid rgba(22, 39, 56, 0.04);
@@ -33,6 +42,22 @@
 
 .dashboard-chart-wrap {
   height: 240px;
+}
+
+.dashboard-link-btn {
+  border: 0;
+  background: transparent;
+  color: var(--pd-primary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+}
+
+.dashboard-link-btn:hover,
+.dashboard-link-btn:focus-visible {
+  color: var(--pd-primary-dark);
+  text-decoration: underline;
 }
 
 .inventory-divider {
@@ -100,7 +125,7 @@
     font-size: 1.25rem;
   }
 
-  .dashboard-page p {
+  .dashboard-subtitle {
     margin-bottom: 1rem !important;
   }
 
