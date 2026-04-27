@@ -30,11 +30,11 @@ const SALES_DATA = {
 };
 
 const STAT_CARDS = [
-  { label: "Revenue Today", value: "20,003", prefix: "PHP", bg: "#96D2EE", color: "#fff" },
-  { label: "Orders Today", value: "167", prefix: null, bg: "#96D2EE", color: "#fff" },
-  { label: "Inventory Value", value: "518,000", prefix: "PHP", bg: "#96D2EE", color: "#fff" },
-  { label: "Low Stock Items", value: "3", prefix: null, bg: "#F9C784", color: "#fff" },
-  { label: "Predicted Stockout Risk", value: "High", prefix: null, ai: true, bg: "#F28B82", color: "#fff" },
+  { label: "Revenue Today", value: "20,003", prefix: "PHP", bg: "#96D2EE" },
+  { label: "Orders Today", value: "167", prefix: null, bg: "#96D2EE" },
+  { label: "Inventory Value", value: "518,000", prefix: "PHP", bg: "#96D2EE" },
+  { label: "Low Stock Items", value: "3", prefix: null, bg: "#F9C784" },
+  { label: "Predicted Stockout Risk", value: "High", prefix: null, ai: true, bg: "#F28B82" },
 ];
 
 const QUICK_INSIGHTS = [
@@ -46,14 +46,14 @@ const QUICK_INSIGHTS = [
 
 const LOW_STOCK = [
   { name: "Amoxicillin", note: "less than 1 day of supply" },
-  { name: "Amoxicillin", note: "1 days supply" },
-  { name: "Amoxicillin", note: "2 days supply only" },
+  { name: "Cetirizine", note: "1 day supply" },
+  { name: "Loperamide", note: "2 days supply only" },
 ];
 
 const EXPIRING_SOON = [
   { name: "Amoxicillin", days: "14 days" },
-  { name: "Amoxicillin", days: "10 days" },
-  { name: "Amoxicillin", days: "23 days" },
+  { name: "Paracetamol", days: "10 days" },
+  { name: "Ibuprofen", days: "23 days" },
 ];
 
 const FORECAST = [
@@ -89,62 +89,94 @@ function StatCard({ label, value, prefix, ai, bg }) {
   );
 }
 
+function InsightRows({ items, rowClassName, rightClassName }) {
+  return (
+    <div className="d-flex flex-column gap-0">
+      {items.map((item, index) => (
+        <div key={`${item.category}-${item.main}`}>
+          {index > 0 && <hr className="my-2" />}
+          <div className={`d-flex justify-content-between align-items-start ${rowClassName}`}>
+            <div>
+              <div style={{ fontSize: 11, color: "#aaa" }}>{item.category}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>{item.main}</div>
+            </div>
+            <div className={`text-end ${rightClassName}`}>
+              {item.right && (
+                <span style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>{item.right}</span>
+              )}
+              <span style={{ fontSize: 11, color: "#aaa", marginLeft: item.right ? 4 : 0 }}>
+                {item.rightSub}
+              </span>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function SalesTrend() {
   const [range, setRange] = useState("Last 7 days");
   const { labels, values } = SALES_DATA[range];
 
-  const data = {
-    labels,
-    datasets: [{
-      data: values,
-      borderColor: "#2aabe2",
-      backgroundColor: "rgba(42,171,226,0.12)",
-      fill: true,
-      tension: 0.4,
-      pointBackgroundColor: "#ffffff",
-      pointBorderColor: "#2aabe2",
-      pointBorderWidth: 1.5,
-      pointRadius: 3.5,
-      pointHoverRadius: 5,
-    }],
-  };
+  const data = useMemo(
+    () => ({
+      labels,
+      datasets: [{
+        data: values,
+        borderColor: "#2aabe2",
+        backgroundColor: "rgba(42,171,226,0.12)",
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: "#ffffff",
+        pointBorderColor: "#2aabe2",
+        pointBorderWidth: 1.5,
+        pointRadius: 3.5,
+        pointHoverRadius: 5,
+      }],
+    }),
+    [labels, values],
+  );
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    layout: {
-      padding: {
-        top: 4,
-        right: 10,
-        bottom: 0,
-        left: 0,
-      },
-    },
-    plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
-    scales: {
-      x: {
-        grid: { color: "rgba(15, 23, 42, 0.04)" },
-        ticks: {
-          color: "#5f6670",
-          font: { size: 12, family: "Poppins" },
-          autoSkip: true,
-          maxTicksLimit: range === "Last 30 days" ? 6 : 8,
+  const options = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: 4,
+          right: 10,
+          bottom: 0,
+          left: 0,
         },
       },
-      y: {
-        min: 10,
-        max: 60,
-        beginAtZero: false,
-        grid: { color: "rgba(15, 23, 42, 0.06)" },
-        ticks: {
-          stepSize: 10,
-          color: "#5f6670",
-          font: { size: 12, family: "Poppins" },
-          padding: 8,
+      plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
+      scales: {
+        x: {
+          grid: { color: "rgba(15, 23, 42, 0.04)" },
+          ticks: {
+            color: "#5f6670",
+            font: { size: 12, family: "Poppins" },
+            autoSkip: true,
+            maxTicksLimit: range === "Last 30 days" ? 6 : 8,
+          },
+        },
+        y: {
+          min: 10,
+          max: 60,
+          beginAtZero: false,
+          grid: { color: "rgba(15, 23, 42, 0.06)" },
+          ticks: {
+            stepSize: 10,
+            color: "#5f6670",
+            font: { size: 12, family: "Poppins" },
+            padding: 8,
+          },
         },
       },
-    },
-  };
+    }),
+    [range],
+  );
 
   return (
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
@@ -164,6 +196,7 @@ function SalesTrend() {
             }}
             value={range}
             onChange={(e) => setRange(e.target.value)}
+            aria-label="Select trend range"
           >
             {Object.keys(SALES_DATA).map((k) => <option key={k}>{k}</option>)}
           </select>
@@ -184,23 +217,11 @@ function QuickInsights() {
   return (
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Quick Insights</h6>
-      <div className="d-flex flex-column gap-0">
-        {QUICK_INSIGHTS.map((item, i) => (
-          <div key={i}>
-            {i > 0 && <hr className="my-2" />}
-            <div className="d-flex justify-content-between align-items-start quick-insight-row">
-              <div>
-                <div style={{ fontSize: 11, color: "#aaa" }}>{item.category}</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>{item.main}</div>
-              </div>
-              <div className="text-end quick-insight-right">
-                <span style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>{item.right}</span>
-                <span style={{ fontSize: 11, color: "#aaa", marginLeft: 4 }}>{item.rightSub}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <InsightRows
+        items={QUICK_INSIGHTS}
+        rowClassName="quick-insight-row"
+        rightClassName="quick-insight-right"
+      />
     </div>
   );
 }
@@ -214,8 +235,8 @@ function InventoryHealth() {
           <div style={{ fontSize: 12, color: "#555", fontWeight: 600, marginBottom: 8 }}>
             Low Stock Items <AiBadge />
           </div>
-          {LOW_STOCK.map((item, i) => (
-            <div key={i} className="d-flex justify-content-between align-items-center mb-3 inventory-row">
+          {LOW_STOCK.map((item) => (
+            <div key={`${item.name}-${item.note}`} className="d-flex justify-content-between align-items-center mb-3 inventory-row">
               <div style={{ fontSize: 13, color: "#222" }}>{item.name}</div>
               <div className="inventory-note" style={{ fontSize: 12, color: "#888" }}>{item.note}</div>
             </div>
@@ -224,8 +245,8 @@ function InventoryHealth() {
         <div className="inventory-divider" />
         <div className="ps-md-3" style={{ flex: 1 }}>
           <div style={{ fontSize: 12, color: "#555", fontWeight: 600, marginBottom: 8 }}>Expiring Soon</div>
-          {EXPIRING_SOON.map((item, i) => (
-            <div key={i} className="d-flex justify-content-between align-items-center mb-3 inventory-row">
+          {EXPIRING_SOON.map((item) => (
+            <div key={`${item.name}-${item.days}`} className="d-flex justify-content-between align-items-center mb-3 inventory-row">
               <div style={{ fontWeight: 700, fontSize: 13, color: "#222" }}>{item.name}</div>
               <div style={{ fontSize: 13, color: "#555" }}>{item.days}</div>
             </div>
@@ -233,7 +254,9 @@ function InventoryHealth() {
         </div>
       </div>
       <div className="text-end mt-auto pt-2">
-        <span style={{ fontSize: 13, color: "#2aabe2", cursor: "pointer", fontWeight: 600 }}>Know more</span>
+        <button type="button" className="dashboard-link-btn" aria-label="Open inventory health details">
+          Know more
+        </button>
       </div>
     </div>
   );
@@ -245,25 +268,15 @@ function ForecastPreview() {
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>
         Forecast Preview <AiBadge />
       </h6>
-      <div className="d-flex flex-column gap-0">
-        {FORECAST.map((item, i) => (
-          <div key={i}>
-            {i > 0 && <hr className="my-2" />}
-            <div className="d-flex justify-content-between align-items-start forecast-row">
-              <div>
-                <div style={{ fontSize: 11, color: "#aaa" }}>{item.category}</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>{item.main}</div>
-              </div>
-              <div className="text-end forecast-right">
-                {item.right && <span style={{ fontSize: 15, fontWeight: 700, color: "#222" }}>{item.right} </span>}
-                <span style={{ fontSize: 11, color: "#aaa" }}>{item.rightSub}</span>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <InsightRows
+        items={FORECAST}
+        rowClassName="forecast-row"
+        rightClassName="forecast-right"
+      />
       <div className="text-end mt-auto pt-2">
-        <span style={{ fontSize: 13, color: "#2aabe2", cursor: "pointer", fontWeight: 600 }}>Know more</span>
+        <button type="button" className="dashboard-link-btn" aria-label="Open forecast preview details">
+          Know more
+        </button>
       </div>
     </div>
   );
@@ -299,20 +312,25 @@ function DashBoard() {
     () =>
       STAT_CARDS.map((card) =>
         card.label === "Orders Today"
-          ? { ...card, value: ordersCount === null ? "..." : String(ordersCount) }
+          ? {
+              ...card,
+              value: ordersCount === null ? "Loading..." : Number(ordersCount).toLocaleString(),
+            }
           : card,
       ),
     [ordersCount],
   );
 
   return (
-    <div className="dashboard-page">
-      <h4 className="fw-bold mb-1" style={{ color: "#2aabe2" }}>Dashboard</h4>
-      <p className="text-muted mb-4" style={{ fontSize: 13 }}>A quick data overview of the inventory.</p>
+    <section className="dashboard-page" aria-label="Dashboard overview">
+      <header className="dashboard-page-header mb-4">
+        <h4 className="fw-bold mb-1 dashboard-title">Dashboard</h4>
+        <p className="dashboard-subtitle mb-0">A quick operational snapshot of pharmacy sales, inventory, and forecasts.</p>
+      </header>
 
       <div className="row g-3 mb-4">
-        {statCards.map((c, i) => (
-          <div key={i} className="col-12 col-sm-6 col-md-4 col-lg">
+        {statCards.map((c) => (
+          <div key={c.label} className="col-12 col-sm-6 col-md-4 col-lg">
             <StatCard {...c} />
           </div>
         ))}
@@ -335,7 +353,7 @@ function DashBoard() {
           <ForecastPreview />
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
