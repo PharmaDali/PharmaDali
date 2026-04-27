@@ -20,10 +20,14 @@
   height: 42px;
   border-radius: var(--pd-radius-md);
   border: 1px solid #dbe3ec;
-  background: #f0f4fa;
+  background: #f4f7fb;
   color: #374151;
   font-size: 13px;
   padding-left: 34px;
+}
+
+.tech-help-search::placeholder {
+  color: #9ca3af;
 }
 
 .tech-help-search:focus {

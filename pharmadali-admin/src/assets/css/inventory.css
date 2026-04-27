@@ -115,15 +115,21 @@
 .inventory-search {
   border-radius: var(--pd-radius-md);
   border: 1px solid #dbe3ec;
+  background: #f4f7fb;
   font-size: 13px;
   padding-left: 2rem;
   color: #374151;
   box-shadow: none;
 }
 
+.inventory-search::placeholder {
+  color: #9aa5b1;
+}
+
 .inventory-search:focus {
   border-color: #96d2ee;
   box-shadow: 0 0 0 0.18rem rgba(150, 210, 238, 0.35);
+  background: #f7fbff;
 }
 
 .inventory-filter-group {

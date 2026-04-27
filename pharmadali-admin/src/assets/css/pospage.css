@@ -98,6 +98,14 @@
   max-width: 100%;
 }
 
+.pos-search input::placeholder {
+  color: #9ca3af;
+}
+
+.pos-search i {
+  color: #9ca3af;
+}
+
 .pos-payment-modal .pd-modal__header {
   background: #fff;
   border-bottom: 0;

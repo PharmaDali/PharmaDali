@@ -56,7 +56,7 @@
   font-size: 13px;
   font-family: var(--pd-font-family);
   color: var(--pd-text-dark);
-  background: #fff;
+  background: #f4f7fb;
   outline: none;
   transition: border-color 0.2s;
 }
@@ -97,7 +97,7 @@
 }
 
 .pickup-search-input::placeholder {
-  color: var(--pd-text-placeholder);
+  color: #9ca3af;
 }
 
 .pickup-card,
