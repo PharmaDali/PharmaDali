@@ -37,9 +37,20 @@
   min-width: 170px;
 }
 
-.dashboard-range-select {
+.pd-range-select-wrap {
+  min-width: 170px;
+}
+
+.pd-range-select {
   width: 100%;
+  font-size: 13px;
   border-radius: var(--pd-radius-md) !important;
+  border: 1.5px solid #dde3ec;
+  background: #f5f8fb;
+  appearance: none;
+  cursor: pointer;
+  padding-right: 2rem;
+  color: #7d8793;
 }
 
 .dashboard-chart-wrap {

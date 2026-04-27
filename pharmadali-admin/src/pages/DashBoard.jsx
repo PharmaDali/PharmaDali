@@ -182,18 +182,9 @@ function SalesTrend() {
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
       <div className="dashboard-card-header d-flex align-items-md-center justify-content-between mb-3 gap-2">
         <h6 className="fw-bold mb-0" style={{ fontSize: 16, color: "#2aabe2" }}>Sales Trend</h6>
-        <div className="position-relative dashboard-range-select-wrap">
+        <div className="position-relative pd-range-select-wrap">
           <select
-            className="form-select form-select-sm pe-4 dashboard-range-select"
-            style={{ 
-              fontSize: 13, 
-              borderRadius: "var(--pd-radius-md)", 
-              border: "1.5px solid #dde3ec", 
-              background: "#f5f8fb",
-              appearance: "none",
-              cursor: "pointer",
-              paddingRight: "2rem"
-            }}
+            className="form-select form-select-sm pe-4 pd-range-select"
             value={range}
             onChange={(e) => setRange(e.target.value)}
             aria-label="Select trend range"
