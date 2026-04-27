@@ -287,7 +287,7 @@ function PickUp() {
               onClick={openCompleteSaleModal}
               disabled={activeOrder.status.toLowerCase() === "completed"}
             >
-              {activeOrder.status.toLowerCase() === "completed" ? "Completed" : "Complete Sale"}
+              {activeOrder.status.toLowerCase() === "completed" ? "Sale Completed" : "Complete Sale"}
             </button>
           </aside>
         )}

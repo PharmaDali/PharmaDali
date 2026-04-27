@@ -196,7 +196,7 @@ function CurrentOrder({
         onClick={onCompleteSale}
         disabled={isOrderEmpty}
       >
-        Complete Sale
+        {isOrderEmpty ? "Sale Completed" : "Complete Sale"}
       </button>
     </div>
   );
