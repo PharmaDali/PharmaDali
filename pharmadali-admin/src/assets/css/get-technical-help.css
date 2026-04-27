@@ -18,7 +18,7 @@
 
 .tech-help-search {
   height: 42px;
-  border-radius: 10px;
+  border-radius: var(--pd-radius-md);
   border: 1px solid #dbe3ec;
   background: #f0f4fa;
   color: #374151;
@@ -35,7 +35,7 @@
 .tech-help-card,
 .tech-help-version-card {
   border: 1px solid rgba(22, 39, 56, 0.04);
-  border-radius: 14px;
+  border-radius: var(--pd-radius-md);
   background: rgba(255, 255, 255, 0.92);
   box-shadow: 0 6px 16px rgba(31, 41, 55, 0.06);
   backdrop-filter: blur(2px);
@@ -78,7 +78,7 @@
   margin-top: 0.35rem;
   margin-left: 0;
   padding: 0.55rem 0.75rem;
-  border-radius: 999px;
+  border-radius: var(--pd-radius-md);
   box-shadow: 0 2px 6px rgba(31, 41, 55, 0.06);
 }
 
@@ -149,7 +149,7 @@
 }
 
 .tech-help-input {
-  border-radius: 10px;
+  border-radius: var(--pd-radius-md);
   border: 1px solid #dbe3ec;
   background: #eef3fa;
   font-size: 13px;

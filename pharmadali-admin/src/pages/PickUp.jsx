@@ -257,7 +257,7 @@ function PickUp() {
                     background: paymentMethod === "cash" ? "#2aabe2" : "white",
                     color: paymentMethod === "cash" ? "white" : "#555",
                     border: "1.5px solid #dde3ec",
-                    borderRadius: 8,
+                      borderRadius: "var(--pd-radius-md)",
                   }}
                   onClick={() => setPaymentMethod("cash")}
                   type="button"
@@ -271,7 +271,7 @@ function PickUp() {
                     background: paymentMethod === "gcash" ? "#2aabe2" : "white",
                     color: paymentMethod === "gcash" ? "white" : "#555",
                     border: "1.5px solid #dde3ec",
-                    borderRadius: 8,
+                      borderRadius: "var(--pd-radius-md)",
                   }}
                   onClick={() => setPaymentMethod("gcash")}
                   type="button"

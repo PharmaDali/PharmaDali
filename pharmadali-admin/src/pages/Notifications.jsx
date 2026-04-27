@@ -134,7 +134,7 @@ function Notifications() {
         <div
           style={{
             backgroundColor: detailTheme.bg,
-            borderRadius: "16px",
+            borderRadius: "var(--pd-radius-md)",
             minHeight: "560px",
             padding: "34px 36px",
           }}
@@ -180,12 +180,10 @@ function Notifications() {
 
   return (
     <div className="p-3 p-md-4">
-      <h4 className="mb-0" style={{ color: "#3aa7de", fontWeight: 700, fontSize: "28px", lineHeight: 1 }}>
-        Notifications
-      </h4>
-      <div style={{ color: "#2e2e2e", fontSize: "14px", marginBottom: "14px", lineHeight: 1.1 }}>
-        Real Time Notifications
-      </div>
+      <header className="admin-page-header">
+        <h4 className="fw-bold mb-1 admin-page-title">Notifications</h4>
+        <p className="admin-page-subtitle">Real-time pharmacy notifications.</p>
+      </header>
 
       <ul
         className="nav nav-tabs"
@@ -270,8 +268,8 @@ function Notifications() {
                     style={{
                       backgroundColor: "#f2efef",
                       border: "none",
-                      borderTopLeftRadius: "12px",
-                      borderBottomLeftRadius: "12px",
+                      borderTopLeftRadius: "var(--pd-radius-md)",
+                      borderBottomLeftRadius: "var(--pd-radius-md)",
                       padding: "9px 10px 9px 14px",
                     }}
                   >
@@ -306,8 +304,8 @@ function Notifications() {
                     style={{
                       backgroundColor: "#f2efef",
                       border: "none",
-                      borderTopRightRadius: "12px",
-                      borderBottomRightRadius: "12px",
+                      borderTopRightRadius: "var(--pd-radius-md)",
+                      borderBottomRightRadius: "var(--pd-radius-md)",
                       padding: "9px 14px 9px 8px",
                     }}
                   >

@@ -84,12 +84,12 @@ const FAQ_ITEMS = [
 function SupportHome({ onNavigate }) {
     return (
         <section className="dashboard-page tech-help-page">
-            <h4 className="fw-bold mb-1" style={{ color: "#2aabe2" }}>
-                Technical Support Center
-            </h4>
-            <p className="text-muted mb-3" style={{ fontSize: 13 }}>
-                Search for guides, quick fixes, and direct support channels
-            </p>
+            <header className="admin-page-header">
+                <h4 className="fw-bold mb-1 admin-page-title">Technical Support Center</h4>
+                <p className="admin-page-subtitle">
+                    Search for guides, quick fixes, and support channels.
+                </p>
+            </header>
 
             <div className="tech-help-search-wrap mb-4">
                 <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
@@ -163,12 +163,12 @@ function ContactSupportView({ onBack }) {
                 Back to Technical Support Center
             </button>
 
-            <h4 className="fw-bold mt-2 mb-4" style={{ color: "#2aabe2" }}>
+            <h4 className="fw-bold mt-2 mb-4 admin-page-title">
                 Contact Support
             </h4>
 
             <p className="text-muted mb-4">
-                Tell us what happened and our support team will respond as soon as possible.
+                Describe the issue, and the support team will respond as soon as possible.
             </p>
 
             <div className="row g-4">
@@ -291,7 +291,7 @@ function TroubleShootingView({ onBack }) {
                 Back to Technical Support Center
             </button>
 
-            <h4 className="fw-bold mt-2 mb-4" style={{ color: "#2aabe2" }}>
+            <h4 className="fw-bold mt-2 mb-4 admin-page-title">
                 Troubleshooting Guide
             </h4>
 
@@ -300,7 +300,7 @@ function TroubleShootingView({ onBack }) {
                     Frequently Asked Questions
                 </h5>
                 <p className="mb-0 text-muted" style={{ fontSize: 14 }}>
-                    Find quick answers to common technical concerns
+                    Find quick answers to common technical concerns.
                 </p>
             </header>
 

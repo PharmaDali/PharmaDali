@@ -17,7 +17,7 @@
 /* Revenue Cards */
 .revenue-card {
   background: var(--pd-gradient-revenue);
-  border-radius: 12px;
+  border-radius: var(--pd-radius-md);
   padding: 15px 20px;
   min-width: 180px;
 }
@@ -47,7 +47,7 @@
 
 .filter-input {
   border: 1.5px solid var(--pd-border);
-  border-radius: 25px;
+  border-radius: var(--pd-radius-md);
   padding: 8px 38px 8px 16px;
   font-size: 13px;
   color: var(--pd-text-placeholder);
@@ -85,7 +85,7 @@
 
 .filter-select {
   border: 1.5px solid var(--pd-border);
-  border-radius: 25px;
+  border-radius: var(--pd-radius-md);
   padding: 8px 35px 8px 16px;
   font-size: 13px;
   color: var(--pd-text-placeholder);

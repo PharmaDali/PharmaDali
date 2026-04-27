@@ -187,7 +187,7 @@ function SalesTrend() {
             className="form-select form-select-sm pe-4 dashboard-range-select"
             style={{ 
               fontSize: 13, 
-              borderRadius: 20, 
+              borderRadius: "var(--pd-radius-md)", 
               border: "1.5px solid #dde3ec", 
               background: "#f5f8fb",
               appearance: "none",

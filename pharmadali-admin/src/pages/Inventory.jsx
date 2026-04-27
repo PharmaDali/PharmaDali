@@ -150,10 +150,10 @@ function Inventory() {
     <section className="inventory-page">
       <header className="inventory-header-row">
         <div>
-          <h4 className="fw-bold mb-1" style={{ color: "#2aabe2" }}>
+          <h4 className="fw-bold mb-1 admin-page-title">
             Inventory
           </h4>
-          <p className="text-muted mb-0" style={{ fontSize: 13 }}>
+          <p className="admin-page-subtitle">
             Monitor stock health, spot urgent risks, and prep smarter replenishment decisions.
           </p>
         </div>

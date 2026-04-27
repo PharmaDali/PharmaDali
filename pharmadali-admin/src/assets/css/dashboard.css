@@ -13,6 +13,7 @@
 
 .dashboard-panel {
   overflow: hidden;
+  border-radius: var(--pd-radius-md);
   border: 1px solid rgba(22, 39, 56, 0.04);
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(2px);
@@ -38,6 +39,7 @@
 
 .dashboard-range-select {
   width: 100%;
+  border-radius: var(--pd-radius-md) !important;
 }
 
 .dashboard-chart-wrap {

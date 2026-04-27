@@ -11,14 +11,15 @@
 }
 
 .aif-subtitle {
-	margin: 6px 0 0;
+	margin: 0;
 	color: #4b5563;
 	font-size: 13px;
-	font-weight: 500;
+	font-weight: 400;
 }
 
 .aif-card {
 	border: 1px solid #e7edf5;
+	border-radius: var(--pd-radius-md);
 	width: 100%;
 }
 
@@ -40,13 +41,9 @@
 }
 
 .aif-range-select {
-	font-size: 13px;
-	border-radius: 12px;
-	border: 1px solid #dce4ee;
-	background: #f8fafc;
-	appearance: none;
-	cursor: pointer;
-	padding-right: 2rem;
+	border-radius: var(--pd-radius-md);
+	border: 1.5px solid #dde3ec;
+	background: #f5f8fb;
 	color: #7d8793;
 }
 
@@ -111,7 +108,7 @@
 	padding-right: 0;
 	padding-bottom: 4px;
 	border: 0;
-	border-radius: 12px;
+	border-radius: var(--pd-radius-md);
 	background: #ffffff;
 	box-shadow: none;
 	scrollbar-gutter: stable both-edges;

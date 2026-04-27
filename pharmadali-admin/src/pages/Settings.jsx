@@ -59,7 +59,7 @@ const settingsGroups = [
 
 const SettingsCard = ({ title, items, onNavigate }) => (
   <div className="col-md-6 mb-4">
-    <div className="card border-0 shadow-sm rounded-3 h-100">
+    <div className="card border-0 shadow-sm h-100">
       <div className="card-body p-4">
         <h6 className="fw-bold mb-3" style={{ color: "#29ABE2" }}>
           {title}
@@ -94,9 +94,9 @@ const PharmacyNameView = ({ onNavigate }) => (
       onNavigate={onNavigate}
     />
     <p className="text-muted small mb-4">
-      configurations related to the pharmacy applicaations.
+      System settings for the pharmacy application.
     </p>
-    <div className="card border-0 shadow-sm rounded-3 mx-auto" style={{ maxWidth: "600px" }}>
+    <div className="card border-0 shadow-sm mx-auto" style={{ maxWidth: "600px" }}>
       <div className="card-body px-5 py-4">
         <div className="d-flex justify-content-between align-items-center pb-2 border-bottom mb-3">
           <span className="text-muted small">Pharmacy Name</span>
@@ -257,7 +257,7 @@ const BranchSettingsView = ({ onNavigate }) => {
         </button>
       </div>
 
-      <div className="card border-0 shadow-sm rounded-3">
+      <div className="card border-0 shadow-sm">
         <div className="table-responsive">
           <table className="table mb-0 align-middle">
             <thead>
@@ -452,12 +452,10 @@ function Settings() {
 
   return (
     <div className="p-4">
-      <h4 className="fw-bold mb-1" style={{ color: "#2aabe2" }}>
-        Settings
-      </h4>
-      <p className="text-muted small mb-4">
-        configurations related to the pharmacy applicaations.
-      </p>
+      <header className="admin-page-header">
+        <h4 className="fw-bold mb-1 admin-page-title">Settings</h4>
+        <p className="admin-page-subtitle">System settings for the pharmacy application.</p>
+      </header>
       <div className="row">
         {settingsGroups.map((group, index) => (
           <SettingsCard

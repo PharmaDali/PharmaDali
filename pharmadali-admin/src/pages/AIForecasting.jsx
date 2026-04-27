@@ -8,7 +8,7 @@ import {
     Tooltip,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import "../assets/css/dashboard.css";
 import "../assets/css/aiforecasting.css";
 
@@ -70,10 +70,10 @@ const PREDICTED_HIGH_DEMAND = [
 ];
 
 const INVENTORY_HEALTH = [
-    { medicine: "Amoxicillin", lowStock: "less 1 day of supply", expiresIn: "14 days" },
-    { medicine: "Paracetamol", lowStock: "less 1 day of supply", expiresIn: "10 days" },
-    { medicine: "Cetirizine", lowStock: "1 days of supply", expiresIn: "23 days" },
-    { medicine: "Ibuprofen", lowStock: "1 days of supply", expiresIn: "28 days" },
+    { medicine: "Amoxicillin", lowStock: "less than 1 day of supply", expiresIn: "14 days" },
+    { medicine: "Paracetamol", lowStock: "less than 1 day of supply", expiresIn: "10 days" },
+    { medicine: "Cetirizine", lowStock: "1 day of supply", expiresIn: "23 days" },
+    { medicine: "Ibuprofen", lowStock: "1 day of supply", expiresIn: "28 days" },
     { medicine: "Salbutamol Inhaler", lowStock: "2 days of supply", expiresIn: "30 days" },
 ];
 
@@ -106,73 +106,81 @@ function AIForecasting() {
     const [range, setRange] = useState("Last 7 days");
     const { labels, values } = FORECAST_DATA[range];
 
-    const chartData = {
-        labels,
-        datasets: [
-            {
-                data: values,
-                borderColor: "#2aabe2",
-                backgroundColor: "rgba(42,171,226,0.12)",
-                fill: true,
-                tension: 0.4,
-                pointBackgroundColor: "#ffffff",
-                pointBorderColor: "#2aabe2",
-                pointBorderWidth: 1.5,
-                pointRadius: 3.5,
-                pointHoverRadius: 5,
-            },
-        ],
-    };
+    const chartData = useMemo(
+        () => ({
+            labels,
+            datasets: [
+                {
+                    data: values,
+                    borderColor: "#2aabe2",
+                    backgroundColor: "rgba(42,171,226,0.12)",
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: "#ffffff",
+                    pointBorderColor: "#2aabe2",
+                    pointBorderWidth: 1.5,
+                    pointRadius: 3.5,
+                    pointHoverRadius: 5,
+                },
+            ],
+        }),
+        [labels, values],
+    );
 
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-            padding: {
-                top: 4,
-                right: 10,
-                bottom: 0,
-                left: 0,
-            },
-        },
-        plugins: {
-            legend: { display: false },
-            tooltip: { mode: "index", intersect: false },
-        },
-        scales: {
-            x: {
-                grid: {
-                    color: "rgba(15, 23, 42, 0.04)",
-                },
-                ticks: {
-                    color: "#5f6670",
-                    font: { size: 12, family: "Poppins" },
-                    autoSkip: true,
-                    maxTicksLimit: range === "Last 30 days" ? 6 : 8,
+    const chartOptions = useMemo(
+        () => ({
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: {
+                    top: 4,
+                    right: 10,
+                    bottom: 0,
+                    left: 0,
                 },
             },
-            y: {
-                min: 10,
-                max: 60,
-                ticks: {
-                    stepSize: 10,
-                    color: "#5f6670",
-                    font: { size: 12, family: "Poppins" },
-                    padding: 8,
+            plugins: {
+                legend: { display: false },
+                tooltip: { mode: "index", intersect: false },
+            },
+            scales: {
+                x: {
+                    grid: {
+                        color: "rgba(15, 23, 42, 0.04)",
+                    },
+                    ticks: {
+                        color: "#5f6670",
+                        font: { size: 12, family: "Poppins" },
+                        autoSkip: true,
+                        maxTicksLimit: range === "Last 30 days" ? 6 : 8,
+                    },
                 },
-                grid: {
-                    color: "rgba(15, 23, 42, 0.06)",
+                y: {
+                    min: 10,
+                    max: 60,
+                    ticks: {
+                        stepSize: 10,
+                        color: "#5f6670",
+                        font: { size: 12, family: "Poppins" },
+                        padding: 8,
+                    },
+                    grid: {
+                        color: "rgba(15, 23, 42, 0.06)",
+                    },
                 },
             },
-        },
-    };
+        }),
+        [range],
+    );
 
     return (
         <section className="dashboard-page aif-page">
-            <h4 className="fw-bold mb-1" style={{ color: "rgb(42, 171, 226)" }}>
-                Forecasting
-            </h4>
-            <p className="text-muted mb-3 aif-subtitle">AI-driven predictive analytics related to the pharmacy.</p>
+            <header className="dashboard-page-header mb-4">
+                <h4 className="fw-bold mb-1 dashboard-title">Forecasting</h4>
+                <p className="dashboard-subtitle mb-0 aif-subtitle">
+                    AI-driven operational predictions for demand, stockout risk, and inventory readiness.
+                </p>
+            </header>
 
             <div className="row g-4 mb-4">
                 <div className="col-12 col-md-7 col-lg-7">
@@ -181,16 +189,7 @@ function AIForecasting() {
                             <h6 className="fw-bold mb-0 aif-chart-title">Demand Forecast Chart</h6>
                             <div className="position-relative aif-filter-wrap">
                                 <select
-                                    className="form-select form-select-sm pe-4 aif-range-select"
-                                    style={{
-                                        fontSize: 13,
-                                        borderRadius: 20,
-                                        border: "1.5px solid #dde3ec",
-                                        background: "#f5f8fb",
-                                        appearance: "none",
-                                        cursor: "pointer",
-                                        paddingRight: "2rem",
-                                    }}
+                                    className="form-select form-select-sm pe-4 dashboard-range-select aif-range-select"
                                     value={range}
                                     onChange={(e) => setRange(e.target.value)}
                                     aria-label="Forecast period"

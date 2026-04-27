@@ -13,7 +13,7 @@
   flex-direction: column;
   height: calc(100vh - 140px);
   min-height: 560px;
-  border-radius: 10px;
+  border-radius: var(--pd-radius-md);
   border: 1px solid #e1e9f3;
   background: #f4f7fb;
 }
@@ -35,7 +35,7 @@
 
 .pos-order-items-card {
   --pos-order-items-viewport: 156px;
-  border-radius: 8px;
+  border-radius: var(--pd-radius-md);
   border: 1px solid #dfe8f2;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
@@ -57,7 +57,7 @@
 .pos-order-payment-wrap {
   padding: 8px;
   border: 1px solid #dbe7f2;
-  border-radius: 8px;
+  border-radius: var(--pd-radius-md);
   background: #f2f8fd;
 }
 
@@ -71,7 +71,7 @@
 .pos-order-complete-btn,
 .pos-payment-confirm-btn {
   border: none;
-  border-radius: 8px;
+  border-radius: var(--pd-radius-md);
   background: #2aabe2;
   color: #fff;
   transition: background 0.2s ease, opacity 0.2s ease;
