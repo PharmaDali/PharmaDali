@@ -88,8 +88,19 @@ function mapOrderProduct(item) {
 }
 
 export function mapApiOrderToViewModel(order) {
-  const rawStatus = String(order?.status || '').toLowerCase()
+  const rawStatusFromApi = String(order?.status || '').toLowerCase()
   const items = Array.isArray(order?.items) ? order.items : []
+  const reason = order?.cancellation_reason || ''
+
+  // Logic to distinguish between Rejected (by Pharmacist) and Cancelled (by Customer)
+  let rawStatus = rawStatusFromApi
+  if (rawStatusFromApi === 'cancelled') {
+    if (reason.toLowerCase().includes('rejected by pharmacist')) {
+      rawStatus = 'rejected'
+    } else {
+      rawStatus = 'cancelled'
+    }
+  }
 
   return {
     id: Number(order?.id || 0),
@@ -99,7 +110,7 @@ export function mapApiOrderToViewModel(order) {
     date: formatOrderDate(order?.placed_at || order?.created_at),
     products: items.map(mapOrderProduct),
     orderSummary: formatCurrency(order?.total_amount ?? order?.subtotal ?? 0),
-    reason: order?.cancellation_reason || null,
+    reason: reason || null,
   }
 }
 
@@ -108,7 +119,7 @@ export function splitOrdersByTab(orders) {
   const completed = []
 
   for (const order of orders) {
-    if (COMPLETED_STATUSES.has(order.rawStatus)) {
+    if (COMPLETED_STATUSES.has(order.rawStatus) || order.rawStatus === 'rejected') {
       completed.push(order)
       continue
     }

@@ -8,7 +8,7 @@ function CompletedOrderCard({ order, onViewDetails }) {
   return (
     <View className="border border-gray-200 bg-white rounded-2xl py-4 px-4 mt-4 mx-4 shadow-md elevation-2">
       <View className="flex-row justify-between items-start">
-        <View>
+        <View className="flex-1 mr-2">
           <Text className="text-sm" style={styles.textColorBold}>Order #{order.orderNumber}</Text>
           <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>{order.date}</Text>
         </View>
