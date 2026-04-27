@@ -9,9 +9,15 @@ import OrderItemRow from './OrderItemRow';
 export default function IssueOrderCard({ order }) {
   const [expanded, setExpanded] = useState(false);
 
-  const issueItems = order.items.filter((item) => item.status === 'Rejected' || item.status === 'Pending');
+  const issueItems = order.items.filter((item) => 
+    item.status === 'Rejected' || 
+    item.status === 'Pending' || 
+    item.status === 'stand_by' ||
+    item.status === 'Awaiting Customer Response'
+  );
   const rejectedItems = order.items.filter((item) => item.status === 'Rejected');
   const pendingItems = order.items.filter((item) => item.status === 'Pending');
+  const standbyItems = order.items.filter((item) => item.status === 'stand_by' || item.status === 'Awaiting Customer Response');
   
   const issueCount = issueItems.length;
 
@@ -90,6 +96,17 @@ export default function IssueOrderCard({ order }) {
                       Reason: {item.rejectionReason}
                     </Text>
                   )}
+                </View>
+              ))}
+            </View>
+          )}
+
+          {standbyItems.length > 0 && (
+            <View className="px-4 border-t border-gray-100">
+              <Text className="text-sm mt-3" style={styles.sectionTitle}>Stand-by Items (OTC)</Text>
+              {standbyItems.map((item, idx) => (
+                <View key={idx}>
+                  <OrderItemRow item={item} />
                 </View>
               ))}
             </View>

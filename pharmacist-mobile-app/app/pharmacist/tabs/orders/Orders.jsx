@@ -15,6 +15,7 @@ const mapApiStatusToTabStatus = (status) => {
   if (['pending', 'reviewing'].includes(s)) return 'For Review';
   if (s === 'preparing') return 'Preparing';
   if (['cancelled', 'rejected', 'stand_by'].includes(s)) return 'Issues';
+  if (['completed', 'ready_for_pickup', 'overdue'].includes(s)) return null;
   return 'Issues';
 };
 
@@ -66,7 +67,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
         };
       }),
     };
-  });
+  }).filter(order => order.status !== null);
 };
 
 export default function Orders() {
