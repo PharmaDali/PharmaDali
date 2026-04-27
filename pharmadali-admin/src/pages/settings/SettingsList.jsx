@@ -1,10 +1,10 @@
 import { settingsList } from "./constants";
 
 export const SettingsListView = ({ onNavigate }) => (
-  <section>
-    <header className="admin-page-header">
-      <h4 className="fw-bold admin-page-title">Settings</h4>
-      <p className="admin-page-subtitle">Configurations related to the pharmacy applications.</p>
+  <section className="dashboard-page">
+    <header className="admin-page-header mb-4">
+      <h4 className="fw-bold mb-1 admin-page-title">Settings</h4>
+      <p className="admin-page-subtitle mb-0">Configurations related to the pharmacy applications.</p>
     </header>
 
     <div className="settings-list-container">

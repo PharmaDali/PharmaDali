@@ -1,13 +1,27 @@
 import { useState } from "react";
 import "../assets/css/settings.css";
 import { SettingsListView } from "./settings/SettingsList";
-import { GeneralSettings } from "./settings/GeneralSettings";
-import { AccountSettings } from "./settings/AccountSettings";
 import { PlaceholderSettings } from "./settings/PlaceholderSettings";
+// import { GeneralSettings } from "./settings/GeneralSettings";
+// import { AccountSettings } from "./settings/AccountSettings";
 
 const settingsMap = {
-  general: { component: GeneralSettings },
-  account: { component: AccountSettings },
+  general: {
+    component: PlaceholderSettings,
+    props: {
+      title: "General Settings",
+      description: "Basic pharmacy information and system display preferences.",
+    },
+  },
+  account: {
+    component: PlaceholderSettings,
+    props: {
+      title: "Account Settings",
+      description: "Manage account credentials and security options.",
+    },
+  },
+  // general: { component: GeneralSettings },
+  // account: { component: AccountSettings },
   products: {
     component: PlaceholderSettings,
     props: {
@@ -77,17 +91,17 @@ function Settings() {
       const Component = settingConfig.component;
       const props = settingConfig.props || {};
       return (
-        <div className="p-4">
+        <>
           <Component {...props} onNavigate={handleNavigate} />
-        </div>
+        </>
       );
     }
   }
 
   return (
-    <div className="p-4">
+    <>
       <SettingsListView onNavigate={handleNavigate} />
-    </div>
+    </>
   );
 }
 

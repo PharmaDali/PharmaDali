@@ -12,6 +12,8 @@ import AIForecasting from "./pages/AIForecasting";
 import Inventory from "./pages/Inventory";
 import Pharmacists from "./pages/Pharmacists";
 import GetTechnicalHelp from "./pages/GetTechnicalHelp";
+import { GeneralSettings } from "./pages/settings/GeneralSettings";
+import { AccountSettings } from "./pages/settings/AccountSettings";
 
 function App() {
   return (
