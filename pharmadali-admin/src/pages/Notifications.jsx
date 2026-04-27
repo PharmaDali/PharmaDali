@@ -107,9 +107,8 @@ function Notifications() {
 
   if (selectedNotification) {
     const detailTheme = getDetailTheme(selectedNotification.type);
-
     return (
-      <div className="p-3 p-md-4">
+      <section>
         <button
           type="button"
           onClick={() => setSelectedNotification(null)}
@@ -174,12 +173,12 @@ function Notifications() {
             Reorder now!
           </p>
         </div>
-      </div>
+      </section>
     );
   }
 
   return (
-    <div className="p-3 p-md-4">
+    <section>
       <header className="admin-page-header">
         <h4 className="fw-bold mb-1 admin-page-title">Notifications</h4>
         <p className="admin-page-subtitle">Real-time pharmacy notifications.</p>
@@ -328,7 +327,7 @@ function Notifications() {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }
 
