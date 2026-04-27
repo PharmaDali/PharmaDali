@@ -14,19 +14,19 @@ import { colors } from '@shared/theme/colorPalette';
 import { Ionicons } from '@expo/vector-icons';
 
 const REJECT_REASONS = [
-  'Invalid Prescription',
-  'Incorrect Item Information',
+  'Invalid Prescription - Please re-order OTC items separately',
+  'Fake or Expired Prescription',
+  'Mismatched Patient Information',
   'Product Out of Stock',
-  'Prescription Expired',
-  'Mismatched Patient Info',
+  'Incorrect Item Information',
 ];
 
 const PENDING_REASONS = [
-  'Verifying Prescription',
-  'Awaiting Patient Clarification',
+  'Invalid Prescription - OTC items ready (Awaiting new Rx)',
+  'Blurry Prescription - Please re-upload clear photo',
+  'Prescription Name Mismatch - Awaiting clarification',
+  'Verifying Prescription with Physician',
   'Waiting for Stock Arrival',
-  'Pharmacist on Break',
-  'System Verification in Progress',
 ];
 
 export default function ActionReasonOverlay({
