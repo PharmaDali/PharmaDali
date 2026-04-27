@@ -84,8 +84,8 @@
 }
 
 .pos-order-complete-btn:disabled {
-  background: #b8babc;
-  color: #f7f7f7;
+  background: #c2c2c2;
+  color: #ffffff;
   cursor: not-allowed;
 }
 
