@@ -160,6 +160,25 @@
   border-color: #9cb6d4;
 }
 
+.pos-payment-input.is-error {
+  border-color: #ef4444;
+}
+
+.pos-payment-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.79rem;
+  color: #ef4444;
+}
+
+.pos-payment-error-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+}
+
 .pos-payment-change {
   margin-top: 8px;
   text-align: right;
