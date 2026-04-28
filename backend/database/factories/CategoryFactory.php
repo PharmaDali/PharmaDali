@@ -17,18 +17,22 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         $categories = [
-            "Prescription Medicines",
-            "Over-the-Counter (OTC) Medicines",
-            "Vitamins and Supplements",
-            "Baby and Kids",
-            "Personal Care",
-            "Medical Supplies",
-            "Chronic Care",
-            "Mother and Reproductive Health"
+            "Branded",
+            "Generic",
+            "Injectables",
+            "Eye Med ",
+            "Cream",
+            "Cosmetics",
+            "Hygiene",
+            "Diapers",
+            "Infant",
+            "Milk",
+            "Drinks",
+            "Vitamins"
         ];
 
         return [
-            'category_name' => $this->faker->randomElement($categories),
+            'category_name' => $this->faker->unique()->randomElement($categories),
             'description' => $this->faker->sentence(),
         ];
     }
