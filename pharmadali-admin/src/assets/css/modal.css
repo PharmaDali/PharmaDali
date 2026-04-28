@@ -22,6 +22,10 @@
   animation: pd-modal-enter 0.22s ease;
 }
 
+.pos-payment-modal.pd-modal--md {
+  width: min(100%, 480px);
+}
+
 .pd-modal--sm {
   width: min(100%, 420px);
 }

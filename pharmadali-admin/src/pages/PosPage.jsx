@@ -3,6 +3,7 @@ import adminMedsIcon from "../assets/icons/admin-meds.svg";
 import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg";
 import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
 import errorIcon from "../assets/icons/modal-icons/error.svg";
+import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg";
 import Modal from "../components/Modal";
 import "../assets/css/pospage.css";
 
@@ -211,6 +212,7 @@ function PosPage() {
   const [orderItems, setOrderItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isPaymentResultModalOpen, setIsPaymentResultModalOpen] = useState(false);
   const [cashReceived, setCashReceived] = useState("");
   const [gcashReference, setGcashReference] = useState("");
@@ -266,7 +268,7 @@ function PosPage() {
   const processPayment = () => {
     const isSuccess = paymentMethod === "cash"
       ? isCashValid
-      : isGcashValid && gcashReference.trim().startsWith("32");
+      : isGcashValid;
 
     setPaymentResult(isSuccess ? "success" : "failed");
     setIsPaymentModalOpen(false);
@@ -276,6 +278,21 @@ function PosPage() {
       setOrderItems([]);
       setSelectedProduct(null);
     }
+  };
+
+  const openConfirmModal = () => {
+    setIsPaymentModalOpen(false);
+    setIsConfirmModalOpen(true);
+  };
+
+  const handleConfirmContinue = () => {
+    setIsConfirmModalOpen(false);
+    processPayment();
+  };
+
+  const handleConfirmCancel = () => {
+    setIsConfirmModalOpen(false);
+    setIsPaymentModalOpen(true);
   };
 
   return (
@@ -364,7 +381,7 @@ function PosPage() {
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         title="Receive Payment"
-        size="sm"
+        size="md"
         className="pos-payment-modal"
         footer={null}
       >
@@ -401,6 +418,17 @@ function PosPage() {
           </>
         ) : (
           <>
+            <label className="pos-cash-received" htmlFor="pos-cash-received">
+              Enter Amount Received
+            </label>
+            <input
+              id="pos-cash-received"
+              type="number"
+              inputMode="decimal"
+              className={`pos-payment-input ${showCashError ? "is-error" : ""}`.trim()}
+              value={cashReceived}
+              onChange={(event) => setCashReceived(event.target.value)}
+            />
             <label className="pos-payment-label" htmlFor="pos-gcash-reference">
               Enter GCash Reference No.
             </label>
@@ -411,7 +439,7 @@ function PosPage() {
               className="pos-payment-input"
               value={gcashReference}
               onChange={(event) => setGcashReference(event.target.value.replace(/\D/g, ""))}
-              placeholder="3245535498983289324"
+              placeholder="1234567891011"
             />
           </>
         )}
@@ -419,11 +447,35 @@ function PosPage() {
         <button
           type="button"
           className="pos-payment-confirm-btn"
-          onClick={processPayment}
+          onClick={openConfirmModal}
           disabled={paymentMethod === "cash" ? !isCashValid : !isGcashValid}
         >
           Confirm
         </button>
+      </Modal>
+
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={handleConfirmCancel}
+        size="sm"
+        showCloseButton={false}
+        className="pos-confirm-modal"
+      >
+        <div className="pos-confirm-content">
+          <img src={shieldQuestionIcon} alt="" className="pos-confirm-icon" aria-hidden="true" />
+          <h3 className="pos-confirm-title">Confirm this order?</h3>
+          <p className="pos-confirm-text">
+            Please review the details before proceeding. This action cannot be undone.
+          </p>
+          <div className="pos-confirm-actions">
+            <button type="button" className="pos-confirm-primary" onClick={handleConfirmContinue}>
+              Continue
+            </button>
+            <button type="button" className="pos-confirm-secondary" onClick={handleConfirmCancel}>
+              Cancel
+            </button>
+          </div>
+        </div>
       </Modal>
 
       <Modal

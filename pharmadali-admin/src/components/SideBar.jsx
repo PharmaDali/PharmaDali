@@ -1,6 +1,16 @@
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../services/loginService";
+import dashboardIcon from "../assets/icons/sidebar-icons/dashboard.svg";
+import posIcon from "../assets/icons/sidebar-icons/pos.svg";
+import pickupOrdersIcon from "../assets/icons/sidebar-icons/pickup-orders.svg";
+import inventoryIcon from "../assets/icons/sidebar-icons/inventory.svg";
+import aiAnalyticsIcon from "../assets/icons/sidebar-icons/ai-analytics&forecasting.svg";
+import salesReportsIcon from "../assets/icons/sidebar-icons/sales-and-reports.svg";
+import pharmacistsIcon from "../assets/icons/sidebar-icons/pharmacists.svg";
+import notificationsIcon from "../assets/icons/sidebar-icons/notifications.svg";
+import settingsIcon from "../assets/icons/sidebar-icons/settings.svg";
+import getTechnicalHelpIcon from "../assets/icons/sidebar-icons/get-technical-help.svg";
 
 const VISUAL_UNREAD_BADGE = 1;
 
@@ -21,35 +31,35 @@ const formatUnreadBadge = (count) => {
 const MENU_SECTIONS = [
   {
     items: [
-      { to: "/", icon: "fa-th-large", label: "Dashboard" },
-      { to: "/pos", icon: "fa-store", label: "POS" },
-      { to: "/pick-up", icon: "fa-chart-line", label: "Pickup Orders" },
-      { to: "/inventory", icon: "fa-boxes", label: "Inventory" },
+      { to: "/", icon: dashboardIcon, label: "Dashboard" },
+      { to: "/pos", icon: posIcon, label: "POS" },
+      { to: "/pick-up", icon: pickupOrdersIcon, label: "Pickup Orders" },
+      { to: "/inventory", icon: inventoryIcon, label: "Inventory" },
     ],
   },
   {
     items: [
-      { to: "/ai-forecasting", icon: "fa-brain", label: "AI Forecasting" },
+      { to: "/ai-forecasting", icon: aiAnalyticsIcon, label: "AI Analytics & Forecasting" },
       {
         to: "/sales-reports",
-        icon: "fa-chart-bar",
+        icon: salesReportsIcon,
         label: "Sales & Reports",
       },
     ],
   },
   {
     items: [
-      { to: "/pharmacists", icon: "fa-user-nurse", label: "Pharmacists" },
+      { to: "/pharmacists", icon: pharmacistsIcon, label: "Pharmacists" },
       {
         to: "/notifications",
-        icon: "fa-bell",
+        icon: notificationsIcon,
         label: "Notifications",
         badgeKey: "notifications",
       },
-      { to: "/settings", icon: "fa-cog", label: "Settings" },
+      { to: "/settings", icon: settingsIcon, label: "Settings" },
       {
         to: "/get-technical-help",
-        icon: "fa-question-circle",
+        icon: getTechnicalHelpIcon,
         label: "Get Technical Help",
       },
     ],
@@ -111,7 +121,16 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = null }) {
                 data-bs-strategy="fixed"
                 aria-expanded="false"
               >
-                <i className="fa-solid fa-ellipsis-vertical" />
+                <svg
+                  className="sidebar-ellipsis"
+                  viewBox="0 0 4 16"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <circle cx="2" cy="2" r="2" fill="currentColor" />
+                  <circle cx="2" cy="8" r="2" fill="currentColor" />
+                  <circle cx="2" cy="14" r="2" fill="currentColor" />
+                </svg>
               </button>
 
               <ul className="dropdown-menu">
@@ -149,14 +168,7 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = null }) {
                     `menu-item d-flex align-items-center gap-3 position-relative text-decoration-none${isActive ? " active" : ""}`
                   }
                 >
-                  <i
-                    className={`fa-solid ${item.icon}`}
-                    style={{
-                      fontSize: 16,
-                      width: 20,
-                      textAlign: "center",
-                    }}
-                  />
+                  <img src={item.icon} alt="" className="menu-icon" aria-hidden="true" />
                   <span>{item.label}</span>
                   {badgeValue && (
                     <span className="menu-badge position-absolute rounded-pill fw-semibold">
@@ -175,7 +187,21 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = null }) {
         className={`sidebar-toggle position-fixed d-flex align-items-center justify-content-center border-0${isOpen ? " open" : ""}`}
         onClick={onToggle}
       >
-        <i className="fa-solid fa-chevron-left" />
+        <svg
+          className="sidebar-toggle-icon"
+          viewBox="0 0 12 20"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d="M10 2L3 10L10 18"
+            stroke="currentColor"
+            strokeWidth="2"
+            fill="none"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
       </button>
     </>
   );
