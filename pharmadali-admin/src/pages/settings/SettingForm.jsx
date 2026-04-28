@@ -1,6 +1,6 @@
 import { Breadcrumb } from "./Breadcrumb";
 
-export const SettingForm = ({ title, description, isEditing, onEditChange, onSave, onCancel, children, breadcrumbs, onNavigate }) => (
+export const SettingForm = ({ title, description, isEditing, onEditChange, onSave, children, breadcrumbs, onNavigate }) => (
   <>
     <Breadcrumb crumbs={breadcrumbs} onNavigate={onNavigate} />
 
@@ -11,20 +11,12 @@ export const SettingForm = ({ title, description, isEditing, onEditChange, onSav
           <p className="settings-detail-subtitle">{description}</p>
         </div>
         <div className="settings-button-group">
-          {!isEditing ? (
-            <button className="btn btn-outline-primary btn-sm" onClick={() => onEditChange(true)}>
-              Edit
-            </button>
-          ) : (
-            <>
-              <button className="btn btn-outline-secondary btn-sm" onClick={onCancel}>
-                Cancel
-              </button>
-              <button className="btn btn-primary btn-sm" onClick={onSave}>
-                Save Changes
-              </button>
-            </>
-          )}
+          <button className="btn btn-outline-primary btn-sm" onClick={() => onEditChange(true)}>
+            Edit
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={onSave} disabled={!isEditing}>
+            Save Changes
+          </button>
         </div>
       </div>
     </header>

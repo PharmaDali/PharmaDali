@@ -2,16 +2,12 @@ import { useState } from "react";
 import "../assets/css/settings.css";
 import { SettingsListView } from "./settings/SettingsList";
 import { PlaceholderSettings } from "./settings/PlaceholderSettings";
-// import { GeneralSettings } from "./settings/GeneralSettings";
+import { GeneralSettings } from "./settings/GeneralSettings";
 // import { AccountSettings } from "./settings/AccountSettings";
 
 const settingsMap = {
   general: {
-    component: PlaceholderSettings,
-    props: {
-      title: "General Settings",
-      description: "Basic pharmacy information and system display preferences.",
-    },
+    component: GeneralSettings,
   },
   account: {
     component: PlaceholderSettings,
@@ -20,7 +16,6 @@ const settingsMap = {
       description: "Manage account credentials and security options.",
     },
   },
-  // general: { component: GeneralSettings },
   // account: { component: AccountSettings },
   products: {
     component: PlaceholderSettings,
