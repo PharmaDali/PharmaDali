@@ -1,5 +1,7 @@
 import { useState } from "react";
-import adminMedsIcon from "../assets/icons/admin_meds.svg";
+import adminMedsIcon from "../assets/icons/admin-meds.svg";
+import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg";
+import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
 import Modal from "../components/Modal";
 import "../assets/css/pospage.css";
 
@@ -432,8 +434,10 @@ function PosPage() {
         </button>
 
         <div className="pos-result-content">
-          <i
-            className={`fa-regular ${paymentResult === "success" ? "fa-circle-check" : "fa-circle-xmark"} pos-result-icon ${paymentResult === "success" ? "is-success" : "is-failed"}`}
+          <img
+            src={paymentResult === "success" ? successfulTaskIcon : unsuccessfulTaskIcon}
+            alt={paymentResult === "success" ? "Payment successful" : "Payment unsuccessful"}
+            className="pos-result-icon"
           />
           <p className="pos-result-text">
             Payment {paymentResult === "success" ? "Successful" : "Unsuccessful"}

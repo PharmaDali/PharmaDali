@@ -207,15 +207,9 @@
 }
 
 .pos-result-icon {
-  font-size: clamp(3.1rem, 5vw, 4.2rem);
-}
-
-.pos-result-icon.is-success {
-  color: #53b37f;
-}
-
-.pos-result-icon.is-failed {
-  color: #ef4444;
+  width: clamp(76px, 9vw, 92px);
+  height: clamp(76px, 9vw, 92px);
+  display: inline-block;
 }
 
 .pos-result-text {
@@ -331,7 +325,8 @@
   }
 
   .pos-result-icon {
-    font-size: 3rem;
+    width: 72px;
+    height: 72px;
   }
 
   .pos-result-text {

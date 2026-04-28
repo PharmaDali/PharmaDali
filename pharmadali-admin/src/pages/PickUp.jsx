@@ -1,5 +1,7 @@
 import { useState } from "react";
 import Modal from "../components/Modal";
+import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg";
+import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
 import "../assets/css/pospage.css";
 
 const SAMPLE_ORDERS = [
@@ -370,8 +372,10 @@ function PickUp() {
         </button>
 
         <div className="pos-result-content">
-          <i
-            className={`fa-regular ${paymentResult === "success" ? "fa-circle-check" : "fa-circle-xmark"} pos-result-icon ${paymentResult === "success" ? "is-success" : "is-failed"}`}
+          <img
+            src={paymentResult === "success" ? successfulTaskIcon : unsuccessfulTaskIcon}
+            alt={paymentResult === "success" ? "Payment successful" : "Payment unsuccessful"}
+            className="pos-result-icon"
           />
           <p className="pos-result-text">
             Payment {paymentResult === "success" ? "Successful" : "Unsuccessful"}
