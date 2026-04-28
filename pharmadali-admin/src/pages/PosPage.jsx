@@ -70,7 +70,7 @@ function ProductTable({ results, selectedId, onSelect }) {
                   background: selectedId === item.id ? "#e8f0fe" : "white",
                 }}
               >
-                <td className="py-3 border-0 border-bottom" style={{ color: "#333", borderLeft: selectedId === item.id ? "4px solid #2aabe2" : "4px solid transparent", paddingLeft: 8, paddingRight: 12 }}>{item.genericName}</td>
+                <td className="py-3 border-0 border-bottom" style={{ color: "#333", borderLeft: selectedId === item.id ? "4px solid #96D2EE" : "4px solid transparent", paddingLeft: 8, paddingRight: 12 }}>{item.genericName}</td>
                 <td className="px-3 py-3 border-0 border-bottom" style={{ color: "#333" }}>{item.brandName}</td>
                 <td className="px-3 py-3 border-0 border-bottom" style={{ color: "#333" }}>{item.strength}</td>
                 <td className="px-3 py-3 border-0 border-bottom" style={{ color: "#333" }}>{item.price.toFixed(2)}</td>
