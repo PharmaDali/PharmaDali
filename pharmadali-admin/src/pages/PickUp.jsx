@@ -1,5 +1,8 @@
 import { useState } from "react";
 import Modal from "../components/Modal";
+import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg";
+import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
+import errorIcon from "../assets/icons/modal-icons/error.svg";
 import "../assets/css/pospage.css";
 
 const SAMPLE_ORDERS = [
@@ -84,6 +87,8 @@ function PickUp() {
   const changeAmount = Number.isFinite(cashNumeric) ? cashNumeric - orderTotal : 0;
   const isCashValid = Number.isFinite(cashNumeric) && cashNumeric >= orderTotal;
   const isGcashValid = /^\d{13,}$/.test(gcashReference.trim());
+  const showCashError = paymentMethod === "cash" && cashReceived.trim() !== "" && !isCashValid;
+  const cashShortage = showCashError ? Math.max(orderTotal - cashNumeric, 0) : 0;
 
   const openDetailsPanel = (order) => {
     setActiveOrder(order);
@@ -318,10 +323,16 @@ function PickUp() {
               type="number"
               min="0"
               step="0.01"
-              className="pos-payment-input"
+              className={`pos-payment-input ${showCashError ? "is-error" : ""}`.trim()}
               value={cashReceived}
               onChange={(event) => setCashReceived(event.target.value)}
             />
+            {showCashError && (
+              <div className="pos-payment-error" role="alert">
+                <img src={errorIcon} alt="" className="pos-payment-error-icon" aria-hidden="true" />
+                <span>Not enough payment. Please add PHP {cashShortage.toFixed(2)}.</span>
+              </div>
+            )}
             <div className="pos-payment-change">
               Change: <strong>PHP {Math.max(changeAmount, 0).toFixed(2)}</strong>
             </div>
@@ -370,8 +381,10 @@ function PickUp() {
         </button>
 
         <div className="pos-result-content">
-          <i
-            className={`fa-regular ${paymentResult === "success" ? "fa-circle-check" : "fa-circle-xmark"} pos-result-icon ${paymentResult === "success" ? "is-success" : "is-failed"}`}
+          <img
+            src={paymentResult === "success" ? successfulTaskIcon : unsuccessfulTaskIcon}
+            alt={paymentResult === "success" ? "Payment successful" : "Payment unsuccessful"}
+            className="pos-result-icon"
           />
           <p className="pos-result-text">
             Payment {paymentResult === "success" ? "Successful" : "Unsuccessful"}
