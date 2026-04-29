@@ -3,20 +3,15 @@ import "../assets/css/settings.css";
 import { SettingsListView } from "./settings/SettingsList";
 import { PlaceholderSettings } from "./settings/PlaceholderSettings";
 import { GeneralSettings } from "./settings/GeneralSettings";
-// import { AccountSettings } from "./settings/AccountSettings";
+import { AccountSettings } from "./settings/AccountSettings";
 
 const settingsMap = {
   general: {
     component: GeneralSettings,
   },
   account: {
-    component: PlaceholderSettings,
-    props: {
-      title: "Account Settings",
-      description: "Manage account credentials and security options.",
-    },
+    component: AccountSettings,
   },
-  // account: { component: AccountSettings },
   products: {
     component: PlaceholderSettings,
     props: {
