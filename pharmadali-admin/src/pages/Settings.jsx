@@ -4,6 +4,9 @@ import { SettingsListView } from "./settings/SettingsList";
 import { PlaceholderSettings } from "./settings/PlaceholderSettings";
 import { GeneralSettings } from "./settings/GeneralSettings";
 import { AccountSettings } from "./settings/AccountSettings";
+import { ProductsPricing } from "./settings/ProductsPricing";
+import { ProductConfiguration } from "./settings/ProductConfiguration";
+import { PricingRules } from "./settings/PricingRules";
 
 const settingsMap = {
   general: {
@@ -13,11 +16,13 @@ const settingsMap = {
     component: AccountSettings,
   },
   products: {
-    component: PlaceholderSettings,
-    props: {
-      title: "Products and Pricing",
-      description: "Configure product categories, items, and pricing rules.",
-    },
+    component: ProductsPricing,
+  },
+  "product-config": {
+    component: ProductConfiguration,
+  },
+  "pricing-rules": {
+    component: PricingRules,
   },
   pos: {
     component: PlaceholderSettings,
