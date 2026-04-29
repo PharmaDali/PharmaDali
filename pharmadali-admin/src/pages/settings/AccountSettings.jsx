@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SettingForm, FormGroup, FormDisplay } from "./SettingForm";
+import { SettingForm } from "./SettingForm";
 
 const initialData = {
   recoveryEmail: "",
@@ -20,10 +20,64 @@ export const AccountSettings = ({ onNavigate }) => {
     setIsEditing(false);
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
-    setFormData(initialData);
-  };
+  const sections = [
+    {
+      key: "recoveryEmail",
+      label: "Recovery Email",
+      helper: "Receive recovery instructions and security updates.",
+      content: (
+        <input
+          type="email"
+          className="form-control settings-form-input"
+          placeholder="Add recovery email"
+          value={formData.recoveryEmail}
+          onChange={(e) => handleInputChange("recoveryEmail", e.target.value)}
+          disabled={!isEditing}
+        />
+      ),
+    },
+    {
+      key: "password",
+      label: "Reset Password",
+      helper: "Update your account password and security credentials.",
+      content: (
+        <div className="d-flex flex-column gap-2">
+          <input
+            type="password"
+            className="form-control settings-form-input"
+            placeholder="Current Password"
+            value={formData.currentPassword}
+            onChange={(e) => handleInputChange("currentPassword", e.target.value)}
+            disabled={!isEditing}
+          />
+          <input
+            type="password"
+            className="form-control settings-form-input"
+            placeholder="New Password"
+            value={formData.newPassword}
+            onChange={(e) => handleInputChange("newPassword", e.target.value)}
+            disabled={!isEditing}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "rememberPassword",
+      label: "Remember Password",
+      helper: "Keep this device signed in to speed up logins.",
+      content: (
+        <div className="d-flex justify-content-end">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            checked={formData.rememberPassword}
+            onChange={(e) => handleInputChange("rememberPassword", e.target.checked)}
+            disabled={!isEditing}
+          />
+        </div>
+      ),
+    },
+  ];
 
   return (
     <SettingForm
@@ -32,59 +86,26 @@ export const AccountSettings = ({ onNavigate }) => {
       isEditing={isEditing}
       onEditChange={setIsEditing}
       onSave={handleSave}
-      onCancel={handleCancel}
       breadcrumbs={[
         { label: "Settings", view: "settings" },
         { label: "Account Settings", view: "account" },
       ]}
       onNavigate={onNavigate}
     >
-      <FormGroup label="Recovery Email">
-        {isEditing ? (
-          <input
-            type="email"
-            className="form-control settings-form-input"
-            placeholder="Add recovery email"
-            value={formData.recoveryEmail}
-            onChange={(e) => handleInputChange("recoveryEmail", e.target.value)}
-          />
-        ) : (
-          <FormDisplay>{formData.recoveryEmail || "Add recovery email"}</FormDisplay>
-        )}
-      </FormGroup>
-
-      <FormGroup label="Reset Password">
-        {isEditing ? (
-          <>
-            <input
-              type="password"
-              className="form-control settings-form-input mb-2"
-              placeholder="Current Password"
-              value={formData.currentPassword}
-              onChange={(e) => handleInputChange("currentPassword", e.target.value)}
-            />
-            <input
-              type="password"
-              className="form-control settings-form-input"
-              placeholder="New Password"
-              value={formData.newPassword}
-              onChange={(e) => handleInputChange("newPassword", e.target.value)}
-            />
-          </>
-        ) : (
-          <FormDisplay>••••••••</FormDisplay>
-        )}
-      </FormGroup>
-
-      <FormGroup label="Remember Password" isCheckbox>
-        <input
-          type="checkbox"
-          className="form-check-input"
-          checked={formData.rememberPassword}
-          onChange={(e) => handleInputChange("rememberPassword", e.target.checked)}
-          disabled={!isEditing}
-        />
-      </FormGroup>
+      <div className="settings-section-list">
+        {sections.map((section, index) => (
+          <div
+            key={section.key}
+            className={`settings-section-row${index === sections.length - 1 ? " is-last" : ""}`}
+          >
+            <div className="settings-section-left">
+              <p className="settings-section-title">{section.label}</p>
+              <p className="settings-section-helper">{section.helper}</p>
+            </div>
+            <div className="settings-section-right">{section.content}</div>
+          </div>
+        ))}
+      </div>
     </SettingForm>
   );
 };
