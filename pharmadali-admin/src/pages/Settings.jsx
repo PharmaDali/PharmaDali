@@ -6,6 +6,7 @@ import { GeneralSettings } from "./settings/GeneralSettings";
 import { AccountSettings } from "./settings/AccountSettings";
 import { ProductsPricing } from "./settings/ProductsPricing";
 import { ProductConfiguration } from "./settings/ProductConfiguration";
+import { PricingRules } from "./settings/PricingRules";
 
 const settingsMap = {
   general: {
@@ -21,7 +22,7 @@ const settingsMap = {
     component: ProductConfiguration,
   },
   "pricing-rules": {
-    component: ProductsPricing,
+    component: PricingRules,
   },
   pos: {
     component: PlaceholderSettings,

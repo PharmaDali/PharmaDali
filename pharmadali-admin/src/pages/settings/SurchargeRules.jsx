@@ -1,21 +1,17 @@
 import { useState } from "react";
 import Modal from "../../components/Modal";
 
-const initialDiscounts = [
-  { id: 1, name: "Coupon 5", type: "Amount", value: "300.00" },
-  { id: 2, name: "Coupon 10", type: "Amount", value: "600.00" },
-  { id: 3, name: "VIP", type: "Percentage", value: "25" },
-];
+const initialSurcharges = [];
 
 const defaultForm = {
   name: "",
-  type: "Amount",
+  type: "Percentage",
   value: "",
 };
 
-export const DiscountOverlay = ({ isOpen, onClose }) => {
-  const [discounts, setDiscounts] = useState(initialDiscounts);
-  const [modal, setModal] = useState({ type: null, discountId: null });
+export const SurchargeOverlay = ({ isOpen, onClose }) => {
+  const [surcharges, setSurcharges] = useState(initialSurcharges);
+  const [modal, setModal] = useState({ type: null, surchargeId: null });
   const [formData, setFormData] = useState(defaultForm);
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const [valueError, setValueError] = useState("");
@@ -25,17 +21,17 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
   const openAddModal = () => {
     setFormData(defaultForm);
     setValueError("");
-    setModal({ type: "add", discountId: null });
+    setModal({ type: "add", surchargeId: null });
   };
 
-  const openEditModal = (discount) => {
+  const openEditModal = (surcharge) => {
     setFormData({
-      name: discount.name,
-      type: discount.type,
-      value: discount.value,
+      name: surcharge.name,
+      type: surcharge.type,
+      value: surcharge.value,
     });
     setValueError("");
-    setModal({ type: "edit", discountId: discount.id });
+    setModal({ type: "edit", surchargeId: surcharge.id });
   };
 
   const openDeleteModal = () => {
@@ -43,7 +39,7 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
   };
 
   const closeSubModal = () => {
-    setModal({ type: null, discountId: null });
+    setModal({ type: null, surchargeId: null });
     setIsTypeDropdownOpen(false);
   };
 
@@ -51,18 +47,18 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
     if (!formData.name.trim() || valueError) return;
     
     if (modal.type === "add") {
-      const nextId = Math.max(0, ...discounts.map((d) => d.id)) + 1;
-      setDiscounts((prev) => [...prev, { ...formData, id: nextId }]);
+      const nextId = Math.max(0, ...surcharges.map((s) => s.id)) + 1;
+      setSurcharges((prev) => [...prev, { ...formData, id: nextId }]);
     } else if (modal.type === "edit") {
-      setDiscounts((prev) =>
-        prev.map((d) => (d.id === modal.discountId ? { ...formData, id: d.id } : d))
+      setSurcharges((prev) =>
+        prev.map((s) => (s.id === modal.surchargeId ? { ...formData, id: s.id } : s))
       );
     }
     closeSubModal();
   };
 
   const handleDelete = () => {
-    setDiscounts((prev) => prev.filter((d) => d.id !== modal.discountId));
+    setSurcharges((prev) => prev.filter((s) => s.id !== modal.surchargeId));
     closeSubModal();
   };
 
@@ -79,7 +75,7 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const activeDiscount = discounts.find((d) => d.id === modal.discountId);
+  const activeSurcharge = surcharges.find((s) => s.id === modal.surchargeId);
 
   return (
     <div className="settings-modal-backdrop" role="presentation" onClick={onClose}>
@@ -90,12 +86,12 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
         aria-modal="true"
         onClick={(event) => event.stopPropagation()}
       >
-        {/* Main Discount List Header */}
+        {/* Main Surcharge List Header */}
         <div className="settings-panel-header" style={{ marginBottom: "1.2rem", alignItems: "center" }}>
           <div>
-            <h5 className="fw-bold settings-panel-title" style={{ fontSize: "1.25rem", margin: 0 }}>Discount</h5>
+            <h5 className="fw-bold settings-panel-title" style={{ fontSize: "1.25rem", margin: 0 }}>Surcharge</h5>
             <p className="settings-panel-subtitle" style={{ fontSize: "0.85rem", marginTop: "0.2rem" }}>
-              Add, delete, and update discount.
+              Add, delete, and update surcharge.
             </p>
           </div>
           <div className="settings-panel-actions">
@@ -112,13 +108,13 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
 
         <div style={{ borderTop: "1px solid #eee", marginBottom: "0.5rem" }} />
 
-        {/* Discount List */}
+        {/* Surcharge List */}
         <div className="settings-table-card" style={{ border: "none", boxShadow: "none" }}>
-          {discounts.map((discount, index) => (
+          {surcharges.map((surcharge, index) => (
             <div
-              key={discount.id}
-              className={`settings-table-row${index === discounts.length - 1 ? " is-last" : ""}`}
-              onClick={() => openEditModal(discount)}
+              key={surcharge.id}
+              className={`settings-table-row${index === surcharges.length - 1 ? " is-last" : ""}`}
+              onClick={() => openEditModal(surcharge)}
               style={{ 
                 cursor: "pointer", 
                 padding: "1rem 0.5rem", 
@@ -130,19 +126,19 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
             >
               <div className="settings-table-name">
                 <p className="settings-table-title" style={{ fontSize: "1.1rem", fontWeight: "600", color: "#333" }}>
-                  {discount.name}
+                  {surcharge.name}
                 </p>
               </div>
               <div className="settings-table-actions">
                 <span style={{ fontSize: "1.1rem", fontWeight: "500", color: "#888" }}>
-                  {discount.type === "Amount" ? `Php ${discount.value}` : `${discount.value}%`}
+                  {surcharge.type === "Amount" ? `Php ${surcharge.value}` : `${surcharge.value}%`}
                 </span>
               </div>
             </div>
           ))}
-          {discounts.length === 0 && (
-            <div className="settings-table-empty" style={{ padding: "3rem", color: "#999" }}>
-              No discounts found.
+          {surcharges.length === 0 && (
+            <div className="settings-table-empty" style={{ padding: "5rem", color: "#999", fontSize: "1rem" }}>
+              No Records
             </div>
           )}
         </div>
@@ -165,7 +161,7 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                 <>
                   <div className="settings-modal-header settings-modal-header--center" style={{ borderBottom: "none", padding: "1rem 0" }}>
                     <h4 className="settings-modal-title" style={{ color: "#333", fontSize: "1.2rem", fontWeight: "600" }}>
-                      Delete "{activeDiscount?.name}" ?
+                      Delete "{activeSurcharge?.name}" ?
                     </h4>
                   </div>
                   <div className="settings-modal-footer settings-modal-footer--center" style={{ marginTop: "1rem", gap: "2rem" }}>
@@ -191,21 +187,21 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                 <>
                   <div className="settings-modal-header" style={{ borderBottom: "1px solid #eee", marginBottom: "1.5rem", paddingBottom: "0.8rem" }}>
                     <h4 className="settings-modal-title" style={{ color: "#48aad9", fontSize: "1.1rem", fontWeight: "600" }}>
-                      {modal.type === "add" ? "Add Discount" : "Update Discount"}
+                      Surcharge
                     </h4>
                   </div>
                   
                   <div className="settings-modal-body" style={{ gap: "1.5rem" }}>
-                    {/* Discount Name Field */}
+                    {/* Surcharge Name Field */}
                     <div className="settings-modal-field-row" style={{ gridTemplateColumns: "140px 1fr" }}>
                       <label className="settings-modal-label" style={{ fontSize: "1rem", fontWeight: "600", color: "#333" }}>
-                        Discount Name
+                        Surcharge Name
                       </label>
                       <div className="settings-modal-control">
                         <input
                           type="text"
                           className="settings-modal-input"
-                          placeholder="Coupon Name"
+                          placeholder="Surcharge Name"
                           value={formData.name}
                           onChange={(event) => handleFormChange("name", event.target.value)}
                           style={{ 
@@ -220,10 +216,10 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                       </div>
                     </div>
 
-                    {/* Discount Value Field */}
+                    {/* Surcharge Value Field */}
                     <div className="settings-modal-field-row" style={{ gridTemplateColumns: "140px 1fr" }}>
                       <label className="settings-modal-label" style={{ fontSize: "1rem", fontWeight: "600", color: "#333" }}>
-                        Discount Value
+                        Surcharge Value
                       </label>
                       <div className="settings-modal-control" style={{ gap: "0.8rem", alignItems: "center" }}>
                         {/* Custom Dropdown */}
