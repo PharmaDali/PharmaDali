@@ -1,4 +1,5 @@
 import { Breadcrumb } from "./Breadcrumb";
+import "../../assets/css/settings/common.css";
 
 export const SettingForm = ({ title, description, isEditing, onEditChange, onSave, children, breadcrumbs, onNavigate }) => (
   <>

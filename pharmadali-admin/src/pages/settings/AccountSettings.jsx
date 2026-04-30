@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SettingForm } from "./SettingForm";
+import "../../assets/css/settings/common.css";
 
 const initialData = {
   recoveryEmail: "",
@@ -28,7 +29,7 @@ export const AccountSettings = ({ onNavigate }) => {
       content: (
         <input
           type="email"
-          className="form-control settings-form-input"
+          className="settings-form-input"
           placeholder="Add recovery email"
           value={formData.recoveryEmail}
           onChange={(e) => handleInputChange("recoveryEmail", e.target.value)}
@@ -41,10 +42,10 @@ export const AccountSettings = ({ onNavigate }) => {
       label: "Reset Password",
       helper: "Update your account password and security credentials.",
       content: (
-        <div className="d-flex flex-column gap-2">
+        <div className="settings-flex-column">
           <input
             type="password"
-            className="form-control settings-form-input"
+            className="settings-form-input"
             placeholder="Current Password"
             value={formData.currentPassword}
             onChange={(e) => handleInputChange("currentPassword", e.target.value)}
@@ -52,7 +53,7 @@ export const AccountSettings = ({ onNavigate }) => {
           />
           <input
             type="password"
-            className="form-control settings-form-input"
+            className="settings-form-input"
             placeholder="New Password"
             value={formData.newPassword}
             onChange={(e) => handleInputChange("newPassword", e.target.value)}
@@ -66,14 +67,17 @@ export const AccountSettings = ({ onNavigate }) => {
       label: "Remember Password",
       helper: "Keep this device signed in to speed up logins.",
       content: (
-        <div className="d-flex justify-content-end">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            checked={formData.rememberPassword}
-            onChange={(e) => handleInputChange("rememberPassword", e.target.checked)}
-            disabled={!isEditing}
-          />
+        <div className="settings-section-right">
+          <div className="pd-checkbox-container" onClick={() => isEditing && handleInputChange("rememberPassword", !formData.rememberPassword)}>
+            <input
+              type="checkbox"
+              className="pd-checkbox"
+              checked={formData.rememberPassword}
+              disabled={!isEditing}
+              onChange={() => {}}
+            />
+            <span className="pd-checkbox-label">Keep me signed in</span>
+          </div>
         </div>
       ),
     },

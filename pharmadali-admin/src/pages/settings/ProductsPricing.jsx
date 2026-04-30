@@ -1,15 +1,16 @@
 import { Breadcrumb } from "./Breadcrumb";
+import "../../assets/css/settings/common.css";
 
 const items = [
   {
     id: "product-config",
     label: "Product Configuration",
-    description: "Import, add, edit, and update category listings.",
+    description: "Basic pharmacy information and system display preferences.",
   },
   {
     id: "pricing-rules",
     label: "Pricing Rules",
-    description: "Define pricing behavior for products and promos.",
+    description: "Basic pharmacy information and system display preferences.",
   },
 ];
 
@@ -48,7 +49,7 @@ export const ProductsPricing = ({ onNavigate }) => (
             <h6 className="settings-list-item-label">{item.label}</h6>
             <p className="settings-list-item-description">{item.description}</p>
           </div>
-          <span className="settings-list-item-arrow">&rsaquo;</span>
+          <span className="settings-list-item-arrow">›</span>
         </div>
       ))}
     </div>

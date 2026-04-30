@@ -1,55 +1,94 @@
+import { useState } from "react";
 import { Breadcrumb } from "./Breadcrumb";
+import { DiscountOverlay } from "./DiscountRules";
+import { SurchargeOverlay } from "./SurchargeRules";
+import { TaxOverlay } from "./TaxOverlay";
+import "../../assets/css/settings/common.css";
 
-const rules = [
+const items = [
   {
     id: "discount",
-    name: "Branch-wide discount",
-    helper: "Apply a percentage discount to selected product groups.",
+    label: "Discount",
+    description: "Add, delete, and update discount.",
   },
   {
-    id: "rounding",
-    name: "Price rounding",
-    helper: "Round prices to your preferred denomination.",
+    id: "surcharge",
+    label: "Surcharge",
+    description: "Add, delete, and update surcharge.",
+  },
+  {
+    id: "tax",
+    label: "Tax",
+    description: "Setup tax.",
   },
 ];
 
-export const PricingRules = ({ onNavigate }) => (
-  <>
-    <Breadcrumb
-      crumbs={[
-        { label: "Settings", view: "settings" },
-        { label: "Products and Pricing", view: "products" },
-        { label: "Pricing Rules", view: "pricing-rules" },
-      ]}
-      onNavigate={onNavigate}
-    />
+export const PricingRules = ({ onNavigate }) => {
+  const [isDiscountOpen, setIsDiscountOpen] = useState(false);
+  const [isSurchargeOpen, setIsSurchargeOpen] = useState(false);
+  const [isTaxOpen, setIsTaxOpen] = useState(false);
 
-    <header className="settings-detail-header">
-      <div>
-        <h5 className="fw-bold settings-detail-title">Pricing Rules</h5>
-        <p className="settings-detail-subtitle">Define pricing behavior for products and promos.</p>
-      </div>
-    </header>
+  return (
+    <>
+      <Breadcrumb
+        crumbs={[
+          { label: "Settings", view: "settings" },
+          { label: "Products and Pricing", view: "products" },
+          { label: "Pricing Rules", view: "pricing-rules" },
+        ]}
+        onNavigate={onNavigate}
+      />
 
-    <div className="settings-form-container">
-      <div className="settings-section-list">
-        {rules.map((rule, index) => (
+      <header className="settings-detail-header">
+        <div>
+          <h5 className="fw-bold settings-detail-title">Pricing Rules</h5>
+          <p className="settings-detail-subtitle">Configure product categories, items, and pricing rules.</p>
+        </div>
+      </header>
+
+      <div className="settings-list-container settings-list-container--nested">
+        {items.map((item) => (
           <div
-            key={rule.id}
-            className={`settings-section-row${index === rules.length - 1 ? " is-last" : ""}`}
+            key={item.id}
+            className="settings-list-item"
+            onClick={() => {
+              if (item.id === "discount") {
+                setIsDiscountOpen(true);
+              } else if (item.id === "surcharge") {
+                setIsSurchargeOpen(true);
+              } else if (item.id === "tax") {
+                setIsTaxOpen(true);
+              } else {
+                onNavigate(item.id);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                if (item.id === "discount") {
+                  setIsDiscountOpen(true);
+                } else if (item.id === "surcharge") {
+                  setIsSurchargeOpen(true);
+                } else if (item.id === "tax") {
+                  setIsTaxOpen(true);
+                } else {
+                  onNavigate(item.id);
+                }
+              }
+            }}
           >
-            <div className="settings-section-left">
-              <p className="settings-section-title">{rule.name}</p>
-              <p className="settings-section-helper">{rule.helper}</p>
-            </div>
-            <div className="settings-section-right">
-              <button type="button" className="btn btn-outline-primary btn-sm">
-                Configure
-              </button>
+            <div className="settings-list-item-content">
+              <h6 className="settings-list-item-label">{item.label}</h6>
+              <p className="settings-list-item-description">{item.description}</p>
             </div>
           </div>
         ))}
       </div>
-    </div>
-  </>
-);
+
+      <DiscountOverlay isOpen={isDiscountOpen} onClose={() => setIsDiscountOpen(false)} />
+      <SurchargeOverlay isOpen={isSurchargeOpen} onClose={() => setIsSurchargeOpen(false)} />
+      <TaxOverlay isOpen={isTaxOpen} onClose={() => setIsTaxOpen(false)} />
+    </>
+  );
+};

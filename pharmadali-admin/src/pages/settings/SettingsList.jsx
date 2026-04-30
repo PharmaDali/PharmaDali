@@ -1,9 +1,10 @@
 import { settingsList } from "./constants";
+import "../../assets/css/settings/common.css";
 
 export const SettingsListView = ({ onNavigate }) => (
   <section className="dashboard-page">
-    <header className="admin-page-header mb-4">
-      <h4 className="fw-bold mb-1 admin-page-title">Settings</h4>
+    <header className="admin-page-header mb-3">
+      <h4 className="fw-bold mb-0 admin-page-title">Settings</h4>
       <p className="admin-page-subtitle mb-0">Configurations related to the pharmacy applications.</p>
     </header>
 
