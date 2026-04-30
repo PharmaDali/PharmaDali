@@ -122,7 +122,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
           </div>
         </div>
 
-        <div className="custom-scrollbar product-config-list">
+        <div className="custom-scrollbar" style={{ maxHeight: "750px", overflowY: "auto", paddingRight: "10px" }}>
           {filteredData.map((cat) => (
             <div key={cat.id} className="product-config-item">
               <div className="product-config-label">{cat.name}</div>
@@ -138,15 +138,15 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
 
       {modal.type && (
         <div className="settings-modal-backdrop" onClick={closeModal}>
-          <div 
-            className={`settings-modal${modal.type === "delete" ? " settings-modal--confirm" : ""}`} 
-            onClick={(e) => e.stopPropagation()} 
+          <div
+            className={`settings-modal${modal.type === "delete" ? " settings-modal--confirm" : ""}`}
+            onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: modal.type === "delete" ? "420px" : "550px" }}
           >
             {modal.type === "delete" ? (
               <div style={{ textAlign: "center" }}>
                 <h4 style={{ fontSize: "1.25rem", fontWeight: "700", color: "#333", marginBottom: "1rem" }}>
-                  Are you sure you want to delete<br/>"{activeItem?.name}" category?
+                  Are you sure you want to delete<br />"{activeItem?.name}" category?
                 </h4>
                 <p style={{ color: "#aaa", fontSize: "0.9rem", marginBottom: "2rem" }}>All data related to it will be lost.</p>
                 <div style={{ display: "flex", gap: "1.5rem" }}>
@@ -163,7 +163,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                 <div className="settings-modal-body">
                   <div className="settings-modal-field">
                     <label className="settings-modal-label">Enabled</label>
-                    <div 
+                    <div
                       className={`toggle-switch${formData.enabled ? " active" : ""}`}
                       onClick={() => setFormData({ ...formData, enabled: !formData.enabled })}
                     >
@@ -173,12 +173,12 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
 
                   <div className="settings-modal-field">
                     <label className="settings-modal-label">Name</label>
-                    <input 
-                      type="text" 
-                      className="settings-modal-input" 
+                    <input
+                      type="text"
+                      className="settings-modal-input"
                       placeholder="Category name"
-                      value={formData.name} 
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
                   </div>
 
@@ -186,23 +186,23 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
 
                   <div className="settings-modal-field">
                     <label className="settings-modal-label">Background</label>
-                    <input 
-                      type="text" 
-                      className="settings-modal-input" 
+                    <input
+                      type="text"
+                      className="settings-modal-input"
                       placeholder="#FFFFFF"
-                      value={formData.background} 
-                      onChange={(e) => setFormData({ ...formData, background: e.target.value })} 
+                      value={formData.background}
+                      onChange={(e) => setFormData({ ...formData, background: e.target.value })}
                     />
                   </div>
 
                   <div className="settings-modal-field">
                     <label className="settings-modal-label">Font</label>
-                    <input 
-                      type="text" 
-                      className="settings-modal-input" 
+                    <input
+                      type="text"
+                      className="settings-modal-input"
                       placeholder="#000000"
-                      value={formData.font} 
-                      onChange={(e) => setFormData({ ...formData, font: e.target.value })} 
+                      value={formData.font}
+                      onChange={(e) => setFormData({ ...formData, font: e.target.value })}
                     />
                   </div>
 
@@ -219,8 +219,8 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                           <span className="color-preview-label">Font</span>
                         </div>
                       </div>
-                      <button 
-                        type="button" 
+                      <button
+                        type="button"
                         className="btn-pd-outline-small"
                         onClick={() => setFormData({ ...formData, background: "#ffffff", font: "#000000" })}
                       >

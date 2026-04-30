@@ -1,7 +1,5 @@
 import { useState } from "react";
-import "../../assets/css/settings/common.css";
-import "../../assets/css/settings/product-config.css";
-import "../../assets/css/settings/overlays.css";
+import "../../assets/css/settings.css";
 
 const initialSurcharges = [];
 
