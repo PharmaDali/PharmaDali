@@ -47,7 +47,7 @@
 }
 
 .settings-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .settings-header-title {
@@ -79,7 +79,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.2rem 1.5rem;
+  padding: 1.05rem 1.5rem;
   border-bottom: 1px solid #f0f0f0;
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -320,7 +320,7 @@
   justify-content: flex-end;
 }
 
-.settings-section-right > * {
+.settings-section-right>* {
   width: 100%;
 }
 

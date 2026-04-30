@@ -122,7 +122,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
           </div>
         </div>
 
-        <div className="custom-scrollbar" style={{ maxHeight: "750px", overflowY: "auto", paddingRight: "10px" }}>
+        <div className="custom-scrollbar product-config-list">
           {filteredData.map((cat) => (
             <div key={cat.id} className="product-config-item">
               <div className="product-config-label">{cat.name}</div>
