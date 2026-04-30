@@ -1,0 +1,154 @@
+/* Product Configuration Styles (Category & Item) */
+
+.product-config-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.product-config-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.product-config-item:hover {
+  background: #fcfcfc;
+}
+
+.product-config-item:last-child {
+  border-bottom: none;
+}
+
+.product-config-label {
+  font-size: 1rem;
+  color: #333;
+  font-weight: 500;
+}
+
+.product-config-actions {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.btn-action-edit {
+  background: white;
+  border: 1px solid #48aad9;
+  color: #48aad9;
+  padding: 0.3rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-action-edit:hover {
+  background: #f2f9fc;
+}
+
+.btn-action-delete {
+  background: white;
+  border: 1px solid #ff6b6b;
+  color: #ff6b6b;
+  padding: 0.3rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-action-delete:hover {
+  background: #fff5f5;
+}
+
+.settings-search-container {
+  position: relative;
+  width: 300px;
+}
+
+.settings-search-input {
+  width: 100%;
+  padding: 0.55rem 1rem 0.55rem 2.5rem;
+  background: #e9eff4;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: #333;
+  outline: none;
+}
+
+.settings-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+}
+
+.btn-add-circle {
+  width: 36px;
+  height: 36px;
+  background: #48aad9;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.btn-add-circle:hover {
+  background: #3b98c4;
+}
+
+/* Table Styles */
+.settings-table-card {
+  border-top: 1px solid #eee;
+  margin-top: 0.5rem;
+}
+
+.settings-table-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0.5rem;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.settings-table-row:hover {
+  background: #fcfcfc;
+}
+
+.settings-table-row.is-last {
+  border-bottom: none;
+}
+
+.settings-table-name-text {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.settings-table-value-text {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #888;
+}
+
+.settings-table-empty {
+  padding: 5rem;
+  color: #999;
+  font-size: 1rem;
+  text-align: center;
+}

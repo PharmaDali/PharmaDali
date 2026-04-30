@@ -1,5 +1,8 @@
 import { useMemo, useState, useRef } from "react";
 import { Breadcrumb } from "./Breadcrumb";
+import "../../assets/css/settings/common.css";
+import "../../assets/css/settings/product-config.css";
+import "../../assets/css/settings/overlays.css";
 
 const defaultItemForm = {
   enabled: true,
@@ -89,7 +92,7 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
 
   return (
     <>
-      <div style={{ marginBottom: "1.5rem" }}>
+      <div className="settings-header">
         <Breadcrumb
           crumbs={[
             { label: "Settings", view: "settings" },
@@ -99,38 +102,44 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
           ]}
           onNavigate={onNavigate}
         />
-        <p style={{ color: "#666", fontSize: "0.85rem", marginTop: "-1rem" }}>
+        <p className="settings-header-subtitle" style={{ marginTop: "-1rem" }}>
           Configure product categories, items, and pricing rules.
         </p>
       </div>
 
-      <div style={{ background: "white", borderRadius: "15px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "transparent", marginBottom: "1.5rem" }}>
+      <div className="settings-card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
           <div>
-            <h5 style={{ color: "#333", fontSize: "1.1rem", fontWeight: "700", marginBottom: "0.2rem" }}>Item</h5>
-            <p style={{ color: "#888", fontSize: "0.8rem", margin: 0 }}>Import, add, delete, and update item.</p>
+            <h5 className="settings-header-title">Item</h5>
+            <p className="settings-header-subtitle">Import, add, delete, and update item.</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <div style={{ position: "relative", width: "300px" }}>
+            <div className="settings-search-container">
+              <span className="settings-search-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </span>
               <input
                 type="text"
                 placeholder="Search item"
+                className="settings-search-input"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                style={{ width: "100%", padding: "0.55rem 1rem 0.55rem 2.5rem", background: "#e9eff4", border: "none", borderRadius: "10px", fontSize: "0.85rem" }}
               />
             </div>
-            <button onClick={openAddModal} style={{ width: "36px", height: "36px", background: "#48aad9", color: "white", border: "none", borderRadius: "10px", cursor: "pointer" }}>+</button>
+            <button className="btn-add-circle" onClick={openAddModal}>+</button>
           </div>
         </div>
 
         <div className="custom-scrollbar" style={{ maxHeight: "750px", overflowY: "auto", paddingRight: "10px" }}>
           {filteredData.map((item) => (
-            <div key={item.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.8rem 0.5rem", borderBottom: "1px solid #f0f0f0" }}>
-              <div style={{ fontSize: "1rem", color: "#333", fontWeight: "500" }}>{item.name}</div>
-              <div style={{ display: "flex", gap: "0.8rem" }}>
-                <button onClick={() => openEditModal(item)} style={{ background: "white", border: "1px solid #48aad9", color: "#48aad9", padding: "0.3rem 1.2rem", borderRadius: "8px", fontSize: "0.85rem", cursor: "pointer" }}>Edit</button>
-                <button onClick={() => openDeleteModal(item)} style={{ background: "white", border: "1px solid #ff6b6b", color: "#ff6b6b", padding: "0.3rem 1.2rem", borderRadius: "8px", fontSize: "0.85rem", cursor: "pointer" }}>Delete</button>
+            <div key={item.id} className="product-config-item">
+              <div className="product-config-label">{item.name}</div>
+              <div className="product-config-actions">
+                <button className="btn-action-edit" onClick={() => openEditModal(item)}>Edit</button>
+                <button className="btn-action-delete" onClick={() => openDeleteModal(item)}>Delete</button>
               </div>
             </div>
           ))}
@@ -138,11 +147,11 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
       </div>
 
       {modal.type && (
-        <div className="settings-modal-backdrop" onClick={closeModal} style={{ zIndex: 1100 }}>
+        <div className="settings-modal-backdrop" onClick={closeModal}>
           <div 
             className={`settings-modal${modal.type === "delete" ? " settings-modal--confirm" : ""}`} 
-            onClick={(e) => e.stopPropagation()} 
-            style={{ maxWidth: modal.type === "delete" ? "420px" : "550px", width: "95%", borderRadius: "20px", padding: "1.5rem", background: "white" }}
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: modal.type === "delete" ? "420px" : "550px" }}
           >
             {modal.type === "delete" ? (
               <div style={{ textAlign: "center" }}>
@@ -151,128 +160,111 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
                 </h4>
                 <p style={{ color: "#aaa", fontSize: "0.9rem", marginBottom: "2rem" }}>All data related to it will be lost.</p>
                 <div style={{ display: "flex", gap: "1.5rem" }}>
-                  <button onClick={handleDelete} style={{ flex: 1, background: "#48aad9", color: "white", border: "none", borderRadius: "12px", padding: "0.8rem", fontWeight: "700", cursor: "pointer" }}>Continue</button>
-                  <button onClick={closeModal} style={{ flex: 1, background: "white", color: "#48aad9", border: "1.5px solid #48aad9", borderRadius: "12px", padding: "0.8rem", fontWeight: "700", cursor: "pointer" }}>Cancel</button>
+                  <button onClick={handleDelete} className="btn-numeric plus" style={{ flex: 1, height: "48px", borderRadius: "12px", fontWeight: "700" }}>Continue</button>
+                  <button onClick={closeModal} className="btn-action-edit" style={{ flex: 1, height: "48px", borderRadius: "12px", fontWeight: "700" }}>Cancel</button>
                 </div>
               </div>
             ) : (
               <>
-                <div style={{ marginBottom: "1rem" }}>
-                  <h4 style={{ color: "#48aad9", fontSize: "1.1rem", fontWeight: "600", margin: 0 }}>Add Item</h4>
-                  <div style={{ height: "1px", background: "#eee", marginTop: "1rem" }} />
+                <div className="settings-modal-header">
+                  <h4 className="settings-modal-title">Add Item</h4>
+                  <div className="settings-modal-divider" />
                 </div>
                 
-                <div className="custom-scrollbar" style={{ maxHeight: "65vh", overflowY: "auto", paddingRight: "10px", display: "flex", flexDirection: "column", gap: "1.2rem" }}>
+                <div className="custom-scrollbar settings-modal-body" style={{ maxHeight: "65vh", overflowY: "auto", paddingRight: "10px" }}>
                   {/* Enabled Toggle */}
                   <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <label style={{ fontSize: "1rem", fontWeight: "600", color: "#333" }}>Enabled</label>
+                    <label className="settings-modal-label">Enabled</label>
                     <div 
+                      className={`toggle-switch${formData.enabled ? " active" : ""}`}
                       onClick={() => setFormData(p => ({ ...p, enabled: !p.enabled }))}
-                      style={{ 
-                        width: "40px", 
-                        height: "20px", 
-                        background: formData.enabled ? "#48aad9" : "#ccc", 
-                        borderRadius: "20px", 
-                        position: "relative", 
-                        cursor: "pointer",
-                        transition: "background 0.2s"
-                      }}
                     >
-                      <div style={{ 
-                        width: "14px", 
-                        height: "14px", 
-                        background: "white", 
-                        borderRadius: "50%", 
-                        position: "absolute", 
-                        top: "3px", 
-                        left: formData.enabled ? "23px" : "3px",
-                        transition: "left 0.2s" 
-                      }} />
+                      <div className="toggle-handle" />
                     </div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "center", gap: "1rem" }}>
-                    <label style={{ fontWeight: "600", color: "#555" }}>Generic Name</label>
-                    <input type="text" placeholder="Generic name" value={formData.genericName} onChange={(e) => setFormData({ ...formData, genericName: e.target.value })} style={{ background: "#ededed", border: "none", borderRadius: "10px", padding: "0.75rem 1rem" }} />
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Generic Name</label>
+                    <input type="text" placeholder="Generic name" className="settings-modal-input" value={formData.genericName} onChange={(e) => setFormData({ ...formData, genericName: e.target.value })} />
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "center", gap: "1rem" }}>
-                    <label style={{ fontWeight: "600", color: "#555" }}>Brand Name</label>
-                    <input type="text" placeholder="Brand name" value={formData.brandName} onChange={(e) => setFormData({ ...formData, brandName: e.target.value })} style={{ background: "#ededed", border: "none", borderRadius: "10px", padding: "0.75rem 1rem" }} />
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Brand Name</label>
+                    <input type="text" placeholder="Brand name" className="settings-modal-input" value={formData.brandName} onChange={(e) => setFormData({ ...formData, brandName: e.target.value })} />
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "center", gap: "1rem" }}>
-                    <label style={{ fontWeight: "600", color: "#555" }}>Category</label>
-                    <input type="text" placeholder="Category" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} style={{ background: "#ededed", border: "none", borderRadius: "10px", padding: "0.75rem 1rem" }} />
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Category</label>
+                    <input type="text" placeholder="Category" className="settings-modal-input" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "center", gap: "1rem" }}>
-                    <label style={{ fontWeight: "600", color: "#555" }}>Price</label>
-                    <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                      <button onClick={() => handleNumericChange("price", -1)} style={{ width: "36px", height: "36px", background: "#ccc", color: "white", border: "none", borderRadius: "8px", fontSize: "1.2rem", cursor: "pointer" }}>-</button>
-                      <div style={{ background: "#f0f0f0", padding: "0.6rem 2.5rem", borderRadius: "8px", minWidth: "80px", textAlign: "center", fontWeight: "600", color: "#888" }}>{formData.price}</div>
-                      <button onClick={() => handleNumericChange("price", 1)} style={{ width: "36px", height: "36px", background: "#48aad9", color: "white", border: "none", borderRadius: "8px", fontSize: "1.2rem", cursor: "pointer" }}>+</button>
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Price</label>
+                    <div className="numeric-adjuster">
+                      <button className="btn-numeric minus" onClick={() => handleNumericChange("price", -1)}>-</button>
+                      <div className="numeric-value">{formData.price}</div>
+                      <button className="btn-numeric plus" onClick={() => handleNumericChange("price", 1)}>+</button>
                     </div>
                   </div>
 
-                  <div style={{ height: "1px", background: "#eee", margin: "0.5rem 0" }} />
+                  <div className="settings-modal-divider" />
 
                   {/* Stock Controls */}
                   {["cost", "stock", "warnQuantity"].map((f) => (
-                    <div key={f} style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "center", gap: "1rem" }}>
-                      <label style={{ fontWeight: "600", color: "#555", textTransform: "capitalize" }}>{f.replace(/([A-Z])/g, ' $1')}</label>
-                      <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-                        <button onClick={() => handleNumericChange(f, -1)} style={{ width: "36px", height: "36px", background: "#ccc", color: "white", border: "none", borderRadius: "8px", fontSize: "1.2rem", cursor: "pointer" }}>-</button>
-                        <div style={{ background: "#f0f0f0", padding: "0.6rem 2.5rem", borderRadius: "8px", minWidth: "80px", textAlign: "center", fontWeight: "600", color: "#888" }}>{formData[f]}</div>
-                        <button onClick={() => handleNumericChange(f, 1)} style={{ width: "36px", height: "36px", background: "#48aad9", color: "white", border: "none", borderRadius: "8px", fontSize: "1.2rem", cursor: "pointer" }}>+</button>
+                    <div key={f} className="settings-modal-field">
+                      <label className="settings-modal-label" style={{ textTransform: "capitalize" }}>{f.replace(/([A-Z])/g, ' $1')}</label>
+                      <div className="numeric-adjuster">
+                        <button className="btn-numeric minus" onClick={() => handleNumericChange(f, -1)}>-</button>
+                        <div className="numeric-value">{formData[f]}</div>
+                        <button className="btn-numeric plus" onClick={() => handleNumericChange(f, 1)}>+</button>
                       </div>
                     </div>
                   ))}
 
-                  <div style={{ height: "1px", background: "#eee", margin: "0.5rem 0" }} />
+                  <div className="settings-modal-divider" />
 
                   {/* Barcodes */}
-                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "flex-start", gap: "1rem" }}>
-                    <label style={{ fontWeight: "600", color: "#555", marginTop: "1rem" }}>Barcodes</label>
+                  <div className="settings-modal-field" style={{ alignItems: "flex-start" }}>
+                    <label className="settings-modal-label" style={{ marginTop: "1rem" }}>Barcodes</label>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
                       <div>
                         <p style={{ margin: "0 0 5px 5px", fontSize: "0.75rem", color: "#aaa" }}>Barcode 1</p>
-                        <input type="text" placeholder="Barcode 1" value={formData.barcode1} onChange={(e) => setFormData({ ...formData, barcode1: e.target.value })} style={{ background: "#ededed", border: "none", borderRadius: "10px", padding: "0.75rem", width: "100%" }} />
+                        <input type="text" placeholder="Barcode 1" className="settings-modal-input" value={formData.barcode1} onChange={(e) => setFormData({ ...formData, barcode1: e.target.value })} />
                       </div>
                       <div>
                         <p style={{ margin: "0 0 5px 5px", fontSize: "0.75rem", color: "#aaa" }}>Barcode 2</p>
-                        <input type="text" placeholder="Barcode 2" value={formData.barcode2} onChange={(e) => setFormData({ ...formData, barcode2: e.target.value })} style={{ background: "#ededed", border: "none", borderRadius: "10px", padding: "0.75rem", width: "100%" }} />
+                        <input type="text" placeholder="Barcode 2" className="settings-modal-input" value={formData.barcode2} onChange={(e) => setFormData({ ...formData, barcode2: e.target.value })} />
                       </div>
                       <div>
                         <p style={{ margin: "0 0 5px 5px", fontSize: "0.75rem", color: "#aaa" }}>Barcode 3</p>
-                        <input type="text" placeholder="Barcode 3" value={formData.barcode3} onChange={(e) => setFormData({ ...formData, barcode3: e.target.value })} style={{ background: "#ededed", border: "none", borderRadius: "10px", padding: "0.75rem", width: "100%" }} />
+                        <input type="text" placeholder="Barcode 3" className="settings-modal-input" value={formData.barcode3} onChange={(e) => setFormData({ ...formData, barcode3: e.target.value })} />
                       </div>
                     </div>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "center", gap: "1rem" }}>
-                    <label style={{ fontWeight: "600", color: "#555" }}>Tax</label>
-                    <input type="text" placeholder="Tax" value={formData.tax} onChange={(e) => setFormData({ ...formData, tax: e.target.value })} style={{ background: "#ededed", border: "none", borderRadius: "10px", padding: "0.75rem 1rem" }} />
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Tax</label>
+                    <input type="text" placeholder="Tax" className="settings-modal-input" value={formData.tax} onChange={(e) => setFormData({ ...formData, tax: e.target.value })} />
                   </div>
 
-                  <div style={{ height: "1px", background: "#eee", margin: "0.5rem 0" }} />
+                  <div className="settings-modal-divider" />
 
                   {/* Image Upload */}
-                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "center", gap: "1rem" }}>
-                    <label style={{ fontWeight: "600", color: "#555" }}>Item Upload</label>
-                    <div style={{ background: "#f5f5f5", borderRadius: "15px", padding: "1rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div style={{ width: "120px", height: "70px", background: "white", borderRadius: "12px", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "inset 0 0 5px rgba(0,0,0,0.05)" }}>
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Item Upload</label>
+                    <div className="upload-box">
+                      <div className="upload-preview">
                         {formData.image ? <img src={formData.image} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <span style={{ color: "#ddd", fontSize: "0.7rem", textAlign: "center" }}>Sample only</span>}
                       </div>
                       <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageChange} />
-                      <button onClick={() => fileInputRef.current?.click()} style={{ background: "white", border: "1px solid #48aad9", color: "#48aad9", borderRadius: "10px", padding: "0.5rem 1.5rem", cursor: "pointer", fontSize: "0.85rem", fontWeight: "600" }}>Upload</button>
+                      <button className="btn-action-edit" onClick={() => fileInputRef.current?.click()}>Upload</button>
                     </div>
                   </div>
 
-                  <div style={{ height: "1px", background: "#eee", margin: "0.5rem 0" }} />
+                  <div className="settings-modal-divider" />
 
                   {/* Additional Options */}
-                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "flex-start", gap: "1rem" }}>
-                    <label style={{ fontWeight: "600", color: "#555", marginTop: "5px" }}>Additional Options</label>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.8rem" }}>
+                  <div className="settings-modal-field" style={{ alignItems: "flex-start" }}>
+                    <label className="settings-modal-label" style={{ marginTop: "5px" }}>Additional Options</label>
+                    <div className="option-tags-container">
                       {[
                         { key: "scale", label: "Scale" },
                         { key: "stopScale", label: "Stop scale (QTY=0)" },
@@ -283,18 +275,8 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
                       ].map((ok) => (
                         <button 
                           key={ok.key} 
+                          className={`option-tag${formData.options[ok.key] ? " active" : ""}`}
                           onClick={() => handleOptionToggle(ok.key)} 
-                          style={{ 
-                            padding: "0.45rem 1.2rem", 
-                            borderRadius: "10px", 
-                            border: "1.5px solid #48aad9", 
-                            background: formData.options[ok.key] ? "#48aad9" : "white", 
-                            color: formData.options[ok.key] ? "white" : "#48aad9", 
-                            fontSize: "0.8rem", 
-                            fontWeight: "600",
-                            cursor: "pointer",
-                            transition: "all 0.2s"
-                          }}
                         >
                           {ok.label}
                         </button>
@@ -303,9 +285,9 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
                   </div>
                 </div>
 
-                <div style={{ marginTop: "2rem", display: "flex", gap: "1.5rem" }}>
-                  <button onClick={closeModal} style={{ flex: 1, borderRadius: "12px", padding: "0.85rem", background: "white", border: "1.5px solid #48aad9", color: "#48aad9", fontWeight: "700", cursor: "pointer" }}>Cancel</button>
-                  <button onClick={handleSave} style={{ flex: 1, borderRadius: "12px", padding: "0.85rem", background: "#48aad9", border: "none", color: "white", fontWeight: "700", cursor: "pointer" }}>Save Changes</button>
+                <div className="settings-modal-footer">
+                  <button onClick={closeModal} className="btn-action-edit" style={{ flex: 1, padding: "0.85rem", fontWeight: "700" }}>Cancel</button>
+                  <button onClick={handleSave} className="btn-numeric plus" style={{ flex: 1, padding: "0.85rem", fontWeight: "700" }}>Save Changes</button>
                 </div>
               </>
             )}

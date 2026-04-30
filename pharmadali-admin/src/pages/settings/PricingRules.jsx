@@ -3,6 +3,7 @@ import { Breadcrumb } from "./Breadcrumb";
 import { DiscountOverlay } from "./DiscountRules";
 import { SurchargeOverlay } from "./SurchargeRules";
 import { TaxOverlay } from "./TaxOverlay";
+import "../../assets/css/settings/common.css";
 
 const items = [
   {

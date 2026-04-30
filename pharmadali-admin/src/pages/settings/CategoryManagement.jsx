@@ -1,5 +1,8 @@
 import { useMemo, useState } from "react";
 import { Breadcrumb } from "./Breadcrumb";
+import "../../assets/css/settings/common.css";
+import "../../assets/css/settings/product-config.css";
+import "../../assets/css/settings/overlays.css";
 
 const defaultCategoryForm = {
   enabled: true,
@@ -78,7 +81,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
 
   return (
     <>
-      <div style={{ marginBottom: "1.5rem" }}>
+      <div className="settings-header">
         <Breadcrumb
           crumbs={[
             { label: "Settings", view: "settings" },
@@ -88,20 +91,20 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
           ]}
           onNavigate={onNavigate}
         />
-        <p style={{ color: "#666", fontSize: "0.85rem", marginTop: "-1rem" }}>
+        <p className="settings-header-subtitle" style={{ marginTop: "-1rem" }}>
           Configure product categories, items, and pricing rules.
         </p>
       </div>
 
-      <div style={{ background: "white", borderRadius: "15px", padding: "1.5rem", boxShadow: "0 2px 12px rgba(0,0,0,0.04)", border: "1px solid #f0f0f0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: "transparent", marginBottom: "1.5rem" }}>
+      <div className="settings-card">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
           <div>
-            <h5 style={{ color: "#333", fontSize: "1.1rem", fontWeight: "700", marginBottom: "0.2rem" }}>Category</h5>
-            <p style={{ color: "#888", fontSize: "0.8rem", margin: 0 }}>Import, add, delete, and update category.</p>
+            <h5 className="settings-header-title">Category</h5>
+            <p className="settings-header-subtitle">Import, add, delete, and update category.</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <div style={{ position: "relative", width: "300px" }}>
-              <span style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "#888" }}>
+            <div className="settings-search-container">
+              <span className="settings-search-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -110,22 +113,22 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
               <input
                 type="text"
                 placeholder="Search category"
+                className="settings-search-input"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                style={{ width: "100%", padding: "0.55rem 1rem 0.55rem 2.5rem", background: "#e9eff4", border: "none", borderRadius: "10px", fontSize: "0.85rem", color: "#333" }}
               />
             </div>
-            <button onClick={openAddModal} style={{ width: "36px", height: "36px", background: "#48aad9", color: "white", border: "none", borderRadius: "10px", fontSize: "1.1rem", cursor: "pointer" }}>+</button>
+            <button className="btn-add-circle" onClick={openAddModal}>+</button>
           </div>
         </div>
 
         <div className="custom-scrollbar" style={{ maxHeight: "750px", overflowY: "auto", paddingRight: "10px" }}>
           {filteredData.map((cat) => (
-            <div key={cat.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.8rem 0.5rem", borderBottom: "1px solid #f0f0f0" }}>
-              <div style={{ fontSize: "1rem", color: "#333", fontWeight: "500" }}>{cat.name}</div>
-              <div style={{ display: "flex", gap: "0.8rem" }}>
-                <button onClick={() => openEditModal(cat)} style={{ background: "white", border: "1px solid #48aad9", color: "#48aad9", padding: "0.3rem 1.2rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: "600", cursor: "pointer" }}>Edit</button>
-                <button onClick={() => openDeleteModal(cat)} style={{ background: "white", border: "1px solid #ff6b6b", color: "#ff6b6b", padding: "0.3rem 1.2rem", borderRadius: "8px", fontSize: "0.85rem", fontWeight: "600", cursor: "pointer" }}>Delete</button>
+            <div key={cat.id} className="product-config-item">
+              <div className="product-config-label">{cat.name}</div>
+              <div className="product-config-actions">
+                <button className="btn-action-edit" onClick={() => openEditModal(cat)}>Edit</button>
+                <button className="btn-action-delete" onClick={() => openDeleteModal(cat)}>Delete</button>
               </div>
             </div>
           ))}
@@ -135,33 +138,101 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
 
       {modal.type && (
         <div className="settings-modal-backdrop" onClick={closeModal}>
-          <div className={`settings-modal${modal.type === "delete" ? " settings-modal--confirm" : ""}`} onClick={(e) => e.stopPropagation()} style={{ maxWidth: modal.type === "delete" ? "420px" : "500px", width: "90%", borderRadius: "25px", padding: "1.5rem" }}>
+          <div 
+            className={`settings-modal${modal.type === "delete" ? " settings-modal--confirm" : ""}`} 
+            onClick={(e) => e.stopPropagation()} 
+            style={{ maxWidth: modal.type === "delete" ? "420px" : "550px" }}
+          >
             {modal.type === "delete" ? (
-              <>
-                <div style={{ textAlign: "center", margin: "1rem 0" }}>
-                  <h4 style={{ fontSize: "1.25rem", fontWeight: "700", color: "#333" }}>Are you sure you want to delete<br/>"{activeItem?.name}" category?</h4>
-                  <p style={{ color: "#aaa", fontSize: "0.9rem", marginTop: "1.2rem" }}>All data related to it will be lost.</p>
+              <div style={{ textAlign: "center" }}>
+                <h4 style={{ fontSize: "1.25rem", fontWeight: "700", color: "#333", marginBottom: "1rem" }}>
+                  Are you sure you want to delete<br/>"{activeItem?.name}" category?
+                </h4>
+                <p style={{ color: "#aaa", fontSize: "0.9rem", marginBottom: "2rem" }}>All data related to it will be lost.</p>
+                <div style={{ display: "flex", gap: "1.5rem" }}>
+                  <button onClick={handleDelete} className="btn-pd-primary" style={{ flex: 1, height: "48px" }}>Continue</button>
+                  <button onClick={closeModal} className="btn-pd-ghost" style={{ flex: 1, height: "48px" }}>Cancel</button>
                 </div>
-                <div style={{ display: "flex", gap: "1.5rem", marginTop: "2rem" }}>
-                  <button onClick={handleDelete} style={{ flex: 1, background: "#48aad9", color: "white", border: "none", borderRadius: "15px", padding: "0.8rem", fontWeight: "700", cursor: "pointer" }}>Continue</button>
-                  <button onClick={closeModal} style={{ flex: 1, background: "white", color: "#48aad9", border: "1.5px solid #48aad9", borderRadius: "15px", padding: "0.8rem", fontWeight: "700", cursor: "pointer" }}>Cancel</button>
-                </div>
-              </>
+              </div>
             ) : (
               <>
-                <div style={{ borderBottom: "1px solid #eee", marginBottom: "1.5rem", paddingBottom: "0.8rem" }}>
-                  <h4 style={{ color: "#48aad9", fontSize: "1.2rem", fontWeight: "600" }}>{modal.type === "add" ? "Add Category" : "Edit Category"}</h4>
+                <div className="settings-modal-header">
+                  <h4 className="settings-modal-title">{modal.type === "add" ? "Add Category" : "Edit Category"}</h4>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: "1.2rem" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", alignItems: "center", gap: "1rem" }}>
-                    <label style={{ fontWeight: "600", color: "#333" }}>Name</label>
-                    <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} style={{ background: "#ededed", border: "none", borderRadius: "12px", padding: "0.75rem 1rem" }} />
+
+                <div className="settings-modal-body">
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Enabled</label>
+                    <div 
+                      className={`toggle-switch${formData.enabled ? " active" : ""}`}
+                      onClick={() => setFormData({ ...formData, enabled: !formData.enabled })}
+                    >
+                      <div className="toggle-handle" />
+                    </div>
                   </div>
-                  {/* Additional fields omitted for brevity but should be here */}
+
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Name</label>
+                    <input 
+                      type="text" 
+                      className="settings-modal-input" 
+                      placeholder="Category name"
+                      value={formData.name} 
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })} 
+                    />
+                  </div>
+
+                  <div className="settings-modal-divider" />
+
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Background</label>
+                    <input 
+                      type="text" 
+                      className="settings-modal-input" 
+                      placeholder="#FFFFFF"
+                      value={formData.background} 
+                      onChange={(e) => setFormData({ ...formData, background: e.target.value })} 
+                    />
+                  </div>
+
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Font</label>
+                    <input 
+                      type="text" 
+                      className="settings-modal-input" 
+                      placeholder="#000000"
+                      value={formData.font} 
+                      onChange={(e) => setFormData({ ...formData, font: e.target.value })} 
+                    />
+                  </div>
+
+                  <div className="settings-modal-field">
+                    <label className="settings-modal-label">Preview</label>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div className="color-preview-container">
+                        <div className="color-preview-item">
+                          <div className="color-preview-circle" style={{ background: formData.background }} />
+                          <span className="color-preview-label">Background</span>
+                        </div>
+                        <div className="color-preview-item">
+                          <div className="color-preview-circle" style={{ background: formData.font }} />
+                          <span className="color-preview-label">Font</span>
+                        </div>
+                      </div>
+                      <button 
+                        type="button" 
+                        className="btn-pd-outline-small"
+                        onClick={() => setFormData({ ...formData, background: "#ffffff", font: "#000000" })}
+                      >
+                        Default
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <div style={{ marginTop: "2.5rem", display: "flex", gap: "1.5rem" }}>
-                  <button onClick={closeModal} style={{ flex: 1, borderRadius: "12px", padding: "0.8rem", background: "white", border: "1.5px solid #48aad9", color: "#48aad9", fontWeight: "600", cursor: "pointer" }}>Cancel</button>
-                  <button onClick={handleSave} style={{ flex: 1, borderRadius: "12px", padding: "0.8rem", background: "#48aad9", border: "none", color: "white", fontWeight: "600", cursor: "pointer" }}>Save Changes</button>
+
+                <div className="settings-modal-footer">
+                  <button onClick={closeModal} className="btn-pd-ghost" style={{ flex: 1, padding: "0.8rem" }}>Cancel</button>
+                  <button onClick={handleSave} className="btn-pd-primary" style={{ flex: 1, padding: "0.8rem" }}>Save Changes</button>
                 </div>
               </>
             )}

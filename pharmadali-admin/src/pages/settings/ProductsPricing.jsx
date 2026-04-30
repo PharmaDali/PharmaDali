@@ -1,4 +1,5 @@
 import { Breadcrumb } from "./Breadcrumb";
+import "../../assets/css/settings/common.css";
 
 const items = [
   {

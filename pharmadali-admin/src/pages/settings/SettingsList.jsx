@@ -1,4 +1,5 @@
 import { settingsList } from "./constants";
+import "../../assets/css/settings/common.css";
 
 export const SettingsListView = ({ onNavigate }) => (
   <section className="dashboard-page">
