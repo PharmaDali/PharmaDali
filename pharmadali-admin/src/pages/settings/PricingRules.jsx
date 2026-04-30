@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Breadcrumb } from "./Breadcrumb";
 import { DiscountOverlay } from "./DiscountRules";
 import { SurchargeOverlay } from "./SurchargeRules";
+import { TaxOverlay } from "./TaxOverlay";
 
 const items = [
   {
@@ -24,6 +25,7 @@ const items = [
 export const PricingRules = ({ onNavigate }) => {
   const [isDiscountOpen, setIsDiscountOpen] = useState(false);
   const [isSurchargeOpen, setIsSurchargeOpen] = useState(false);
+  const [isTaxOpen, setIsTaxOpen] = useState(false);
 
   return (
     <>
@@ -53,6 +55,8 @@ export const PricingRules = ({ onNavigate }) => {
                 setIsDiscountOpen(true);
               } else if (item.id === "surcharge") {
                 setIsSurchargeOpen(true);
+              } else if (item.id === "tax") {
+                setIsTaxOpen(true);
               } else {
                 onNavigate(item.id);
               }
@@ -65,6 +69,8 @@ export const PricingRules = ({ onNavigate }) => {
                   setIsDiscountOpen(true);
                 } else if (item.id === "surcharge") {
                   setIsSurchargeOpen(true);
+                } else if (item.id === "tax") {
+                  setIsTaxOpen(true);
                 } else {
                   onNavigate(item.id);
                 }
@@ -81,6 +87,7 @@ export const PricingRules = ({ onNavigate }) => {
 
       <DiscountOverlay isOpen={isDiscountOpen} onClose={() => setIsDiscountOpen(false)} />
       <SurchargeOverlay isOpen={isSurchargeOpen} onClose={() => setIsSurchargeOpen(false)} />
+      <TaxOverlay isOpen={isTaxOpen} onClose={() => setIsTaxOpen(false)} />
     </>
   );
 };
