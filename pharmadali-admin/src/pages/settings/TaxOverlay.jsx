@@ -31,7 +31,7 @@ export const TaxOverlay = ({ isOpen, onClose }) => {
   };
 
   const handleSave = () => {
-    // Save logic here
+    // logic here po
     onClose();
   };
 
@@ -51,7 +51,6 @@ export const TaxOverlay = ({ isOpen, onClose }) => {
         </div>
 
         <div className="settings-modal-body" style={{ gap: "1.2rem" }}>
-          {/* Enabled Toggle */}
           <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.5rem" }}>
             <span style={{ fontSize: "1rem", fontWeight: "600", color: "#333" }}>Enabled</span>
             <label className="settings-toggle">
@@ -60,7 +59,6 @@ export const TaxOverlay = ({ isOpen, onClose }) => {
             </label>
           </div>
 
-          {/* Tax 1 */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%", opacity: formData.enabled ? 1 : 0.6 }}>
             <label style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>Tax 1</label>
             <div style={{ display: "flex", gap: "1rem", alignItems: "center", width: "100%" }}>
@@ -88,7 +86,6 @@ export const TaxOverlay = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Tax 2 */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%", opacity: formData.enabled ? 1 : 0.6 }}>
             <label style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>Tax 2</label>
             <div style={{ display: "flex", gap: "1rem", alignItems: "center", width: "100%" }}>
@@ -127,7 +124,6 @@ export const TaxOverlay = ({ isOpen, onClose }) => {
             <span style={{ fontSize: "0.85rem", color: "#888" }}>Apply Tax 2 on Tax 1 (Subtotal + Tax 1)</span>
           </div>
 
-          {/* Tax 3 */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%", opacity: formData.enabled ? 1 : 0.6 }}>
             <label style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>Tax 3</label>
             <div style={{ display: "flex", gap: "1rem", alignItems: "center", width: "100%" }}>
@@ -166,7 +162,6 @@ export const TaxOverlay = ({ isOpen, onClose }) => {
             <span style={{ fontSize: "0.85rem", color: "#888" }}>Apply Tax 3 on Tax 1 and Tax 2 (Subtotal + Tax 1 + Tax 2)</span>
           </div>
 
-          {/* Tax Number */}
           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", width: "100%", opacity: formData.enabled ? 1 : 0.6 }}>
             <label style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>Tax Number</label>
             <input

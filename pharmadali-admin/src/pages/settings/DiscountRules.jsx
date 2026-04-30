@@ -49,7 +49,7 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
 
   const handleSave = () => {
     if (!formData.name.trim() || valueError) return;
-    
+
     if (modal.type === "add") {
       const nextId = Math.max(0, ...discounts.map((d) => d.id)) + 1;
       setDiscounts((prev) => [...prev, { ...formData, id: nextId }]);
@@ -68,7 +68,6 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
 
   const handleFormChange = (field, value) => {
     if (field === "value") {
-      // Regex for numbers and decimal
       const isNumeric = /^[0-9.]*$/.test(value);
       if (!isNumeric && value !== "") {
         setValueError("Only numerical values are allowed");
@@ -90,7 +89,6 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
         aria-modal="true"
         onClick={(event) => event.stopPropagation()}
       >
-        {/* Main Discount List Header */}
         <div className="settings-panel-header" style={{ marginBottom: "1.2rem", alignItems: "center" }}>
           <div>
             <h5 className="fw-bold settings-panel-title" style={{ fontSize: "1.25rem", margin: 0 }}>Discount</h5>
@@ -99,9 +97,9 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
             </p>
           </div>
           <div className="settings-panel-actions">
-            <button 
-              type="button" 
-              className="settings-icon-button" 
+            <button
+              type="button"
+              className="settings-icon-button"
               onClick={openAddModal}
               style={{ width: "40px", height: "40px", fontSize: "1.2rem", background: "#48aad9", border: "none" }}
             >
@@ -112,16 +110,15 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
 
         <div style={{ borderTop: "1px solid #eee", marginBottom: "0.5rem" }} />
 
-        {/* Discount List */}
         <div className="settings-table-card" style={{ border: "none", boxShadow: "none" }}>
           {discounts.map((discount, index) => (
             <div
               key={discount.id}
               className={`settings-table-row${index === discounts.length - 1 ? " is-last" : ""}`}
               onClick={() => openEditModal(discount)}
-              style={{ 
-                cursor: "pointer", 
-                padding: "1rem 0.5rem", 
+              style={{
+                cursor: "pointer",
+                padding: "1rem 0.5rem",
                 borderBottom: "1px solid #eee",
                 display: "flex",
                 justifyContent: "space-between",
@@ -147,12 +144,11 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {/* Sub-modals for Add/Edit/Delete */}
         {modal.type && (
           <div className="settings-modal-backdrop" style={{ zIndex: 3000, background: "rgba(0,0,0,0.4)" }} role="presentation" onClick={closeSubModal}>
             <div
               className={`settings-modal${modal.type === "delete" ? " settings-modal--confirm" : ""}`}
-              style={{ 
+              style={{
                 maxWidth: modal.type === "delete" ? "400px" : "500px",
                 borderRadius: "20px",
                 padding: modal.type === "delete" ? "1.5rem" : "1.8rem"
@@ -169,18 +165,18 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                     </h4>
                   </div>
                   <div className="settings-modal-footer settings-modal-footer--center" style={{ marginTop: "1rem", gap: "2rem" }}>
-                    <button 
-                      type="button" 
-                      className="btn btn-link" 
-                      onClick={closeSubModal} 
+                    <button
+                      type="button"
+                      className="btn btn-link"
+                      onClick={closeSubModal}
                       style={{ color: "#48aad9", textDecoration: "none", fontWeight: "600", fontSize: "1rem" }}
                     >
                       Cancel
                     </button>
-                    <button 
-                      type="button" 
-                      className="btn btn-link" 
-                      onClick={handleDelete} 
+                    <button
+                      type="button"
+                      className="btn btn-link"
+                      onClick={handleDelete}
                       style={{ color: "#48aad9", textDecoration: "none", fontWeight: "600", fontSize: "1rem" }}
                     >
                       Delete
@@ -194,9 +190,8 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                       {modal.type === "add" ? "Add Discount" : "Update Discount"}
                     </h4>
                   </div>
-                  
+
                   <div className="settings-modal-body" style={{ gap: "1.5rem" }}>
-                    {/* Discount Name Field */}
                     <div className="settings-modal-field-row" style={{ gridTemplateColumns: "140px 1fr" }}>
                       <label className="settings-modal-label" style={{ fontSize: "1rem", fontWeight: "600", color: "#333" }}>
                         Discount Name
@@ -208,9 +203,9 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                           placeholder="Coupon Name"
                           value={formData.name}
                           onChange={(event) => handleFormChange("name", event.target.value)}
-                          style={{ 
-                            maxWidth: "100%", 
-                            background: "#ededed", 
+                          style={{
+                            maxWidth: "100%",
+                            background: "#ededed",
                             border: "none",
                             padding: "0.75rem 1rem",
                             borderRadius: "12px",
@@ -220,23 +215,21 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                       </div>
                     </div>
 
-                    {/* Discount Value Field */}
                     <div className="settings-modal-field-row" style={{ gridTemplateColumns: "140px 1fr" }}>
                       <label className="settings-modal-label" style={{ fontSize: "1rem", fontWeight: "600", color: "#333" }}>
                         Discount Value
                       </label>
                       <div className="settings-modal-control" style={{ gap: "0.8rem", alignItems: "center" }}>
-                        {/* Custom Dropdown */}
                         <div style={{ position: "relative", width: "130px" }}>
                           <button
                             type="button"
                             className="settings-modal-input"
                             onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-                            style={{ 
-                              width: "100%", 
-                              textAlign: "left", 
-                              display: "flex", 
-                              justifyContent: "space-between", 
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              display: "flex",
+                              justifyContent: "space-between",
                               alignItems: "center",
                               background: "#ededed",
                               border: "none",
@@ -250,27 +243,27 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                             <span style={{ fontSize: "0.6rem", color: "#777" }}>▼</span>
                           </button>
                           {isTypeDropdownOpen && (
-                            <div style={{ 
-                              position: "absolute", 
-                              top: "100%", 
-                              left: 0, 
-                              right: 0, 
-                              background: "#999", 
-                              borderRadius: "12px", 
-                              marginTop: "5px", 
-                              zIndex: 10, 
+                            <div style={{
+                              position: "absolute",
+                              top: "100%",
+                              left: 0,
+                              right: 0,
+                              background: "#999",
+                              borderRadius: "12px",
+                              marginTop: "5px",
+                              zIndex: 10,
                               overflow: "hidden",
                               boxShadow: "0 4px 12px rgba(0,0,0,0.15)"
                             }}>
-                              <div 
-                                onClick={() => { handleFormChange("type", "Amount"); setIsTypeDropdownOpen(false); }} 
+                              <div
+                                onClick={() => { handleFormChange("type", "Amount"); setIsTypeDropdownOpen(false); }}
                                 style={{ padding: "0.8rem 1rem", color: "white", fontSize: "0.9rem", cursor: "pointer" }}
                               >
                                 Amount
                               </div>
                               <div style={{ height: "1px", background: "rgba(255,255,255,0.2)" }} />
-                              <div 
-                                onClick={() => { handleFormChange("type", "Percentage"); setIsTypeDropdownOpen(false); }} 
+                              <div
+                                onClick={() => { handleFormChange("type", "Percentage"); setIsTypeDropdownOpen(false); }}
                                 style={{ padding: "0.8rem 1rem", color: "white", fontSize: "0.9rem", cursor: "pointer" }}
                               >
                                 Percentage
@@ -279,7 +272,6 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                           )}
                         </div>
 
-                        {/* Prefix and Value Input */}
                         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flex: 1 }}>
                           <span style={{ fontSize: "1rem", color: "#888", minWidth: "35px", textAlign: "right" }}>
                             {formData.type === "Amount" ? "Php" : "%"}
@@ -290,24 +282,24 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                             placeholder="Value"
                             value={formData.value}
                             onChange={(event) => handleFormChange("value", event.target.value)}
-                              style={{ 
-                                flex: 1, 
-                                maxWidth: "100%", 
-                                background: "#ededed", 
-                                border: valueError ? "2px solid #ff6b6b" : "1px solid transparent",
-                                padding: "0.75rem 1rem",
-                                borderRadius: "12px",
-                                fontSize: "1rem",
-                                outline: "none"
-                              }}
+                            style={{
+                              flex: 1,
+                              maxWidth: "100%",
+                              background: "#ededed",
+                              border: valueError ? "2px solid #ff6b6b" : "1px solid transparent",
+                              padding: "0.75rem 1rem",
+                              borderRadius: "12px",
+                              fontSize: "1rem",
+                              outline: "none"
+                            }}
                           />
                         </div>
                       </div>
                       {valueError && (
-                        <div style={{ 
-                          gridColumn: "2", 
-                          color: "#ff6b6b", 
-                          fontSize: "0.75rem", 
+                        <div style={{
+                          gridColumn: "2",
+                          color: "#ff6b6b",
+                          fontSize: "0.75rem",
                           marginTop: "0.3rem",
                           fontWeight: "500"
                         }}>
@@ -318,13 +310,13 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                   </div>
 
                   <div className="settings-modal-footer" style={{ marginTop: "2rem", gap: "1rem" }}>
-                    <button 
-                      type="button" 
-                      className="btn btn-outline-primary" 
-                      onClick={closeSubModal} 
-                      style={{ 
-                        borderRadius: "12px", 
-                        borderColor: "#48aad9", 
+                    <button
+                      type="button"
+                      className="btn btn-outline-primary"
+                      onClick={closeSubModal}
+                      style={{
+                        borderRadius: "12px",
+                        borderColor: "#48aad9",
                         color: "#48aad9",
                         flex: 1,
                         padding: "0.8rem"
@@ -332,13 +324,13 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                     >
                       Cancel
                     </button>
-                    <button 
-                      type="button" 
-                      className="btn btn-outline-danger" 
-                      onClick={openDeleteModal} 
-                      style={{ 
-                        borderRadius: "12px", 
-                        borderColor: "#ffb3b3", 
+                    <button
+                      type="button"
+                      className="btn btn-outline-danger"
+                      onClick={openDeleteModal}
+                      style={{
+                        borderRadius: "12px",
+                        borderColor: "#ffb3b3",
                         color: "#ff6b6b",
                         flex: 1,
                         padding: "0.8rem"
@@ -346,14 +338,14 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                     >
                       Delete
                     </button>
-                    <button 
-                      type="button" 
-                      className="btn btn-primary" 
-                      onClick={handleSave} 
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handleSave}
                       disabled={!!valueError}
-                      style={{ 
-                        borderRadius: "12px", 
-                        background: valueError ? "#ccc" : "#48aad9", 
+                      style={{
+                        borderRadius: "12px",
+                        background: valueError ? "#ccc" : "#48aad9",
                         border: "none",
                         flex: 1,
                         padding: "0.8rem",

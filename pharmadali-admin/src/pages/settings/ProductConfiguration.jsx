@@ -78,12 +78,12 @@ export const ProductConfiguration = ({ onNavigate }) => {
         prev.map((cat) =>
           cat.id === modal.categoryId
             ? {
-                ...cat,
-                name: formData.name || cat.name,
-                enabled: formData.enabled,
-                background: formData.background,
-                font: formData.font,
-              }
+              ...cat,
+              name: formData.name || cat.name,
+              enabled: formData.enabled,
+              background: formData.background,
+              font: formData.font,
+            }
             : cat,
         ),
       );
