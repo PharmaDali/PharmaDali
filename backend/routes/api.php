@@ -6,7 +6,6 @@ use App\Http\Controllers\API\BranchProductController;
 use App\Http\Controllers\API\CustomerCartController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\OrderItemPrescription;
-use App\Http\Controllers\API\ProductImageController;
 use App\Http\Controllers\API\PharmacistProfileController;
 use App\Http\Controllers\API\CustomerProfileController;
 use Illuminate\Support\Facades\Route;
@@ -29,7 +28,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('products/{id}', [BranchProductController::class, 'show']);
     Route::get('branches/{branchId}/products', [BranchProductController::class, 'showBranchProducts']);
     Route::get('branches/{branchId}/categories', [BranchProductController::class, 'showBranchCategories']);
-    Route::get('branches/{branchId}/products/{productId}/image', [ProductImageController::class, 'showBranchProductImage']);
 
     Route::middleware('ability:customer')->group(function () {
         Route::get('customer/dashboard', function () {
