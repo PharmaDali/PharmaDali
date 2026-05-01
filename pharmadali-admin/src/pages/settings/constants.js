@@ -14,11 +14,7 @@ export const settingsList = [
     label: "Products and Pricing",
     description: "Configure product categories, items, and pricing rules.",
   },
-  {
-    id: "pos",
-    label: "POS and Transaction Settings",
-    description: "Control payment methods and transaction behavior.",
-  },
+
   {
     id: "receipt",
     label: "Receipt and Printing",
