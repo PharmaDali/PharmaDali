@@ -46,7 +46,7 @@ export const PricingRules = ({ onNavigate }) => {
         </div>
       </header>
 
-      <div className="settings-list-container settings-list-container--nested">
+      <div className="settings-list-container">
         {items.map((item) => (
           <div
             key={item.id}
@@ -82,6 +82,7 @@ export const PricingRules = ({ onNavigate }) => {
               <h6 className="settings-list-item-label">{item.label}</h6>
               <p className="settings-list-item-description">{item.description}</p>
             </div>
+            <span className="settings-list-item-arrow">›</span>
           </div>
         ))}
       </div>
