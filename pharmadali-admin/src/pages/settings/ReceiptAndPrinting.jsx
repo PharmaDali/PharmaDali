@@ -61,37 +61,37 @@ const ReceiptAndPrinting = ({ onNavigate }) => {
             label: "Separate or Combine Items",
             helper: "Manage account credentials and security options.",
             content: (
-                <div className="settings-flex-column" style={{ gap: "1rem", alignItems: "flex-end" }}>
-                    <label
-                        className="d-flex align-items-center gap-2"
-                        style={{ cursor: isEditing ? "pointer" : "default", fontSize: "0.95rem", color: "#333" }}
+                <div className="settings-flex-column" style={{ gap: "0.8rem", alignItems: "flex-end" }}>
+                    <div
+                        className="pd-radio-container"
+                        style={{ cursor: isEditing ? "pointer" : "default" }}
                         onClick={() => isEditing && handleInputChange("itemCombination", "separate")}
                     >
                         <input
                             type="radio"
+                            className="pd-radio"
                             name="itemCombination"
                             checked={formData.itemCombination === "separate"}
                             disabled={!isEditing}
                             onChange={() => { }}
-                            style={{ accentColor: "var(--pd-primary-dark)", width: "18px", height: "18px" }}
                         />
-                        Separate Items
-                    </label>
-                    <label
-                        className="d-flex align-items-center gap-2"
-                        style={{ cursor: isEditing ? "pointer" : "default", fontSize: "0.95rem", color: "#333" }}
+                        <span className="pd-radio-label">Separate Items</span>
+                    </div>
+                    <div
+                        className="pd-radio-container"
+                        style={{ cursor: isEditing ? "pointer" : "default" }}
                         onClick={() => isEditing && handleInputChange("itemCombination", "combine")}
                     >
                         <input
                             type="radio"
+                            className="pd-radio"
                             name="itemCombination"
                             checked={formData.itemCombination === "combine"}
                             disabled={!isEditing}
                             onChange={() => { }}
-                            style={{ accentColor: "var(--pd-primary-dark)", width: "18px", height: "18px" }}
                         />
-                        Combine Items
-                    </label>
+                        <span className="pd-radio-label">Combine Items</span>
+                    </div>
                 </div>
             ),
         },
