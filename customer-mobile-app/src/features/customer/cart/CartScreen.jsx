@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import React from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import LocationIcon from '@assets/icons/red_location_icon.svg';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
 import { useCartTab } from '@shared/hooks/useCartTab';
 import { setCheckoutDraft } from '@shared/services/checkoutDraft';
+import ProductImage from '@shared/components/ProductImage';
 
 function Checkbox({ checked, onPress }) {
   return (
@@ -50,7 +51,16 @@ function CartItem({ item, onToggle, onIncrement, onDecrement }) {
   return (
     <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-3 mx-4">
       <Checkbox checked={item.selected} onPress={onToggle} />
-      <Image source={BandaidImg} className="w-20 h-20 rounded-lg" resizeMode="contain" />
+      <ProductImage
+        source={BandaidImg}
+        product={item?.product}
+        categoryName={item?.category?.category_name}
+        quantity={item?.quantity}
+        isPrescribed={item?.prescriptionRequired}
+        width={80}
+        height={80}
+        containerStyle={{ borderRadius: 8 }}
+      />
       <View className="flex-1 ml-3">
         <Text className="text-xs" style={styles.fontSemiBold} numberOfLines={2}>
           {item.description}

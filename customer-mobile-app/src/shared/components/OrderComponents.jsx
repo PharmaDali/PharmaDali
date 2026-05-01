@@ -1,6 +1,7 @@
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '@shared/theme/colorPalette';
 import RxIcon from '@assets/icons/rx_icon.svg';
+import ProductImage from '@shared/components/ProductImage';
 
 const statusColors = {
   pending: { bg: '#E9E9E9', border: '#888888', text: '#333333' },
@@ -28,7 +29,16 @@ export function StatusBadge({ status }) {
 export function ProductRow({ product }) {
   return (
     <View className="flex-row mt-3">
-      <Image source={product.img} className="w-16 h-16 rounded-lg" resizeMode="contain" />
+      <ProductImage
+        source={product.img}
+        product={product.product}
+        categoryName={product.categoryName}
+        quantity={product.quantity}
+        isPrescribed={product.prescriptionRequired}
+        width={64}
+        height={64}
+        containerStyle={{ borderRadius: 8 }}
+      />
       <View className="flex-1 ml-3">
         <Text className="text-sm" style={{ fontFamily: 'Poppins-SemiBold' }} numberOfLines={2}>{product.description}</Text>
         {product.prescriptionRequired && (

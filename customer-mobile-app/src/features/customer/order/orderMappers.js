@@ -63,6 +63,7 @@ function toStatusLabel(rawStatus) {
 function mapOrderProduct(item) {
   const branchProduct = item?.branchProduct || item?.branch_product || null
   const product = branchProduct?.product || null
+  const categoryName = branchProduct?.category?.category_name || ''
 
   const description =
     item?.product_name ||
@@ -78,6 +79,8 @@ function mapOrderProduct(item) {
 
   return {
     img: BetadineImg,
+    product,
+    categoryName,
     description,
     price: formatCurrency(item?.unit_price_snapshot),
     quantity: Number(item?.quantity || 0),
