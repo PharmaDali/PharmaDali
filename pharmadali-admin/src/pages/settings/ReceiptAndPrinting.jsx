@@ -30,7 +30,7 @@ const ReceiptAndPrinting = ({ onNavigate }) => {
 
     const handleSave = () => {
         setIsEditing(false);
-        // Logic to save settings would go here
+        // Logic para sa save settings, here mappunta
     };
 
     const sections = [
@@ -70,10 +70,10 @@ const ReceiptAndPrinting = ({ onNavigate }) => {
                         <input
                             type="radio"
                             name="itemCombination"
-                            className="pd-radio"
                             checked={formData.itemCombination === "separate"}
                             disabled={!isEditing}
                             onChange={() => { }}
+                            style={{ accentColor: "var(--pd-primary-dark)", width: "18px", height: "18px" }}
                         />
                         Separate Items
                     </label>
@@ -85,10 +85,10 @@ const ReceiptAndPrinting = ({ onNavigate }) => {
                         <input
                             type="radio"
                             name="itemCombination"
-                            className="pd-radio"
                             checked={formData.itemCombination === "combine"}
                             disabled={!isEditing}
                             onChange={() => { }}
+                            style={{ accentColor: "var(--pd-primary-dark)", width: "18px", height: "18px" }}
                         />
                         Combine Items
                     </label>
