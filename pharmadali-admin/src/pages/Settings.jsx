@@ -10,6 +10,7 @@ import { PricingRules } from "./settings/PricingRules";
 import ReceiptAndPrinting from "./settings/ReceiptAndPrinting";
 import Devices from "./settings/Devices";
 import Operations from "./settings/Operations";
+import MobileAppContent from "./settings/MobileAppContent";
 
 const settingsMap = {
   general: {
@@ -38,11 +39,7 @@ const settingsMap = {
     component: Operations,
   },
   mobile: {
-    component: PlaceholderSettings,
-    props: {
-      title: "Mobile App Content",
-      description: "Manage content displayed in the PharmaDali customer mobile application.",
-    },
+    component: MobileAppContent,
   },
   export: {
     component: PlaceholderSettings,
