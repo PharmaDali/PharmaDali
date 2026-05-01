@@ -44,6 +44,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       items: (order?.items || []).map((item) => {
         const product = item?.branch_product?.product;
         const prescription = item?.order_item_prescription;
+        const categoryName = item?.branch_product?.category?.category_name || '';
         
         const prescriptionRequired = Boolean(product?.is_prescribed);
         const hasPrescriptionImage = Boolean(prescription?.prescription_image_path);
@@ -56,6 +57,8 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
 
         return {
           img: BetadineImg,
+          product,
+          categoryName,
           description: item?.product_name || 'Medicine item',
           price: Number(item?.unit_price_snapshot ?? 0).toFixed(2),
           quantity: item?.quantity ?? 0,

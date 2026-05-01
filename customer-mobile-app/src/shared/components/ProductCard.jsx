@@ -1,11 +1,14 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '@shared/theme/colorPalette';
 import AddToCartIcon from '@assets/icons/add_to_cart_icon.svg';
 import RxIcon from '@assets/icons/rx_icon.svg';
+import ProductImage from '@shared/components/ProductImage';
 
 export default function ProductCard({
   img,
+  product,
+  categoryName,
   description,
   category,
   price,
@@ -50,11 +53,13 @@ export default function ProductCard({
   return (
     <TouchableOpacity style={[{ width: 150 }, style]} onPress={handlePress}>
       <View className="rounded-xl bg-gray-50 p-3 border border-gray-200">
-        <Image
+        <ProductImage
           source={img}
-          className="w-full rounded-lg"
-          style={{ height: 120 }}
-          resizeMode="contain"
+          product={product}
+          categoryName={categoryName}
+          width={120}
+          height={120}
+          containerStyle={{ borderRadius: 8, alignSelf: 'center' }}
         />
         <Text
           className="text-xs text-gray-600 mt-2"

@@ -1,14 +1,20 @@
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { colors } from '@shared/theme/colorPalette';
 import { StatusBadge } from '@shared/components/OrderComponents';
+import ProductImage from '@shared/components/ProductImage';
 
 export default function OrderItemRow({ item }) {
   return (
     <View className="flex-row py-3">
-      <Image
+      <ProductImage
         source={item.img}
-        className="w-16 h-16 rounded-lg bg-gray-100"
-        resizeMode="contain"
+        product={item.product}
+        categoryName={item.categoryName}
+        quantity={item.quantity}
+        isPrescribed={item.prescriptionRequired}
+        width={64}
+        height={64}
+        containerStyle={{ borderRadius: 8, backgroundColor: '#F3F4F6' }}
       />
       <View className="flex-1 ml-3 justify-center">
         <View className="flex-row justify-between items-start">

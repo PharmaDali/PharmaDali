@@ -140,29 +140,35 @@ export default function HomeScreen() {
           </Text>
         </View>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
-          {branchProducts.map((item, index) => (
-            <View key={`${item?.id ?? 'product'}-${index}`}>
-              <ProductCard
-                productId={String(item?.product_id ?? '')}
-                branchProductId={item?.id}
-                branchId={selectedBranch?.id ?? selectedBranch?.branch_id ?? null}
-                img={BandaidImg}
-                description={item?.product?.product_name || 'Unnamed product'}
-                category={item?.category?.category_name || 'Uncategorized'}
-                price={formatProductPrice(item?.selling_price)}
-                isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
-                isAvailable={
-                  item?.is_available == null
-                    ? true
-                    : (typeof item?.is_available === 'boolean'
-                      ? item.is_available
-                      : Number(item.is_available) === 1)
-                }
-                onAddToCart={handleAddToCart}
-                style={{ width: 150, marginRight: 12 }}
-              />
-            </View>
-          ))}
+          {branchProducts.map((item, index) => {
+            const branchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null;
+
+            return (
+              <View key={`${item?.id ?? 'product'}-${index}`}>
+                <ProductCard
+                  productId={String(item?.product_id ?? '')}
+                  branchProductId={item?.id}
+                  branchId={branchId}
+                  img={BandaidImg}
+                  product={item?.product}
+                  categoryName={item?.category?.category_name}
+                  description={item?.product?.product_name || 'Unnamed product'}
+                  category={item?.category?.category_name || 'Uncategorized'}
+                  price={formatProductPrice(item?.selling_price)}
+                  isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
+                  isAvailable={
+                    item?.is_available == null
+                      ? true
+                      : (typeof item?.is_available === 'boolean'
+                        ? item.is_available
+                        : Number(item.is_available) === 1)
+                  }
+                  onAddToCart={handleAddToCart}
+                  style={{ width: 150, marginRight: 12 }}
+                />
+              </View>
+            );
+          })}
         </ScrollView>
       </View>
       </ScrollView>
