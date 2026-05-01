@@ -118,8 +118,7 @@
   margin-left: 1rem;
 }
 
-/* Premium Checkbox */
-.pd-checkbox-container {
+.pd-checkbox-container, .pd-radio-container {
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -127,18 +126,22 @@
   user-select: none;
 }
 
-.pd-checkbox {
+.pd-checkbox, .pd-radio {
   width: 20px;
   height: 20px;
   appearance: none;
   border: 1.5px solid #dcdcdc;
-  border-radius: 5px;
   outline: none;
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease;
   background: white;
   margin: 0;
+  flex-shrink: 0;
+}
+
+.pd-checkbox {
+  border-radius: 5px;
 }
 
 .pd-checkbox:checked {
@@ -158,17 +161,7 @@
 }
 
 .pd-radio {
-  width: 20px;
-  height: 20px;
-  appearance: none;
-  border: 1.5px solid #dcdcdc;
   border-radius: 50%;
-  outline: none;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-  background: white;
-  margin: 0;
 }
 
 .pd-radio:checked {
@@ -391,7 +384,7 @@
   margin-bottom: 0;
 }
 
-.settings-form-input {
+.settings-form-input, .settings-form-display {
   width: 100%;
   font-size: 0.95rem;
   border: 1px solid #eee;
@@ -399,6 +392,9 @@
   padding: 0.75rem 1rem;
   background-color: #f5f7fa;
   color: var(--pd-text-dark);
+}
+
+.settings-form-input {
   transition: all 0.2s;
 }
 
@@ -409,12 +405,6 @@
 }
 
 .settings-form-display {
-  font-size: 0.95rem;
-  color: var(--pd-text-dark);
-  padding: 0.75rem 1rem;
-  background-color: #f5f7fa;
-  border-radius: 12px;
-  border: 1px solid #eee;
   min-height: 2.375rem;
   display: flex;
   align-items: center;
@@ -460,11 +450,6 @@
   gap: 0.5rem;
 }
 
-.settings-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
 
 /* Placeholder & Nested Containers */
 .settings-placeholder {
@@ -476,12 +461,6 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
-.settings-list-container--nested {
-  box-shadow: none;
-  border-radius: 0;
-  border: none;
-  border-top: 1px solid #f0f0f0;
-}
 
 /* Data Table Helpers */
 .settings-table-name {
