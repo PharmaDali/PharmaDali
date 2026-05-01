@@ -9,6 +9,7 @@ import { ProductConfiguration } from "./settings/ProductConfiguration";
 import { PricingRules } from "./settings/PricingRules";
 import ReceiptAndPrinting from "./settings/ReceiptAndPrinting";
 import Devices from "./settings/Devices";
+import Operations from "./settings/Operations";
 
 const settingsMap = {
   general: {
@@ -34,11 +35,7 @@ const settingsMap = {
     component: Devices,
   },
   operations: {
-    component: PlaceholderSettings,
-    props: {
-      title: "Operations",
-      description: "Configure internal processes and system-generated reports.",
-    },
+    component: Operations,
   },
   mobile: {
     component: PlaceholderSettings,
