@@ -31,7 +31,7 @@ export const ProductsPricing = ({ onNavigate }) => (
       </div>
     </header>
 
-    <div className="settings-list-container settings-list-container--nested">
+    <div className="settings-list-container">
       {items.map((item) => (
         <div
           key={item.id}

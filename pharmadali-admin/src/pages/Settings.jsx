@@ -7,6 +7,7 @@ import { AccountSettings } from "./settings/AccountSettings";
 import { ProductsPricing } from "./settings/ProductsPricing";
 import { ProductConfiguration } from "./settings/ProductConfiguration";
 import { PricingRules } from "./settings/PricingRules";
+import ReceiptAndPrinting from "./settings/ReceiptAndPrinting";
 
 const settingsMap = {
   general: {
@@ -24,19 +25,9 @@ const settingsMap = {
   "pricing-rules": {
     component: PricingRules,
   },
-  pos: {
-    component: PlaceholderSettings,
-    props: {
-      title: "POS and Transaction Settings",
-      description: "Control payment methods and transaction behavior.",
-    },
-  },
+
   receipt: {
-    component: PlaceholderSettings,
-    props: {
-      title: "Receipt and Printing",
-      description: "Customize receipt format and printing options.",
-    },
+    component: ReceiptAndPrinting,
   },
   devices: {
     component: PlaceholderSettings,

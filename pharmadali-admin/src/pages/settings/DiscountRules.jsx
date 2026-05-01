@@ -1,5 +1,7 @@
 import { useState } from "react";
 import "../../assets/css/settings.css";
+import infoIcon from "../../assets/icons/modal-icons/info.svg";
+import Modal from "../../components/Modal";
 
 const initialDiscounts = [
   { id: 1, name: "Coupon 5", type: "Amount", value: "300.00" },
@@ -15,7 +17,7 @@ const defaultForm = {
 
 export const DiscountOverlay = ({ isOpen, onClose }) => {
   const [discounts, setDiscounts] = useState(initialDiscounts);
-  const [modal, setModal] = useState({ type: null, discountId: null });
+  const [modal, setModal] = useState({ type: null, discountId: null, subType: null });
   const [formData, setFormData] = useState(defaultForm);
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const [valueError, setValueError] = useState("");
@@ -38,8 +40,8 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
     setModal({ type: "edit", discountId: discount.id });
   };
 
-  const openDeleteModal = () => {
-    setModal((prev) => ({ ...prev, type: "delete" }));
+  const openDeleteModal = (discount) => {
+    setModal({ type: "delete", discountId: discount.id });
   };
 
   const closeSubModal = () => {
@@ -49,11 +51,14 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
 
   const handleSave = () => {
     if (!formData.name.trim() || valueError) return;
+    setModal((prev) => ({ ...prev, subType: prev.type, type: "confirm" }));
+  };
 
-    if (modal.type === "add") {
+  const handleFinalSave = () => {
+    if (modal.subType === "add") {
       const nextId = Math.max(0, ...discounts.map((d) => d.id)) + 1;
       setDiscounts((prev) => [...prev, { ...formData, id: nextId }]);
-    } else if (modal.type === "edit") {
+    } else if (modal.subType === "edit") {
       setDiscounts((prev) =>
         prev.map((d) => (d.id === modal.discountId ? { ...formData, id: d.id } : d))
       );
@@ -82,7 +87,7 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
 
   return (
     <div className="settings-modal-backdrop" onClick={onClose}>
-      <div className="settings-modal" style={{ maxWidth: "680px" }} onClick={(e) => e.stopPropagation()}>
+      <div className="settings-modal" style={{ maxWidth: "680px", minHeight: "550px", display: "flex", flexDirection: "column" }} onClick={(e) => e.stopPropagation()}>
         <div className="settings-panel-header">
           <div>
             <h5 className="settings-panel-title">Discount</h5>
@@ -93,7 +98,7 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
           </div>
         </div>
 
-        <div className="settings-table-card">
+        <div className="settings-table-card" style={{ flex: 1, marginBottom: "1rem" }}>
           {discounts.map((discount, index) => (
             <div
               key={discount.id}
@@ -103,10 +108,18 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
               <div className="settings-table-name">
                 <p className="settings-table-name-text">{discount.name}</p>
               </div>
-              <div className="settings-table-actions">
+              <div className="settings-table-actions" style={{ gap: "1.5rem" }}>
                 <span className="settings-table-value-text">
                   {discount.type === "Amount" ? `Php ${discount.value}` : `${discount.value}%`}
                 </span>
+                <button
+                  type="button"
+                  className="settings-action-btn--delete"
+                  style={{ background: "transparent", border: "none", padding: "4px" }}
+                  onClick={(e) => { e.stopPropagation(); openDeleteModal(discount); }}
+                >
+                  <i className="fa-regular fa-trash-can" style={{ fontSize: "1.1rem" }}></i>
+                </button>
               </div>
             </div>
           ))}
@@ -115,11 +128,16 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
           )}
         </div>
 
-        {modal.type && (
+        {modal.type && modal.type !== "confirm" && (
           <div className="settings-modal-backdrop" style={{ zIndex: 3000, background: "rgba(0,0,0,0.4)" }} onClick={closeSubModal}>
             <div
               className={`settings-modal${modal.type === "delete" ? " settings-modal--confirm" : ""}`}
-              style={{ maxWidth: modal.type === "delete" ? "400px" : "500px" }}
+              style={{
+                maxWidth: modal.type === "delete" ? "400px" : "550px",
+                minHeight: modal.type === "delete" ? "auto" : "400px",
+                display: "flex",
+                flexDirection: "column"
+              }}
               onClick={(e) => e.stopPropagation()}
             >
               {modal.type === "delete" ? (
@@ -139,7 +157,7 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                     <div className="settings-modal-divider" />
                   </div>
 
-                  <div className="settings-modal-body">
+                  <div className="settings-modal-body" style={{ flex: 1 }}>
                     <div className="settings-modal-field">
                       <label className="settings-modal-label">Discount Name</label>
                       <input
@@ -153,8 +171,8 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
 
                     <div className="settings-modal-field">
                       <label className="settings-modal-label">Discount Value</label>
-                      <div style={{ display: "flex", gap: "0.8rem", alignItems: "center" }}>
-                        <div className="pd-dropdown-container">
+                      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+                        <div className="pd-dropdown-container" style={{ width: "160px" }}>
                           <button
                             type="button"
                             className="pd-dropdown-btn"
@@ -190,16 +208,37 @@ export const DiscountOverlay = ({ isOpen, onClose }) => {
                     </div>
                   </div>
 
-                  <div className="settings-modal-footer">
+                  <div className="settings-modal-footer" style={{ gap: "1rem" }}>
                     <button type="button" className="btn-pd-ghost" style={{ flex: 1 }} onClick={closeSubModal}>Cancel</button>
-                    <button type="button" className="btn-action-delete" style={{ flex: 1, height: "auto", padding: "0.8rem" }} onClick={openDeleteModal}>Delete</button>
-                    <button type="button" className="btn-pd-primary" style={{ flex: 1 }} onClick={handleSave} disabled={!!valueError}>Save Changes</button>
+                    <button type="button" className="btn-pd-primary" style={{ flex: 1 }} onClick={handleSave} disabled={!!valueError}>
+                      {modal.type === "add" ? "Add discount" : "Save Changes"}
+                    </button>
                   </div>
                 </>
               )}
             </div>
           </div>
         )}
+
+        <Modal
+          isOpen={modal.type === "confirm"}
+          onClose={() => setModal(prev => ({ ...prev, type: prev.subType, subType: null }))}
+          size="sm"
+          showCloseButton={false}
+          className="pos-confirm-modal"
+        >
+          <div className="pos-confirm-content">
+            <img src={infoIcon} alt="info" className="pos-confirm-icon" style={{ width: "80px", height: "80px" }} />
+            <h3 className="pos-confirm-title">Confirm Changes?</h3>
+            <p className="pos-confirm-text">
+              Changes will be reflected in the mobile app<br />after you save
+            </p>
+            <div className="pos-confirm-actions">
+              <button type="button" className="pos-confirm-primary" style={{ flex: 1 }} onClick={handleFinalSave}>Continue</button>
+              <button type="button" className="pos-confirm-secondary" style={{ flex: 1 }} onClick={() => setModal(prev => ({ ...prev, type: prev.subType, subType: null }))}>Cancel</button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </div>
   );
