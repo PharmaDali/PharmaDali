@@ -8,6 +8,7 @@ import { ProductsPricing } from "./settings/ProductsPricing";
 import { ProductConfiguration } from "./settings/ProductConfiguration";
 import { PricingRules } from "./settings/PricingRules";
 import ReceiptAndPrinting from "./settings/ReceiptAndPrinting";
+import Devices from "./settings/Devices";
 
 const settingsMap = {
   general: {
@@ -30,11 +31,7 @@ const settingsMap = {
     component: ReceiptAndPrinting,
   },
   devices: {
-    component: PlaceholderSettings,
-    props: {
-      title: "Devices",
-      description: "Set up and manage connected hardware devices.",
-    },
+    component: Devices,
   },
   operations: {
     component: PlaceholderSettings,
