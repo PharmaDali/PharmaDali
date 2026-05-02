@@ -11,6 +11,7 @@ import ReceiptAndPrinting from "./settings/ReceiptAndPrinting";
 import Devices from "./settings/Devices";
 import Operations from "./settings/Operations";
 import MobileAppContent from "./settings/MobileAppContent";
+import BackupAndRestore from "./settings/BackupAndRestore";
 
 const settingsMap = {
   general: {
@@ -49,11 +50,7 @@ const settingsMap = {
     },
   },
   backup: {
-    component: PlaceholderSettings,
-    props: {
-      title: "Backup and Restore",
-      description: "Handle data backup, recovery, and system restoration.",
-    },
+    component: BackupAndRestore,
   },
 };
 
