@@ -1,7 +1,7 @@
 import { Breadcrumb } from "./Breadcrumb";
 import "../../assets/css/settings/common.css";
 
-export const SettingForm = ({ title, description, isEditing, onEditChange, onSave, children, breadcrumbs, onNavigate }) => (
+export const SettingForm = ({ title, description, isEditing, onEditChange, onSave, children, breadcrumbs, onNavigate, noContainer = false }) => (
   <>
     <Breadcrumb crumbs={breadcrumbs} onNavigate={onNavigate} />
 
@@ -22,7 +22,7 @@ export const SettingForm = ({ title, description, isEditing, onEditChange, onSav
       </div>
     </header>
 
-    <div className="settings-form-container">{children}</div>
+    {noContainer ? children : <div className="settings-form-container">{children}</div>}
   </>
 );
 
