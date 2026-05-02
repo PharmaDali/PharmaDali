@@ -3,6 +3,7 @@ import { SettingForm } from "./SettingForm";
 import "../../assets/css/settings/common.css";
 import uploadImagesIcon from "../../assets/icons/settings-icons/upload-images.svg";
 import infoIcon from "../../assets/icons/modal-icons/info-black.svg";
+import Modal from "../../components/Modal";
 
 const initialData = {
     carouselImages: [],
@@ -14,6 +15,7 @@ const MobileAppContent = ({ onNavigate }) => {
     const [formData, setFormData] = useState(initialData);
     const [draggedItemIndex, setDraggedItemIndex] = useState(null);
     const [dragOverItemIndex, setDragOverItemIndex] = useState(null);
+    const [showLogoPreview, setShowLogoPreview] = useState(false);
 
     const carouselInputRef = useRef(null);
     const logoInputRef = useRef(null);
@@ -307,6 +309,7 @@ const MobileAppContent = ({ onNavigate }) => {
                                 />
                                 <button
                                     className="btn btn-pd-ghost btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
+                                    style={{ padding: "0.5rem 1rem", borderRadius: "10px" }}
                                     disabled={!isEditing}
                                     onClick={() => logoInputRef.current?.click()}
                                 >
@@ -314,13 +317,18 @@ const MobileAppContent = ({ onNavigate }) => {
                                 </button>
                                 <button
                                     className="btn btn-outline-danger btn-sm w-100 d-flex align-items-center justify-content-center gap-2"
-                                    style={{ borderRadius: "10px", color: "#ff6b6b", borderColor: "#ffb3b3" }}
+                                    style={{ padding: "0.5rem 1rem", borderRadius: "10px", color: "#ff6b6b", borderColor: "#ffb3b3" }}
                                     disabled={!isEditing}
                                     onClick={removeLogo}
                                 >
-                                    <span style={{ fontSize: "1rem" }}>🗑</span> Remove logo
+                                    <span style={{ fontSize: "1.1rem" }}>🗑</span> Remove logo
                                 </button>
-                                <button className="btn btn-pd-ghost btn-sm w-100 d-flex align-items-center justify-content-center gap-2" disabled={!isEditing}>
+                                <button 
+                                    className="btn btn-pd-ghost btn-sm w-100 d-flex align-items-center justify-content-center gap-2" 
+                                    style={{ padding: "0.5rem 1rem", borderRadius: "10px" }}
+                                    disabled={!formData.logoUrl}
+                                    onClick={() => setShowLogoPreview(true)}
+                                >
                                     <span style={{ fontSize: "1.1rem" }}>👁</span> Preview logo
                                 </button>
                             </div>
@@ -335,6 +343,21 @@ const MobileAppContent = ({ onNavigate }) => {
                     </p>
                 </div>
             </div>
+
+            <Modal
+                isOpen={showLogoPreview}
+                onClose={() => setShowLogoPreview(false)}
+                title="Logo Preview"
+                size="md"
+            >
+                <div className="d-flex justify-content-center align-items-center" style={{ padding: "2rem" }}>
+                    <img 
+                        src={formData.logoUrl} 
+                        alt="Pharmacy Logo Preview" 
+                        style={{ maxWidth: "100%", maxHeight: "400px", objectFit: "contain", borderRadius: "8px", border: "1px solid #e1ecef" }} 
+                    />
+                </div>
+            </Modal>
         </SettingForm>
     );
 };
