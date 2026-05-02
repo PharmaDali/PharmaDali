@@ -16,7 +16,9 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="customer/tabs/cart/OrderSubmitted" options={{ gestureEnabled: false }} />
+      </Stack>
     </SafeAreaProvider>
   );
 }

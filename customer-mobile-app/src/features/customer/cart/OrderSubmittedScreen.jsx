@@ -1,6 +1,6 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React, { useEffect } from 'react'
-import { useRouter } from 'expo-router'
+import { StyleSheet, Text, View, TouchableOpacity, BackHandler } from 'react-native'
+import React, { useCallback } from 'react'
+import { useRouter, Stack, useFocusEffect } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@src/shared/theme/colorPalette'
 import LogoHeader from '@src/shared/components/LogoHeader'
@@ -12,13 +12,27 @@ const OrderSubmittedScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
 
-  useEffect(() => {
-    clearCheckoutDraft()
-  }, [])
+  useFocusEffect(
+    useCallback(() => {
+      clearCheckoutDraft()
+
+      const onBackPress = () => {
+        return true
+      }
+
+      const backHandler = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress
+      )
+
+      return () => backHandler.remove()
+    }, [])
+  )
 
   return (
     <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
-      <LogoHeader />
+      <Stack.Screen options={{ gestureEnabled: false }} />
+      <LogoHeader showBackButton={false} />
 
       <View className="flex-1 items-center justify-center px-6">
         <OrderSuccessIcon width={260} height={164} />
