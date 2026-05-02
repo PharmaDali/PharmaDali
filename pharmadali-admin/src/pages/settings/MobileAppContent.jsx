@@ -329,8 +329,8 @@ const MobileAppContent = ({ onNavigate }) => {
                 </div>
 
                 <div className="text-center mt-2">
-                    <p className="settings-section-helper align-items-center justify-content-center gap-2">
-                        <img src={infoIcon} alt="Info" style={{ width: "16px", height: "16px" }} />
+                    <p className="settings-section-helper">
+                        <img src={infoIcon} alt="Info" style={{ width: "16px", height: "16px", marginRight: "6px", verticalAlign: "middle", position: "relative", top: "-1px" }} />
                         Changes will be reflected in the mobile app after you save.
                     </p>
                 </div>
