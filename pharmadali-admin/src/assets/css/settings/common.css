@@ -477,6 +477,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
   font-weight: 600;
+}
+
+/* Responsive Overrides */
+.settings-card .row.g-3 > div > img {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 500 / 260;
 }

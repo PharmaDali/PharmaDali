@@ -96,12 +96,12 @@ const MobileAppContent = ({ onNavigate }) => {
             <div className="settings-flex-column" style={{ gap: "2rem" }}>
                 {/* Carousel Images Section */}
                 <div className="settings-card" style={{ marginBottom: 0 }}>
-                    <div className="d-flex justify-content-between align-items-start mb-3">
+                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-3 gap-3">
                         <div>
                             <h6 className="settings-section-title">Upload Carousel Images</h6>
                             <p className="settings-section-helper">This images will be displayed in the homepage carousel of the PharmaDali mobile app</p>
                         </div>
-                        <div className="text-end">
+                        <div className="text-md-end">
                             <p className="settings-section-helper mb-2">You can upload up to 5 images.</p>
                             <input
                                 type="file"
@@ -127,19 +127,20 @@ const MobileAppContent = ({ onNavigate }) => {
                         padding: "1.5rem",
                         backgroundColor: "#fcfcfc"
                     }}>
-                        <div className="d-flex gap-3 flex-wrap mb-3">
+                        <div className="row g-3 mb-3">
                             {formData.carouselImages.map((img, index) => (
-                                <div key={img.id} style={{ position: "relative", width: "calc(33.33% - 1rem)", minWidth: "200px" }}>
+                                <div key={img.id} className="col-12 col-md-6 col-lg-4" style={{ position: "relative" }}>
                                     <div style={{
                                         position: "absolute",
                                         top: "10px",
-                                        left: "10px",
+                                        left: "33px",
                                         backgroundColor: "var(--pd-primary-dark)",
                                         color: "white",
                                         borderRadius: "4px",
                                         padding: "2px 8px",
                                         fontSize: "0.75rem",
-                                        fontWeight: "700"
+                                        fontWeight: "700",
+                                        zIndex: 1
                                     }}>
                                         {index + 1}
                                     </div>
@@ -149,17 +150,17 @@ const MobileAppContent = ({ onNavigate }) => {
                                             style={{
                                                 position: "absolute",
                                                 top: "10px",
-                                                right: "10px",
-                                                background: "rgba(0,0,0,0.5)",
+                                                right: "25px",
+                                                background: "#48AAD9",
                                                 color: "white",
                                                 border: "none",
                                                 borderRadius: "50%",
-                                                width: "20px",
-                                                height: "20px",
+                                                width: "22px",
+                                                height: "22px",
                                                 display: "flex",
                                                 alignItems: "center",
                                                 justifyContent: "center",
-                                                fontSize: "12px",
+                                                fontSize: "13px",
                                                 cursor: "pointer",
                                                 zIndex: 2
                                             }}
@@ -170,7 +171,7 @@ const MobileAppContent = ({ onNavigate }) => {
                                     <img
                                         src={img.url}
                                         alt={img.label}
-                                        style={{ width: "480px", height: "260px", objectFit: "cover", borderRadius: "10px", border: "transparent" }}
+                                        style={{ width: "500px", height: "260px", objectFit: "cover", borderRadius: "10px", border: "transparent" }}
                                     />
                                 </div>
                             ))}
