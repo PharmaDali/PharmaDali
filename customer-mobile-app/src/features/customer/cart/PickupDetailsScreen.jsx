@@ -104,7 +104,7 @@ const PickupDetailsScreen = () => {
     closingDateTime,
   ])
 
-  const isConfirmPickupDisabled = submitting || Boolean(confirmPickupValidationError)
+  const isConfirmPickupDisabled = submitting || Boolean(confirmPickupValidationError) || Boolean(submitError)
 
   useEffect(() => {
     if (!hasValidOperatingWindow || !hasWindowToday) {
