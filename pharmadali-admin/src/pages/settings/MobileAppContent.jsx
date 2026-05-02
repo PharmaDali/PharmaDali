@@ -1,19 +1,19 @@
 import { useState, useRef } from "react";
 import { SettingForm } from "./SettingForm";
 import "../../assets/css/settings/common.css";
+import uploadImagesIcon from "../../assets/icons/settings-icons/upload-images.svg";
+import infoIcon from "../../assets/icons/modal-icons/info-black.svg";
 
 const initialData = {
-    carouselImages: [
-        { id: 1, url: "https://via.placeholder.com/1080x400?text=Health+is+Priority", label: "Your Health is Our Priority" },
-        { id: 2, url: "https://via.placeholder.com/1080x400?text=Big+Savings", label: "Big Savings Every Day" },
-        { id: 3, url: "https://via.placeholder.com/1080x400?text=Quality+Medicines", label: "Quality Medicines" }
-    ],
+    carouselImages: [],
     logoUrl: "https://via.placeholder.com/500x500?text=PharmaDali+Logo"
 };
 
 const MobileAppContent = ({ onNavigate }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState(initialData);
+    const [draggedItemIndex, setDraggedItemIndex] = useState(null);
+    const [dragOverItemIndex, setDragOverItemIndex] = useState(null);
 
     const carouselInputRef = useRef(null);
     const logoInputRef = useRef(null);
@@ -43,6 +43,45 @@ const MobileAppContent = ({ onNavigate }) => {
         }));
 
         if (carouselInputRef.current) carouselInputRef.current.value = "";
+    };
+
+    const handleDragStart = (index) => {
+        if (!isEditing) return;
+        setDraggedItemIndex(index);
+    };
+
+    const handleDragEnter = (e, index) => {
+        if (!isEditing) return;
+        e.preventDefault();
+        setDragOverItemIndex(index);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedItemIndex(null);
+        setDragOverItemIndex(null);
+    };
+
+    const handleDrop = (e, targetIndex) => {
+        if (!isEditing) return;
+        e.preventDefault();
+
+        if (draggedItemIndex === null || draggedItemIndex === targetIndex) {
+            handleDragEnd();
+            return;
+        }
+
+        const newImages = [...formData.carouselImages];
+        const draggedImage = newImages[draggedItemIndex];
+
+        newImages.splice(draggedItemIndex, 1);
+        newImages.splice(targetIndex, 0, draggedImage);
+
+        setFormData(prev => ({
+            ...prev,
+            carouselImages: newImages
+        }));
+
+        handleDragEnd();
     };
 
     const handleLogoUpload = (e) => {
@@ -92,17 +131,18 @@ const MobileAppContent = ({ onNavigate }) => {
                 { label: "Mobile App Content", view: "mobile" },
             ]}
             onNavigate={onNavigate}
+            noContainer={true}
         >
             <div className="settings-flex-column" style={{ gap: "2rem" }}>
                 {/* Carousel Images Section */}
                 <div className="settings-card" style={{ marginBottom: 0 }}>
-                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-start mb-3 gap-3">
+                    <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                         <div>
-                            <h6 className="settings-section-title">Upload Carousel Images</h6>
-                            <p className="settings-section-helper">This images will be displayed in the homepage carousel of the PharmaDali mobile app</p>
+                            <h6 className="settings-section-title" style={{ fontSize: "1.1rem" }}>Upload Carousel Images</h6>
+                            <p className="settings-section-helper mb-0">This images will be displayed in the homepage carousel of the PharmaDali mobile app</p>
                         </div>
-                        <div className="text-md-end">
-                            <p className="settings-section-helper mb-2">You can upload up to 5 images.</p>
+                        <div className="d-flex align-items-center gap-3">
+                            <p className="settings-section-helper mb-0">You can upload up to 5 images.</p>
                             <input
                                 type="file"
                                 ref={carouselInputRef}
@@ -112,24 +152,36 @@ const MobileAppContent = ({ onNavigate }) => {
                                 onChange={handleCarouselUpload}
                             />
                             <button
-                                className="btn btn-pd-ghost btn-sm"
+                                className="btn btn-pd-ghost btn-sm px-4"
                                 disabled={!isEditing || formData.carouselImages.length >= 5}
                                 onClick={() => carouselInputRef.current?.click()}
+                                style={{ borderRadius: '8px', color: '#48aad9', borderColor: '#b8e0f2', padding: '0.4rem 1rem' }}
                             >
                                 <span className="me-2">+</span> Upload image/s
                             </button>
                         </div>
                     </div>
 
-                    <div style={{
-                        border: "1px dashed #dcdcdc",
-                        borderRadius: "15px",
-                        padding: "1.5rem",
-                        backgroundColor: "#fcfcfc"
-                    }}>
-                        <div className="row g-3 mb-3">
+                    {formData.carouselImages.length > 0 && (
+                        <div className="row g-3 mb-4">
                             {formData.carouselImages.map((img, index) => (
-                                <div key={img.id} className="col-12 col-md-6 col-lg-4" style={{ position: "relative" }}>
+                                <div
+                                    key={img.id}
+                                    className="col-12 col-md-6 col-lg-4"
+                                    style={{
+                                        position: "relative",
+                                        opacity: draggedItemIndex === index ? 0.5 : 1,
+                                        transform: dragOverItemIndex === index ? "scale(1.02)" : "scale(1)",
+                                        transition: "all 0.2s ease",
+                                        cursor: isEditing ? "grab" : "default"
+                                    }}
+                                    draggable={isEditing}
+                                    onDragStart={() => handleDragStart(index)}
+                                    onDragEnter={(e) => handleDragEnter(e, index)}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDragEnd={handleDragEnd}
+                                    onDrop={(e) => handleDrop(e, index)}
+                                >
                                     <div style={{
                                         position: "absolute",
                                         top: "10px",
@@ -150,7 +202,7 @@ const MobileAppContent = ({ onNavigate }) => {
                                             style={{
                                                 position: "absolute",
                                                 top: "10px",
-                                                right: "25px",
+                                                right: "30px",
                                                 background: "#48AAD9",
                                                 color: "white",
                                                 border: "none",
@@ -171,14 +223,29 @@ const MobileAppContent = ({ onNavigate }) => {
                                     <img
                                         src={img.url}
                                         alt={img.label}
-                                        style={{ width: "500px", height: "260px", objectFit: "cover", borderRadius: "10px", border: "transparent" }}
+                                        style={{ width: "500px", height: "260px", objectFit: "cover", borderRadius: "8px" }}
                                     />
                                 </div>
                             ))}
                         </div>
-                        <div className="text-center">
-                            <p className="settings-section-helper" style={{ fontSize: "0.8rem" }}>Drag and Drop to reorder images</p>
-                            <p className="settings-section-helper" style={{ fontSize: "0.75rem", opacity: 0.7 }}>Recommended size: 1080 x 400px (Landscape) | Format: JPG, PNG</p>
+                    )}
+
+                    <div style={{
+                        border: "1px solid #b8e0f2",
+                        borderRadius: "8px",
+                        padding: formData.carouselImages.length > 0 ? "1.5rem" : "2.5rem 1.5rem",
+                        backgroundColor: "#fff"
+                    }}>
+                        <div className="text-center" style={{ cursor: formData.carouselImages.length === 0 && isEditing ? "pointer" : "default" }} onClick={() => formData.carouselImages.length === 0 && isEditing && carouselInputRef.current?.click()}>
+                            {formData.carouselImages.length === 0 ? (
+                                <div className="d-flex align-items-center justify-content-center gap-2 mb-2">
+                                    <img src={uploadImagesIcon} alt="Upload" style={{ width: "24px", height: "24px" }} />
+                                    <span style={{ color: "#888", fontWeight: "500", fontSize: "0.9rem" }}>Upload Images</span>
+                                </div>
+                            ) : (
+                                <p className="settings-section-helper mb-2" style={{ fontSize: "0.85rem", color: "#888", fontWeight: "500" }}>Drag and Drop to reorder images</p>
+                            )}
+                            <p className="settings-section-helper mb-0" style={{ fontSize: "0.75rem", opacity: 0.7 }}>Recommended size: 1080 x 400px (Landscape) | Format: JPG, PNG</p>
                         </div>
                     </div>
                 </div>
@@ -262,8 +329,8 @@ const MobileAppContent = ({ onNavigate }) => {
                 </div>
 
                 <div className="text-center mt-2">
-                    <p className="settings-section-helper d-flex align-items-center justify-content-center gap-2">
-                        <span style={{ background: "#eee", borderRadius: "50%", width: "20px", height: "20px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "700", color: "#666" }}>!</span>
+                    <p className="settings-section-helper align-items-center justify-content-center gap-2">
+                        <img src={infoIcon} alt="Info" style={{ width: "16px", height: "16px" }} />
                         Changes will be reflected in the mobile app after you save.
                     </p>
                 </div>
