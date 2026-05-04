@@ -1,0 +1,4 @@
+autoarima-venv
+
+.env
+__pycache__/
