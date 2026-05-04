@@ -46,6 +46,9 @@ From the project root, change directory into the app you want to set up, then fo
 cd backend
 # Read and follow backend/README.md
 
+cd ..\ai-service
+# Read and follow ai-service/README.md
+
 cd ..\pharmadali-admin
 # Read and follow pharmadali-admin/README.md
 
