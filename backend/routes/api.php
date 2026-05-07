@@ -71,6 +71,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
 
         Route::post('products', [BranchProductController::class, 'store']);
+        Route::post('products/import', [BranchProductController::class, 'importBranchProducts']);
         Route::put('products/{id}', [BranchProductController::class, 'update']);
         Route::delete('products/{id}', [BranchProductController::class, 'destroy']);
 

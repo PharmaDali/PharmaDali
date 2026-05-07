@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ImportBranchProductsRequest;
+use App\Imports\BranchProductsImport;
 use App\Models\Products;
 use App\Http\Requests\CreateBranchProductRequest;
 use Illuminate\Http\Request;
@@ -11,6 +13,7 @@ use App\Http\Requests\UpdateBranchProductsRequest;
 use App\Http\Requests\ShowBranchProductRequest;
 use App\Services\BranchProduct\ShowBranchProductService;
 use App\Services\BranchProduct\ShowBranchCategoriesService;
+use Maatwebsite\Excel\Facades\Excel;
 
 class BranchProductController extends Controller
 {
@@ -121,6 +124,32 @@ class BranchProductController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Product deleted successfully'
+        ]);
+    }
+
+    /**
+     * Import branch products from an uploaded XLSX/CSV file.
+     */
+    public function importBranchProducts(ImportBranchProductsRequest $request)
+    {
+        Gate::authorize('create', Products::class);
+
+        $branchId = $request->input('branch_id') ?? $request->user()?->branch_id;
+
+        if (!$branchId) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'branch_id is required when the user has no branch assigned.'
+            ], 422);
+        }
+
+        $import = new BranchProductsImport((int) $branchId);
+        Excel::import($import, $request->file('file'));
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Branch products imported successfully',
+            'summary' => $import->summary(),
         ]);
     }
 }
