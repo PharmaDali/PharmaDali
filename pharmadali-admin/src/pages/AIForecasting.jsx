@@ -11,15 +11,15 @@ import { Line } from "react-chartjs-2";
 import { useMemo, useState } from "react";
 import "../assets/css/dashboard.css";
 import "../assets/css/aiforecasting.css";
+import AIIcon from "../assets/icons/AI.svg";
 
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Filler,
-    Tooltip,
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
+
+const TABS = [
+    { id: "demand", label: "Demand", icon: "fa-solid fa-chart-line" },
+    { id: "sales", label: "Sales", icon: "fa-solid fa-coins" },
+    { id: "stock", label: "Stock", icon: "fa-solid fa-boxes-stacked" },
+];
 
 const FORECAST_DATA = {
     "Last 7 days": {
@@ -27,22 +27,7 @@ const FORECAST_DATA = {
         values: [32, 37, 41, 51, 54, 52, 58],
     },
     "Last 14 days": {
-        labels: [
-            "W1 Mon",
-            "W1 Tue",
-            "W1 Wed",
-            "W1 Thu",
-            "W1 Fri",
-            "W1 Sat",
-            "W1 Sun",
-            "W2 Mon",
-            "W2 Tue",
-            "W2 Wed",
-            "W2 Thu",
-            "W2 Fri",
-            "W2 Sat",
-            "W2 Sun",
-        ],
+        labels: ["W1 Mon","W1 Tue","W1 Wed","W1 Thu","W1 Fri","W1 Sat","W1 Sun","W2 Mon","W2 Tue","W2 Wed","W2 Thu","W2 Fri","W2 Sat","W2 Sun"],
         values: [24, 29, 33, 39, 44, 42, 47, 37, 41, 46, 53, 56, 55, 59],
     },
     "Last 30 days": {
@@ -53,275 +38,231 @@ const FORECAST_DATA = {
 
 const FORECAST_RANGES = Object.keys(FORECAST_DATA);
 
-const STOCKOUT_SUGGESTIONS = [
-    { risk: "High", medicine: "Amoxicillin", units: 150, date: "March 7, 2026" },
-    { risk: "High", medicine: "Paracetamol", units: 100, date: "March 7, 2026" },
-    { risk: "Medium", medicine: "Cetirizine", units: 80, date: "March 9, 2026" },
-    { risk: "Medium", medicine: "Ibuprofen", units: 70, date: "March 10, 2026" },
-    { risk: "Low", medicine: "Salbutamol Inhaler", units: 30, date: "March 14, 2026" },
+const TOP_PREDICTED_DEMAND = [
+    { product: "Amoxicillin",        demand: "85 units",  trend: "+12 units" },
+    { product: "Paracetamol",        demand: "120 units", trend: "+18 units" },
+    { product: "Cetirizine",         demand: "70 units",  trend: "+9 units"  },
+    { product: "Ibuprofen",          demand: "65 units",  trend: "+8 units"  },
+    { product: "Salbutamol Inhaler", demand: "40 units",  trend: "+5 units"  },
+    { product: "Amoxicillin",        demand: "85 units",  trend: "+10 units" },
+    { product: "Paracetamol",        demand: "107 units", trend: "+15 units" },
+    { product: "Cetirizine",         demand: "40 units",  trend: "+6 units"  },
+    { product: "Ibuprofen",          demand: "65 units",  trend: "+7 units"  },
+    { product: "Salbutamol Inhaler", demand: "40 units",  trend: "+4 units"  },
 ];
 
-const PREDICTED_HIGH_DEMAND = [
-    { medicine: "Amoxicillin", demand: "85 units", period: "next 7 days", confidence: "92%" },
-    { medicine: "Paracetamol", demand: "120 units", period: "next 7 days", confidence: "95%" },
-    { medicine: "Cetirizine", demand: "70 units", period: "next 7 days", confidence: "88%" },
-    { medicine: "Ibuprofen", demand: "65 units", period: "next 7 days", confidence: "90%" },
-    { medicine: "Salbutamol Inhaler", demand: "40 units", period: "next 7 days", confidence: "84%" },
+const DEMAND_INSIGHTS = [
+    "Highest demand expected on Saturdays and Sundays",
+    "Respiratory medicines show increasing demand",
+    "Consistent demand for maintenance medications",
 ];
-
-const INVENTORY_HEALTH = [
-    { medicine: "Amoxicillin", lowStock: "less than 1 day of supply", expiresIn: "14 days" },
-    { medicine: "Paracetamol", lowStock: "less than 1 day of supply", expiresIn: "10 days" },
-    { medicine: "Cetirizine", lowStock: "1 day of supply", expiresIn: "23 days" },
-    { medicine: "Ibuprofen", lowStock: "1 day of supply", expiresIn: "28 days" },
-    { medicine: "Salbutamol Inhaler", lowStock: "2 days of supply", expiresIn: "30 days" },
-];
-
-const riskClassMap = {
-    High: "aif-risk-high",
-    Medium: "aif-risk-medium",
-    Low: "aif-risk-low",
-};
-
-const stockRightStyle = {
-    textAlign: "right",
-    paddingRight: "10px",
-};
-
-const groupedCellStyle = {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexWrap: "wrap",
-    gap: "10px",
-};
-
-const splitCellStyle = {
-    ...groupedCellStyle,
-    gap: "8px",
-    width: "100%",
-};
 
 function AIForecasting() {
+    const [activeTab, setActiveTab] = useState("demand");
     const [range, setRange] = useState("Last 7 days");
+    const [tableRange, setTableRange] = useState("Last 7 days");
     const { labels, values } = FORECAST_DATA[range];
 
-    const chartData = useMemo(
-        () => ({
-            labels,
-            datasets: [
-                {
-                    data: values,
-                    borderColor: "#2aabe2",
-                    backgroundColor: "rgba(42,171,226,0.12)",
-                    fill: true,
-                    tension: 0.4,
-                    pointBackgroundColor: "#ffffff",
-                    pointBorderColor: "#2aabe2",
-                    pointBorderWidth: 1.5,
-                    pointRadius: 3.5,
-                    pointHoverRadius: 5,
-                },
-            ],
-        }),
-        [labels, values],
-    );
+    const chartData = useMemo(() => ({
+        labels,
+        datasets: [{
+            data: values,
+            borderColor: "#2aabe2",
+            backgroundColor: "rgba(42,171,226,0.12)",
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: "#ffffff",
+            pointBorderColor: "#2aabe2",
+            pointBorderWidth: 1.5,
+            pointRadius: 3.5,
+            pointHoverRadius: 5,
+        }],
+    }), [labels, values]);
 
-    const chartOptions = useMemo(
-        () => ({
-            responsive: true,
-            maintainAspectRatio: false,
-            layout: {
-                padding: {
-                    top: 4,
-                    right: 10,
-                    bottom: 0,
-                    left: 0,
+    const chartOptions = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 4, right: 10, bottom: 0, left: 0 } },
+        plugins: {
+            legend: { display: false },
+            tooltip: { mode: "index", intersect: false },
+        },
+        scales: {
+            x: {
+                grid: { color: "rgba(15, 23, 42, 0.04)" },
+                ticks: {
+                    color: "#5f6670",
+                    font: { size: 12, family: "Poppins" },
+                    autoSkip: true,
+                    maxTicksLimit: range === "Last 30 days" ? 6 : 8,
                 },
             },
-            plugins: {
-                legend: { display: false },
-                tooltip: { mode: "index", intersect: false },
-            },
-            scales: {
-                x: {
-                    grid: {
-                        color: "rgba(15, 23, 42, 0.04)",
-                    },
-                    ticks: {
-                        color: "#5f6670",
-                        font: { size: 12, family: "Poppins" },
-                        autoSkip: true,
-                        maxTicksLimit: range === "Last 30 days" ? 6 : 8,
-                    },
+            y: {
+                min: 10,
+                max: 60,
+                ticks: {
+                    stepSize: 10,
+                    color: "#5f6670",
+                    font: { size: 12, family: "Poppins" },
+                    padding: 8,
                 },
-                y: {
-                    min: 10,
-                    max: 60,
-                    ticks: {
-                        stepSize: 10,
-                        color: "#5f6670",
-                        font: { size: 12, family: "Poppins" },
-                        padding: 8,
-                    },
-                    grid: {
-                        color: "rgba(15, 23, 42, 0.06)",
-                    },
-                },
+                grid: { color: "rgba(15, 23, 42, 0.06)" },
             },
-        }),
-        [range],
-    );
+        },
+    }), [range]);
+
+    const leftDemand = TOP_PREDICTED_DEMAND.slice(0, 5);
+    const rightDemand = TOP_PREDICTED_DEMAND.slice(5, 10);
 
     return (
         <section className="dashboard-page aif-page">
-            <header className="dashboard-page-header mb-4">
-                <h4 className="fw-bold mb-1 dashboard-title">Forecasting</h4>
+            <header className="dashboard-page-header mb-3">
+                <h4 className="fw-bold mb-1 dashboard-title">Analytics and Forecasting</h4>
                 <p className="dashboard-subtitle mb-0 aif-subtitle">
-                    AI-driven operational predictions for demand, stockout risk, and inventory readiness.
+                    AI-driven predictive analytics related to the pharmacy.
                 </p>
             </header>
 
-            <div className="row g-4 mb-4">
-                <div className="col-12 col-md-7 col-lg-7">
-                    <article className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel aif-card">
-                        <div className="aif-chart-head">
-                            <h6 className="fw-bold mb-0 aif-chart-title">Demand Forecast Chart</h6>
-                            <div className="position-relative pd-range-select-wrap aif-filter-wrap">
-                                <select
-                                    className="form-select form-select-sm pe-4 pd-range-select"
-                                    value={range}
-                                    onChange={(e) => setRange(e.target.value)}
-                                    aria-label="Forecast period"
-                                >
-                                    {FORECAST_RANGES.map((period) => (
-                                        <option key={period}>{period}</option>
-                                    ))}
-                                </select>
-                                <i
-                                    className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon"
-                                    style={{ right: 12, fontSize: 10, pointerEvents: "none", color: "#888" }}
-                                ></i>
-                            </div>
+            <div className="aif-tabs mb-4">
+                {TABS.map((tab) => (
+                    <button
+                        key={tab.id}
+                        type="button"
+                        className={`aif-tab-btn${activeTab === tab.id ? " aif-tab-active" : ""}`}
+                        onClick={() => setActiveTab(tab.id)}
+                    >
+                        <i className={tab.icon} />
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+
+            {activeTab === "demand" && (
+                <>
+                    <div className="row g-3 mb-3">
+                        <div className="col-12 col-md-4 col-lg-3">
+                            <article className="card border-0 rounded-3 p-3 h-100 aif-card aif-insight-card">
+                                <div className="aif-insight-icon">
+                                    <img src={AIIcon} alt="AI Insight" style={{ width: "24px", height: "24px" }} />
+                                </div>
+                                <div className="aif-insight-inner">
+                                    <p className="aif-insight-text">
+                                        Demand is expected to increase over the next 7 days, driven by
+                                        high sales of essential medicines. Weekend demand is projected
+                                        to be higher than weekdays.
+                                    </p>
+                                </div>
+                            </article>
                         </div>
 
-                        <div className="dashboard-chart-wrap">
-                            <Line data={chartData} options={chartOptions} />
-                        </div>
-                    </article>
-                </div>
-
-                <div className="col-12 col-md-5 col-lg-5">
-                    <article className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel aif-card">
-                        <h6 className="aif-panel-title">
-                            <span className="aif-panel-title-text">Stockout Risk &amp; Reorder Suggestions</span>
-                            <span className="aif-ai-badge">AI</span>
-                        </h6>
-
-                        <div className="aif-list-scroll">
-                            {STOCKOUT_SUGGESTIONS.map((item) => (
-                                <div key={item.medicine} className="aif-stock-row">
-                                    <div>
-                                        <p className={`aif-risk-label ${riskClassMap[item.risk]}`}>
-                                            {item.risk.toLowerCase()} risk level
-                                        </p>
-                                        <p className="aif-medicine-name">{item.medicine}</p>
-                                    </div>
-                                    <div className="aif-stock-right" style={stockRightStyle}>
-                                        <p>
-                                            <span className="aif-units-value">{item.units}</span>
-                                            <span className="aif-units-label"> units</span>
-                                        </p>
-                                        <p className="aif-date">{item.date}</p>
+                        <div className="col-12 col-md-8 col-lg-9">
+                            <article className="card border-0 shadow-sm rounded-3 p-3 h-100 aif-card">
+                                <div className="aif-chart-head mb-2">
+                                    <h6 className="fw-bold mb-0 aif-chart-title">Top Predicted Demand</h6>
+                                    <div className="position-relative pd-range-select-wrap aif-filter-wrap">
+                                        <select
+                                            className="form-select form-select-sm pe-4 pd-range-select"
+                                            value={tableRange}
+                                            onChange={(e) => setTableRange(e.target.value)}
+                                            aria-label="Table period"
+                                        >
+                                            {FORECAST_RANGES.map((p) => <option key={p}>{p}</option>)}
+                                        </select>
+                                        <i className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon" />
                                     </div>
                                 </div>
-                            ))}
+                                <div className="aif-table-inner">
+                                    <table className="aif-table aif-split-table">
+                                        <thead>
+                                            <tr>
+                                                <th></th>
+                                                <th>Product</th>
+                                                <th>Predicted Demand</th>
+                                                <th>Trend</th>
+                                                <th></th>
+                                                <th>Product</th>
+                                                <th>Predicted Demand</th>
+                                                <th>Trend</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {leftDemand.map((left, i) => {
+                                                const right = rightDemand[i];
+                                                return (
+                                                    <tr key={i}>
+                                                        <td className="aif-cell-num">{i + 1}</td>
+                                                        <td className="aif-cell-primary">{left.product}</td>
+                                                        <td>{left.demand}</td>
+                                                        <td className="aif-cell-trend">{left.trend}</td>
+                                                        <td className="aif-cell-num">{i + 6}</td>
+                                                        <td className="aif-cell-primary">{right.product}</td>
+                                                        <td>{right.demand}</td>
+                                                        <td className="aif-cell-trend">{right.trend}</td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </article>
                         </div>
-                    </article>
-                </div>
-            </div>
+                    </div>
 
-            <div className="row g-4">
-                <div className="col-12 col-md-6">
-                    <article className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel aif-card">
-                        <h6 className="aif-panel-title">
-                            <span className="aif-panel-title-text">Predicted High-Demand Medicines</span>
-                            <span className="aif-ai-badge">AI</span>
-                        </h6>
-
-                        <div className="aif-table-scroll">
-                            <table className="aif-table aif-predicted-table">
-                                <colgroup>
-                                    <col className="aif-col-medicine" />
-                                    <col className="aif-col-demand" />
-                                    <col className="aif-col-confidence" />
-                                </colgroup>
-                                <thead>
-                                    <tr>
-                                        <th>Medicine</th>
-                                        <th>Predicted Demand</th>
-                                        <th>Confidence</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {PREDICTED_HIGH_DEMAND.map((row) => (
-                                        <tr key={row.medicine}>
-                                            <td className="aif-cell-primary">{row.medicine}</td>
-                                            <td className="aif-cell-demand" style={groupedCellStyle}>
-                                                <span className="aif-table-main">{row.demand}</span>
-                                                <span className="aif-table-sub">({row.period})</span>
-                                            </td>
-                                            <td className="aif-cell-confidence">{row.confidence}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                    <div className="row g-3">
+                        <div className="col-12">
+                            <article className="card border-0 shadow-sm rounded-3 aif-card aif-forecast-card">
+                                <div className="aif-forecast-chart-side p-3">
+                                    <div className="aif-chart-head mb-2">
+                                        <h6 className="fw-bold mb-0 aif-chart-title">Demand Forecast Chart and Insight</h6>
+                                        <div className="position-relative pd-range-select-wrap aif-filter-wrap">
+                                            <select
+                                                className="form-select form-select-sm pe-4 pd-range-select"
+                                                value={range}
+                                                onChange={(e) => setRange(e.target.value)}
+                                                aria-label="Forecast period"
+                                            >
+                                                {FORECAST_RANGES.map((p) => <option key={p}>{p}</option>)}
+                                            </select>
+                                            <i className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon" />
+                                        </div>
+                                    </div>
+                                    <div className="dashboard-chart-wrap">
+                                        <Line data={chartData} options={chartOptions} />
+                                    </div>
+                                </div>
+                                <div className="aif-forecast-insights-side">
+                                    <div className="aif-insights-box">
+                                        <ul className="aif-insights-list">
+                                            {DEMAND_INSIGHTS.map((text, i) => (
+                                                <li key={i} className="aif-insight-item">
+                                                    <span className="aif-insight-bullet">
+                                                        <img src={AIIcon} alt="AI Bullet" style={{ width: "16px", height: "16px" }} />
+                                                    </span>
+                                                    <span>{text}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </article>
                         </div>
-                    </article>
-                </div>
+                    </div>
+                </>
+            )}
 
-                <div className="col-12 col-md-6">
-                    <article className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel aif-card">
-                        <h6 className="aif-panel-title">
-                            <span className="aif-panel-title-text">Inventory Health</span>
-                            <span className="aif-ai-badge">AI</span>
-                        </h6>
-
-                        <div className="aif-table-scroll">
-                            <table className="aif-table aif-inventory-table">
-                                <colgroup>
-                                    <col className="aif-col-half" />
-                                    <col className="aif-col-half" />
-                                </colgroup>
-                                <thead>
-                                    <tr>
-                                        <th>Low Stock Items</th>
-                                        <th>Expiring Soon</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {INVENTORY_HEALTH.map((row) => (
-                                        <tr key={row.medicine}>
-                                            <td>
-                                                <div className="aif-cell-split" style={splitCellStyle}>
-                                                    <span className="aif-table-main">{row.medicine}</span>
-                                                    <span className="aif-table-sub aif-table-note">{row.lowStock}</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <div className="aif-cell-split" style={splitCellStyle}>
-                                                    <span className="aif-table-main">{row.medicine}</span>
-                                                    <span className="aif-table-sub aif-table-note">{row.expiresIn}</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </article>
+            {activeTab === "sales" && (
+                <div className="aif-coming-soon">
+                    <i className="fa-solid fa-coins aif-coming-soon-icon" />
+                    <p>Sales analytics coming soon.</p>
                 </div>
-            </div>
+            )}
+
+            {activeTab === "stock" && (
+                <div className="aif-coming-soon">
+                    <i className="fa-solid fa-boxes-stacked aif-coming-soon-icon" />
+                    <p>Stock analytics coming soon.</p>
+                </div>
+            )}
         </section>
     );
 }
