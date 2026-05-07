@@ -17,6 +17,7 @@ class Products extends Model
         'description',
         'form',
         'strength',
+        'size',
         'is_prescribed',
     ];
 

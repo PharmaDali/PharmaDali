@@ -14,16 +14,6 @@ class BranchAdminSeeder extends Seeder
      */
     public function run(): void
     {
-        $mainBranch = Branch::firstOrCreate(
-            ['branch_name' => 'Main Branch'],
-            [
-                'location' => '123 Tinurik, Tanauan City, Batangas',
-                'contact_number' => '09987654321',
-                'opening_hour' => '09:00:00',
-                'closing_hour' => '21:00:00',
-                'is_active' => true,
-            ]
-        );
 
         User::updateOrCreate(
             ['email' => 'branchadmin@gmail.com'],
@@ -34,7 +24,7 @@ class BranchAdminSeeder extends Seeder
                 'role'          => 'branch_admin',
                 'mobile_number' => '09123456789',
                 'is_active'     => true,
-                'branch_id'     => $mainBranch->id,
+                'branch_id'     => 1,
             ]
         );
     }
