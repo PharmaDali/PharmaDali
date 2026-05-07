@@ -30,7 +30,7 @@ const SALES_DATA = {
 };
 
 const STAT_CARDS = [
-  { label: "Revenue Today", value: "20,003", prefix: "PHP", bg: "#96D2EE" },
+  { label: "Sales Today", value: "20,003", prefix: "PHP", bg: "#96D2EE" },
   { label: "Orders Today", value: "167", prefix: null, bg: "#96D2EE" },
   { label: "Inventory Value", value: "518,000", prefix: "PHP", bg: "#96D2EE" },
   { label: "Low Stock Items", value: "3", prefix: null, bg: "#F9C784" },
@@ -79,9 +79,9 @@ function StatCard({ label, value, prefix, ai, bg }) {
       className="rounded-3 p-3 h-100 dashboard-stat-card"
       style={{ background: bg }}
     >
-      <div style={{ fontSize: 12, color: "#444444", marginBottom: 4 }}>{label}</div>
-      <div className="dashboard-stat-value" style={{ fontWeight: 800, lineHeight: 1.1, color: "#1a2a3a" }}>
-        {prefix && <span style={{ fontSize: 13, fontWeight: 600, verticalAlign: "middle", marginRight: 2 }}>{prefix}</span>}
+      <div style={{ fontSize: 13, color: "#444444", marginBottom: 4 }}>{label}</div>
+      <div className="dashboard-stat-value" style={{ fontWeight: 900, lineHeight: 2, color: "#444444", fontSize: 40 }}>
+        {prefix && <span style={{ fontSize: 20, fontWeight: 900, verticalAlign: "middle", marginRight: 5 }}>{prefix}</span>}
         {value}
         {ai && <AiBadge />}
       </div>
@@ -191,8 +191,8 @@ function SalesTrend() {
           >
             {Object.keys(SALES_DATA).map((k) => <option key={k}>{k}</option>)}
           </select>
-          <i 
-            className="bi bi-chevron-down position-absolute top-50 translate-middle-y" 
+          <i
+            className="bi bi-chevron-down position-absolute top-50 translate-middle-y"
             style={{ right: 12, fontSize: 10, pointerEvents: "none", color: "#888" }}
           ></i>
         </div>
@@ -304,9 +304,9 @@ function DashBoard() {
       STAT_CARDS.map((card) =>
         card.label === "Orders Today"
           ? {
-              ...card,
-              value: ordersCount === null ? "Loading..." : Number(ordersCount).toLocaleString(),
-            }
+            ...card,
+            value: ordersCount === null ? "Loading..." : Number(ordersCount).toLocaleString(),
+          }
           : card,
       ),
     [ordersCount],
