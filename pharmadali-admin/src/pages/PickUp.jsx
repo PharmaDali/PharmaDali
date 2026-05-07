@@ -232,7 +232,7 @@ function PickUp() {
         {activeOrder && (
           <aside className="pickup-details-panel">
             <div className="pickup-details-header">
-              <h2>Order Details</h2>
+              <h6>Order Details</h6>
               <button
                 type="button"
                 className="pickup-details-close"
@@ -243,7 +243,7 @@ function PickUp() {
               </button>
             </div>
 
-            <p className="pickup-details-customer">{activeOrder.customer}</p>
+            <p className="pickup-details-customer">Customer: {activeOrder.customer}</p>
             <p className="pickup-details-contact">Contact: {activeOrder.contact}</p>
 
             <hr className="pickup-details-divider" />
@@ -257,6 +257,8 @@ function PickUp() {
               </ul>
             </div>
 
+            <hr className="pickup-details-divider" />
+
             <div className="pickup-details-row">
               <span>Total Amount</span>
               <strong>{activeOrder.total}</strong>
@@ -269,6 +271,7 @@ function PickUp() {
               <strong className={getStatusClassName(activeOrder.status)}>{activeOrder.status}</strong>
             </div>
 
+
             <div className="pickup-payment-method-wrap">
               <p className="pickup-details-section-title">Select Payment Method</p>
               <div className="d-flex gap-2 pos-payment-actions">
@@ -279,7 +282,7 @@ function PickUp() {
                     background: paymentMethod === "cash" ? "#2aabe2" : "white",
                     color: paymentMethod === "cash" ? "white" : "#555",
                     border: "1.5px solid #dde3ec",
-                      borderRadius: "var(--pd-radius-md)",
+                    borderRadius: "var(--pd-radius-md)",
                   }}
                   onClick={() => setPaymentMethod("cash")}
                   type="button"
@@ -293,7 +296,7 @@ function PickUp() {
                     background: paymentMethod === "gcash" ? "#2aabe2" : "white",
                     color: paymentMethod === "gcash" ? "white" : "#555",
                     border: "1.5px solid #dde3ec",
-                      borderRadius: "var(--pd-radius-md)",
+                    borderRadius: "var(--pd-radius-md)",
                   }}
                   onClick={() => setPaymentMethod("gcash")}
                   type="button"
@@ -366,7 +369,7 @@ function PickUp() {
               className={`pos-payment-input ${showCashError ? "is-error" : ""}`.trim()}
               value={cashReceived}
               onChange={(event) => setCashReceived(event.target.value)}
-            /> 
+            />
             <label className="pos-payment-label" htmlFor="pickup-gcash-reference">
               Enter GCash Reference No.
             </label>
