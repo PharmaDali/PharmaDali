@@ -1,4 +1,3 @@
-/* ── Page ── */
 .aif-page {
 	color: #1f2937;
 }
@@ -9,7 +8,6 @@
 	font-weight: 400;
 }
 
-/* ── Tabs ── */
 .aif-tabs {
 	display: flex;
 	gap: 4px;
@@ -43,14 +41,12 @@
 	font-weight: 600;
 }
 
-/* ── Cards ── */
 .aif-card {
 	border: 1px solid #e7edf5;
 	border-radius: var(--pd-radius-md);
 	width: 100%;
 }
 
-/* ── AI Insight card (left panel) ── */
 .aif-insight-card {
 	position: relative;
 	background: #ffffff !important;
@@ -88,7 +84,6 @@
 	font-weight: 500;
 }
 
-/* ── Chart head ── */
 .aif-chart-head {
 	display: flex;
 	align-items: center;
@@ -112,7 +107,6 @@
 	color: #b6c0cb;
 }
 
-/* ── Split demand table ── */
 .aif-table-inner {
 	margin-top: 10px;
 	background: #F1F4FF;
@@ -171,7 +165,6 @@
 	font-weight: 600;
 }
 
-/* Vertical divider between the two halves */
 .aif-split-table td:nth-child(4),
 .aif-split-table th:nth-child(4) {
 	padding-right: 24px;
@@ -183,7 +176,6 @@
 	padding-left: 20px;
 }
 
-/* ── Forecast card (chart + insights combined) ── */
 .aif-forecast-card {
 	display: flex;
 	flex-direction: row;
@@ -220,7 +212,6 @@
 	flex-direction: column;
 }
 
-/* ── Insights list ── */
 .aif-insights-list {
 	list-style: none;
 	margin: 0;
@@ -248,7 +239,6 @@
 	margin-top: 1px;
 }
 
-/* ── Coming soon placeholder ── */
 .aif-coming-soon {
 	display: flex;
 	flex-direction: column;
@@ -265,7 +255,6 @@
 	color: #d1d5db;
 }
 
-/* ── Responsive ── */
 @media (max-width: 767.98px) {
 	.aif-chart-head {
 		align-items: stretch;
