@@ -15,6 +15,7 @@ class BranchProduct extends Model
         'category_id',
         'stock',
         'selling_price',
+        'is_discountable',
         'is_available',
         'expiry_date',
     ];
