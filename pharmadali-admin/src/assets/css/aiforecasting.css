@@ -56,6 +56,22 @@
 	flex-direction: column;
 }
 
+.aif-insight-card-left {
+	flex-direction: row;
+	align-items: flex-start;
+	gap: 14px;
+}
+
+.aif-insight-card-sales {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	justify-content: flex-start;
+	gap: 14px;
+	align-items: center;
+	padding: 16px 18px;
+}
+
 .aif-insight-icon {
 	position: absolute;
 	top: 12px;
@@ -63,6 +79,24 @@
 	font-size: 20px;
 	color: #2aabe2;
 	pointer-events: none;
+}
+
+.aif-insight-card-left .aif-insight-icon {
+	position: static;
+	margin-top: 4px;
+}
+
+.aif-insight-card-sales .aif-insight-icon {
+	position: static;
+	margin-top: 0;
+	width: 28px;
+	height: 28px;
+	background: transparent;
+	box-shadow: none;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .aif-insight-inner {
@@ -73,6 +107,23 @@
 	padding: 14px;
 	display: flex;
 	align-items: flex-start;
+}
+
+.aif-insight-card-left .aif-insight-inner {
+	margin-top: 0;
+}
+
+.aif-insight-card-sales .aif-insight-inner {
+	margin-top: 0;
+	padding: 18px 20px;
+	gap: 12px;
+	align-items: center;
+	width: 100%;
+}
+
+.aif-insight-card-sales .aif-insight-text {
+	font-size: 14px;
+	line-height: 1.9;
 }
 
 .aif-insight-text {
@@ -182,6 +233,10 @@
 	overflow: hidden;
 }
 
+.aif-forecast-card-full {
+	display: block;
+}
+
 .aif-forecast-chart-side {
 	flex: 0 0 70%;
 	max-width: 70%;
@@ -190,8 +245,18 @@
 	flex-direction: column;
 }
 
+.aif-forecast-card-full .aif-forecast-chart-side {
+	
+	flex: 1 1 auto;
+	max-width: 100%;
+}
+
 .aif-forecast-chart-side .dashboard-chart-wrap {
-	height: 250px;
+	height: 450px;
+}
+
+.aif-sales-chart {
+	height: 220px;
 }
 
 .aif-forecast-insights-side {
