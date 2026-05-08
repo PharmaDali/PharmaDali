@@ -1,5 +1,6 @@
 import warnings
 from dataclasses import asdict
+from datetime import timedelta
 from pathlib import Path
 from typing import Dict, Tuple
 
@@ -118,10 +119,26 @@ def build_payload(
     current_pred: pd.DataFrame,
     next_pred: pd.DataFrame,
 ) -> Dict:
-    return {
+    payload = {
         "config": asdict(config),
         "current_week": current_week.date().isoformat(),
         "next_week": next_week.date().isoformat(),
         "current": current_pred.to_dict(orient="records"),
         "next": next_pred.to_dict(orient="records"),
     }
+    if config.label == "week":
+        current_start = (current_week - timedelta(days=current_week.weekday())).date()
+        next_start = (next_week - timedelta(days=next_week.weekday())).date()
+        current_end = current_start + timedelta(days=6)
+        next_end = next_start + timedelta(days=6)
+        payload["current_week_start"] = current_start.isoformat()
+        payload["current_week_end"] = current_end.isoformat()
+        payload["next_week_start"] = next_start.isoformat()
+        payload["next_week_end"] = next_end.isoformat()
+        payload["current_week_range"] = (
+            f"{current_start.isoformat()} to {current_end.isoformat()}"
+        )
+        payload["next_week_range"] = (
+            f"{next_start.isoformat()} to {next_end.isoformat()}"
+        )
+    return payload
