@@ -176,7 +176,7 @@ function AIForecasting() {
                         <div className="col-12 col-md-4 col-lg-3">
                             <article className="card border-0 rounded-3 p-3 h-100 aif-card aif-insight-card">
                                 <div className="aif-insight-icon">
-                                    <img src={AIIcon} alt="AI Insight" style={{ width: "24px", height: "24px" }} />
+                                    <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
                                 </div>
                                 <div className="aif-insight-inner">
                                     <p className="aif-insight-text">
@@ -269,7 +269,7 @@ function AIForecasting() {
                                             {DEMAND_INSIGHTS.map((text, i) => (
                                                 <li key={i} className="aif-insight-item">
                                                     <span className="aif-insight-bullet">
-                                                        <img src={AIIcon} alt="AI Bullet" style={{ width: "16px", height: "16px" }} />
+                                                        <img src={AIIcon} alt="AI Bullet" style={{ width: "25px", height: "25px" }} />
                                                     </span>
                                                     <span>{text}</span>
                                                 </li>
@@ -289,7 +289,7 @@ function AIForecasting() {
                         <div className="col-12">
                             <article className="card border-0 rounded-3 h-100 aif-card aif-insight-card aif-insight-card-sales">
                                 <div className="aif-insight-icon">
-                                    <img src={AIIcon} alt="AI Insight" style={{ width: "22px", height: "22px" }} />
+                                    <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
                                 </div>
                                 <div className="aif-insight-inner">
                                     <p className="aif-insight-text">

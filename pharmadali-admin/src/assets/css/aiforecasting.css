@@ -144,7 +144,7 @@
 
 .aif-chart-title {
 	font-size: 14px;
-	color: #1f2937;
+	color: #48AAD9;
 }
 
 .aif-filter-wrap {
@@ -292,7 +292,7 @@
 	display: flex;
 	align-items: flex-start;
 	gap: 10px;
-	font-size: 13px;
+	font-size: 15px;
 	color: #374151;
 	line-height: 1.5;
 }
