@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Breadcrumb } from "./Breadcrumb";
 import "../../assets/css/settings/common.css";
 import "../../assets/css/settings.css";
@@ -32,6 +32,20 @@ const ExportData = ({ onNavigate }) => {
 	const [fileFormat, setFileFormat] = useState("csv");
 	const [exportScope, setExportScope] = useState("summary");
 
+	useEffect(() => {
+		const stored = localStorage.getItem("pharmadali.exportDataSettings");
+		if (!stored) return;
+		try {
+			const parsed = JSON.parse(stored);
+			if (Array.isArray(parsed.selectedData)) setSelectedData(parsed.selectedData);
+			if (typeof parsed.dateRange === "string") setDateRange(parsed.dateRange);
+			if (typeof parsed.fileFormat === "string") setFileFormat(parsed.fileFormat);
+			if (typeof parsed.exportScope === "string") setExportScope(parsed.exportScope);
+		} catch (error) {
+			console.warn("Failed to read export data settings", error);
+		}
+	}, []);
+
 	const toggleSelection = (id) => {
 		if (!isEditing) return;
 		setSelectedData((prev) =>
@@ -41,6 +55,17 @@ const ExportData = ({ onNavigate }) => {
 
 	const handleExport = () => {
 		// Add export logic here.
+	};
+
+	const handleSaveChanges = () => {
+		const payload = {
+			selectedData,
+			dateRange,
+			fileFormat,
+			exportScope,
+		};
+		localStorage.setItem("pharmadali.exportDataSettings", JSON.stringify(payload));
+		setIsEditing(false);
 	};
 
 	return (
@@ -63,16 +88,16 @@ const ExportData = ({ onNavigate }) => {
 						<button
 							className="btn btn-outline-primary btn-sm"
 							onClick={() => setIsEditing(true)}
+							disabled={isEditing}
 						>
 							Edit
 						</button>
 						<button
 							className="btn btn-primary btn-sm d-flex align-items-center gap-2"
-							onClick={handleExport}
-							disabled={!selectedData.length}
+							onClick={handleSaveChanges}
+							disabled={!isEditing || !selectedData.length}
 						>
-							<i className="bi bi-download" />
-							Export Data
+							Save Changes
 						</button>
 					</div>
 				</div>
