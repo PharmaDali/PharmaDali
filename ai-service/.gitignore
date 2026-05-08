@@ -2,3 +2,10 @@ autoarima-venv
 
 .env
 __pycache__/
+
+datasets/
+
+cache/_pycache_*
+
+cache/*.pkl
+cache/*.json
