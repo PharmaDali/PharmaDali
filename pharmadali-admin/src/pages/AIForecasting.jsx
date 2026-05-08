@@ -171,10 +171,10 @@ function AIForecasting() {
             </div>
 
             {activeTab === "demand" && (
-                <>
-                    <div className="row g-3 mb-3">
+                <div className="aif-section aif-section-demand">
+                    <div className="row g-3 mb-3 aif-demand-row">
                         <div className="col-12 col-md-4 col-lg-3">
-                            <article className="card border-0 rounded-3 p-3 h-100 aif-card aif-insight-card">
+                            <article className="card border-0 rounded-3 p-3 h-100 aif-card aif-insight-card aif-demand-insight">
                                 <div className="aif-insight-icon">
                                     <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
                                 </div>
@@ -189,7 +189,7 @@ function AIForecasting() {
                         </div>
 
                         <div className="col-12 col-md-8 col-lg-9">
-                            <article className="card border-0 shadow-sm rounded-3 p-3 h-100 aif-card">
+                            <article className="card border-0 shadow-sm rounded-3 p-3 h-100 aif-card aif-demand-table">
                                 <div className="aif-chart-head mb-2">
                                     <h6 className="fw-bold mb-0 aif-chart-title">Top Predicted Demand</h6>
                                     <div className="position-relative pd-range-select-wrap aif-filter-wrap">
@@ -241,9 +241,9 @@ function AIForecasting() {
                         </div>
                     </div>
 
-                    <div className="row g-3">
+                    <div className="row g-3 aif-demand-row">
                         <div className="col-12">
-                            <article className="card border-0 shadow-sm rounded-3 aif-card aif-forecast-card">
+                            <article className="card border-0 shadow-sm rounded-3 aif-card aif-forecast-card aif-demand-forecast">
                                 <div className="aif-forecast-chart-side p-3">
                                     <div className="aif-chart-head mb-2">
                                         <h6 className="fw-bold mb-0 aif-chart-title">Demand Forecast Chart and Insight</h6>
@@ -280,14 +280,14 @@ function AIForecasting() {
                             </article>
                         </div>
                     </div>
-                </>
+                </div>
             )}
 
             {activeTab === "sales" && (
-                <>
-                    <div className="row g-3 mb-3">
+                <div className="aif-section aif-section-sales">
+                    <div className="row g-3 mb-3 aif-sales-row">
                         <div className="col-12">
-                            <article className="card border-0 rounded-3 h-100 aif-card aif-insight-card aif-insight-card-sales">
+                            <article className="card border-0 rounded-3 h-100 aif-card aif-insight-card aif-insight-card-sales aif-sales-insight">
                                 <div className="aif-insight-icon">
                                     <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
                                 </div>
@@ -302,9 +302,9 @@ function AIForecasting() {
                         </div>
                     </div>
 
-                    <div className="row g-3">
+                    <div className="row g-3 aif-sales-row">
                         <div className="col-12">
-                            <article className="card border-0 shadow-sm rounded-3 aif-card aif-forecast-card aif-forecast-card-full">
+                            <article className="card border-0 shadow-sm rounded-3 aif-card aif-forecast-card aif-forecast-card-full aif-sales-forecast">
                                 <div className="aif-forecast-chart-side p-3">
                                     <div className="aif-chart-head mb-2">
                                         <h6 className="fw-bold mb-0 aif-chart-title">Sales Trend Chart</h6>
@@ -327,7 +327,7 @@ function AIForecasting() {
                             </article>
                         </div>
                     </div>
-                </>
+                </div>
             )}
 
             {activeTab === "stock" && (
