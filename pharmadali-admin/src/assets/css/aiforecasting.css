@@ -252,11 +252,79 @@
 }
 
 .aif-forecast-chart-side .dashboard-chart-wrap {
-	height: 450px;
+	height: 300px;
 }
 
 .aif-sales-chart {
 	height: 220px;
+}
+
+.aif-stock-insight .aif-insight-inner {
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+}
+
+.aif-insight-label {
+	margin: 0;
+	color: #2aabe2;
+	font-weight: 600;
+	font-size: 13px;
+}
+
+.aif-stock-chart-card {
+	background: #ffffff;
+}
+
+.aif-stock-head {
+	margin-bottom: 10px;
+}
+
+.aif-stock-subtitle {
+	font-size: 12px;
+	color: #6b7280;
+}
+
+.aif-stock-chart {
+	display: flex;
+	gap: 18px;
+	align-items: stretch;
+	width: 100%;
+	height: auto;
+}
+
+.aif-stock-risk-labels {
+	width: 140px;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: 18px 0;
+}
+
+.aif-risk-label {
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.aif-risk-high {
+	color: #ef4444;
+}
+
+.aif-risk-moderate {
+	color: #f59e0b;
+}
+
+.aif-risk-low {
+	color: #10b981;
+}
+
+.aif-stock-chart-wrap {
+	height: 320px;
+	flex: 1 1 auto;
+}
+
+.aif-stock-chart .dashboard-chart-wrap {
+	height: 450px;
 }
 
 .aif-forecast-insights-side {
@@ -330,6 +398,26 @@
 		min-width: 0;
 		width: 100%;
 	}
+
+	.aif-stock-chart {
+		flex-direction: column;
+		gap: 12px;
+	}
+
+	.aif-stock-risk-labels {
+		width: 100%;
+		flex-direction: row;
+		justify-content: space-between;
+		padding: 0 0 6px 0;
+	}
+
+	.aif-stock-chart-wrap {
+		height: 260px;
+	}
+
+	.aif-stock-chart .dashboard-chart-wrap {
+		height: 260px;
+	}
 }
 
 @media (max-width: 575.98px) {
@@ -346,5 +434,13 @@
 	.aif-table th {
 		font-size: 11px;
 		padding: 8px 8px 8px 0;
+	}
+
+	.aif-stock-chart-wrap {
+		height: 220px;
+	}
+
+	.aif-stock-chart .dashboard-chart-wrap {
+		height: 220px;
 	}
 }

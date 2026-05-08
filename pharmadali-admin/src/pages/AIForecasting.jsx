@@ -78,6 +78,11 @@ const DEMAND_INSIGHTS = [
     "Consistent demand for maintenance medications",
 ];
 
+const STOCK_RISK_DATA = {
+    labels: ["Jan 2", "Jan 3", "Jan 4", "Jan 5", "Jan 6", "Jan 7", "Jan 8"],
+    values: [20, 25, 33, 42, 58, 70, 85],
+};
+
 function AIForecasting() {
     const [activeTab, setActiveTab] = useState("demand");
     const [range, setRange] = useState("Last 7 days");
@@ -85,6 +90,7 @@ function AIForecasting() {
     const [tableRange, setTableRange] = useState("Last 7 days");
     const { labels, values } = FORECAST_DATA[range];
     const { labels: salesLabels, values: salesValues } = SALES_FORECAST_DATA[salesRange];
+    const { labels: stockLabels, values: stockValues } = STOCK_RISK_DATA;
 
     const maxChartValue = (valueList) => {
         const maxValue = Math.max(...valueList, 0);
@@ -143,6 +149,74 @@ function AIForecasting() {
     const chartOptions = useMemo(() => buildChartOptions(range, values), [range, values]);
     const salesChartData = useMemo(() => buildChartData(salesValues, salesLabels), [salesLabels, salesValues]);
     const salesChartOptions = useMemo(() => buildChartOptions(salesRange, salesValues), [salesRange, salesValues]);
+
+    const stockChartData = useMemo(() => buildChartData(stockValues, stockLabels), [stockLabels, stockValues]);
+
+    const stockChartOptions = useMemo(() => ({
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: { padding: { top: 18, right: 18, bottom: 10, left: 18 } },
+        plugins: {
+            legend: { display: false },
+            tooltip: { mode: "index", intersect: false },
+        },
+        scales: {
+            x: {
+                grid: { color: "rgba(15, 23, 42, 0.04)" },
+                ticks: {
+                    color: "#6b7280",
+                    font: { size: 12, family: "Poppins" },
+                },
+            },
+            y: {
+                min: 0,
+                max: 100,
+                ticks: {
+                    display: true,
+                    stepSize: 50,
+                    color: "#6b7280",
+                    font: { size: 12, family: "Poppins" },
+                    callback: (value) => `${value}%`,
+                },
+                grid: {
+                    color: (ctx) => {
+                        const value = ctx.tick?.value;
+                        if (value === 100) return "rgba(248, 113, 113, 0.6)";
+                        if (value === 50) return "rgba(251, 191, 36, 0.6)";
+                        if (value === 0) return "rgba(74, 222, 128, 0.6)";
+                        return "rgba(15, 23, 42, 0.04)";
+                    },
+                    borderDash: [6, 6],
+                    borderDashOffset: 0,
+                    drawTicks: false,
+                },
+            },
+        },
+    }), [stockValues]);
+
+    const stockValueLabelPlugin = useMemo(() => ({
+        id: "stockValueLabels",
+        afterDatasetsDraw(chart) {
+            const { ctx } = chart;
+            const meta = chart.getDatasetMeta(0);
+            const data = chart.data.datasets[0]?.data || [];
+
+            ctx.save();
+            ctx.fillStyle = "#111827";
+            ctx.font = "600 12px Poppins";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "bottom";
+
+            meta.data.forEach((point, index) => {
+                const value = data[index];
+                if (typeof value === "number") {
+                    ctx.fillText(`${value}%`, point.x, point.y - 8);
+                }
+            });
+
+            ctx.restore();
+        },
+    }), []);
 
     const leftDemand = TOP_PREDICTED_DEMAND.slice(0, 5);
     const rightDemand = TOP_PREDICTED_DEMAND.slice(5, 10);
@@ -331,9 +405,51 @@ function AIForecasting() {
             )}
 
             {activeTab === "stock" && (
-                <div className="aif-coming-soon">
-                    <i className="fa-solid fa-boxes-stacked aif-coming-soon-icon" />
-                    <p>Stock analytics coming soon.</p>
+                <div className="aif-section aif-section-stock">
+                    <div className="row g-3 mb-3 aif-stock-row">
+                        <div className="col-12">
+                            <article className="card border-0 rounded-3 h-100 aif-card aif-insight-card aif-insight-card-sales aif-stock-insight">
+                                <div className="aif-insight-icon">
+                                    <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
+                                </div>
+                                <div className="aif-insight-inner">
+                                    <p className="aif-insight-label">AI Recommendation</p>
+                                    <p className="aif-insight-text">
+                                        Adjust reordering frequency for high-demand items and limit
+                                        restocking of slow-moving products to maintain balanced
+                                        inventory levels.
+                                    </p>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+
+                    <div className="row g-3 aif-stock-row">
+                        <div className="col-12">
+                            <article className="card border-0 shadow-sm rounded-3 p-3 aif-card aif-stock-chart-card">
+                                <div className="aif-stock-head">
+                                    <h6 className="fw-bold mb-1 aif-chart-title">Stock Risk Outlook (Next 7 Days)</h6>
+                                    <p className="aif-stock-subtitle mb-0">
+                                        Overall inventory risk trend based on current stock movement and demand patterns.
+                                    </p>
+                                </div>
+                                <div className="aif-stock-chart">
+                                    <div className="aif-stock-risk-labels">
+                                        <span className="aif-risk-label aif-risk-high">High Risk</span>
+                                        <span className="aif-risk-label aif-risk-moderate">Moderate Risk</span>
+                                        <span className="aif-risk-label aif-risk-low">Low Risk</span>
+                                    </div>
+                                    <div className="dashboard-chart-wrap aif-stock-chart-wrap">
+                                        <Line
+                                            data={stockChartData}
+                                            options={stockChartOptions}
+                                            plugins={[stockValueLabelPlugin]}
+                                        />
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
                 </div>
             )}
         </section>
