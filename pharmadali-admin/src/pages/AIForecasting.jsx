@@ -38,6 +38,27 @@ const FORECAST_DATA = {
 
 const FORECAST_RANGES = Object.keys(FORECAST_DATA);
 
+const SALES_FORECAST_DATA = {
+    "Last 7 days": {
+        labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        values: [24, 28, 32, 41, 45, 43, 49],
+    },
+    "Last 14 days": {
+        labels: ["W1 Mon","W1 Tue","W1 Wed","W1 Thu","W1 Fri","W1 Sat","W1 Sun","W2 Mon","W2 Tue","W2 Wed","W2 Thu","W2 Fri","W2 Sat","W2 Sun"],
+        values: [19, 22, 26, 31, 36, 34, 38, 28, 31, 35, 40, 43, 41, 46],
+    },
+    "Last 30 days": {
+        labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
+        values: Array.from({ length: 30 }, (_, i) => 18 + Math.round(Math.sin(i / 3.2) * 7 + i * 0.9)),
+    },
+};
+
+const SALES_INSIGHTS = [
+    "Sales grow steadily through mid-week with a weekend lift",
+    "OTC essentials continue to drive the highest revenue",
+    "Late afternoon sees the strongest transaction volume",
+];
+
 const TOP_PREDICTED_DEMAND = [
     { product: "Amoxicillin",        demand: "85 units",  trend: "+12 units" },
     { product: "Paracetamol",        demand: "120 units", trend: "+18 units" },
@@ -60,13 +81,20 @@ const DEMAND_INSIGHTS = [
 function AIForecasting() {
     const [activeTab, setActiveTab] = useState("demand");
     const [range, setRange] = useState("Last 7 days");
+    const [salesRange, setSalesRange] = useState("Last 7 days");
     const [tableRange, setTableRange] = useState("Last 7 days");
     const { labels, values } = FORECAST_DATA[range];
+    const { labels: salesLabels, values: salesValues } = SALES_FORECAST_DATA[salesRange];
 
-    const chartData = useMemo(() => ({
-        labels,
+    const maxChartValue = (valueList) => {
+        const maxValue = Math.max(...valueList, 0);
+        return Math.max(10, Math.ceil(maxValue / 10) * 10);
+    };
+
+    const buildChartData = (dataValues, dataLabels) => ({
+        labels: dataLabels,
         datasets: [{
-            data: values,
+            data: dataValues,
             borderColor: "#2aabe2",
             backgroundColor: "rgba(42,171,226,0.12)",
             fill: true,
@@ -77,9 +105,9 @@ function AIForecasting() {
             pointRadius: 3.5,
             pointHoverRadius: 5,
         }],
-    }), [labels, values]);
+    });
 
-    const chartOptions = useMemo(() => ({
+    const buildChartOptions = (selectedRange, dataValues) => ({
         responsive: true,
         maintainAspectRatio: false,
         layout: { padding: { top: 4, right: 10, bottom: 0, left: 0 } },
@@ -94,12 +122,12 @@ function AIForecasting() {
                     color: "#5f6670",
                     font: { size: 12, family: "Poppins" },
                     autoSkip: true,
-                    maxTicksLimit: range === "Last 30 days" ? 6 : 8,
+                    maxTicksLimit: selectedRange === "Last 30 days" ? 6 : 8,
                 },
             },
             y: {
                 min: 10,
-                max: 60,
+                max: maxChartValue(dataValues),
                 ticks: {
                     stepSize: 10,
                     color: "#5f6670",
@@ -109,7 +137,12 @@ function AIForecasting() {
                 grid: { color: "rgba(15, 23, 42, 0.06)" },
             },
         },
-    }), [range]);
+    });
+
+    const chartData = useMemo(() => buildChartData(values, labels), [labels, values]);
+    const chartOptions = useMemo(() => buildChartOptions(range, values), [range, values]);
+    const salesChartData = useMemo(() => buildChartData(salesValues, salesLabels), [salesLabels, salesValues]);
+    const salesChartOptions = useMemo(() => buildChartOptions(salesRange, salesValues), [salesRange, salesValues]);
 
     const leftDemand = TOP_PREDICTED_DEMAND.slice(0, 5);
     const rightDemand = TOP_PREDICTED_DEMAND.slice(5, 10);
@@ -138,12 +171,12 @@ function AIForecasting() {
             </div>
 
             {activeTab === "demand" && (
-                <>
-                    <div className="row g-3 mb-3">
+                <div className="aif-section aif-section-demand">
+                    <div className="row g-3 mb-3 aif-demand-row">
                         <div className="col-12 col-md-4 col-lg-3">
-                            <article className="card border-0 rounded-3 p-3 h-100 aif-card aif-insight-card">
+                            <article className="card border-0 rounded-3 p-3 h-100 aif-card aif-insight-card aif-demand-insight">
                                 <div className="aif-insight-icon">
-                                    <img src={AIIcon} alt="AI Insight" style={{ width: "24px", height: "24px" }} />
+                                    <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
                                 </div>
                                 <div className="aif-insight-inner">
                                     <p className="aif-insight-text">
@@ -156,7 +189,7 @@ function AIForecasting() {
                         </div>
 
                         <div className="col-12 col-md-8 col-lg-9">
-                            <article className="card border-0 shadow-sm rounded-3 p-3 h-100 aif-card">
+                            <article className="card border-0 shadow-sm rounded-3 p-3 h-100 aif-card aif-demand-table">
                                 <div className="aif-chart-head mb-2">
                                     <h6 className="fw-bold mb-0 aif-chart-title">Top Predicted Demand</h6>
                                     <div className="position-relative pd-range-select-wrap aif-filter-wrap">
@@ -208,9 +241,9 @@ function AIForecasting() {
                         </div>
                     </div>
 
-                    <div className="row g-3">
+                    <div className="row g-3 aif-demand-row">
                         <div className="col-12">
-                            <article className="card border-0 shadow-sm rounded-3 aif-card aif-forecast-card">
+                            <article className="card border-0 shadow-sm rounded-3 aif-card aif-forecast-card aif-demand-forecast">
                                 <div className="aif-forecast-chart-side p-3">
                                     <div className="aif-chart-head mb-2">
                                         <h6 className="fw-bold mb-0 aif-chart-title">Demand Forecast Chart and Insight</h6>
@@ -236,7 +269,7 @@ function AIForecasting() {
                                             {DEMAND_INSIGHTS.map((text, i) => (
                                                 <li key={i} className="aif-insight-item">
                                                     <span className="aif-insight-bullet">
-                                                        <img src={AIIcon} alt="AI Bullet" style={{ width: "16px", height: "16px" }} />
+                                                        <img src={AIIcon} alt="AI Bullet" style={{ width: "25px", height: "25px" }} />
                                                     </span>
                                                     <span>{text}</span>
                                                 </li>
@@ -247,13 +280,53 @@ function AIForecasting() {
                             </article>
                         </div>
                     </div>
-                </>
+                </div>
             )}
 
             {activeTab === "sales" && (
-                <div className="aif-coming-soon">
-                    <i className="fa-solid fa-coins aif-coming-soon-icon" />
-                    <p>Sales analytics coming soon.</p>
+                <div className="aif-section aif-section-sales">
+                    <div className="row g-3 mb-3 aif-sales-row">
+                        <div className="col-12">
+                            <article className="card border-0 rounded-3 h-100 aif-card aif-insight-card aif-insight-card-sales aif-sales-insight">
+                                <div className="aif-insight-icon">
+                                    <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
+                                </div>
+                                <div className="aif-insight-inner">
+                                    <p className="aif-insight-text">
+                                        Sales are expected to grow moderately this week, with higher
+                                        transactions in late afternoon and evening hours. Essential
+                                        and OTC medicines continue to drive most of the revenue. 
+                                    </p>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+
+                    <div className="row g-3 aif-sales-row">
+                        <div className="col-12">
+                            <article className="card border-0 shadow-sm rounded-3 aif-card aif-forecast-card aif-forecast-card-full aif-sales-forecast">
+                                <div className="aif-forecast-chart-side p-3">
+                                    <div className="aif-chart-head mb-2">
+                                        <h6 className="fw-bold mb-0 aif-chart-title">Sales Trend Chart</h6>
+                                        <div className="position-relative pd-range-select-wrap aif-filter-wrap">
+                                            <select
+                                                className="form-select form-select-sm pe-4 pd-range-select"
+                                                value={salesRange}
+                                                onChange={(e) => setSalesRange(e.target.value)}
+                                                aria-label="Sales period"
+                                            >
+                                                {FORECAST_RANGES.map((p) => <option key={p}>{p}</option>)}
+                                            </select>
+                                            <i className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon" />
+                                        </div>
+                                    </div>
+                                    <div className="dashboard-chart-wrap aif-sales-chart">
+                                        <Line data={salesChartData} options={salesChartOptions} />
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
                 </div>
             )}
 
