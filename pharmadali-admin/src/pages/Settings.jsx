@@ -12,6 +12,7 @@ import Devices from "./settings/Devices";
 import Operations from "./settings/Operations";
 import MobileAppContent from "./settings/MobileAppContent";
 import BackupAndRestore from "./settings/BackupAndRestore";
+import ExportData from "./settings/ExportData";
 
 const settingsMap = {
   general: {
@@ -43,11 +44,7 @@ const settingsMap = {
     component: MobileAppContent,
   },
   export: {
-    component: PlaceholderSettings,
-    props: {
-      title: "Export Data",
-      description: "Export your system data into downloadable files.",
-    },
+    component: ExportData,
   },
   backup: {
     component: BackupAndRestore,
