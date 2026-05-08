@@ -4,9 +4,9 @@ import "../../assets/css/settings/common.css";
 import "../../assets/css/settings.css";
 
 const DATA_OPTIONS = [
-	{ id: "sales", label: "Sales Transactions", icon: "bi-receipt" },
-	{ id: "inventory", label: "Inventory Data", icon: "bi-box-seam" },
-	{ id: "products", label: "Product List", icon: "bi-bag" },
+	{ id: "sales", label: "Sales Transactions"},
+	{ id: "inventory", label: "Inventory Data"},
+	{ id: "products", label: "Product List" },
 ];
 
 const DATE_RANGES = [
@@ -106,11 +106,8 @@ const ExportData = ({ onNavigate }) => {
 			<div className="settings-form-container export-data-container">
 				<section className="export-section">
 					<div className="export-section-head">
-						<div className="export-section-icon">
-							<i className="bi bi-database" />
-						</div>
 						<div>
-							<h6 className="export-section-title">A. Data Selection</h6>
+							<h6 className="export-section-title">Data Selection</h6>
 							<p className="export-section-subtitle">Select the type of data you want to export.</p>
 						</div>
 					</div>
@@ -143,11 +140,8 @@ const ExportData = ({ onNavigate }) => {
 
 				<section className="export-section">
 					<div className="export-section-head">
-						<div className="export-section-icon">
-							<i className="bi bi-calendar2" />
-						</div>
 						<div>
-							<h6 className="export-section-title">B. Filters</h6>
+							<h6 className="export-section-title">Filters</h6>
 							<p className="export-section-subtitle">Choose the date range for the data you want to export.</p>
 						</div>
 					</div>
@@ -173,11 +167,8 @@ const ExportData = ({ onNavigate }) => {
 
 				<section className="export-section">
 					<div className="export-section-head">
-						<div className="export-section-icon">
-							<i className="bi bi-gear" />
-						</div>
 						<div>
-							<h6 className="export-section-title">C. File Configuration</h6>
+							<h6 className="export-section-title">File Configuration</h6>
 							<p className="export-section-subtitle">Choose your preferred file format and export scope.</p>
 						</div>
 					</div>
@@ -229,11 +220,8 @@ const ExportData = ({ onNavigate }) => {
 
 				<section className="export-section export-section-action">
 					<div className="export-section-head">
-						<div className="export-section-icon">
-							<i className="bi bi-download" />
-						</div>
 						<div>
-							<h6 className="export-section-title">D. Action</h6>
+							<h6 className="export-section-title">Action</h6>
 							<p className="export-section-subtitle">Click the button below to export your data.</p>
 						</div>
 					</div>
