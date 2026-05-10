@@ -105,7 +105,9 @@ def forecast_with_cache(
 
   
 def top_n(df: pd.DataFrame, n: int = 10) -> pd.DataFrame:
-    value_cols = [col for col in df.columns if col not in {"unique_id", "ds"}]
+    value_cols = [
+        col for col in df.columns if col not in {"unique_id", "tenant_id", "ds"}
+    ]
     if not value_cols:
         return df.reset_index(drop=True)
     value_col = value_cols[0]
@@ -119,8 +121,13 @@ def build_payload(
     current_pred: pd.DataFrame,
     next_pred: pd.DataFrame,
 ) -> Dict:
+    if config.id_column == "tenant_id":
+        if "tenant_id" not in current_pred.columns:
+            current_pred = current_pred.assign(tenant_id=current_pred["unique_id"])
+        if "tenant_id" not in next_pred.columns:
+            next_pred = next_pred.assign(tenant_id=next_pred["unique_id"])
+
     payload = {
-        "config": asdict(config),
         "current_week": current_week.date().isoformat(),
         "next_week": next_week.date().isoformat(),
         "current": current_pred.to_dict(orient="records"),
