@@ -136,6 +136,7 @@ def build_payload(
     current_pred: pd.DataFrame,
     next_pred: pd.DataFrame,
     combined_pred: pd.DataFrame | None = None,
+    history_pred: pd.DataFrame | None = None,
 ) -> Dict:
     if config.id_column == "tenant_id":
         if "tenant_id" not in current_pred.columns:
@@ -146,6 +147,8 @@ def build_payload(
             combined_pred = combined_pred.assign(
                 tenant_id=combined_pred["unique_id"]
             )
+        if history_pred is not None and "tenant_id" not in history_pred.columns:
+            history_pred = history_pred.assign(tenant_id=history_pred["unique_id"])
 
     payload = {
         "current_week": current_week.date().isoformat(),
@@ -156,6 +159,8 @@ def build_payload(
     else:
         payload["current"] = current_pred.to_dict(orient="records")
         payload["next"] = next_pred.to_dict(orient="records")
+    if history_pred is not None:
+        payload["history"] = history_pred.to_dict(orient="records")
     if config.label == "week":
         current_start = (current_week - timedelta(days=current_week.weekday())).date()
         next_start = (next_week - timedelta(days=next_week.weekday())).date()
@@ -172,3 +177,16 @@ def build_payload(
             f"{next_start.isoformat()} to {next_end.isoformat()}"
         )
     return payload
+
+
+def build_history(
+    df: pd.DataFrame,
+    periods: int = 5,
+) -> pd.DataFrame:
+    history = (
+        df.sort_values("ds")
+        .groupby("unique_id", as_index=False)
+        .tail(periods)
+    )
+    history = history.rename(columns={"y": "actual"})
+    return history[["unique_id", "ds", "actual"]]
