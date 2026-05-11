@@ -22,6 +22,8 @@ export function formatProductPrice(value) {
   return `P${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
+const HOME_PREVIEW_LIMIT = 10;
+
 export function useHomeTab(selectedBranch) {
   const selectedBranchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null;
 
@@ -46,8 +48,6 @@ export function useHomeTab(selectedBranch) {
     }
 
     let mounted = true;
-    const hasBranchSwitched =
-      previousBranchIdRef.current !== null && previousBranchIdRef.current !== selectedBranchId;
     previousBranchIdRef.current = selectedBranchId;
 
     async function loadBranchData() {
@@ -55,8 +55,8 @@ export function useHomeTab(selectedBranch) {
 
       try {
         const [categoriesPayload, productsPayload] = await Promise.all([
-          getBranchCategories(selectedBranchId, hasBranchSwitched),
-          getProducts(selectedBranchId, null, hasBranchSwitched),
+          getBranchCategories(selectedBranchId),
+          getProducts(selectedBranchId, null, { perPage: HOME_PREVIEW_LIMIT }),
         ]);
 
         if (!mounted) {

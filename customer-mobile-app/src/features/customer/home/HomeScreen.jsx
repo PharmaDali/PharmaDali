@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native';
 import { colors } from '@src/shared/theme/colorPalette';
 import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -139,12 +139,17 @@ export default function HomeScreen() {
             See all
           </Text>
         </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
-          {branchProducts.map((item, index) => {
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={branchProducts}
+          keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
+          renderItem={({ item }) => {
             const branchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null;
 
             return (
-              <View key={`${item?.id ?? 'product'}-${index}`}>
+              <View>
                 <ProductCard
                   productId={String(item?.product_id ?? '')}
                   branchProductId={item?.id}
@@ -168,8 +173,8 @@ export default function HomeScreen() {
                 />
               </View>
             );
-          })}
-        </ScrollView>
+          }}
+        />
       </View>
       </ScrollView>
     </View>
