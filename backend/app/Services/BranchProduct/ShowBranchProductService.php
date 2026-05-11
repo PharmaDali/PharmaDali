@@ -20,7 +20,7 @@ class ShowBranchProductService
     ): CursorPaginator {
         $query = BranchProduct::query()
             ->with([
-                'product:id,product_type,product_name,generic_name,brand_name,description,form,strength,is_prescribed',
+                'product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
                 'category:id,category_name,description',
             ])
             ->where('branch_id', $branchId)
