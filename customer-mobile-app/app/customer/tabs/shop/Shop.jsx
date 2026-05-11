@@ -180,9 +180,19 @@ const Shop = () => {
         branchProductId={item?.id}
         branchId={selectedBranchId}
         img={BandaidImg}
+        product={item?.product}
+        categoryName={item?.category?.category_name}
         description={item?.product?.product_name || 'Unnamed product'}
         category={item?.category?.category_name || 'Uncategorized'}
         price={formatPrice(item?.selling_price)}
+        isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
+        isAvailable={
+          item?.is_available == null
+            ? true
+            : (typeof item?.is_available === 'boolean'
+              ? item.is_available
+              : Number(item.is_available) === 1)
+        }
         onAddToCart={handleAddToCart}
         style={{ width: 160 }}
       />
