@@ -9,8 +9,18 @@ import { getBranchCategories, getProducts } from '@src/shared/services/productSe
 import { addBranchProductToCart } from '@shared/utils/cartUtils'
 import ToastMessage from '@shared/components/ToastMessage'
 import { useToast } from '@shared/hooks/useToast'
+import { CATEGORY_ICONS } from '@src/utils/categoryUtils'
 
 const PRODUCTS_PER_PAGE = 20
+
+const toTitleCase = (str) => {
+  return str.replace(
+    /\w\S*/g,
+    function(txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    }
+  );
+}
 
 function normalizeApiList(payload) {
   if (Array.isArray(payload)) {
@@ -129,10 +139,12 @@ const Shop = () => {
   }, [hasMore, nextCursor, selectedBranchId])
 
   const navigateToCategory = (item) => {
+    const rawLabel = item?.category_name || 'Category'
+    const label = toTitleCase(rawLabel.trim())
     router.push({
       pathname: '/customer/tabs/shop/Categories',
       params: {
-        category: item?.category_name || 'Category',
+        category: label,
         categoryId: String(item?.id ?? ''),
       },
     })
@@ -197,14 +209,20 @@ const Shop = () => {
             ))
           )}
 
-          {!isLoading && categories.map((cat, index) => (
-            <CategoryCard
-              key={cat?.id || index}
-              icon={<Text>🛍️</Text>}
-              label={cat?.category_name || 'Category'}
-              onPress={() => navigateToCategory(cat)}
-            />
-          ))}
+          {!isLoading && categories.map((cat, index) => {
+            const rawLabel = cat?.category_name || 'Category'
+            const label = toTitleCase(rawLabel.trim())
+            const IconComponent = CATEGORY_ICONS[label]
+
+            return (
+              <CategoryCard
+                key={cat?.id || index}
+                icon={IconComponent ? <IconComponent width={24} height={24} /> : <Text className="text-2xl">🛍️</Text>}
+                label={label}
+                onPress={() => navigateToCategory(cat)}
+              />
+            )
+          })}
 
           {!isLoading && selectedBranchId && categories.length === 0 && (
             <Text className="px-1" style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>

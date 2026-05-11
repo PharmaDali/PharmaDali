@@ -19,12 +19,21 @@ function CategoryCard({ icon, label, onPress }) {
   );
 }
 
+const toTitleCase = (str) => {
+  return str.replace(
+    /\w\S*/g,
+    function(txt) {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    }
+  );
+}
+
 const CategoriesSlider = ({ categories = [], onCategoryPress }) => {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
       {categories.map((item) => {
         const rawLabel = item?.category_name || 'Category';
-        const label = rawLabel.trim();
+        const label = toTitleCase(rawLabel.trim());
         const IconComponent = CATEGORY_ICONS[label];
 
         return (
