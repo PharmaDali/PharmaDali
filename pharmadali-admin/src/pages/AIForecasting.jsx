@@ -40,15 +40,11 @@ const FORECAST_DATA = {
 const FORECAST_RANGES = Object.keys(FORECAST_DATA);
 
 const SALES_FORECAST_DATA = {
-    "Last 7 days": {
+    Weekly: {
         labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
         values: [24, 28, 32, 41, 45, 43, 49],
     },
-    "Last 14 days": {
-        labels: ["W1 Mon","W1 Tue","W1 Wed","W1 Thu","W1 Fri","W1 Sat","W1 Sun","W2 Mon","W2 Tue","W2 Wed","W2 Thu","W2 Fri","W2 Sat","W2 Sun"],
-        values: [19, 22, 26, 31, 36, 34, 38, 28, 31, 35, 40, 43, 41, 46],
-    },
-    "Last 30 days": {
+    Monthly: {
         labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
         values: Array.from({ length: 30 }, (_, i) => 18 + Math.round(Math.sin(i / 3.2) * 7 + i * 0.9)),
     },
@@ -85,6 +81,7 @@ const STOCK_RISK_DATA = {
 };
 
 const TABLE_RANGES = ["Current Week", "Next Week", "Current Month", "Next Month"];
+const SALES_RANGES = ["Weekly", "Monthly"];
 
 const TABLE_RANGE_GRANULARITY = {
     "Current Week": "weekly",
@@ -102,11 +99,13 @@ const TABLE_RANGE_PERIOD = {
 
 function AIForecasting() {
     const [activeTab, setActiveTab] = useState("demand");
-    const [salesRange, setSalesRange] = useState("Last 7 days");
+    const [salesRange, setSalesRange] = useState("Weekly");
     const [tableRange, setTableRange] = useState("Current Week");
     const [demandRows, setDemandRows] = useState(TOP_PREDICTED_DEMAND);
+    const [salesSeries, setSalesSeries] = useState(SALES_FORECAST_DATA.Weekly);
     const [demandPage, setDemandPage] = useState(1);
-    const { labels: salesLabels, values: salesValues } = SALES_FORECAST_DATA[salesRange];
+    const { labels: salesLabels, values: salesValues, forecastStartIndex } =
+        salesSeries || SALES_FORECAST_DATA.Weekly;
     const { labels: stockLabels, values: stockValues } = STOCK_RISK_DATA;
 
     const maxChartValue = (valueList) => {
@@ -130,7 +129,11 @@ function AIForecasting() {
         }],
     });
 
-    const buildChartOptions = (selectedRange, dataValues) => ({
+    const buildChartOptions = (selectedRange, dataValues) => {
+        const maxValue = maxChartValue(dataValues);
+        const stepSize = Math.max(1000, Math.ceil(maxValue / 5 / 1000) * 1000);
+
+        return {
         responsive: true,
         maintainAspectRatio: false,
         layout: { padding: { top: 4, right: 10, bottom: 0, left: 0 } },
@@ -145,24 +148,94 @@ function AIForecasting() {
                     color: "#5f6670",
                     font: { size: 12, family: "Poppins" },
                     autoSkip: true,
-                    maxTicksLimit: selectedRange === "Last 30 days" ? 6 : 8,
+                    maxTicksLimit: selectedRange === "Monthly" ? 6 : 8,
                 },
             },
             y: {
                 min: 10,
-                max: maxChartValue(dataValues),
+                max: maxValue,
                 ticks: {
-                    stepSize: 10,
+                    stepSize,
                     color: "#5f6670",
                     font: { size: 12, family: "Poppins" },
                     padding: 8,
+                    callback: (value) => Math.round(value).toString(),
                 },
                 grid: { color: "rgba(15, 23, 42, 0.06)" },
             },
         },
-    });
+        };
+    };
 
-    const salesChartData = useMemo(() => buildChartData(salesValues, salesLabels), [salesLabels, salesValues]);
+    const salesChartData = useMemo(() => {
+        if (!Number.isInteger(forecastStartIndex)) {
+            return buildChartData(salesValues, salesLabels);
+        }
+
+        const historyValues = salesValues.map((value, index) =>
+            index < forecastStartIndex ? value : null
+        );
+        const forecastValues = salesValues.map((value, index) =>
+            index >= forecastStartIndex - 1 ? value : null
+        );
+
+        return {
+            labels: salesLabels,
+            datasets: [
+                {
+                    data: historyValues,
+                    borderColor: "#2aabe2",
+                    backgroundColor: "rgba(42,171,226,0.12)",
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: "#ffffff",
+                    pointBorderColor: "#2aabe2",
+                    pointBorderWidth: 1.5,
+                    pointRadius: 3.5,
+                    pointHoverRadius: 5,
+                },
+                {
+                    data: forecastValues,
+                    borderColor: "#2aabe2",
+                    backgroundColor: "rgba(42,171,226,0)",
+                    fill: false,
+                    tension: 0.4,
+                    pointBackgroundColor: "#ffffff",
+                    pointBorderColor: "#2aabe2",
+                    pointBorderWidth: 1.5,
+                    pointRadius: 3.5,
+                    pointHoverRadius: 5,
+                    borderDash: [6, 4],
+                },
+            ],
+        };
+    }, [salesLabels, salesValues, forecastStartIndex]);
+    const salesForecastSplitPlugin = useMemo(() => ({
+        id: "salesForecastSplit",
+        afterDatasetsDraw(chart) {
+            if (!Number.isInteger(forecastStartIndex)) {
+                return;
+            }
+            const xScale = chart.scales.x;
+            const yScale = chart.scales.y;
+            const boundaryIndex = Math.min(
+                forecastStartIndex,
+                salesLabels.length - 1
+            );
+            const x = xScale.getPixelForValue(boundaryIndex - 0.5);
+
+            chart.ctx.save();
+            chart.ctx.setLineDash([6, 6]);
+            chart.ctx.strokeStyle = "rgba(42, 171, 226, 0.6)";
+            chart.ctx.lineWidth = 1;
+            chart.ctx.beginPath();
+            chart.ctx.moveTo(x, yScale.top);
+            chart.ctx.lineTo(x, yScale.bottom);
+            chart.ctx.stroke();
+            chart.ctx.restore();
+        },
+    }), [forecastStartIndex, salesLabels.length]);
+
     const salesChartOptions = useMemo(() => buildChartOptions(salesRange, salesValues), [salesRange, salesValues]);
 
     const stockChartData = useMemo(() => buildChartData(stockValues, stockLabels), [stockLabels, stockValues]);
@@ -404,6 +477,92 @@ function AIForecasting() {
         };
     }, [tableRange]);
 
+    useEffect(() => {
+        let isMounted = true;
+
+        const salesGranularity = salesRange === "Monthly" ? "monthly" : "weekly";
+
+        const formatLabel = (dateString) => {
+            const date = new Date(dateString);
+            if (Number.isNaN(date.getTime())) {
+                return dateString;
+            }
+            if (salesGranularity === "monthly") {
+                return date.toLocaleDateString("en-US", {
+                    month: "short",
+                    year: "numeric",
+                });
+            }
+            return date.toLocaleDateString("en-US", {
+                month: "short",
+                day: "2-digit",
+            });
+        };
+
+        const buildSalesSeries = (rows) => {
+            const history = rows
+                .filter((row) => row?.period === "history")
+                .sort((a, b) => new Date(a.ds) - new Date(b.ds))
+                .slice(-5);
+
+            const current = rows.find((row) => row?.period === "current");
+            const next = rows.find((row) => row?.period === "next");
+
+            const labels = history.map((row) => formatLabel(row.ds));
+            const values = history.map((row) => Number(row.forecast_value));
+            const forecastStartIndex = labels.length;
+
+            if (current?.ds) {
+                labels.push(`Forecast ${formatLabel(current.ds)}`);
+                values.push(Number(current.forecast_value));
+            }
+
+            if (next?.ds) {
+                labels.push(`Forecast ${formatLabel(next.ds)}`);
+                values.push(Number(next.forecast_value));
+            }
+
+            if (labels.length === 0) {
+                return SALES_FORECAST_DATA[salesRange];
+            }
+
+            return {
+                labels,
+                values,
+                forecastStartIndex: current || next ? forecastStartIndex : null,
+            };
+        };
+
+        const fetchSalesSeries = async () => {
+            try {
+                const response = await apiRequest.get("/branch/forecasts", {
+                    params: {
+                        kind: "sales",
+                        granularity: salesGranularity,
+                        limit: 100,
+                    },
+                });
+
+                const rows = response?.data || [];
+                const nextSeries = buildSalesSeries(rows);
+
+                if (isMounted) {
+                    setSalesSeries(nextSeries);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setSalesSeries(SALES_FORECAST_DATA[salesRange]);
+                }
+            }
+        };
+
+        fetchSalesSeries();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [salesRange]);
+
     return (
         <section className="dashboard-page aif-page">
             <header className="dashboard-page-header mb-3">
@@ -553,13 +712,17 @@ function AIForecasting() {
                                                 onChange={(e) => setSalesRange(e.target.value)}
                                                 aria-label="Sales period"
                                             >
-                                                {FORECAST_RANGES.map((p) => <option key={p}>{p}</option>)}
+                                                {SALES_RANGES.map((p) => <option key={p}>{p}</option>)}
                                             </select>
                                             <i className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon" />
                                         </div>
                                     </div>
                                     <div className="dashboard-chart-wrap aif-sales-chart">
-                                        <Line data={salesChartData} options={salesChartOptions} />
+                                        <Line
+                                            data={salesChartData}
+                                            options={salesChartOptions}
+                                            plugins={[salesForecastSplitPlugin]}
+                                        />
                                     </div>
                                 </div>
                             </article>

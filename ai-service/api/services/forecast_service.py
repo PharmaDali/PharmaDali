@@ -5,7 +5,7 @@ import pandas as pd
 
 from cache.model_cache import ModelCache
 from config.settings import ForecastConfig
-from forecasting.common import build_payload, forecast_with_cache, top_n
+from forecasting.common import build_history, build_payload, forecast_with_cache, top_n
 
 
 class ForecastService:
@@ -18,9 +18,13 @@ class ForecastService:
         top_n_count: int | None,
         combine_top_n: bool = False,
     ) -> Dict:
-        _, current_week, next_week, current_pred, next_pred = forecast_with_cache(
+        df, current_week, next_week, current_pred, next_pred = forecast_with_cache(
             config, self._cache
         )
+
+        history_pred = None
+        if config.name.startswith("sales"):
+            history_pred = build_history(df, periods=5)
 
         if top_n_count and combine_top_n:
             combined_pred = pd.concat(
@@ -34,10 +38,18 @@ class ForecastService:
                 current_pred,
                 next_pred,
                 combined_pred=combined_pred,
+                history_pred=history_pred,
             )
 
         if top_n_count:
             current_pred = top_n(current_pred, top_n_count)
             next_pred = top_n(next_pred, top_n_count)
 
-        return build_payload(config, current_week, next_week, current_pred, next_pred)
+        return build_payload(
+            config,
+            current_week,
+            next_week,
+            current_pred,
+            next_pred,
+            history_pred=history_pred,
+        )
