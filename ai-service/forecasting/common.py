@@ -39,6 +39,16 @@ def load_and_prepare(csv_path: Path, config: ForecastConfig) -> pd.DataFrame:
     return df
 
 
+def _build_tenant_map(csv_path: Path) -> pd.DataFrame | None:
+    preview = pd.read_csv(csv_path, nrows=0)
+    if "tenant_id" not in preview.columns or "unique_id" not in preview.columns:
+        return None
+
+    tenant_map = pd.read_csv(csv_path, usecols=["unique_id", "tenant_id"])
+    tenant_map = tenant_map.dropna(subset=["unique_id", "tenant_id"]).drop_duplicates()
+    return tenant_map
+
+
 def build_model(config: ForecastConfig, model) -> StatsForecast:
     return StatsForecast(
         models=[model],
@@ -84,6 +94,7 @@ def forecast_with_cache(
     config: ForecastConfig, cache: ModelCache
 ) -> Tuple[pd.DataFrame, pd.Timestamp, pd.Timestamp, pd.DataFrame, pd.DataFrame]:
     df = load_and_prepare(config.csv_path, config)
+    tenant_map = _build_tenant_map(config.csv_path)
     model_choice, model_key = _select_model(df, config)
     last_ds = df["ds"].max()
     current_week, next_week = week_labels(last_ds, config.freq)
@@ -100,6 +111,10 @@ def forecast_with_cache(
     forecast = model.predict(h=horizon)
     current_pred = forecast[forecast["ds"] == current_week]
     next_pred = forecast[forecast["ds"] == next_week]
+
+    if tenant_map is not None:
+        current_pred = current_pred.merge(tenant_map, on="unique_id", how="left")
+        next_pred = next_pred.merge(tenant_map, on="unique_id", how="left")
 
     return df, current_week, next_week, current_pred, next_pred
 

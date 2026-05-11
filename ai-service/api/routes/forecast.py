@@ -51,4 +51,4 @@ async def demand_forecast(
     top_n: int = Query(10, ge=1, le=100),
 ) -> Dict:
     config = _get_config("demand", granularity)
-    return _service.generate(config, top_n, combine_top_n=True)
+    return _service.generate(config, top_n)

@@ -50,8 +50,9 @@ class ForecastSyncService
     private function storePayload(array $payload, string $kind, string $granularity): int
     {
         $rows = [];
+        $periods = ['current', 'next'];
 
-        foreach (['current', 'next'] as $period) {
+        foreach ($periods as $period) {
             $periodRows = Arr::get($payload, $period, []);
             if (empty($periodRows)) {
                 continue;
@@ -63,30 +64,31 @@ class ForecastSyncService
                 $granularity
             );
 
-            foreach ($periodRows as $row) {
-                $modelName = $this->extractModelName($row);
-                $forecastValue = $modelName ? $row[$modelName] : null;
-                $tenantId = $this->extractTenantId($row);
+            $rows = array_merge(
+                $rows,
+                $this->buildRows($periodRows, $kind, $granularity, $period, $periodStart, $periodEnd)
+            );
+        }
 
-                if ($forecastValue === null) {
-                    continue;
-                }
+        $combinedRows = Arr::get($payload, 'top', []);
+        if (!empty($combinedRows) && empty($rows)) {
+            [$periodStart, $periodEnd] = $this->resolvePeriodRange(
+                $payload,
+                'current',
+                $granularity
+            );
 
-                $rows[] = [
-                    'kind' => $kind,
-                    'granularity' => $granularity,
-                    'period' => $period,
-                    'period_start' => $periodStart,
-                    'period_end' => $periodEnd,
-                    'ds' => Carbon::parse($row['ds'])->toDateString(),
-                    'tenant_id' => $tenantId,
-                    'unique_id' => (string) $row['unique_id'],
-                    'model_name' => $modelName,
-                    'forecast_value' => $forecastValue,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
+            $rows = array_merge(
+                $rows,
+                $this->buildRows(
+                    $combinedRows,
+                    $kind,
+                    $granularity,
+                    'combined',
+                    $periodStart,
+                    $periodEnd
+                )
+            );
         }
 
         if (empty($rows)) {
@@ -102,6 +104,44 @@ class ForecastSyncService
         });
 
         return count($rows);
+    }
+
+    private function buildRows(
+        array $periodRows,
+        string $kind,
+        string $granularity,
+        string $period,
+        string $periodStart,
+        string $periodEnd,
+    ): array {
+        $rows = [];
+
+        foreach ($periodRows as $row) {
+            $modelName = $this->extractModelName($row);
+            $forecastValue = $modelName ? $row[$modelName] : null;
+            $tenantId = $this->extractTenantId($row);
+
+            if ($forecastValue === null) {
+                continue;
+            }
+
+            $rows[] = [
+                'kind' => $kind,
+                'granularity' => $granularity,
+                'period' => $period,
+                'period_start' => $periodStart,
+                'period_end' => $periodEnd,
+                'ds' => Carbon::parse($row['ds'])->toDateString(),
+                'tenant_id' => $tenantId,
+                'unique_id' => (string) $row['unique_id'],
+                'model_name' => $modelName,
+                'forecast_value' => $forecastValue,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
+        return $rows;
     }
 
     private function resolvePeriodRange(array $payload, string $period, string $granularity): array

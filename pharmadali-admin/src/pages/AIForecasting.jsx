@@ -8,10 +8,11 @@ import {
     Tooltip,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "../assets/css/dashboard.css";
 import "../assets/css/aiforecasting.css";
 import AIIcon from "../assets/icons/AI.svg";
+import { apiRequest } from "../shared/api/apiClient";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
@@ -83,12 +84,28 @@ const STOCK_RISK_DATA = {
     values: [20, 25, 33, 42, 58, 70, 85],
 };
 
+const TABLE_RANGES = ["Current Week", "Next Week", "Current Month", "Next Month"];
+
+const TABLE_RANGE_GRANULARITY = {
+    "Current Week": "weekly",
+    "Next Week": "weekly",
+    "Current Month": "monthly",
+    "Next Month": "monthly",
+};
+
+const TABLE_RANGE_PERIOD = {
+    "Current Week": "current",
+    "Next Week": "next",
+    "Current Month": "current",
+    "Next Month": "next",
+};
+
 function AIForecasting() {
     const [activeTab, setActiveTab] = useState("demand");
-    const [range, setRange] = useState("Last 7 days");
     const [salesRange, setSalesRange] = useState("Last 7 days");
-    const [tableRange, setTableRange] = useState("Last 7 days");
-    const { labels, values } = FORECAST_DATA[range];
+    const [tableRange, setTableRange] = useState("Current Week");
+    const [demandRows, setDemandRows] = useState(TOP_PREDICTED_DEMAND);
+    const [demandPage, setDemandPage] = useState(1);
     const { labels: salesLabels, values: salesValues } = SALES_FORECAST_DATA[salesRange];
     const { labels: stockLabels, values: stockValues } = STOCK_RISK_DATA;
 
@@ -145,8 +162,6 @@ function AIForecasting() {
         },
     });
 
-    const chartData = useMemo(() => buildChartData(values, labels), [labels, values]);
-    const chartOptions = useMemo(() => buildChartOptions(range, values), [range, values]);
     const salesChartData = useMemo(() => buildChartData(salesValues, salesLabels), [salesLabels, salesValues]);
     const salesChartOptions = useMemo(() => buildChartOptions(salesRange, salesValues), [salesRange, salesValues]);
 
@@ -218,8 +233,176 @@ function AIForecasting() {
         },
     }), []);
 
-    const leftDemand = TOP_PREDICTED_DEMAND.slice(0, 5);
-    const rightDemand = TOP_PREDICTED_DEMAND.slice(5, 10);
+    const pageSize = 20;
+    const totalDemandPages = Math.max(1, Math.ceil(demandRows.length / pageSize));
+    const safeDemandPage = Math.min(demandPage, totalDemandPages);
+    const pageStart = (safeDemandPage - 1) * pageSize;
+    const pageRows = demandRows.slice(pageStart, pageStart + pageSize);
+    const leftDemand = pageRows.slice(0, 10);
+    const rightDemand = pageRows.slice(10, 20);
+
+    const tableDateRangeLabel = useMemo(() => {
+        const today = new Date();
+
+        const formatDate = (date) =>
+            date.toLocaleDateString("en-US", {
+                month: "short",
+                day: "2-digit",
+                year: "numeric",
+            });
+
+        const startOfWeek = (date) => {
+            const result = new Date(date);
+            const day = result.getDay();
+            const diff = (day + 6) % 7;
+            result.setDate(result.getDate() - diff);
+            result.setHours(0, 0, 0, 0);
+            return result;
+        };
+
+        const endOfWeek = (date) => {
+            const result = new Date(date);
+            result.setDate(result.getDate() + 6);
+            result.setHours(23, 59, 59, 999);
+            return result;
+        };
+
+        const startOfMonth = (date) => {
+            const result = new Date(date.getFullYear(), date.getMonth(), 1);
+            result.setHours(0, 0, 0, 0);
+            return result;
+        };
+
+        const endOfMonth = (date) => {
+            const result = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+            result.setHours(23, 59, 59, 999);
+            return result;
+        };
+
+        if (tableRange === "Current Week") {
+            const start = startOfWeek(today);
+            const end = endOfWeek(start);
+            return `${formatDate(start)} - ${formatDate(end)}`;
+        }
+
+        if (tableRange === "Next Week") {
+            const nextWeek = new Date(today);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            const start = startOfWeek(nextWeek);
+            const end = endOfWeek(start);
+            return `${formatDate(start)} - ${formatDate(end)}`;
+        }
+
+        if (tableRange === "Current Month") {
+            const start = startOfMonth(today);
+            const end = endOfMonth(today);
+            return `${formatDate(start)} - ${formatDate(end)}`;
+        }
+
+        const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        const start = startOfMonth(nextMonth);
+        const end = endOfMonth(nextMonth);
+        return `${formatDate(start)} - ${formatDate(end)}`;
+    }, [tableRange]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const formatUnits = (value) => {
+            const rounded = Math.round(value);
+            return `${rounded} units`;
+        };
+
+        const buildTopDemandRows = (rows) => {
+            const byProduct = new Map();
+
+            rows.forEach((row) => {
+                const product = row?.unique_id;
+                const period = row?.period;
+                const value = Number(row?.forecast_value);
+
+                if (!product || !Number.isFinite(value)) {
+                    return;
+                }
+
+                const existing = byProduct.get(product) || {
+                    product,
+                    current: null,
+                    next: null,
+                    maxValue: null,
+                };
+
+                if (period === "current") {
+                    existing.current = value;
+                }
+
+                if (period === "next") {
+                    existing.next = value;
+                }
+
+                existing.maxValue = existing.maxValue === null
+                    ? value
+                    : Math.max(existing.maxValue, value);
+
+                byProduct.set(product, existing);
+            });
+
+            const items = Array.from(byProduct.values())
+                .filter((entry) => Number.isFinite(entry.maxValue))
+                .map((entry) => {
+                    const cleanProduct = entry.product.replace(/^\d+_/, "");
+
+                    return {
+                        product: cleanProduct,
+                        demand: formatUnits(entry.maxValue),
+                        sortValue: entry.maxValue,
+                    };
+                })
+                .sort((a, b) => b.sortValue - a.sortValue)
+                .slice(0, 100)
+                .map(({ sortValue, ...item }) => item);
+
+            return items;
+        };
+
+        const fetchDemandTable = async () => {
+            const granularity = TABLE_RANGE_GRANULARITY[tableRange] || "weekly";
+            const period = TABLE_RANGE_PERIOD[tableRange] || "current";
+
+            try {
+                const response = await apiRequest.get("/branch/forecasts", {
+                    params: {
+                        kind: "demand",
+                        granularity,
+                        period,
+                        limit: 200,
+                    },
+                });
+
+                const rows = response?.data || [];
+                const nextRows = buildTopDemandRows(rows);
+
+                if (isMounted && nextRows.length > 0) {
+                    setDemandRows(nextRows);
+                    setDemandPage(1);
+                } else if (isMounted) {
+                    setDemandRows(TOP_PREDICTED_DEMAND);
+                    setDemandPage(1);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setDemandRows(TOP_PREDICTED_DEMAND);
+                    setDemandPage(1);
+                }
+            }
+        };
+
+        fetchDemandTable();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [tableRange]);
 
     return (
         <section className="dashboard-page aif-page">
@@ -267,13 +450,14 @@ function AIForecasting() {
                                 <div className="aif-chart-head mb-2">
                                     <h6 className="fw-bold mb-0 aif-chart-title">Top Predicted Demand</h6>
                                     <div className="position-relative pd-range-select-wrap aif-filter-wrap">
+                                        <span className="aif-range-label">{tableDateRangeLabel}</span>
                                         <select
                                             className="form-select form-select-sm pe-4 pd-range-select"
                                             value={tableRange}
                                             onChange={(e) => setTableRange(e.target.value)}
                                             aria-label="Table period"
                                         >
-                                            {FORECAST_RANGES.map((p) => <option key={p}>{p}</option>)}
+                                            {TABLE_RANGES.map((p) => <option key={p}>{p}</option>)}
                                         </select>
                                         <i className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon" />
                                     </div>
@@ -285,75 +469,55 @@ function AIForecasting() {
                                                 <th></th>
                                                 <th>Product</th>
                                                 <th>Predicted Demand</th>
-                                                <th>Trend</th>
                                                 <th></th>
                                                 <th>Product</th>
                                                 <th>Predicted Demand</th>
-                                                <th>Trend</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {leftDemand.map((left, i) => {
                                                 const right = rightDemand[i];
+                                                const leftRank = pageStart + i + 1;
+                                                const rightRank = pageStart + i + 11;
                                                 return (
                                                     <tr key={i}>
-                                                        <td className="aif-cell-num">{i + 1}</td>
+                                                        <td className="aif-cell-num">{leftRank}</td>
                                                         <td className="aif-cell-primary">{left.product}</td>
                                                         <td>{left.demand}</td>
-                                                        <td className="aif-cell-trend">{left.trend}</td>
-                                                        <td className="aif-cell-num">{i + 6}</td>
-                                                        <td className="aif-cell-primary">{right.product}</td>
-                                                        <td>{right.demand}</td>
-                                                        <td className="aif-cell-trend">{right.trend}</td>
+                                                        <td className="aif-cell-num">{right ? rightRank : ""}</td>
+                                                        <td className="aif-cell-primary">{right?.product || ""}</td>
+                                                        <td>{right?.demand || ""}</td>
                                                     </tr>
                                                 );
                                             })}
                                         </tbody>
                                     </table>
                                 </div>
+                                <div className="aif-pagination">
+                                    <button
+                                        type="button"
+                                        className="aif-page-btn"
+                                        onClick={() => setDemandPage((prev) => Math.max(1, prev - 1))}
+                                        disabled={safeDemandPage <= 1}
+                                    >
+                                        Prev
+                                    </button>
+                                    <span className="aif-page-info">
+                                        Page {safeDemandPage} of {totalDemandPages}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="aif-page-btn"
+                                        onClick={() => setDemandPage((prev) => Math.min(totalDemandPages, prev + 1))}
+                                        disabled={safeDemandPage >= totalDemandPages}
+                                    >
+                                        Next
+                                    </button>
+                                </div>
                             </article>
                         </div>
                     </div>
 
-                    <div className="row g-3 aif-demand-row">
-                        <div className="col-12">
-                            <article className="card border-0 shadow-sm rounded-3 aif-card aif-forecast-card aif-demand-forecast">
-                                <div className="aif-forecast-chart-side p-3">
-                                    <div className="aif-chart-head mb-2">
-                                        <h6 className="fw-bold mb-0 aif-chart-title">Demand Forecast Chart and Insight</h6>
-                                        <div className="position-relative pd-range-select-wrap aif-filter-wrap">
-                                            <select
-                                                className="form-select form-select-sm pe-4 pd-range-select"
-                                                value={range}
-                                                onChange={(e) => setRange(e.target.value)}
-                                                aria-label="Forecast period"
-                                            >
-                                                {FORECAST_RANGES.map((p) => <option key={p}>{p}</option>)}
-                                            </select>
-                                            <i className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon" />
-                                        </div>
-                                    </div>
-                                    <div className="dashboard-chart-wrap">
-                                        <Line data={chartData} options={chartOptions} />
-                                    </div>
-                                </div>
-                                <div className="aif-forecast-insights-side">
-                                    <div className="aif-insights-box">
-                                        <ul className="aif-insights-list">
-                                            {DEMAND_INSIGHTS.map((text, i) => (
-                                                <li key={i} className="aif-insight-item">
-                                                    <span className="aif-insight-bullet">
-                                                        <img src={AIIcon} alt="AI Bullet" style={{ width: "25px", height: "25px" }} />
-                                                    </span>
-                                                    <span>{text}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </article>
-                        </div>
-                    </div>
                 </div>
             )}
 
