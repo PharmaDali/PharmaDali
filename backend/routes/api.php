@@ -9,6 +9,7 @@ use App\Http\Controllers\API\OrderItemPrescription;
 use App\Http\Controllers\API\PharmacistProfileController;
 use App\Http\Controllers\API\CustomerProfileController;
 use App\Http\Controllers\API\ForecastController;
+use App\Http\Controllers\API\ForecastInsightController;
 use App\Http\Controllers\API\ForecastSyncController;
 use Illuminate\Support\Facades\Route;
 
@@ -74,6 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('branch/forecasts/sync', [ForecastSyncController::class, 'sync']);
         Route::get('branch/forecasts', [ForecastController::class, 'index']);
+        Route::get('branch/forecast-insights', [ForecastInsightController::class, 'show']);
 
         Route::post('products', [BranchProductController::class, 'store']);
         Route::post('products/import', [BranchProductController::class, 'importBranchProducts']);
