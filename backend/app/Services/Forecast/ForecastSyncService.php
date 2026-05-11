@@ -70,6 +70,14 @@ class ForecastSyncService
             );
         }
 
+        $historyRows = Arr::get($payload, 'history', []);
+        if (!empty($historyRows)) {
+            $rows = array_merge(
+                $rows,
+                $this->buildRows($historyRows, $kind, $granularity, 'history', null, null)
+            );
+        }
+
         $combinedRows = Arr::get($payload, 'top', []);
         if (!empty($combinedRows) && empty($rows)) {
             [$periodStart, $periodEnd] = $this->resolvePeriodRange(
@@ -111,8 +119,8 @@ class ForecastSyncService
         string $kind,
         string $granularity,
         string $period,
-        string $periodStart,
-        string $periodEnd,
+        ?string $periodStart,
+        ?string $periodEnd,
     ): array {
         $rows = [];
 
@@ -120,6 +128,14 @@ class ForecastSyncService
             $modelName = $this->extractModelName($row);
             $forecastValue = $modelName ? $row[$modelName] : null;
             $tenantId = $this->extractTenantId($row);
+            $rowDate = $row['ds'] ?? null;
+
+            if ($period === 'history' && $rowDate) {
+                [$periodStart, $periodEnd] = $this->resolvePeriodRangeForDate(
+                    $rowDate,
+                    $granularity
+                );
+            }
 
             if ($forecastValue === null) {
                 continue;
@@ -142,6 +158,23 @@ class ForecastSyncService
         }
 
         return $rows;
+    }
+
+    private function resolvePeriodRangeForDate(string $date, string $granularity): array
+    {
+        $anchor = Carbon::parse($date);
+
+        if ($granularity === 'monthly') {
+            return [
+                $anchor->copy()->startOfMonth()->toDateString(),
+                $anchor->copy()->endOfMonth()->toDateString(),
+            ];
+        }
+
+        $start = $anchor->copy()->startOfWeek(Carbon::MONDAY)->toDateString();
+        $end = $anchor->copy()->endOfWeek(Carbon::SUNDAY)->toDateString();
+
+        return [$start, $end];
     }
 
     private function resolvePeriodRange(array $payload, string $period, string $granularity): array
