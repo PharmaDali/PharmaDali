@@ -312,7 +312,7 @@
 }
 
 .aif-sales-chart {
-	height: 220px;
+	height: 320px;
 }
 
 .aif-stock-insight .aif-insight-inner {
@@ -477,6 +477,9 @@
 }
 
 @media (max-width: 575.98px) {
+		.aif-sales-chart {
+			height: 260px;
+		}
 	.aif-subtitle {
 		font-size: 12px;
 	}
