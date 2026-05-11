@@ -1,14 +1,18 @@
 import { apiRequest } from '@shared/api/client';
 
-export async function getProducts(branchId, categoryId = null, forceRefresh = false) {
+export async function getProducts(branchId, categoryId = null, { cursor = null, perPage = null } = {}) {
   const searchParams = new URLSearchParams();
 
   if (categoryId !== null && categoryId !== undefined) {
     searchParams.append('category_id', String(categoryId));
   }
 
-  if (forceRefresh) {
-    searchParams.append('force_refresh', '1');
+  if (cursor) {
+    searchParams.append('cursor', cursor);
+  }
+
+  if (perPage !== null && perPage !== undefined) {
+    searchParams.append('per_page', String(perPage));
   }
 
   const query = searchParams.toString();

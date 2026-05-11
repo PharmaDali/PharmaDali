@@ -1,5 +1,5 @@
-import { Text, View, ScrollView, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { Text, View, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
+import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import BandaidImg from '@assets/images/bandaid_img.png'
@@ -9,6 +9,8 @@ import { getBranchCategories, getProducts } from '@src/shared/services/productSe
 import { addBranchProductToCart } from '@shared/utils/cartUtils'
 import ToastMessage from '@shared/components/ToastMessage'
 import { useToast } from '@shared/hooks/useToast'
+
+const PRODUCTS_PER_PAGE = 20
 
 function normalizeApiList(payload) {
   if (Array.isArray(payload)) {
@@ -42,10 +44,18 @@ const Shop = () => {
   const [addingProductId, setAddingProductId] = useState(null)
   const { toast, showSuccess, showError } = useToast()
 
+  // Pagination state
+  const [nextCursor, setNextCursor] = useState(null)
+  const [hasMore, setHasMore] = useState(false)
+  const isFetchingMoreRef = useRef(false)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
+
   useEffect(() => {
     if (!selectedBranchId) {
       setCategories([])
       setProducts([])
+      setNextCursor(null)
+      setHasMore(false)
       setIsLoading(false)
       return
     }
@@ -54,11 +64,13 @@ const Shop = () => {
 
     async function loadShopData() {
       setIsLoading(true)
+      setNextCursor(null)
+      setHasMore(false)
 
       try {
         const [categoriesPayload, productsPayload] = await Promise.all([
           getBranchCategories(selectedBranchId),
-          getProducts(selectedBranchId),
+          getProducts(selectedBranchId, null, { perPage: PRODUCTS_PER_PAGE }),
         ])
 
         if (!mounted) {
@@ -67,10 +79,14 @@ const Shop = () => {
 
         setCategories(normalizeApiList(categoriesPayload))
         setProducts(normalizeApiList(productsPayload))
+        setNextCursor(productsPayload?.next_cursor ?? null)
+        setHasMore(productsPayload?.has_more ?? false)
       } catch (error) {
         if (mounted) {
           setCategories([])
           setProducts([])
+          setNextCursor(null)
+          setHasMore(false)
         }
       } finally {
         if (mounted) {
@@ -85,6 +101,32 @@ const Shop = () => {
       mounted = false
     }
   }, [selectedBranchId])
+
+  const loadMoreProducts = useCallback(async () => {
+    if (isFetchingMoreRef.current || !hasMore || !nextCursor || !selectedBranchId) {
+      return
+    }
+
+    isFetchingMoreRef.current = true
+    setIsFetchingMore(true)
+
+    try {
+      const productsPayload = await getProducts(selectedBranchId, null, {
+        cursor: nextCursor,
+        perPage: PRODUCTS_PER_PAGE,
+      })
+
+      const newItems = normalizeApiList(productsPayload)
+      setProducts((prev) => [...prev, ...newItems])
+      setNextCursor(productsPayload?.next_cursor ?? null)
+      setHasMore(productsPayload?.has_more ?? false)
+    } catch (error) {
+      // Silently fail — user can scroll up and try again
+    } finally {
+      isFetchingMoreRef.current = false
+      setIsFetchingMore(false)
+    }
+  }, [hasMore, nextCursor, selectedBranchId])
 
   const navigateToCategory = (item) => {
     router.push({
@@ -119,16 +161,30 @@ const Shop = () => {
     showError(result.errorMessage)
   }
 
-  return (
-    <View className="flex-1 bg-white">
-      <ToastMessage
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        topOffset={insets.top + 8}
+  const renderProductItem = useCallback(({ item, index }) => (
+    <View className="w-1/2 px-1 mb-4">
+      <ProductCard
+        productId={String(item?.product_id ?? '')}
+        branchProductId={item?.id}
+        branchId={selectedBranchId}
+        img={BandaidImg}
+        description={item?.product?.product_name || 'Unnamed product'}
+        category={item?.category?.category_name || 'Uncategorized'}
+        price={formatPrice(item?.selling_price)}
+        onAddToCart={handleAddToCart}
+        style={{ width: 160 }}
       />
-      <ScrollView className="flex-1 bg-white" showsVerticalScrollIndicator={false}>
-        <View>
+      {addingProductId === item?.id && (
+        <Text className="mt-1 ml-1 text-[11px]" style={{ fontFamily: 'Poppins-Medium', color: '#48AAD9' }}>
+          Adding...
+        </Text>
+      )}
+    </View>
+  ), [selectedBranchId, addingProductId, handleAddToCart])
+
+  const ListHeader = useCallback(() => (
+    <View>
+      <View>
         <Text className="text-2xl p-5" style={{ fontFamily: 'Poppins-Bold', color: '#444' }}>
           Categories
         </Text>
@@ -158,48 +214,73 @@ const Shop = () => {
         </View>
       </View>
 
-        <View>
+      <View>
         <Text className="text-2xl p-5" style={{ fontFamily: 'Poppins-Bold', color: '#444' }}>
           Products
         </Text>
-        </View>
+      </View>
+
+      {isLoading && (
         <View className="flex-row flex-wrap px-4">
-        {isLoading && (
-          Array.from({ length: 4 }).map((_, index) => (
+          {Array.from({ length: 4 }).map((_, index) => (
             <View key={`skeleton-${index}`} className="w-1/2 px-1 mb-4">
               <ProductSkeletonCard />
             </View>
-          ))
-        )}
-
-        {!isLoading && products.map((item, index) => (
-          <View key={index} className="w-1/2 px-1 mb-4">
-            <ProductCard
-              productId={String(item?.product_id ?? '')}
-              branchProductId={item?.id}
-              branchId={selectedBranchId}
-              img={BandaidImg}
-              description={item?.product?.product_name || 'Unnamed product'}
-              category={item?.category?.category_name || 'Uncategorized'}
-              price={formatPrice(item?.selling_price)}
-              onAddToCart={handleAddToCart}
-              style={{ width: 160 }}
-            />
-            {addingProductId === item?.id && (
-              <Text className="mt-1 ml-1 text-[11px]" style={{ fontFamily: 'Poppins-Medium', color: '#48AAD9' }}>
-                Adding...
-              </Text>
-            )}
-          </View>
-        ))}
-
-        {!isLoading && selectedBranchId && products.length === 0 && (
-          <Text className="px-1" style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
-            No products found for this branch.
-          </Text>
-        )}
+          ))}
         </View>
-      </ScrollView>
+      )}
+    </View>
+  ), [isLoading, categories, selectedBranchId])
+
+  const ListFooter = useCallback(() => {
+    if (!isFetchingMore) return null
+
+    return (
+      <View className="py-4 items-center">
+        <ActivityIndicator size="small" color="#48AAD9" />
+        <Text className="mt-2 text-xs" style={{ fontFamily: 'Poppins-Medium', color: '#9CA3AF' }}>
+          Loading more products...
+        </Text>
+      </View>
+    )
+  }, [isFetchingMore])
+
+  const ListEmpty = useCallback(() => {
+    if (isLoading) return null
+
+    if (!selectedBranchId) return null
+
+    return (
+      <View className="px-5">
+        <Text style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
+          No products found for this branch.
+        </Text>
+      </View>
+    )
+  }, [isLoading, selectedBranchId])
+
+  return (
+    <View className="flex-1 bg-white">
+      <ToastMessage
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        topOffset={insets.top + 8}
+      />
+      <FlatList
+        data={isLoading ? [] : products}
+        keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
+        renderItem={renderProductItem}
+        numColumns={2}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ backgroundColor: 'white' }}
+        ListHeaderComponent={ListHeader}
+        ListFooterComponent={ListFooter}
+        ListEmptyComponent={ListEmpty}
+        onEndReached={loadMoreProducts}
+        onEndReachedThreshold={0.5}
+        columnWrapperStyle={{ paddingHorizontal: 16 }}
+      />
     </View>
   )
 }

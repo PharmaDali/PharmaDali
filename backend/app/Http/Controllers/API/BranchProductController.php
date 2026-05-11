@@ -63,17 +63,19 @@ class BranchProductController extends Controller
     public function showBranchProducts(ShowBranchProductRequest $request, ShowBranchProductService $showBranchProductService)
     {
         $validated = $request->validated();
-        $forceRefresh = $request->boolean('force_refresh');
 
-        $branchProducts = $showBranchProductService->handle(
-            (int) $validated['branch_id'],
-            isset($validated['category_id']) ? (int) $validated['category_id'] : null,
-            $forceRefresh,
+        $paginator = $showBranchProductService->handle(
+            branchId: (int) $validated['branch_id'],
+            categoryId: isset($validated['category_id']) ? (int) $validated['category_id'] : null,
+            perPage: (int) ($validated['per_page'] ?? 20),
+            cursor: $validated['cursor'] ?? null,
         );
 
         return response()->json([
             'status' => 'success',
-            'data' => $branchProducts,
+            'data' => $paginator->items(),
+            'next_cursor' => $paginator->nextCursor()?->encode(),
+            'has_more' => $paginator->hasMorePages(),
         ]);
     }
 

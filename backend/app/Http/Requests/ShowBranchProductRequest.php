@@ -41,6 +41,8 @@ class ShowBranchProductRequest extends FormRequest
                     return $query->where('branch_id', $this->input('branch_id'));
                 }),
             ],
+            'cursor' => ['nullable', 'string'],
+            'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
         ];
     }
 }
