@@ -14,9 +14,9 @@ import VitaminsIcon from '@assets/icons/category-icons/vitamins-icon.svg';
 export const CATEGORY_ICONS = {
   'Branded': BrandedIcon,
   'Generic': GenericIcon,
-  'Injectables': InjectablesIcon,
-  'Eye Med': EyeMedIcon,
-  'Cream': CreamIcon,
+  'Injectables/vials': InjectablesIcon,
+  'Eyes Med': EyeMedIcon,
+  'Cream/ointment': CreamIcon,
   'Cosmetics': CosmeticsIcon,
   'Hygiene': HygieneIcon,
   'Diapers': DiapersIcon,
