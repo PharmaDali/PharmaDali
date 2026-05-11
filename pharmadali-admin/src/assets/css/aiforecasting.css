@@ -135,6 +135,20 @@
 	font-weight: 500;
 }
 
+.aif-insight-loading {
+	animation: aif-breathe 1.6s ease-in-out infinite;
+	color: #6aaed6;
+}
+
+@keyframes aif-breathe {
+	0%, 100% {
+		opacity: 0.55;
+	}
+	50% {
+		opacity: 1;
+	}
+}
+
 .aif-chart-head {
 	display: flex;
 	align-items: center;
