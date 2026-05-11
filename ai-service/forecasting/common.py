@@ -120,19 +120,27 @@ def build_payload(
     next_week: pd.Timestamp,
     current_pred: pd.DataFrame,
     next_pred: pd.DataFrame,
+    combined_pred: pd.DataFrame | None = None,
 ) -> Dict:
     if config.id_column == "tenant_id":
         if "tenant_id" not in current_pred.columns:
             current_pred = current_pred.assign(tenant_id=current_pred["unique_id"])
         if "tenant_id" not in next_pred.columns:
             next_pred = next_pred.assign(tenant_id=next_pred["unique_id"])
+        if combined_pred is not None and "tenant_id" not in combined_pred.columns:
+            combined_pred = combined_pred.assign(
+                tenant_id=combined_pred["unique_id"]
+            )
 
     payload = {
         "current_week": current_week.date().isoformat(),
         "next_week": next_week.date().isoformat(),
-        "current": current_pred.to_dict(orient="records"),
-        "next": next_pred.to_dict(orient="records"),
     }
+    if combined_pred is not None:
+        payload["top"] = combined_pred.to_dict(orient="records")
+    else:
+        payload["current"] = current_pred.to_dict(orient="records")
+        payload["next"] = next_pred.to_dict(orient="records")
     if config.label == "week":
         current_start = (current_week - timedelta(days=current_week.weekday())).date()
         next_start = (next_week - timedelta(days=next_week.weekday())).date()
