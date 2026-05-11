@@ -12,6 +12,7 @@ const INVENTORY_ITEMS = [
     reorderPoint: 45,
     expiringInDays: 17,
     velocity: "Fast",
+    sellingPrice: 12.0,
   },
   {
     id: "MED-1002",
@@ -23,6 +24,7 @@ const INVENTORY_ITEMS = [
     reorderPoint: 120,
     expiringInDays: 205,
     velocity: "Fast",
+    sellingPrice: 8.5,
   },
   {
     id: "MED-1003",
@@ -34,6 +36,7 @@ const INVENTORY_ITEMS = [
     reorderPoint: 70,
     expiringInDays: 43,
     velocity: "Medium",
+    sellingPrice: 4.0,
   },
   {
     id: "MED-1004",
@@ -45,6 +48,7 @@ const INVENTORY_ITEMS = [
     reorderPoint: 30,
     expiringInDays: 95,
     velocity: "Slow",
+    sellingPrice: 10.0,
   },
   {
     id: "MED-1005",
@@ -56,6 +60,7 @@ const INVENTORY_ITEMS = [
     reorderPoint: 100,
     expiringInDays: 22,
     velocity: "Medium",
+    sellingPrice: 6.5,
   },
   {
     id: "MED-1006",
@@ -67,6 +72,7 @@ const INVENTORY_ITEMS = [
     reorderPoint: 50,
     expiringInDays: 11,
     velocity: "Slow",
+    sellingPrice: 5.0,
   },
   {
     id: "MED-1007",
@@ -78,6 +84,7 @@ const INVENTORY_ITEMS = [
     reorderPoint: 80,
     expiringInDays: 88,
     velocity: "Medium",
+    sellingPrice: 9.25,
   },
   {
     id: "MED-1008",
@@ -89,149 +96,273 @@ const INVENTORY_ITEMS = [
     reorderPoint: 40,
     expiringInDays: 14,
     velocity: "Fast",
+    sellingPrice: 11.5,
   },
 ];
 
-const FILTERS = ["All", "Low Stock", "Expiring", "Healthy"];
+const PRICE_FILTERS = ["All", "Below 10", "10 - 50", "Above 50"];
+const STOCK_FILTERS = ["All", "Low stock", "Healthy"];
+const STATUS_FILTERS = ["All", "Low stock", "Expiring soon", "Expired", "Normal"];
 
-const getStockStatus = (item) => {
-  if (item.quantity <= item.reorderPoint) {
-    return "Low Stock";
+const getInventoryStatus = (item) => {
+  if (item.expiringInDays <= 0) {
+    return "Expired";
   }
 
   if (item.expiringInDays <= 30) {
-    return "Expiring";
+    return "Expiring soon";
   }
 
-  return "Healthy";
+  if (item.quantity <= item.reorderPoint) {
+    return "Low stock";
+  }
+
+  return "Normal";
+};
+
+const formatExpiry = (days) => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${month}/${year}`;
+};
+
+const getWeeksLeft = (item) => {
+  const velocityRates = { Fast: 4, Medium: 2, Slow: 1 };
+  const weeklyUsage = (velocityRates[item.velocity] ?? 2) * 7;
+  const weeksLeft = Math.round(item.quantity / weeklyUsage);
+
+  if (weeksLeft <= 1) {
+    return "less than 1";
+  }
+
+  return `${weeksLeft}`;
 };
 
 function Inventory() {
   const [query, setQuery] = useState("");
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [priceFilter, setPriceFilter] = useState("All");
+  const [stockFilter, setStockFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
 
   const decoratedItems = useMemo(
-    () => INVENTORY_ITEMS.map((item) => ({ ...item, status: getStockStatus(item) })),
+    () =>
+      INVENTORY_ITEMS.map((item) => ({
+        ...item,
+        status: getInventoryStatus(item),
+        expiryLabel: formatExpiry(item.expiringInDays),
+      })),
     [],
   );
+
+  const categoryOptions = useMemo(() => {
+    const categories = new Set(INVENTORY_ITEMS.map((item) => item.category));
+    return ["All", ...categories];
+  }, []);
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return decoratedItems.filter((item) => {
-      const matchesFilter = activeFilter === "All" || item.status === activeFilter;
       const matchesQuery =
         normalizedQuery.length === 0 ||
-        [item.name, item.brand, item.form, item.id, item.category]
-          .join(" ")
-          .toLowerCase()
-          .includes(normalizedQuery);
+        [item.name, item.brand, item.category].join(" ").toLowerCase().includes(normalizedQuery);
 
-      return matchesFilter && matchesQuery;
+      const matchesCategory = categoryFilter === "All" || item.category === categoryFilter;
+
+      const matchesPrice =
+        priceFilter === "All" ||
+        (priceFilter === "Below 10" && item.sellingPrice < 10) ||
+        (priceFilter === "10 - 50" && item.sellingPrice >= 10 && item.sellingPrice <= 50) ||
+        (priceFilter === "Above 50" && item.sellingPrice > 50);
+
+      const matchesStock =
+        stockFilter === "All" ||
+        (stockFilter === "Low stock" && item.quantity <= item.reorderPoint) ||
+        (stockFilter === "Healthy" && item.quantity > item.reorderPoint);
+
+      const matchesStatus = statusFilter === "All" || item.status === statusFilter;
+
+      return matchesQuery && matchesCategory && matchesPrice && matchesStock && matchesStatus;
     });
-  }, [activeFilter, decoratedItems, query]);
+  }, [categoryFilter, decoratedItems, priceFilter, query, statusFilter, stockFilter]);
 
   const totalItems = decoratedItems.length;
-  const lowStockCount = decoratedItems.filter((item) => item.status === "Low Stock").length;
-  const expiringSoonCount = decoratedItems.filter((item) => item.status === "Expiring").length;
-  const healthyCount = decoratedItems.filter((item) => item.status === "Healthy").length;
+  const lowStockCount = decoratedItems.filter((item) => item.status === "Low stock").length;
+  const expiringSoonCount = decoratedItems.filter(
+    (item) => item.status === "Expiring soon",
+  ).length;
+  const expiredCount = decoratedItems.filter((item) => item.status === "Expired").length;
 
   const lowStockItems = decoratedItems
-    .filter((item) => item.status === "Low Stock")
+    .filter((item) => item.quantity <= item.reorderPoint)
     .sort((a, b) => a.quantity - b.quantity)
-    .slice(0, 4);
+    .slice(0, 3);
 
   const expiringItems = decoratedItems
-    .filter((item) => item.expiringInDays <= 30)
+    .filter((item) => item.expiringInDays > 0 && item.expiringInDays <= 30)
     .sort((a, b) => a.expiringInDays - b.expiringInDays)
-    .slice(0, 4);
+    .slice(0, 3);
 
   return (
     <section className="inventory-page">
-      <header className="inventory-header-row">
-        <div>
-          <h4 className="fw-bold mb-1 admin-page-title">
-            Inventory
-          </h4>
-          <p className="admin-page-subtitle">
-            Monitor stock health, spot urgent risks, and prep smarter replenishment decisions.
-          </p>
-        </div>
-        <div className="inventory-header-actions">
-          <button type="button" className="btn inventory-action-btn inventory-action-btn-ghost">
-            <i className="fa-solid fa-file-export me-2" aria-hidden="true" />
-            Export
-          </button>
-          <button type="button" className="btn inventory-action-btn inventory-action-btn-primary">
-            <i className="fa-solid fa-plus me-2" aria-hidden="true" />
-            Add medicine
-          </button>
-        </div>
+      <header className="admin-page-header">
+        <h4 className="fw-bold mb-1 admin-page-title">Inventory</h4>
+        <p className="admin-page-subtitle">
+          Monitor stock health, spot urgent risks, and prep smarter replenishment strategies.
+        </p>
       </header>
-
       <div className="inventory-metrics">
-        <article className="inventory-metric-card">
-          <p className="inventory-metric-label mb-1">Total SKUs</p>
+        <article className="inventory-metric-card inventory-metric-total">
+          <p className="inventory-metric-label mb-1">Total Products</p>
           <p className="inventory-metric-value mb-0">{totalItems}</p>
         </article>
-        <article className="inventory-metric-card inventory-metric-warning">
-          <p className="inventory-metric-label mb-1">Low stock</p>
+        <article className="inventory-metric-card inventory-metric-low">
+          <p className="inventory-metric-label mb-1">Low Stocks</p>
           <p className="inventory-metric-value mb-0">{lowStockCount}</p>
         </article>
-        <article className="inventory-metric-card inventory-metric-danger">
-          <p className="inventory-metric-label mb-1">Expiring (30 days)</p>
+        <article className="inventory-metric-card inventory-metric-expiring">
+          <p className="inventory-metric-label mb-1">Expiring</p>
           <p className="inventory-metric-value mb-0">{expiringSoonCount}</p>
         </article>
-        <article className="inventory-metric-card inventory-metric-success">
-          <p className="inventory-metric-label mb-1">Healthy stock</p>
-          <p className="inventory-metric-value mb-0">{healthyCount}</p>
+        <article className="inventory-metric-card inventory-metric-expired">
+          <p className="inventory-metric-label mb-1">Expired</p>
+          <p className="inventory-metric-value mb-0">{expiredCount}</p>
         </article>
       </div>
 
-      <div className="inventory-toolbar">
-        <div className="inventory-search-wrap">
-          <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
-          <input
-            className="form-control inventory-search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search medicine, SKU, category"
-            aria-label="Search inventory"
-          />
+      <div className="inventory-filter-bar">
+        <div className="inventory-field inventory-search-field">
+          <label className="inventory-field-label" htmlFor="inventory-search">
+            Search by product name
+          </label>
+          <div className="inventory-input-wrap">
+            <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
+            <input
+              id="inventory-search"
+              className="form-control inventory-input"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search by product name"
+              aria-label="Search inventory"
+            />
+          </div>
         </div>
 
-        <div className="inventory-filter-group" role="tablist" aria-label="Inventory filters">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              className={`inventory-filter-btn${activeFilter === filter ? " active" : ""}`}
-              onClick={() => setActiveFilter(filter)}
-            >
-              {filter}
-            </button>
-          ))}
+        <div className="inventory-field">
+          <label className="inventory-field-label" htmlFor="inventory-category">
+            Category
+          </label>
+          <select
+            id="inventory-category"
+            className="form-select inventory-select"
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+          >
+            {categoryOptions.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="inventory-field">
+          <label className="inventory-field-label" htmlFor="inventory-price">
+            Price
+          </label>
+          <select
+            id="inventory-price"
+            className="form-select inventory-select"
+            value={priceFilter}
+            onChange={(event) => setPriceFilter(event.target.value)}
+          >
+            {PRICE_FILTERS.map((price) => (
+              <option key={price} value={price}>
+                {price}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="inventory-field">
+          <label className="inventory-field-label" htmlFor="inventory-stocks">
+            Stocks
+          </label>
+          <select
+            id="inventory-stocks"
+            className="form-select inventory-select"
+            value={stockFilter}
+            onChange={(event) => setStockFilter(event.target.value)}
+          >
+            {STOCK_FILTERS.map((stock) => (
+              <option key={stock} value={stock}>
+                {stock}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="inventory-field">
+          <label className="inventory-field-label" htmlFor="inventory-status">
+            Status
+          </label>
+          <select
+            id="inventory-status"
+            className="form-select inventory-select"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
+            {STATUS_FILTERS.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="inventory-field inventory-search-action">
+          <button type="button" className="btn inventory-search-btn">
+            Search
+          </button>
         </div>
       </div>
 
       <div className="row g-4 inventory-content-row">
         <div className="col-12 col-xl-8">
           <article className="inventory-table-card h-100">
-            <div className="inventory-table-head">
-              <h6 className="mb-0">Current stock</h6>
-              <span className="inventory-table-count">{filteredItems.length} item(s)</span>
+            <div className="inventory-table-actions">
+              <div className="inventory-action-group">
+                <button type="button" className="btn inventory-action-btn inventory-action-primary">
+                  + Add New Medicine
+                </button>
+                <button type="button" className="btn inventory-action-btn inventory-action-primary">
+                  + Add New Product
+                </button>
+                <button type="button" className="btn inventory-action-btn inventory-action-muted">
+                  View Inventory Logs
+                </button>
+              </div>
+              <select className="form-select inventory-table-filter" aria-label="Table filter">
+                <option>All</option>
+                <option>Low stock</option>
+                <option>Expiring soon</option>
+                <option>Expired</option>
+              </select>
             </div>
 
             <div className="inventory-table-scroll">
               <table className="table inventory-table mb-0">
                 <thead>
                   <tr>
-                    <th>Medicine</th>
+                    <th>Product Name</th>
                     <th>Category</th>
-                    <th>On Hand</th>
-                    <th>Expiry</th>
+                    <th>Stock Quantity</th>
+                    <th>Expiry Date</th>
+                    <th>Selling Price</th>
                     <th>Status</th>
-                    <th>Velocity</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -249,16 +380,12 @@ function Inventory() {
                       <tr key={item.id}>
                         <td>
                           <p className="inventory-item-name mb-0">{item.name}</p>
-                          <p className="inventory-item-meta mb-0">
-                            {item.brand} · {item.form} · {item.id}
-                          </p>
+                          <p className="inventory-item-meta mb-0">{item.brand}</p>
                         </td>
                         <td>{item.category}</td>
-                        <td>
-                          <span className="inventory-number">{item.quantity}</span>
-                          <span className="inventory-inline-meta"> Reorder at {item.reorderPoint}</span>
-                        </td>
-                        <td>{item.expiringInDays} days</td>
+                        <td>{item.quantity}</td>
+                        <td>{item.expiryLabel}</td>
+                        <td>{item.sellingPrice.toFixed(2)}</td>
                         <td>
                           <span
                             className={`inventory-status-chip inventory-status-${item.status
@@ -268,7 +395,6 @@ function Inventory() {
                             {item.status}
                           </span>
                         </td>
-                        <td>{item.velocity}</td>
                       </tr>
                     ))
                   )}
@@ -282,34 +408,42 @@ function Inventory() {
           <div className="inventory-side-stack h-100">
             <article className="inventory-side-card">
               <h6 className="inventory-side-title">Priority restocks</h6>
-              <ul className="inventory-side-list mb-0">
+              <div className="inventory-side-table">
+                <div className="inventory-side-head">
+                  <span>Product</span>
+                  <span>Qty.</span>
+                  <span>Will Last (Weeks)</span>
+                </div>
                 {lowStockItems.map((item) => (
-                  <li key={item.id} className="inventory-side-item">
-                    <div>
-                      <p className="inventory-side-name mb-0">{item.name}</p>
-                      <p className="inventory-side-sub mb-0">{item.id}</p>
-                    </div>
-                    <span className="inventory-side-pill">{item.quantity} left</span>
-                  </li>
+                  <div key={item.id} className="inventory-side-row">
+                    <span className="inventory-side-name">{item.name}</span>
+                    <span className="inventory-side-sub">{item.quantity} left</span>
+                    <span className="inventory-side-pill inventory-side-pill-warn">
+                      {getWeeksLeft(item)}
+                    </span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </article>
 
-            <article className="inventory-side-card inventory-side-card-alt">
-              <h6 className="inventory-side-title">Expiring soon</h6>
-              <ul className="inventory-side-list mb-0">
+            <article className="inventory-side-card">
+              <h6 className="inventory-side-title">Expiring Soon</h6>
+              <div className="inventory-side-table">
+                <div className="inventory-side-head">
+                  <span>Product</span>
+                  <span>Qty.</span>
+                  <span>Expires In (Days)</span>
+                </div>
                 {expiringItems.map((item) => (
-                  <li key={item.id} className="inventory-side-item">
-                    <div>
-                      <p className="inventory-side-name mb-0">{item.name}</p>
-                      <p className="inventory-side-sub mb-0">{item.brand}</p>
-                    </div>
+                  <div key={item.id} className="inventory-side-row">
+                    <span className="inventory-side-name">{item.name}</span>
+                    <span className="inventory-side-sub">{item.quantity} left</span>
                     <span className="inventory-side-pill inventory-side-pill-danger">
-                      {item.expiringInDays} days
+                      {item.expiringInDays}
                     </span>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </article>
           </div>
         </div>
