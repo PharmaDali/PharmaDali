@@ -103,6 +103,9 @@ function AIForecasting() {
     const [tableRange, setTableRange] = useState("Current Week");
     const [demandRows, setDemandRows] = useState(TOP_PREDICTED_DEMAND);
     const [salesSeries, setSalesSeries] = useState(SALES_FORECAST_DATA.Weekly);
+    const [demandInsight, setDemandInsight] = useState(null);
+    const [salesInsight, setSalesInsight] = useState(null);
+    const [insightsLoading, setInsightsLoading] = useState(false);
     const [demandPage, setDemandPage] = useState(1);
     const { labels: salesLabels, values: salesValues, forecastStartIndex } =
         salesSeries || SALES_FORECAST_DATA.Weekly;
@@ -563,6 +566,49 @@ function AIForecasting() {
         };
     }, [salesRange]);
 
+    useEffect(() => {
+        let isMounted = true;
+
+        const demandGranularity =
+            tableRange === "Current Month" || tableRange === "Next Month"
+                ? "monthly"
+                : "weekly";
+        const salesGranularity = salesRange === "Monthly" ? "monthly" : "weekly";
+
+        const fetchInsights = async () => {
+            try {
+                if (isMounted) {
+                    setInsightsLoading(true);
+                }
+                const response = await apiRequest.get("/branch/forecast-insights", {
+                    params: {
+                        demand_granularity: demandGranularity,
+                        sales_granularity: salesGranularity,
+                    },
+                });
+
+                const data = response?.data || {};
+                if (isMounted) {
+                    setDemandInsight(data.demand || null);
+                    setSalesInsight(data.sales || null);
+                    setInsightsLoading(false);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    setDemandInsight(null);
+                    setSalesInsight(null);
+                    setInsightsLoading(false);
+                }
+            }
+        };
+
+        fetchInsights();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [tableRange, salesRange]);
+
     return (
         <section className="dashboard-page aif-page">
             <header className="dashboard-page-header mb-3">
@@ -595,10 +641,11 @@ function AIForecasting() {
                                     <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
                                 </div>
                                 <div className="aif-insight-inner">
-                                    <p className="aif-insight-text">
-                                        Demand is expected to increase over the next 7 days, driven by
-                                        high sales of essential medicines. Weekend demand is projected
-                                        to be higher than weekdays.
+                                    <p className={`aif-insight-text${insightsLoading ? " aif-insight-loading" : ""}`}>
+                                        {insightsLoading
+                                            ? "AI insight is loading..."
+                                            : (demandInsight
+                                                || "Unable to generate demand insights at this time. Please try again later.")}
                                     </p>
                                 </div>
                             </article>
@@ -689,10 +736,11 @@ function AIForecasting() {
                                     <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
                                 </div>
                                 <div className="aif-insight-inner">
-                                    <p className="aif-insight-text">
-                                        Sales are expected to grow moderately this week, with higher
-                                        transactions in late afternoon and evening hours. Essential
-                                        and OTC medicines continue to drive most of the revenue. 
+                                    <p className={`aif-insight-text${insightsLoading ? " aif-insight-loading" : ""}`}>
+                                        {insightsLoading
+                                            ? "AI insight is loading..."
+                                            : (salesInsight
+                                                || "Unable to generate sales insights at this time. Please try again later.")}
                                     </p>
                                 </div>
                             </article>
