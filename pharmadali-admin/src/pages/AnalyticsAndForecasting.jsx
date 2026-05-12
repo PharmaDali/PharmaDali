@@ -10,7 +10,7 @@ import {
 import { Line } from "react-chartjs-2";
 import { useEffect, useMemo, useState } from "react";
 import "../assets/css/dashboard.css";
-import "../assets/css/aiforecasting.css";
+import "../assets/css/analytics-and-forecasting.css";
 import AIIcon from "../assets/icons/AI.svg";
 import { apiRequest } from "../shared/api/apiClient";
 
@@ -97,7 +97,7 @@ const TABLE_RANGE_PERIOD = {
     "Next Month": "next",
 };
 
-function AIForecasting() {
+function AnalyticsAndForecasting() {
     const [activeTab, setActiveTab] = useState("demand");
     const [salesRange, setSalesRange] = useState("Weekly");
     const [tableRange, setTableRange] = useState("Current Week");
@@ -831,4 +831,4 @@ function AIForecasting() {
     );
 }
 
-export default AIForecasting;
+export default AnalyticsAndForecasting;
