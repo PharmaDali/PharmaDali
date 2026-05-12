@@ -122,6 +122,11 @@
   justify-content: center;
 }
 
+.btn-numeric:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .btn-numeric.minus { background: #ccc; }
 .btn-numeric.plus { background: #48aad9; }
 
@@ -174,6 +179,11 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
+}
+
+.option-tag:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .option-tag.active {

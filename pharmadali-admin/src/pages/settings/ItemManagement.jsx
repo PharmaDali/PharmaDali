@@ -75,6 +75,7 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
     closeModal();
   };
 
+
   const handleNumericChange = (field, delta) => {
     setFormData((prev) => ({ ...prev, [field]: Math.max(0, (prev[field] || 0) + delta) }));
   };
@@ -138,8 +139,8 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
             <div key={item.id} className="product-config-item">
               <div className="product-config-label">{item.name}</div>
               <div className="product-config-actions">
-                <button className="btn-action-edit" onClick={() => openEditModal(item)}>Edit</button>
-                <button className="btn-action-delete" onClick={() => openDeleteModal(item)}>Delete</button>
+                <button className="btn-action btn-action--ghost" onClick={() => openEditModal(item)}>Edit</button>
+                <button className="btn-action btn-action--danger" onClick={() => openDeleteModal(item)}>Delete</button>
               </div>
             </div>
           ))}
@@ -160,8 +161,8 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
                 </h4>
                 <p style={{ color: "#aaa", fontSize: "0.9rem", marginBottom: "2rem" }}>All data related to it will be lost.</p>
                 <div style={{ display: "flex", gap: "1.5rem" }}>
-                  <button onClick={handleDelete} className="btn-numeric plus" style={{ flex: 1, height: "48px", borderRadius: "12px", fontWeight: "700" }}>Continue</button>
-                  <button onClick={closeModal} className="btn-action-edit" style={{ flex: 1, height: "48px", borderRadius: "12px", fontWeight: "700" }}>Cancel</button>
+                  <button onClick={handleDelete} className="btn-action btn-action--primary" style={{ flex: 1, height: "48px", fontWeight: "700" }}>Continue</button>
+                  <button onClick={closeModal} className="btn-action btn-action--ghost" style={{ flex: 1, height: "48px", fontWeight: "700" }}>Cancel</button>
                 </div>
               </div>
             ) : (
@@ -171,13 +172,18 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
                   <div className="settings-modal-divider" />
                 </div>
                 
-                <div className="custom-scrollbar settings-modal-body" style={{ maxHeight: "65vh", overflowY: "auto", paddingRight: "10px" }}>
+                <div
+                  className="custom-scrollbar settings-modal-body"
+                  style={{ maxHeight: "65vh", overflowY: "auto", paddingRight: "10px", opacity: formData.enabled ? 1 : 0.6 }}
+                >
                   {/* Enabled Toggle */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                    <label className="settings-modal-label">Enabled</label>
-                    <div 
+                  <div className="settings-flex-row" style={{ marginBottom: "0.5rem" }}>
+                    <span className="settings-modal-label" style={{ fontSize: "1rem" }}>Enabled</span>
+                    <div
                       className={`toggle-switch${formData.enabled ? " active" : ""}`}
-                      onClick={() => setFormData(p => ({ ...p, enabled: !p.enabled }))}
+                      onClick={() => setFormData((prev) => ({ ...prev, enabled: !prev.enabled }))}
+                      role="button"
+                      aria-pressed={formData.enabled}
                     >
                       <div className="toggle-handle" />
                     </div>
@@ -185,23 +191,23 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
 
                   <div className="settings-modal-field">
                     <label className="settings-modal-label">Generic Name</label>
-                    <input type="text" placeholder="Generic name" className="settings-modal-input" value={formData.genericName} onChange={(e) => setFormData({ ...formData, genericName: e.target.value })} />
+                    <input type="text" placeholder="Generic name" className="settings-modal-input" value={formData.genericName} onChange={(e) => setFormData({ ...formData, genericName: e.target.value })} disabled={!formData.enabled} />
                   </div>
                   <div className="settings-modal-field">
                     <label className="settings-modal-label">Brand Name</label>
-                    <input type="text" placeholder="Brand name" className="settings-modal-input" value={formData.brandName} onChange={(e) => setFormData({ ...formData, brandName: e.target.value })} />
+                    <input type="text" placeholder="Brand name" className="settings-modal-input" value={formData.brandName} onChange={(e) => setFormData({ ...formData, brandName: e.target.value })} disabled={!formData.enabled} />
                   </div>
                   <div className="settings-modal-field">
                     <label className="settings-modal-label">Category</label>
-                    <input type="text" placeholder="Category" className="settings-modal-input" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} />
+                    <input type="text" placeholder="Category" className="settings-modal-input" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })} disabled={!formData.enabled} />
                   </div>
 
                   <div className="settings-modal-field">
                     <label className="settings-modal-label">Price</label>
                     <div className="numeric-adjuster">
-                      <button className="btn-numeric minus" onClick={() => handleNumericChange("price", -1)}>-</button>
+                      <button className="btn-numeric minus" onClick={() => formData.enabled && handleNumericChange("price", -1)} disabled={!formData.enabled}>-</button>
                       <div className="numeric-value">{formData.price}</div>
-                      <button className="btn-numeric plus" onClick={() => handleNumericChange("price", 1)}>+</button>
+                      <button className="btn-numeric plus" onClick={() => formData.enabled && handleNumericChange("price", 1)} disabled={!formData.enabled}>+</button>
                     </div>
                   </div>
 
@@ -212,9 +218,9 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
                     <div key={f} className="settings-modal-field">
                       <label className="settings-modal-label" style={{ textTransform: "capitalize" }}>{f.replace(/([A-Z])/g, ' $1')}</label>
                       <div className="numeric-adjuster">
-                        <button className="btn-numeric minus" onClick={() => handleNumericChange(f, -1)}>-</button>
+                        <button className="btn-numeric minus" onClick={() => formData.enabled && handleNumericChange(f, -1)} disabled={!formData.enabled}>-</button>
                         <div className="numeric-value">{formData[f]}</div>
-                        <button className="btn-numeric plus" onClick={() => handleNumericChange(f, 1)}>+</button>
+                        <button className="btn-numeric plus" onClick={() => formData.enabled && handleNumericChange(f, 1)} disabled={!formData.enabled}>+</button>
                       </div>
                     </div>
                   ))}
@@ -227,22 +233,22 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "1rem" }}>
                       <div>
                         <p style={{ margin: "0 0 5px 5px", fontSize: "0.75rem", color: "#aaa" }}>Barcode 1</p>
-                        <input type="text" placeholder="Barcode 1" className="settings-modal-input" value={formData.barcode1} onChange={(e) => setFormData({ ...formData, barcode1: e.target.value })} />
+                        <input type="text" placeholder="Barcode 1" className="settings-modal-input" value={formData.barcode1} onChange={(e) => setFormData({ ...formData, barcode1: e.target.value })} disabled={!formData.enabled} />
                       </div>
                       <div>
                         <p style={{ margin: "0 0 5px 5px", fontSize: "0.75rem", color: "#aaa" }}>Barcode 2</p>
-                        <input type="text" placeholder="Barcode 2" className="settings-modal-input" value={formData.barcode2} onChange={(e) => setFormData({ ...formData, barcode2: e.target.value })} />
+                        <input type="text" placeholder="Barcode 2" className="settings-modal-input" value={formData.barcode2} onChange={(e) => setFormData({ ...formData, barcode2: e.target.value })} disabled={!formData.enabled} />
                       </div>
                       <div>
                         <p style={{ margin: "0 0 5px 5px", fontSize: "0.75rem", color: "#aaa" }}>Barcode 3</p>
-                        <input type="text" placeholder="Barcode 3" className="settings-modal-input" value={formData.barcode3} onChange={(e) => setFormData({ ...formData, barcode3: e.target.value })} />
+                        <input type="text" placeholder="Barcode 3" className="settings-modal-input" value={formData.barcode3} onChange={(e) => setFormData({ ...formData, barcode3: e.target.value })} disabled={!formData.enabled} />
                       </div>
                     </div>
                   </div>
 
                   <div className="settings-modal-field">
                     <label className="settings-modal-label">Tax</label>
-                    <input type="text" placeholder="Tax" className="settings-modal-input" value={formData.tax} onChange={(e) => setFormData({ ...formData, tax: e.target.value })} />
+                    <input type="text" placeholder="Tax" className="settings-modal-input" value={formData.tax} onChange={(e) => setFormData({ ...formData, tax: e.target.value })} disabled={!formData.enabled} />
                   </div>
 
                   <div className="settings-modal-divider" />
@@ -254,8 +260,8 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
                       <div className="upload-preview">
                         {formData.image ? <img src={formData.image} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "contain" }} /> : <span style={{ color: "#ddd", fontSize: "0.7rem", textAlign: "center" }}>Sample only</span>}
                       </div>
-                      <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageChange} />
-                      <button className="btn-action-edit" onClick={() => fileInputRef.current?.click()}>Upload</button>
+                      <input ref={fileInputRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleImageChange} disabled={!formData.enabled} />
+                      <button className="btn-action btn-action--ghost" onClick={() => formData.enabled && fileInputRef.current?.click()} disabled={!formData.enabled}>Upload</button>
                     </div>
                   </div>
 
@@ -276,7 +282,8 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
                         <button 
                           key={ok.key} 
                           className={`option-tag${formData.options[ok.key] ? " active" : ""}`}
-                          onClick={() => handleOptionToggle(ok.key)} 
+                          onClick={() => formData.enabled && handleOptionToggle(ok.key)}
+                          disabled={!formData.enabled}
                         >
                           {ok.label}
                         </button>
@@ -286,8 +293,8 @@ export const ItemManagement = ({ onBack, onNavigate }) => {
                 </div>
 
                 <div className="settings-modal-footer">
-                  <button onClick={closeModal} className="btn-action-edit" style={{ flex: 1, padding: "0.85rem", fontWeight: "700" }}>Cancel</button>
-                  <button onClick={handleSave} className="btn-numeric plus" style={{ flex: 1, padding: "0.85rem", fontWeight: "700" }}>Save Changes</button>
+                  <button onClick={closeModal} className="btn-action btn-action--ghost" style={{ flex: 1, padding: "0.85rem", fontWeight: "700" }}>Cancel</button>
+                  <button onClick={handleSave} className="btn-action btn-action--primary" style={{ flex: 1, padding: "0.85rem", fontWeight: "700" }}>Save Changes</button>
                 </div>
               </>
             )}

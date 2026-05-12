@@ -77,6 +77,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
     closeModal();
   };
 
+
   const activeItem = categories.find((c) => c.id === modal.categoryId);
 
   return (
@@ -127,8 +128,8 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
             <div key={cat.id} className="product-config-item">
               <div className="product-config-label">{cat.name}</div>
               <div className="product-config-actions">
-                <button className="btn-action-edit" onClick={() => openEditModal(cat)}>Edit</button>
-                <button className="btn-action-delete" onClick={() => openDeleteModal(cat)}>Delete</button>
+                <button className="btn-action btn-action--ghost" onClick={() => openEditModal(cat)}>Edit</button>
+                <button className="btn-action btn-action--danger" onClick={() => openDeleteModal(cat)}>Delete</button>
               </div>
             </div>
           ))}
@@ -150,8 +151,8 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                 </h4>
                 <p style={{ color: "#aaa", fontSize: "0.9rem", marginBottom: "2rem" }}>All data related to it will be lost.</p>
                 <div style={{ display: "flex", gap: "1.5rem" }}>
-                  <button onClick={handleDelete} className="btn-pd-primary" style={{ flex: 1, height: "48px" }}>Continue</button>
-                  <button onClick={closeModal} className="btn-pd-ghost" style={{ flex: 1, height: "48px" }}>Cancel</button>
+                  <button onClick={handleDelete} className="btn-action btn-action--primary" style={{ flex: 1, height: "48px" }}>Continue</button>
+                  <button onClick={closeModal} className="btn-action btn-action--ghost" style={{ flex: 1, height: "48px" }}>Cancel</button>
                 </div>
               </div>
             ) : (
@@ -160,12 +161,14 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                   <h4 className="settings-modal-title">{modal.type === "add" ? "Add Category" : "Edit Category"}</h4>
                 </div>
 
-                <div className="settings-modal-body">
-                  <div className="settings-modal-field">
-                    <label className="settings-modal-label">Enabled</label>
+                <div className="settings-modal-body" style={{ opacity: formData.enabled ? 1 : 0.6 }}>
+                  <div className="settings-flex-row" style={{ marginBottom: "0.5rem" }}>
+                    <span className="settings-modal-label" style={{ fontSize: "1rem" }}>Enabled</span>
                     <div
                       className={`toggle-switch${formData.enabled ? " active" : ""}`}
-                      onClick={() => setFormData({ ...formData, enabled: !formData.enabled })}
+                      onClick={() => setFormData((prev) => ({ ...prev, enabled: !prev.enabled }))}
+                      role="button"
+                      aria-pressed={formData.enabled}
                     >
                       <div className="toggle-handle" />
                     </div>
@@ -179,6 +182,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                       placeholder="Category name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      disabled={!formData.enabled}
                     />
                   </div>
 
@@ -192,6 +196,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                       placeholder="#FFFFFF"
                       value={formData.background}
                       onChange={(e) => setFormData({ ...formData, background: e.target.value })}
+                      disabled={!formData.enabled}
                     />
                   </div>
 
@@ -203,6 +208,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                       placeholder="#000000"
                       value={formData.font}
                       onChange={(e) => setFormData({ ...formData, font: e.target.value })}
+                      disabled={!formData.enabled}
                     />
                   </div>
 
@@ -222,7 +228,8 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                       <button
                         type="button"
                         className="btn-pd-outline-small"
-                        onClick={() => setFormData({ ...formData, background: "#ffffff", font: "#000000" })}
+                        onClick={() => formData.enabled && setFormData({ ...formData, background: "#ffffff", font: "#000000" })}
+                        disabled={!formData.enabled}
                       >
                         Default
                       </button>
@@ -231,8 +238,8 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                 </div>
 
                 <div className="settings-modal-footer">
-                  <button onClick={closeModal} className="btn-pd-ghost" style={{ flex: 1, padding: "0.8rem" }}>Cancel</button>
-                  <button onClick={handleSave} className="btn-pd-primary" style={{ flex: 1, padding: "0.8rem" }}>Save Changes</button>
+                  <button onClick={closeModal} className="btn-action btn-action--ghost" style={{ flex: 1, padding: "0.8rem" }}>Cancel</button>
+                  <button onClick={handleSave} className="btn-action btn-action--primary" style={{ flex: 1, padding: "0.8rem" }}>Save Changes</button>
                 </div>
               </>
             )}
