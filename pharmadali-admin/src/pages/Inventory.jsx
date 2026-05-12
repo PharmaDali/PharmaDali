@@ -100,9 +100,46 @@ const INVENTORY_ITEMS = [
   },
 ];
 
-const PRICE_FILTERS = ["All", "Below 10", "10 - 50", "Above 50"];
-const STOCK_FILTERS = ["All", "Low stock", "Healthy"];
-const STATUS_FILTERS = ["All", "Low stock", "Expiring soon", "Expired", "Normal"];
+const CATEGORY_FILTERS = [
+  "All",
+  "Generic",
+  "Branded",
+  "Infant",
+  "Milk",
+  "Beverages",
+  "Sanitary",
+  "Diapers",
+  "Vitamins",
+  "Medical Tools",
+  "Eye Med",
+  "Hygiene",
+  "Injectibles",
+  "Cosmetics",
+  "Cream",
+  "Ointments",
+];
+
+const PRICE_FILTERS = [
+  "All",
+  "Below 10",
+  "10 - 50",
+  "51 - 100",
+  "101 - 200",
+  "200 - 500",
+  "500 and above",
+];
+
+const STOCK_FILTERS = [
+  "All",
+  "Below 10",
+  "10 - 50",
+  "51 - 100",
+  "101 - 200",
+  "200 - 500",
+  "500 and above",
+];
+
+const STATUS_FILTERS = ["All", "Normal", "Low Stocks", "Expiring soon", "Expired"];
 
 const getInventoryStatus = (item) => {
   if (item.expiringInDays <= 0) {
@@ -114,7 +151,7 @@ const getInventoryStatus = (item) => {
   }
 
   if (item.quantity <= item.reorderPoint) {
-    return "Low stock";
+    return "Low Stocks";
   }
 
   return "Normal";
@@ -157,10 +194,7 @@ function Inventory() {
     [],
   );
 
-  const categoryOptions = useMemo(() => {
-    const categories = new Set(INVENTORY_ITEMS.map((item) => item.category));
-    return ["All", ...categories];
-  }, []);
+  const categoryOptions = useMemo(() => CATEGORY_FILTERS, []);
 
   const filteredItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -176,12 +210,19 @@ function Inventory() {
         priceFilter === "All" ||
         (priceFilter === "Below 10" && item.sellingPrice < 10) ||
         (priceFilter === "10 - 50" && item.sellingPrice >= 10 && item.sellingPrice <= 50) ||
-        (priceFilter === "Above 50" && item.sellingPrice > 50);
+        (priceFilter === "51 - 100" && item.sellingPrice >= 51 && item.sellingPrice <= 100) ||
+        (priceFilter === "101 - 200" && item.sellingPrice >= 101 && item.sellingPrice <= 200) ||
+        (priceFilter === "200 - 500" && item.sellingPrice >= 200 && item.sellingPrice <= 500) ||
+        (priceFilter === "500 and above" && item.sellingPrice >= 500);
 
       const matchesStock =
         stockFilter === "All" ||
-        (stockFilter === "Low stock" && item.quantity <= item.reorderPoint) ||
-        (stockFilter === "Healthy" && item.quantity > item.reorderPoint);
+        (stockFilter === "Below 10" && item.quantity < 10) ||
+        (stockFilter === "10 - 50" && item.quantity >= 10 && item.quantity <= 50) ||
+        (stockFilter === "51 - 100" && item.quantity >= 51 && item.quantity <= 100) ||
+        (stockFilter === "101 - 200" && item.quantity >= 101 && item.quantity <= 200) ||
+        (stockFilter === "200 - 500" && item.quantity >= 200 && item.quantity <= 500) ||
+        (stockFilter === "500 and above" && item.quantity >= 500);
 
       const matchesStatus = statusFilter === "All" || item.status === statusFilter;
 
@@ -190,7 +231,7 @@ function Inventory() {
   }, [categoryFilter, decoratedItems, priceFilter, query, statusFilter, stockFilter]);
 
   const totalItems = decoratedItems.length;
-  const lowStockCount = decoratedItems.filter((item) => item.status === "Low stock").length;
+  const lowStockCount = decoratedItems.filter((item) => item.status === "Low Stocks").length;
   const expiringSoonCount = decoratedItems.filter(
     (item) => item.status === "Expiring soon",
   ).length;
@@ -347,7 +388,7 @@ function Inventory() {
               </div>
               <select className="form-select inventory-table-filter" aria-label="Table filter">
                 <option>All</option>
-                <option>Low stock</option>
+                <option>Low Stocks</option>
                 <option>Expiring soon</option>
                 <option>Expired</option>
               </select>
