@@ -13,6 +13,7 @@ import { fetchOrdersCount } from "../services/dashboardService";
 import { apiRequest } from "../shared/api/apiClient";
 import {
   buildSalesSeriesFromForecastRows,
+  buildHighestDemandForecast,
   buildTopSellingInsight,
   calculateSalesGrowthFromForecastRows,
   maxChartValue,
@@ -40,11 +41,18 @@ const STAT_CARDS = [
   { label: "Predicted Stockout Risk", value: "High", prefix: null, ai: true, bg: "#F28B82" },
 ];
 
-const DEFAULT_QUICK_INSIGHTS = [
+const EMPTY_QUICK_INSIGHTS = [
+  { category: "Top Selling", main: "No data", right: "0", rightSub: "units sold" },
+  { category: "Top Category", main: "No data", right: "--", rightSub: "of total sales" },
+  { category: "Sales Growth", main: "0%", right: "0%", rightSub: "vs last period" },
+  { category: "Profit Today", main: "No data", right: "--", rightSub: "margin" },
+];
+
+const LOADING_QUICK_INSIGHTS = [
   { category: "Top Selling", main: "Loading...", right: "--", rightSub: "units sold" },
-  { category: "Top Category", main: "Tablets", right: "38%", rightSub: "of total sales" },
+  { category: "Top Category", main: "Loading...", right: "--", rightSub: "of total sales" },
   { category: "Sales Growth", main: "--", right: "--", rightSub: "vs last period" },
-  { category: "Profit Today", main: "PHP 5,762", right: "32%", rightSub: "margin" },
+  { category: "Profit Today", main: "Loading...", right: "--", rightSub: "margin" },
 ];
 
 const LOW_STOCK = [
@@ -59,10 +67,16 @@ const EXPIRING_SOON = [
   { name: "Ibuprofen", days: "23 days" },
 ];
 
-const FORECAST = [
-  { category: "High Demand Forecast", main: "Paracetamol", right: "+22%", rightSub: "demand next week" },
-  { category: "Stockout Risk", main: "Cetirizine", right: "68%", rightSub: "probability in 3 days" },
-  { category: "Suggested Reorder", main: "Ibuprofen", right: null, rightSub: "Reorder within 2 days" },
+const EMPTY_FORECAST = [
+  { category: "High Demand Forecast", main: "--", right: "--", rightSub: "demand next week" },
+  { category: "Stockout Risk", main: "--", right: "--", rightSub: "probability in 3 days" },
+  { category: "Suggested Reorder", main: "--", right: "--", rightSub: "Reorder within 2 days" },
+];
+
+const LOADING_FORECAST = [
+  { category: "High Demand Forecast", main: "Loading...", right: "--", rightSub: "demand next week" },
+  { category: "Stockout Risk", main: "Loading...", right: "--", rightSub: "probability in 3 days" },
+  { category: "Suggested Reorder", main: "Loading...", right: "--", rightSub: "Reorder within 2 days" },
 ];
 
 function AiBadge() {
@@ -317,12 +331,13 @@ function SalesTrend() {
   );
 }
 
-function QuickInsights({ items }) {
+function QuickInsights({ items, loading }) {
   return (
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Quick Insights</h6>
+      {loading && <div className="text-muted small mb-2">Loading insights...</div>}
       <InsightRows
-        items={items}
+        items={loading ? LOADING_QUICK_INSIGHTS : items}
         rowClassName="quick-insight-row"
         rightClassName="quick-insight-right"
       />
@@ -366,14 +381,15 @@ function InventoryHealth() {
   );
 }
 
-function ForecastPreview() {
+function ForecastPreview({ items, loading }) {
   return (
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 d-flex flex-column dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>
         Forecast Preview <AiBadge />
       </h6>
+      {loading && <div className="text-muted small mb-2">Loading forecast...</div>}
       <InsightRows
-        items={FORECAST}
+        items={loading ? LOADING_FORECAST : items}
         rowClassName="forecast-row"
         rightClassName="forecast-right"
       />
@@ -388,7 +404,10 @@ function ForecastPreview() {
 
 function DashBoard() {
   const [ordersCount, setOrdersCount] = useState(null);
-  const [quickInsights, setQuickInsights] = useState(DEFAULT_QUICK_INSIGHTS);
+  const [quickInsights, setQuickInsights] = useState(EMPTY_QUICK_INSIGHTS);
+  const [forecastPreview, setForecastPreview] = useState(EMPTY_FORECAST);
+  const [quickInsightsLoading, setQuickInsightsLoading] = useState(true);
+  const [forecastLoading, setForecastLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -445,6 +464,9 @@ function DashBoard() {
 
     const fetchQuickInsights = async () => {
       try {
+        if (isMounted) {
+          setQuickInsightsLoading(true);
+        }
         const [topSellingResponse, salesResponse] = await Promise.all([
           apiRequest.get("/branch/forecasts", {
             params: {
@@ -468,15 +490,83 @@ function DashBoard() {
 
         if (isMounted) {
           setQuickInsights(buildInsights(topSelling, growth));
+          setQuickInsightsLoading(false);
         }
       } catch {
         if (isMounted) {
-          setQuickInsights(DEFAULT_QUICK_INSIGHTS);
+          setQuickInsights(EMPTY_QUICK_INSIGHTS);
+          setQuickInsightsLoading(false);
         }
       }
     };
 
     fetchQuickInsights();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const buildForecastPreview = (highestDemand) => {
+      if (!highestDemand) {
+        return EMPTY_FORECAST;
+      }
+
+      const demandItem = {
+        category: "High Demand Forecast",
+        main: highestDemand.name,
+        right: highestDemand.label || "--",
+        rightSub: "demand next week",
+      };
+
+      return [demandItem, EMPTY_FORECAST[1], EMPTY_FORECAST[2]];
+    };
+
+    const fetchForecastPreview = async () => {
+      try {
+        if (isMounted) {
+          setForecastLoading(true);
+        }
+        const [currentResponse, nextResponse] = await Promise.all([
+          apiRequest.get("/branch/forecasts", {
+            params: {
+              kind: "demand",
+              granularity: "weekly",
+              period: "current",
+              limit: 200,
+            },
+          }),
+          apiRequest.get("/branch/forecasts", {
+            params: {
+              kind: "demand",
+              granularity: "weekly",
+              period: "next",
+              limit: 200,
+            },
+          }),
+        ]);
+
+        const highestDemand = buildHighestDemandForecast(
+          currentResponse?.data || [],
+          nextResponse?.data || [],
+        );
+
+        if (isMounted) {
+          setForecastPreview(buildForecastPreview(highestDemand));
+          setForecastLoading(false);
+        }
+      } catch {
+        if (isMounted) {
+          setForecastPreview(EMPTY_FORECAST);
+          setForecastLoading(false);
+        }
+      }
+    };
+
+    fetchForecastPreview();
 
     return () => {
       isMounted = false;
@@ -516,7 +606,7 @@ function DashBoard() {
           <SalesTrend />
         </div>
         <div className="col-12 col-md-5 col-lg-4">
-          <QuickInsights items={quickInsights} />
+          <QuickInsights items={quickInsights} loading={quickInsightsLoading} />
         </div>
       </div>
 
@@ -525,7 +615,7 @@ function DashBoard() {
           <InventoryHealth />
         </div>
         <div className="col-12 col-md-6 col-lg-6">
-          <ForecastPreview />
+          <ForecastPreview items={forecastPreview} loading={forecastLoading} />
         </div>
       </div>
     </section>

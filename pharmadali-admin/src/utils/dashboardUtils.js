@@ -101,3 +101,29 @@ export const calculateSalesGrowthFromForecastRows = (rows) => {
     label,
   };
 };
+
+export const buildHighestDemandForecast = (currentRows, nextRows) => {
+  const nextTop = nextRows
+    .filter((row) => row?.unique_id && Number.isFinite(Number(row?.forecast_value)))
+    .sort((a, b) => Number(b.forecast_value) - Number(a.forecast_value))[0];
+
+  if (!nextTop) {
+    return null;
+  }
+
+  const currentMatch = currentRows
+    .filter((row) => row?.unique_id === nextTop.unique_id)
+    .sort((a, b) => Number(b.forecast_value) - Number(a.forecast_value))[0];
+
+  const nextValue = Number(nextTop.forecast_value);
+  const currentValue = Number(currentMatch?.forecast_value);
+  const canCompare = Number.isFinite(nextValue) && Number.isFinite(currentValue) && currentValue > 0;
+  const percent = canCompare ? Math.round(((nextValue - currentValue) / currentValue) * 100) : null;
+  const label = percent !== null ? `${percent > 0 ? "+" : ""}${percent}%` : null;
+
+  return {
+    name: normalizeProductName(nextTop.unique_id),
+    percent,
+    label,
+  };
+};
