@@ -11,15 +11,18 @@ import { Line } from "react-chartjs-2";
 import { useEffect, useMemo, useState } from "react";
 import "../assets/css/dashboard.css";
 import "../assets/css/analytics-and-forecasting.css";
-import AIIcon from "../assets/icons/AI.svg";
+import AIIcon from "../assets/icons/analytics-and-forecasting/AI.svg";
+import DemandIcon from "../assets/icons/analytics-and-forecasting/demand.svg";
+import SalesIcon from "../assets/icons/analytics-and-forecasting/sales.svg";
+import StockIcon from "../assets/icons/analytics-and-forecasting/stocks.svg";
 import { apiRequest } from "../shared/api/apiClient";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
 const TABS = [
-    { id: "demand", label: "Demand", icon: "fa-solid fa-chart-line" },
-    { id: "sales", label: "Sales", icon: "fa-solid fa-coins" },
-    { id: "stock", label: "Stock", icon: "fa-solid fa-boxes-stacked" },
+    { id: "demand", label: "Demand", icon: DemandIcon },
+    { id: "sales", label: "Sales", icon: SalesIcon },
+    { id: "stock", label: "Stock", icon: StockIcon },
 ];
 
 const FORECAST_DATA = {
@@ -626,7 +629,12 @@ function AnalyticsAndForecasting() {
                         className={`aif-tab-btn${activeTab === tab.id ? " aif-tab-active" : ""}`}
                         onClick={() => setActiveTab(tab.id)}
                     >
-                        <i className={tab.icon} />
+                        <img
+                            src={tab.icon}
+                            alt=""
+                            className="aif-tab-icon"
+                            aria-hidden="true"
+                        />
                         {tab.label}
                     </button>
                 ))}

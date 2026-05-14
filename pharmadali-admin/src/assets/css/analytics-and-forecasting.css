@@ -35,10 +35,23 @@
 	color: #2aabe2;
 }
 
+.aif-tab-icon {
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+	opacity: 0.78;
+	filter: grayscale(100%);
+}
+
 .aif-tab-active {
 	color: #2aabe2;
 	border-bottom-color: #2aabe2;
 	font-weight: 600;
+}
+
+.aif-tab-active .aif-tab-icon {
+	opacity: 1;
+	filter: brightness(0) saturate(100%) invert(57%) sepia(38%) saturate(602%) hue-rotate(160deg) brightness(94%) contrast(93%);
 }
 
 .aif-card {
