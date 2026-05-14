@@ -2,12 +2,32 @@
 
 namespace App\Services\Forecast;
 
+use App\Models\ForecastInsight;
 use App\Models\Forecast;
 use App\Models\User;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Throwable;
 
 class ForecastInsightService
 {
+    private string $apiKey;
+    private string $model;
+    private string $baseUrl;
+    private int $timeout;
+    private int $cacheTtlMinutes;
+
+    public function __construct()
+    {
+        $this->apiKey = (string) config('services.gemini.api_key');
+        $this->model = (string) config('services.gemini.model');
+        $this->baseUrl = rtrim((string) config('services.gemini.base_url'), '/');
+        $this->timeout = (int) config('services.gemini.timeout', 20);
+        $this->cacheTtlMinutes = (int) config('services.gemini.cache_ttl_minutes', 30);
+    }
+
     public function generate(User $user, string $demandGranularity, string $salesGranularity): array
     {
         if (!$user->branch_id) {
@@ -17,52 +37,138 @@ class ForecastInsightService
             ];
         }
 
-        $demand = $this->loadDemandData($user->branch_id, $demandGranularity);
-        $sales = $this->loadSalesData($user->branch_id, $salesGranularity);
-
-        $prompt = $this->buildPrompt($demand, $sales, $demandGranularity, $salesGranularity);
-
-        $apiKey = config('services.gemini.api_key');
-        if (!$apiKey) {
+        if (!$this->apiKey) {
             return [
                 'demand' => 'Gemini API key is not configured yet.',
                 'sales' => 'Gemini API key is not configured yet.',
             ];
         }
 
-        $baseUrl = rtrim((string) config('services.gemini.base_url'), '/');
-        $model = config('services.gemini.model');
-        $timeout = config('services.gemini.timeout', 20);
+        $demand = $this->loadDemandData($user->branch_id, $demandGranularity);
+        $sales = $this->loadSalesData($user->branch_id, $salesGranularity);
+        $weekStart = Carbon::now()->startOfWeek(CarbonInterface::MONDAY)->toDateString();
+        $sourceHash = $this->buildSourceHash($demand, $sales, $demandGranularity, $salesGranularity);
 
-        $response = Http::timeout($timeout)
-            ->post("{$baseUrl}/models/{$model}:generateContent?key={$apiKey}", [
-                'contents' => [
-                    [
-                        'parts' => [
-                            ['text' => $prompt],
-                        ],
-                    ],
-                ],
-                'generationConfig' => [
-                    'temperature' => 0.4,
-                    'maxOutputTokens' => 200,
-                ],
-            ]);
+        // Return cached DB record if data hasn't changed
+        $existing = ForecastInsight::query()
+            ->where('tenant_id', $user->branch_id)
+            ->where('week_start', $weekStart)
+            ->where('demand_granularity', $demandGranularity)
+            ->where('sales_granularity', $salesGranularity)
+            ->where('model', $this->model)
+            ->first();
 
-        if (!$response->successful()) {
+        if ($existing && $existing->source_hash === $sourceHash) {
             return [
-                'demand' => 'Unable to generate demand insight at the moment.',
-                'sales' => 'Unable to generate sales insight at the moment.',
+                'demand' => $existing->demand,
+                'sales' => $existing->sales,
             ];
         }
 
-        $text = data_get($response->json(), 'candidates.0.content.parts.0.text');
-        $parsed = $this->parseJsonResponse($text);
+        // Return in-memory cache if available
+        $cacheKey = $this->getCacheKey(
+            $user->branch_id,
+            $weekStart,
+            $demandGranularity,
+            $salesGranularity,
+            $this->model,
+            $sourceHash
+        );
 
-        return [
-            'demand' => $parsed['demand'] ?? 'No demand insight available.',
-            'sales' => $parsed['sales'] ?? 'No sales insight available.',
-        ];
+        try {
+            $cached = Cache::get($cacheKey);
+            if (is_array($cached) && isset($cached['demand'], $cached['sales'])) {
+                return $cached;
+            }
+        } catch (Throwable) {
+            // Continue without cache when Redis is unavailable.
+        }
+
+        // Call Gemini with two focused plain-text prompts
+        $insights = ['demand', 'sales'];
+        $insights['demand'] = $this->callGemini($this->buildDemandPrompt($demand, $demandGranularity));
+        sleep(35);
+        $insights['sales'] = $this->callGemini($this->buildSalesPrompt($sales, $salesGranularity));
+
+
+        ForecastInsight::updateOrCreate(
+            [
+                'tenant_id' => $user->branch_id,
+                'week_start' => $weekStart,
+                'demand_granularity' => $demandGranularity,
+                'sales_granularity' => $salesGranularity,
+                'model' => $this->model,
+            ],
+            [
+                'demand' => $insights['demand'],
+                'sales' => $insights['sales'],
+                'source_hash' => $sourceHash,
+            ]
+        );
+
+        try {
+            Cache::put($cacheKey, $insights, now()->addMinutes($this->cacheTtlMinutes));
+        } catch (Throwable) {
+            // Continue without cache when Redis is unavailable.
+        }
+
+        return $insights;
+    }
+
+    private function callGemini(string $prompt): string
+    {
+        logger()->info('Gemini request starting');
+
+        $response = Http::timeout($this->timeout)
+            ->post("{$this->baseUrl}/models/{$this->model}:generateContent?key={$this->apiKey}", [
+                'contents' => [
+                    ['parts' => [['text' => $prompt]]],
+                ],
+                'generationConfig' => [
+                    'temperature' => 0.4,
+                    'maxOutputTokens' => 1024,
+                ],
+            ]);
+
+        logger()->info('Gemini response received', ['status' => $response->status()]);
+
+        if (!$response->successful()) {
+            return 'Unable to generate insight at the moment.';
+        }
+
+        $text = trim(data_get($response->json(), 'candidates.0.content.parts.0.text', ''));
+
+        return $text ?: 'No insight available.';
+    }
+
+    private function buildDemandPrompt(array $demand, string $granularity): string
+    {
+        $current = $this->formatDemandRows($demand['current'] ?? []);
+        $next = $this->formatDemandRows($demand['next'] ?? []);
+
+        return "You are a retail demand analyst. Write 2-3 sentences of plain text insight. No JSON, no bullets.\n\n"
+            . "Granularity: {$granularity}\n"
+            . "Top demand this period: {$current}\n"
+            . "Top demand next period: {$next}\n\n"
+            . "Highlight top movers and any notable shift between periods.";
+    }
+
+    private function buildSalesPrompt(array $sales, string $granularity): string
+    {
+        $history = $this->formatSalesRows($sales['history'] ?? []);
+        $current = $this->formatSalesSingle($sales['current'] ?? null);
+        $next = $this->formatSalesSingle($sales['next'] ?? null);
+
+        return <<<PROMPT
+        You are a retail sales analyst. Write a single concise insight (1-2 sentences, plain text, no bullet points, no JSON) about the sales forecast below.
+
+        Granularity: {$granularity}
+        Recent sales history: {$history}
+        Current period sales: {$current}
+        Next period forecast: {$next}
+
+        Focus on the sales trend, growth or decline, and what to watch out for.
+        PROMPT;
     }
 
     private function loadDemandData(int $tenantId, string $granularity): array
@@ -75,15 +181,15 @@ class ForecastInsightService
         $current = (clone $baseQuery)
             ->where('period', 'current')
             ->orderByDesc('forecast_value')
-            ->limit(5)
-            ->get(['unique_id', 'forecast_value', 'ds'])
+            ->limit(3)  // top 3 movers for current period
+            ->get(['unique_id', 'forecast_value'])
             ->toArray();
 
         $next = (clone $baseQuery)
             ->where('period', 'next')
             ->orderByDesc('forecast_value')
-            ->limit(5)
-            ->get(['unique_id', 'forecast_value', 'ds'])
+            ->limit(3)
+            ->get(['unique_id', 'forecast_value'])
             ->toArray();
 
         return [
@@ -124,31 +230,9 @@ class ForecastInsightService
 
         return [
             'history' => $history,
-            'current' => $current ? $current->toArray() : null,
-            'next' => $next ? $next->toArray() : null,
+            'current' => $current?->toArray(),
+            'next' => $next?->toArray(),
         ];
-    }
-
-    private function buildPrompt(array $demand, array $sales, string $demandGranularity, string $salesGranularity): string
-    {
-        $demandCurrent = $this->formatDemandRows($demand['current'] ?? []);
-        $demandNext = $this->formatDemandRows($demand['next'] ?? []);
-        $salesHistory = $this->formatSalesRows($sales['history'] ?? []);
-        $salesCurrent = $this->formatSalesSingle($sales['current'] ?? null);
-        $salesNext = $this->formatSalesSingle($sales['next'] ?? null);
-
-        $template = config('services.gemini.insight_prompt');
-        $replacements = [
-            '{demand_granularity}' => $demandGranularity,
-            '{sales_granularity}' => $salesGranularity,
-            '{demand_current}' => $demandCurrent,
-            '{demand_next}' => $demandNext,
-            '{sales_history}' => $salesHistory,
-            '{sales_current}' => $salesCurrent,
-            '{sales_next}' => $salesNext,
-        ];
-
-        return strtr((string) $template, $replacements);
     }
 
     private function formatDemandRows(array $rows): string
@@ -157,15 +241,11 @@ class ForecastInsightService
             return 'none';
         }
 
-        $parts = array_map(function ($row) {
+        return implode('; ', array_map(function ($row) {
             $name = $row['unique_id'] ?? 'Unknown';
-            $value = $row['forecast_value'] ?? null;
-            $date = $row['ds'] ?? null;
-            $valueText = $value !== null ? number_format((float) $value, 0) : 'n/a';
-            return "{$name} ({$valueText} on {$date})";
-        }, $rows);
-
-        return implode('; ', $parts);
+            $value = $row['forecast_value'] !== null ? number_format((float) $row['forecast_value'], 0) : 'n/a';
+            return "{$name} ({$value})";
+        }, $rows));
     }
 
     private function formatSalesRows(array $rows): string
@@ -174,14 +254,11 @@ class ForecastInsightService
             return 'none';
         }
 
-        $parts = array_map(function ($row) {
-            $value = $row['forecast_value'] ?? null;
+        return implode(', ', array_map(function ($row) {
+            $value = $row['forecast_value'] !== null ? number_format((float) $row['forecast_value'], 0) : 'n/a';
             $date = $row['ds'] ?? null;
-            $valueText = $value !== null ? number_format((float) $value, 0) : 'n/a';
-            return "{$valueText} on {$date}";
-        }, $rows);
-
-        return implode(', ', $parts);
+            return "{$value} on {$date}";
+        }, $rows));
     }
 
     private function formatSalesSingle(?array $row): string
@@ -190,77 +267,41 @@ class ForecastInsightService
             return 'none';
         }
 
-        $value = $row['forecast_value'] ?? null;
+        $value = $row['forecast_value'] !== null ? number_format((float) $row['forecast_value'], 0) : 'n/a';
         $date = $row['ds'] ?? null;
-        $valueText = $value !== null ? number_format((float) $value, 0) : 'n/a';
-        return "{$valueText} on {$date}";
+        return "{$value} on {$date}";
     }
 
-    private function parseJsonResponse(?string $text): array
+    private function buildSourceHash(array $demand, array $sales, string $demandGranularity, string $salesGranularity): string
     {
-        if (!$text) {
-            return [];
-        }
-
-        $clean = trim($text);
-        $clean = preg_replace('/^```json/i', '', $clean);
-        $clean = preg_replace('/```$/', '', $clean);
-        $clean = trim($clean);
-
-        $decoded = json_decode($clean, true);
-        if (is_array($decoded)) {
-            return $this->sanitizeParsed($decoded);
-        }
-
-        if (preg_match('/\{.*\}/s', $clean, $match)) {
-            $decoded = json_decode($match[0], true);
-            if (is_array($decoded)) {
-                return $this->sanitizeParsed($decoded);
-            }
-        }
-
-        $demand = null;
-        $sales = null;
-
-        if (preg_match('/demand\s*:\s*(.+)/i', $clean, $match)) {
-            $demand = trim($match[1]);
-        }
-
-        if (preg_match('/sales\s*:\s*(.+)/i', $clean, $match)) {
-            $sales = trim($match[1]);
-        }
-
-        if ($demand || $sales) {
-            return $this->sanitizeParsed(array_filter([
-                'demand' => $demand,
-                'sales' => $sales,
-            ], fn ($value) => $value !== null));
-        }
-
-        return [
-            'demand' => $clean,
-            'sales' => $clean,
+        $payload = [
+            'demand_granularity' => $demandGranularity,
+            'sales_granularity' => $salesGranularity,
+            'demand' => $demand,
+            'sales' => $sales,
         ];
+
+        $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES) ?: serialize($payload);
+
+        return hash('sha256', $encoded);
     }
 
-    private function sanitizeParsed(array $parsed): array
-    {
-        $result = [];
-
-        foreach (['demand', 'sales'] as $key) {
-            $value = $parsed[$key] ?? null;
-            if (!is_string($value)) {
-                continue;
-            }
-
-            $normalized = strtolower(trim($value));
-            if ($normalized === '' || str_contains($normalized, 'here is the json requested')) {
-                continue;
-            }
-
-            $result[$key] = $value;
-        }
-
-        return $result;
+    private function getCacheKey(
+        int $tenantId,
+        string $weekStart,
+        string $demandGranularity,
+        string $salesGranularity,
+        string $model,
+        string $sourceHash
+    ): string {
+        return sprintf(
+            'forecast_insight:%d:%s:%s:%s:%s:%s',
+            $tenantId,
+            $weekStart,
+            $demandGranularity,
+            $salesGranularity,
+            $model,
+            $sourceHash
+        );
     }
 }
