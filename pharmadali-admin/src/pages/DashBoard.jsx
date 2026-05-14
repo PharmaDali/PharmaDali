@@ -10,20 +10,23 @@ import {
 import { Line } from "react-chartjs-2";
 import { useEffect, useMemo, useState } from "react";
 import { fetchOrdersCount } from "../services/dashboardService";
+import { apiRequest } from "../shared/api/apiClient";
+import {
+  buildSalesSeriesFromForecastRows,
+  buildTopSellingInsight,
+  calculateSalesGrowthFromForecastRows,
+  maxChartValue,
+} from "../utils/dashboardUtils";
 import "../assets/css/dashboard.css";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
-const SALES_DATA = {
-  "Last 7 days": {
+const SALES_FORECAST_DATA = {
+  Weekly: {
     labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
     values: [31, 38, 42, 50, 53, 49, 58],
   },
-  "Last 14 days": {
-    labels: ["W1 Mon", "W1 Tue", "W1 Wed", "W1 Thu", "W1 Fri", "W1 Sat", "W1 Sun", "W2 Mon", "W2 Tue", "W2 Wed", "W2 Thu", "W2 Fri", "W2 Sat", "W2 Sun"],
-    values: [22, 25, 28, 30, 35, 32, 38, 31, 38, 42, 50, 53, 49, 58],
-  },
-  "Last 30 days": {
+  Monthly: {
     labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
     values: Array.from({ length: 30 }, (_, i) => 20 + Math.round(Math.sin(i / 3) * 10 + i * 1.2)),
   },
@@ -37,10 +40,10 @@ const STAT_CARDS = [
   { label: "Predicted Stockout Risk", value: "High", prefix: null, ai: true, bg: "#F28B82" },
 ];
 
-const QUICK_INSIGHTS = [
-  { category: "Top Selling", main: "Paracetamol", right: "126", rightSub: "units sold" },
+const DEFAULT_QUICK_INSIGHTS = [
+  { category: "Top Selling", main: "Loading...", right: "--", rightSub: "units sold" },
   { category: "Top Category", main: "Tablets", right: "38%", rightSub: "of total sales" },
-  { category: "Sales Growth", main: "+18%", right: "+18%", rightSub: "vs Last Week" },
+  { category: "Sales Growth", main: "--", right: "--", rightSub: "vs last period" },
   { category: "Profit Today", main: "PHP 5,762", right: "32%", rightSub: "margin" },
 ];
 
@@ -116,67 +119,177 @@ function InsightRows({ items, rowClassName, rightClassName }) {
 }
 
 function SalesTrend() {
-  const [range, setRange] = useState("Last 7 days");
-  const { labels, values } = SALES_DATA[range];
+  const [range, setRange] = useState("Weekly");
+  const [salesSeries, setSalesSeries] = useState(SALES_FORECAST_DATA.Weekly);
+  const { labels, values, forecastStartIndex } = salesSeries || SALES_FORECAST_DATA.Weekly;
+
+  useEffect(() => {
+    let isMounted = true;
+    const salesGranularity = range === "Monthly" ? "monthly" : "weekly";
+
+    const fetchSalesSeries = async () => {
+      try {
+        const response = await apiRequest.get("/branch/forecasts", {
+          params: {
+            kind: "sales",
+            granularity: salesGranularity,
+            limit: 100,
+          },
+        });
+
+        const rows = response?.data || [];
+        const nextSeries = buildSalesSeriesFromForecastRows(
+          rows,
+          salesGranularity,
+          SALES_FORECAST_DATA[range],
+        );
+
+        if (isMounted) {
+          setSalesSeries(nextSeries);
+        }
+      } catch {
+        if (isMounted) {
+          setSalesSeries(SALES_FORECAST_DATA[range]);
+        }
+      }
+    };
+
+    fetchSalesSeries();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [range]);
 
   const data = useMemo(
-    () => ({
-      labels,
-      datasets: [{
-        data: values,
-        borderColor: "#2aabe2",
-        backgroundColor: "rgba(42,171,226,0.12)",
-        fill: true,
-        tension: 0.4,
-        pointBackgroundColor: "#ffffff",
-        pointBorderColor: "#2aabe2",
-        pointBorderWidth: 1.5,
-        pointRadius: 3.5,
-        pointHoverRadius: 5,
-      }],
-    }),
-    [labels, values],
+    () => {
+      if (!Number.isInteger(forecastStartIndex)) {
+        return {
+          labels,
+          datasets: [{
+            data: values,
+            borderColor: "#2aabe2",
+            backgroundColor: "rgba(42,171,226,0.12)",
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: "#ffffff",
+            pointBorderColor: "#2aabe2",
+            pointBorderWidth: 1.5,
+            pointRadius: 3.5,
+            pointHoverRadius: 5,
+          }],
+        };
+      }
+
+      const historyValues = values.map((value, index) =>
+        index < forecastStartIndex ? value : null
+      );
+      const forecastValues = values.map((value, index) =>
+        index >= forecastStartIndex - 1 ? value : null
+      );
+
+      return {
+        labels,
+        datasets: [
+          {
+            data: historyValues,
+            borderColor: "#2aabe2",
+            backgroundColor: "rgba(42,171,226,0.12)",
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: "#ffffff",
+            pointBorderColor: "#2aabe2",
+            pointBorderWidth: 1.5,
+            pointRadius: 3.5,
+            pointHoverRadius: 5,
+          },
+          {
+            data: forecastValues,
+            borderColor: "#2aabe2",
+            backgroundColor: "rgba(42,171,226,0)",
+            fill: false,
+            tension: 0.4,
+            pointBackgroundColor: "#ffffff",
+            pointBorderColor: "#2aabe2",
+            pointBorderWidth: 1.5,
+            pointRadius: 3.5,
+            pointHoverRadius: 5,
+            borderDash: [6, 4],
+          },
+        ],
+      };
+    },
+    [labels, values, forecastStartIndex],
   );
 
   const options = useMemo(
-    () => ({
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: {
-        padding: {
-          top: 4,
-          right: 10,
-          bottom: 0,
-          left: 0,
-        },
-      },
-      plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
-      scales: {
-        x: {
-          grid: { color: "rgba(15, 23, 42, 0.04)" },
-          ticks: {
-            color: "#5f6670",
-            font: { size: 12, family: "Poppins" },
-            autoSkip: true,
-            maxTicksLimit: range === "Last 30 days" ? 6 : 8,
+    () => {
+      const maxValue = maxChartValue(values);
+      const stepSize = Math.max(10, Math.ceil(maxValue / 5 / 10) * 10);
+
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 4,
+            right: 10,
+            bottom: 0,
+            left: 0,
           },
         },
-        y: {
-          min: 10,
-          max: 60,
-          beginAtZero: false,
-          grid: { color: "rgba(15, 23, 42, 0.06)" },
-          ticks: {
-            stepSize: 10,
-            color: "#5f6670",
-            font: { size: 12, family: "Poppins" },
-            padding: 8,
+        plugins: { legend: { display: false }, tooltip: { mode: "index", intersect: false } },
+        scales: {
+          x: {
+            grid: { color: "rgba(15, 23, 42, 0.04)" },
+            ticks: {
+              color: "#5f6670",
+              font: { size: 12, family: "Poppins" },
+              autoSkip: true,
+              maxTicksLimit: range === "Monthly" ? 6 : 8,
+            },
+          },
+          y: {
+            min: 10,
+            max: maxValue,
+            beginAtZero: false,
+            grid: { color: "rgba(15, 23, 42, 0.06)" },
+            ticks: {
+              stepSize,
+              color: "#5f6670",
+              font: { size: 12, family: "Poppins" },
+              padding: 8,
+              callback: (value) => Math.round(value).toString(),
+            },
           },
         },
-      },
-    }),
-    [range],
+      };
+    },
+    [range, values],
   );
+
+  const salesForecastSplitPlugin = useMemo(() => ({
+    id: "salesForecastSplit",
+    afterDatasetsDraw(chart) {
+      if (!Number.isInteger(forecastStartIndex)) {
+        return;
+      }
+      const xScale = chart.scales.x;
+      const yScale = chart.scales.y;
+      const boundaryIndex = Math.min(forecastStartIndex, labels.length - 1);
+      const x = xScale.getPixelForValue(boundaryIndex - 0.5);
+
+      chart.ctx.save();
+      chart.ctx.setLineDash([6, 6]);
+      chart.ctx.strokeStyle = "rgba(42, 171, 226, 0.6)";
+      chart.ctx.lineWidth = 1;
+      chart.ctx.beginPath();
+      chart.ctx.moveTo(x, yScale.top);
+      chart.ctx.lineTo(x, yScale.bottom);
+      chart.ctx.stroke();
+      chart.ctx.restore();
+    },
+  }), [forecastStartIndex, labels.length]);
 
   return (
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
@@ -189,7 +302,7 @@ function SalesTrend() {
             onChange={(e) => setRange(e.target.value)}
             aria-label="Select trend range"
           >
-            {Object.keys(SALES_DATA).map((k) => <option key={k}>{k}</option>)}
+            {Object.keys(SALES_FORECAST_DATA).map((k) => <option key={k}>{k}</option>)}
           </select>
           <i
             className="bi bi-chevron-down position-absolute top-50 translate-middle-y"
@@ -198,18 +311,18 @@ function SalesTrend() {
         </div>
       </div>
       <div className="dashboard-chart-wrap">
-        <Line data={data} options={options} />
+        <Line data={data} options={options} plugins={[salesForecastSplitPlugin]} />
       </div>
     </div>
   );
 }
 
-function QuickInsights() {
+function QuickInsights({ items }) {
   return (
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Quick Insights</h6>
       <InsightRows
-        items={QUICK_INSIGHTS}
+        items={items}
         rowClassName="quick-insight-row"
         rightClassName="quick-insight-right"
       />
@@ -275,6 +388,7 @@ function ForecastPreview() {
 
 function DashBoard() {
   const [ordersCount, setOrdersCount] = useState(null);
+  const [quickInsights, setQuickInsights] = useState(DEFAULT_QUICK_INSIGHTS);
 
   useEffect(() => {
     let mounted = true;
@@ -296,6 +410,76 @@ function DashBoard() {
 
     return () => {
       mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const buildInsights = (topSelling, growth) => [
+      {
+        category: "Top Selling",
+        main: topSelling?.name || "No data",
+        right: topSelling?.units || "0",
+        rightSub: "units sold",
+      },
+      {
+        category: "Top Category",
+        main: "Tablets",
+        right: "38%",
+        rightSub: "of total sales",
+      },
+      {
+        category: "Sales Growth",
+        main: growth?.label || "0%",
+        right: growth?.label || "0%",
+        rightSub: "vs last period",
+      },
+      {
+        category: "Profit Today",
+        main: "PHP 5,762",
+        right: "32%",
+        rightSub: "margin",
+      },
+    ];
+
+    const fetchQuickInsights = async () => {
+      try {
+        const [topSellingResponse, salesResponse] = await Promise.all([
+          apiRequest.get("/branch/forecasts", {
+            params: {
+              kind: "demand",
+              granularity: "weekly",
+              period: "current",
+              limit: 200,
+            },
+          }),
+          apiRequest.get("/branch/forecasts", {
+            params: {
+              kind: "sales",
+              granularity: "weekly",
+              limit: 100,
+            },
+          }),
+        ]);
+
+        const topSelling = buildTopSellingInsight(topSellingResponse?.data || []);
+        const growth = calculateSalesGrowthFromForecastRows(salesResponse?.data || []);
+
+        if (isMounted) {
+          setQuickInsights(buildInsights(topSelling, growth));
+        }
+      } catch {
+        if (isMounted) {
+          setQuickInsights(DEFAULT_QUICK_INSIGHTS);
+        }
+      }
+    };
+
+    fetchQuickInsights();
+
+    return () => {
+      isMounted = false;
     };
   }, []);
 
@@ -332,7 +516,7 @@ function DashBoard() {
           <SalesTrend />
         </div>
         <div className="col-12 col-md-5 col-lg-4">
-          <QuickInsights />
+          <QuickInsights items={quickInsights} />
         </div>
       </div>
 
