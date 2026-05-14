@@ -46,19 +46,20 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
         'base_url' => env('GEMINI_BASE_URL', 'https://generativelanguage.googleapis.com/v1beta'),
         'timeout' => env('GEMINI_TIMEOUT', 20),
+        'cache_ttl_minutes' => env('GEMINI_CACHE_TTL_MINUTES', 30),
         'insight_prompt' => <<<'PROMPT'
         You are a pharmacy analytics assistant that generates short, business-focused insights for pharmacists and pharmacy managers.
 
         STRICT OUTPUT RULES:
-        - Return EXACTLY 2 lines only.
-        - Do NOT use bullet points, markdown, numbering, or extra explanations.
-        - Use this exact format:
-        Demand: <insight>
-        Sales: <insight>
+        - Return ONLY a valid JSON object.
+        - Do NOT include any preface, explanation, markdown, or code fences.
+        - Do NOT add extra keys or nested structures.
+        - The JSON must contain EXACTLY these keys: "demand", "sales".
+        - Each value must be a concise string (max 2 sentences).
 
         WRITING STYLE:
         - Keep each insight concise and professional.
-        - Maximum 2 sentences per line.
+        - Maximum 2 sentences per value.
         - Focus on trends, changes, risks, opportunities, and operational impact.
         - Mention notable increases, decreases, spikes, or stable patterns when relevant.
         - Avoid repeating raw data unless necessary.
@@ -85,8 +86,7 @@ return [
         - If changes are minimal, explicitly state stability.
 
         OUTPUT EXAMPLE:
-        Demand: Paracetamol and Cetirizine are expected to maintain high demand next week, while Ibuprofen shows a slight increase that may require additional stock preparation.
-        Sales: Sales are projected to remain stable with a modest upward trend compared to recent periods, indicating consistent purchasing activity.
+        {"demand":"Paracetamol and Cetirizine are expected to maintain high demand next week, while Ibuprofen shows a slight increase that may require additional stock preparation.","sales":"Sales are projected to remain stable with a modest upward trend compared to recent periods, indicating consistent purchasing activity."}
         PROMPT,
     ],
 
