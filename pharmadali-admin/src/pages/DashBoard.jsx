@@ -9,6 +9,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchOrdersCount } from "../services/dashboardService";
 import { apiRequest } from "../shared/api/apiClient";
 import {
@@ -345,7 +346,7 @@ function QuickInsights({ items, loading }) {
   );
 }
 
-function InventoryHealth() {
+function InventoryHealth({ onKnowMore }) {
   return (
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 d-flex flex-column dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Inventory Health </h6>
@@ -373,7 +374,12 @@ function InventoryHealth() {
         </div>
       </div>
       <div className="text-end mt-auto pt-2">
-        <button type="button" className="dashboard-link-btn" aria-label="Open inventory health details">
+        <button
+          type="button"
+          className="dashboard-link-btn"
+          aria-label="Open inventory health details"
+          onClick={onKnowMore}
+        >
           Know more
         </button>
       </div>
@@ -381,7 +387,7 @@ function InventoryHealth() {
   );
 }
 
-function ForecastPreview({ items, loading }) {
+function ForecastPreview({ items, loading, onKnowMore }) {
   return (
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 d-flex flex-column dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>
@@ -394,7 +400,12 @@ function ForecastPreview({ items, loading }) {
         rightClassName="forecast-right"
       />
       <div className="text-end mt-auto pt-2">
-        <button type="button" className="dashboard-link-btn" aria-label="Open forecast preview details">
+        <button
+          type="button"
+          className="dashboard-link-btn"
+          aria-label="Open forecast preview details"
+          onClick={onKnowMore}
+        >
           Know more
         </button>
       </div>
@@ -403,6 +414,7 @@ function ForecastPreview({ items, loading }) {
 }
 
 function DashBoard() {
+  const navigate = useNavigate();
   const [ordersCount, setOrdersCount] = useState(null);
   const [quickInsights, setQuickInsights] = useState(EMPTY_QUICK_INSIGHTS);
   const [forecastPreview, setForecastPreview] = useState(EMPTY_FORECAST);
@@ -612,10 +624,14 @@ function DashBoard() {
 
       <div className="row g-4">
         <div className="col-12 col-md-6 col-lg-6">
-          <InventoryHealth />
+          <InventoryHealth onKnowMore={() => navigate("/inventory")} />
         </div>
         <div className="col-12 col-md-6 col-lg-6">
-          <ForecastPreview items={forecastPreview} loading={forecastLoading} />
+          <ForecastPreview
+            items={forecastPreview}
+            loading={forecastLoading}
+            onKnowMore={() => navigate("/analytics-and-forecasting")}
+          />
         </div>
       </div>
     </section>

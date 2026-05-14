@@ -132,6 +132,14 @@
   padding-right: 2.2rem;
 }
 
+.inventory-select:focus,
+.inventory-table-filter:focus {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%235aa7e5' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+}
+
 .inventory-table-card,
 .inventory-side-card {
   border: 0;
@@ -164,8 +172,8 @@
 .inventory-action-btn {
   border-radius: var(--pd-radius-md);
   border: 1px solid #d7e2ef;
-  padding: 0.35rem 0.75rem;
-  font-size: 12px;
+  padding: 0.45rem 1.1rem;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -259,11 +267,6 @@
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.02em;
-}
-
-.inventory-status-low-stock {
-  background: #bfe7fb;
-  color: #1e5a82;
 }
 
 .inventory-status-low-stocks {
