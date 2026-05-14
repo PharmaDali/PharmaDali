@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 
 function NavBar({ onToggleSidebar, sidebarOpen }) {
   const [time, setTime] = useState("");
@@ -61,11 +62,13 @@ function NavBar({ onToggleSidebar, sidebarOpen }) {
       </div>
 
       <div className="flex-shrink-0 navbar-logo-wrap">
-        <img
-          src="/main_logo.svg"
-          alt="PharmaDali"
-          className="navbar-logo"
-        />
+        <Link to="/">
+          <img
+            src="/main_logo.svg"
+            alt="PharmaDali"
+            className="navbar-logo"
+          />
+        </Link>
       </div>
 
       <div className="d-flex align-items-center gap-2 gap-sm-3 ms-auto navbar-meta-wrap">
