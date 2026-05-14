@@ -673,7 +673,7 @@ function AnalyticsAndForecasting() {
                                         >
                                             {TABLE_RANGES.map((p) => <option key={p}>{p}</option>)}
                                         </select>
-                                        <i className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon" />
+                                        <i className="bi bi-chevron-down position-absolute top-50 translate-middle-y aif-range-icon aif-range-icon-demand" />
                                     </div>
                                 </div>
                                 <div className="aif-table-inner">
