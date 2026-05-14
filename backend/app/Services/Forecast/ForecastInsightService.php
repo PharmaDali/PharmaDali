@@ -2,9 +2,13 @@
 
 namespace App\Services\Forecast;
 
+use App\Models\ForecastInsight;
 use App\Models\Forecast;
 use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Throwable;
 
 class ForecastInsightService
 {
@@ -20,6 +24,44 @@ class ForecastInsightService
         $demand = $this->loadDemandData($user->branch_id, $demandGranularity);
         $sales = $this->loadSalesData($user->branch_id, $salesGranularity);
 
+        $weekStart = Carbon::now()->startOfWeek(Carbon::MONDAY)->toDateString();
+        $model = (string) config('services.gemini.model');
+        $sourceHash = $this->buildSourceHash($demand, $sales, $demandGranularity, $salesGranularity);
+
+        $existing = ForecastInsight::query()
+            ->where('tenant_id', $user->branch_id)
+            ->where('week_start', $weekStart)
+            ->where('demand_granularity', $demandGranularity)
+            ->where('sales_granularity', $salesGranularity)
+            ->where('model', $model)
+            ->first();
+
+        if ($existing && $existing->source_hash === $sourceHash) {
+            return [
+                'demand' => $existing->demand,
+                'sales' => $existing->sales,
+            ];
+        }
+
+        $cacheTtlMinutes = (int) config('services.gemini.cache_ttl_minutes', 30);
+        $cacheKey = $this->getCacheKey(
+            $user->branch_id,
+            $weekStart,
+            $demandGranularity,
+            $salesGranularity,
+            $model,
+            $sourceHash
+        );
+
+        try {
+            $cached = Cache::get($cacheKey);
+            if (is_array($cached) && isset($cached['demand'], $cached['sales'])) {
+                return $cached;
+            }
+        } catch (Throwable $exception) {
+            // Continue without cache when Redis is unavailable.
+        }
+
         $prompt = $this->buildPrompt($demand, $sales, $demandGranularity, $salesGranularity);
 
         $apiKey = config('services.gemini.api_key');
@@ -31,9 +73,9 @@ class ForecastInsightService
         }
 
         $baseUrl = rtrim((string) config('services.gemini.base_url'), '/');
-        $model = config('services.gemini.model');
         $timeout = config('services.gemini.timeout', 20);
 
+        logger()->info('Gemini request starting');
         $response = Http::timeout($timeout)
             ->post("{$baseUrl}/models/{$model}:generateContent?key={$apiKey}", [
                 'contents' => [
@@ -48,6 +90,7 @@ class ForecastInsightService
                     'maxOutputTokens' => 200,
                 ],
             ]);
+        logger()->info('Gemini response received', ['status' => $response->status()]);
 
         if (!$response->successful()) {
             return [
@@ -57,12 +100,36 @@ class ForecastInsightService
         }
 
         $text = data_get($response->json(), 'candidates.0.content.parts.0.text');
+        logger()->info('Gemini raw text', ['text' => $text]);
         $parsed = $this->parseJsonResponse($text);
 
-        return [
+        $insights = [
             'demand' => $parsed['demand'] ?? 'No demand insight available.',
             'sales' => $parsed['sales'] ?? 'No sales insight available.',
         ];
+
+        ForecastInsight::updateOrCreate(
+            [
+                'tenant_id' => $user->branch_id,
+                'week_start' => $weekStart,
+                'demand_granularity' => $demandGranularity,
+                'sales_granularity' => $salesGranularity,
+                'model' => $model,
+            ],
+            [
+                'demand' => $insights['demand'],
+                'sales' => $insights['sales'],
+                'source_hash' => $sourceHash,
+            ]
+        );
+
+        try {
+            Cache::put($cacheKey, $insights, now()->addMinutes($cacheTtlMinutes));
+        } catch (Throwable $exception) {
+            // Continue without cache when Redis is unavailable.
+        }
+
+        return $insights;
     }
 
     private function loadDemandData(int $tenantId, string $granularity): array
@@ -196,6 +263,42 @@ class ForecastInsightService
         return "{$valueText} on {$date}";
     }
 
+    private function buildSourceHash(array $demand, array $sales, string $demandGranularity, string $salesGranularity): string
+    {
+        $payload = [
+            'demand_granularity' => $demandGranularity,
+            'sales_granularity' => $salesGranularity,
+            'demand' => $demand,
+            'sales' => $sales,
+        ];
+
+        $encoded = json_encode($payload, JSON_UNESCAPED_SLASHES);
+        if ($encoded === false) {
+            $encoded = serialize($payload);
+        }
+
+        return hash('sha256', $encoded);
+    }
+
+    private function getCacheKey(
+        int $tenantId,
+        string $weekStart,
+        string $demandGranularity,
+        string $salesGranularity,
+        string $model,
+        string $sourceHash
+    ): string {
+        return sprintf(
+            'forecast_insight:%d:%s:%s:%s:%s:%s',
+            $tenantId,
+            $weekStart,
+            $demandGranularity,
+            $salesGranularity,
+            $model,
+            $sourceHash
+        );
+    }
+
     private function parseJsonResponse(?string $text): array
     {
         if (!$text) {
@@ -209,38 +312,19 @@ class ForecastInsightService
 
         $decoded = json_decode($clean, true);
         if (is_array($decoded)) {
-            return $this->sanitizeParsed($decoded);
+            $payload = is_array($decoded['data'] ?? null) ? $decoded['data'] : $decoded;
+            return $this->sanitizeParsed($payload);
         }
 
         if (preg_match('/\{.*\}/s', $clean, $match)) {
             $decoded = json_decode($match[0], true);
             if (is_array($decoded)) {
-                return $this->sanitizeParsed($decoded);
+                $payload = is_array($decoded['data'] ?? null) ? $decoded['data'] : $decoded;
+                return $this->sanitizeParsed($payload);
             }
         }
 
-        $demand = null;
-        $sales = null;
-
-        if (preg_match('/demand\s*:\s*(.+)/i', $clean, $match)) {
-            $demand = trim($match[1]);
-        }
-
-        if (preg_match('/sales\s*:\s*(.+)/i', $clean, $match)) {
-            $sales = trim($match[1]);
-        }
-
-        if ($demand || $sales) {
-            return $this->sanitizeParsed(array_filter([
-                'demand' => $demand,
-                'sales' => $sales,
-            ], fn ($value) => $value !== null));
-        }
-
-        return [
-            'demand' => $clean,
-            'sales' => $clean,
-        ];
+        return [];
     }
 
     private function sanitizeParsed(array $parsed): array
