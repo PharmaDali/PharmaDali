@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -8,16 +8,36 @@ import LogoHeader from '@src/shared/components/LogoHeader'
 import RedLocationIcon from '@assets/icons/red_location_icon.svg'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import RedInfoIcon from '@assets/icons/red_info_icon.svg'
-import BandaidImg from '@assets/images/bandaid_img.png'
+import ProductImage from '@shared/components/ProductImage'
 import { getCheckoutDraft } from '@shared/services/checkoutDraft'
 
+function truncateText(value, maxLength = 48) {
+  const text = String(value || '').trim();
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
+}
+
 function OrderItemRow({ item }) {
+  const displayName = truncateText(item.description);
+
   return (
     <View className="flex-row mt-3">
-      <Image source={BandaidImg} className="w-16 h-16 rounded-lg" resizeMode="contain" />
+      <ProductImage
+        source={item.img}
+        product={item.product}
+        categoryName={item?.category?.category_name}
+        quantity={item.quantity}
+        isPrescribed={item.prescriptionRequired}
+        width={64}
+        height={64}
+        containerStyle={{ borderRadius: 8 }}
+      />
       <View className="flex-1 ml-3">
         <Text className="text-xs" style={styles.fontSemiBold} numberOfLines={2}>
-          {item.description}
+          {displayName}
         </Text>
         {item.prescriptionRequired && (
           <View className="flex-row items-center mt-1">
