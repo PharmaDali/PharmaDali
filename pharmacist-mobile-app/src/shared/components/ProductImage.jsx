@@ -58,7 +58,7 @@ export default function ProductImage({
   const productData = product || null;
   const generic = productData?.generic_name;
   const brand = productData?.brand_name || productData?.product_name || generic;
-  const strengthForm = [productData?.strength, productData?.form].filter(Boolean).join(' ');
+  const strengthForm = [productData?.strength, productData?.form, productData?.size].filter(Boolean).join(' ');
   const unit = productData?.unit || productData?.packaging || productData?.unit_of_measure;
 
   const prescribed = typeof isPrescribed === 'boolean'
