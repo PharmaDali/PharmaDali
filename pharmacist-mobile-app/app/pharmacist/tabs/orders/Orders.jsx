@@ -107,6 +107,16 @@ export default function Orders() {
   const forReviewOrders = orders.filter((o) => o.status === 'For Review');
   const preparingOrders = orders.filter((o) => o.status === 'Preparing');
   const issueOrders = orders.filter((o) => o.status === 'Issues');
+  const activeOrders = activeTab === 'For Review'
+    ? forReviewOrders
+    : activeTab === 'Preparing'
+      ? preparingOrders
+      : issueOrders;
+  const emptyMessage = activeTab === 'For Review'
+    ? 'No orders awaiting review today.'
+    : activeTab === 'Preparing'
+      ? 'No orders are being prepared right now.'
+      : 'No orders need attention today.';
 
   const tabCounts = {
     'For Review': forReviewOrders.length,
@@ -194,6 +204,12 @@ export default function Orders() {
       )}
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {!loading && activeOrders.length === 0 && (
+          <Text className="px-4 py-6 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#7A7A7A' }}>
+            {emptyMessage}
+          </Text>
+        )}
+
         {activeTab === 'For Review' &&
           forReviewOrders.map((order, idx) => (
             <ReviewOrderCard key={idx} order={order} onApprove={handleApprove} onReject={handleReject} onPending={handlePending} />

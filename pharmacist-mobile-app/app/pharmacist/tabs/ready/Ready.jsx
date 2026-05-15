@@ -97,6 +97,11 @@ const Ready = () => {
     () => orders.filter((order) => order.status === activeTab),
     [activeTab, orders]
   );
+  const emptyMessage = activeTab === 'For Pickup'
+    ? 'No orders are ready for pickup today.'
+    : activeTab === 'Completed'
+      ? 'No completed pickups today.'
+      : 'No expired pickup orders today.';
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -120,6 +125,12 @@ const Ready = () => {
       )}
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {!loading && filteredOrders.length === 0 && (
+          <Text className="px-4 py-6 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#7A7A7A' }}>
+            {emptyMessage}
+          </Text>
+        )}
+
         {filteredOrders.map((order, idx) => (
           <ReadyOrderCard
             key={`${order.orderNumber}-${idx}`}
