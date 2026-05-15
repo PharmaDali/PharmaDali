@@ -1,18 +1,57 @@
-import { StyleSheet, Text, View, ScrollView, Image } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity } from 'react-native'
+import React, { useEffect, useMemo, useState } from 'react'
 import { LineChart } from 'react-native-gifted-charts'
 import StatsIcon from '@assets/icons/pharmacist_home/stats_icon.svg'
 import ForecastIcon from '@assets/icons/pharmacist_home/forecast_icon.svg'
 import DemandAlertIcon from '@assets/icons/pharmacist_home/demand_alert_icon.svg'
 import BiogesicImg from '@assets/images/biogesic_img.png'
 import SolmuxImg from '@assets/images/solmux_img.png'
+import BetadineImg from '@assets/images/betadine_img.png'
+import BandaidImg from '@assets/images/bandaid_img.png'
+import RecitImg from '@assets/images/recit_dummy.png'
 import { colors } from '@src/shared/theme/colorPalette'
 import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils'
+import { getBranchOrders } from '@shared/services/orderToPharmacistService'
+import { getDemandForecasts } from '@shared/services/forecastService'
 
-const TRENDING_MEDICINES = [
+const FALLBACK_TRENDING = [
   { name: 'Biogesic', generic: 'Paracetamol', image: BiogesicImg },
   { name: 'Solmux', generic: 'Carbocisteine', image: SolmuxImg },
 ]
+
+const DEMAND_IMAGE_MAP = [
+  { key: 'biogesic', image: BiogesicImg },
+  { key: 'solmux', image: SolmuxImg },
+]
+
+
+const stripProductName = (raw) => {
+  let text = String(raw || '');
+  text = text.replace(/^[0-9]+[_-]+/, '');
+  text = text.replace(/[._-]+/g, ' ');
+  text = text.replace(/\s+/g, ' ').trim();
+  return text || 'Unknown item';
+}
+
+const getImageForDemandName = (name) => {
+  const normalized = String(name || '').toLowerCase();
+  const match = DEMAND_IMAGE_MAP.find((entry) => normalized.includes(entry.key));
+  if (match) {
+    return match.image;
+  }
+
+  return null;
+}
+
+const DemandFallbackImage = ({ name }) => {
+  const initial = String(name || '').trim().charAt(0).toUpperCase() || 'M';
+
+  return (
+    <View className="w-12 h-12 rounded items-center justify-center mr-3" style={styles.fallbackImage}>
+      <Text style={styles.fallbackImageText}>{initial}</Text>
+    </View>
+  );
+}
 
 const CHART_DATA = [
   { value: 15, label: '9 AM' },
@@ -23,7 +62,7 @@ const CHART_DATA = [
   { value: 20, label: '' },
 ]
 
-const QuickStats = () => (
+const QuickStats = ({ pendingCount, completedCount }) => (
   <View className="m-4 mb-2 bg-white rounded-lg p-4 shadow-lg">
     <View className="flex-row items-start p-2 pb-0">
       <StatsIcon width={22} height={22} />
@@ -33,11 +72,11 @@ const QuickStats = () => (
     </View>
     <View className="mt-4 flex-row flex-wrap gap-3">
       <View className="flex-row bg-[#E8F8FF] p-4 rounded-lg items-center flex-1 min-w-[140px]">
-        <Text style={styles.pendingCountText}>24</Text>
+        <Text style={styles.pendingCountText}>{pendingCount}</Text>
         <Text className="ms-2 flex-1" style={styles.statsLabelText}>Pending Orders</Text>
       </View>
       <View className="flex-row bg-[#D7FAE4] p-4 rounded-lg items-center flex-1 min-w-[140px]">
-        <Text style={styles.completedCountText}>24</Text>
+        <Text style={styles.completedCountText}>{completedCount}</Text>
         <Text className="ms-2 flex-1" style={styles.statsLabelText}>Completed Orders</Text>
       </View>
     </View>
@@ -103,7 +142,7 @@ const DemandForecast = () => (
   </View>
 )
 
-const DemandAlert = () => (
+const DemandAlert = ({ items, loading, error, onLoadMore, onLoadLess, canLoadMore, canLoadLess }) => (
   <View className="mx-4 my-2 mb-4 bg-white rounded-lg p-4 shadow-lg">
     <View className="flex-row items-center mb-1">
       <DemandAlertIcon width={22} height={22} />
@@ -111,26 +150,167 @@ const DemandAlert = () => (
     </View>
     <Text style={styles.subtitleText}>Trending Medicines</Text>
 
-    {TRENDING_MEDICINES.map((med, i) => (
-      <View key={i} className="flex-row items-center bg-[#F5F9FF] rounded-lg p-3 mt-2">
-        <View className="w-12 h-12 bg-white rounded items-center justify-center mr-3">
-          <Image source={med.image} className="w-12 h-12" resizeMode="contain" />
-        </View>
+    {loading && (
+      <Text className="text-xs mt-3" style={styles.subtitleText}>Loading demand alerts...</Text>
+    )}
+
+    {!!error && !loading && (
+      <Text className="text-xs mt-3" style={styles.errorText}>{error}</Text>
+    )}
+
+    {!loading && !error && items.length === 0 && (
+      <Text className="text-xs mt-3" style={styles.subtitleText}>No demand alerts available.</Text>
+    )}
+
+    {!loading && !error && items.map((med, i) => {
+      const imageSource = typeof med.image === 'string'
+        ? { uri: med.image }
+        : med.image;
+
+      return (
+      <View key={`${med.name}-${i}`} className="flex-row items-center bg-[#F5F9FF] rounded-lg p-3 mt-2">
+        {imageSource ? (
+          <View className="w-12 h-12 bg-white rounded items-center justify-center mr-3">
+            <Image source={imageSource} className="w-12 h-12" resizeMode="contain" />
+          </View>
+        ) : (
+          <DemandFallbackImage name={med.name} />
+        )}
         <View>
           <Text style={styles.medNameText}>{med.name}</Text>
           <Text style={styles.medGenericText}>({med.generic})</Text>
         </View>
       </View>
-    ))}
+      );
+    })}
+
+    {!loading && !error && (canLoadMore || canLoadLess) && (
+      <View className="flex-row justify-center gap-3 mt-3">
+        {canLoadMore && (
+          <TouchableOpacity
+            className="px-4 py-2 rounded-lg border"
+            style={styles.loadMoreButton}
+            onPress={onLoadMore}
+          >
+            <Text style={styles.loadMoreText}>View All</Text>
+          </TouchableOpacity>
+        )}
+        {canLoadLess && (
+          <TouchableOpacity
+            className="px-4 py-2 rounded-lg border"
+            style={styles.loadMoreButton}
+            onPress={onLoadLess}
+          >
+            <Text style={styles.loadMoreText}>View Less</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    )}
   </View>
 )
 
 const Home = () => {
+  const [pendingCount, setPendingCount] = useState(0);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [alertItems, setAlertItems] = useState([]);
+  const [alertVisibleCount, setAlertVisibleCount] = useState(3);
+  const [alertLoading, setAlertLoading] = useState(false);
+  const [alertError, setAlertError] = useState('');
+
+  const alertVisibleItems = useMemo(
+    () => alertItems.slice(0, alertVisibleCount),
+    [alertItems, alertVisibleCount]
+  );
+  const canLoadMoreAlerts = alertVisibleCount < alertItems.length;
+  const canLoadLessAlerts = alertVisibleCount > 3 && alertItems.length > 3;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadQuickStats = async () => {
+      try {
+        const data = await getBranchOrders();
+        const orders = Array.isArray(data) ? data : [];
+        const pendingStatuses = new Set(['pending', 'reviewing', 'preparing', 'ready_for_pickup']);
+        const completedStatuses = new Set(['completed']);
+
+        const pending = orders.filter((order) =>
+          pendingStatuses.has(String(order?.status || '').toLowerCase())
+        ).length;
+        const completed = orders.filter((order) =>
+          completedStatuses.has(String(order?.status || '').toLowerCase())
+        ).length;
+
+        if (isMounted) {
+          setPendingCount(pending);
+          setCompletedCount(completed);
+        }
+      } catch {
+        if (isMounted) {
+          setPendingCount(0);
+          setCompletedCount(0);
+        }
+      }
+    };
+
+    const loadDemandAlerts = async () => {
+      setAlertLoading(true);
+      setAlertError('');
+
+      try {
+        const data = await getDemandForecasts({ granularity: 'weekly', period: 'current', limit: 10 });
+        const sorted = (Array.isArray(data) ? data : [])
+          .slice()
+          .sort((a, b) => Number(b?.forecast_value ?? 0) - Number(a?.forecast_value ?? 0))
+          .slice(0, 10);
+        const mapped = sorted.map((entry) => {
+          const forecastValue = Number(entry?.forecast_value ?? 0);
+          const name = stripProductName(entry?.unique_id);
+          return {
+            name,
+            generic: `Forecast: ${Number.isFinite(forecastValue) ? forecastValue.toFixed(0) : 'N/A'}`,
+            image: getImageForDemandName(name),
+          };
+        });
+
+        if (isMounted) {
+          setAlertItems(mapped);
+          setAlertVisibleCount(3);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setAlertItems(FALLBACK_TRENDING);
+          setAlertVisibleCount(3);
+          setAlertError(error?.message || 'Unable to load demand alerts.');
+        }
+      } finally {
+        if (isMounted) {
+          setAlertLoading(false);
+        }
+      }
+    };
+
+    loadQuickStats();
+    loadDemandAlerts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   return (
     <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-      <QuickStats />
+      <QuickStats pendingCount={pendingCount} completedCount={completedCount} />
       <DemandForecast />
-      <DemandAlert />
+      <DemandAlert
+        items={alertVisibleItems}
+        loading={alertLoading}
+        error={alertError}
+        onLoadMore={() => setAlertVisibleCount(alertItems.length)}
+        onLoadLess={() => setAlertVisibleCount(3)}
+        canLoadMore={canLoadMoreAlerts}
+        canLoadLess={canLoadLessAlerts}
+      />
     </ScrollView>
   )
 }
@@ -191,5 +371,28 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Medium',
     fontSize: 12,
     color: '#888',
+  },
+  loadMoreButton: {
+    borderColor: '#89C5E5',
+    backgroundColor: '#EEF8FD',
+  },
+  loadMoreText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: colors.buttonColor,
+  },
+  fallbackImage: {
+    backgroundColor: '#EAF4FB',
+    borderWidth: 1,
+    borderColor: '#CFE6F4',
+  },
+  fallbackImageText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: colors.buttonColor,
+    fontSize: 16,
+  },
+  errorText: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 12,
+    color: '#CC3A3A',
   },
 })
