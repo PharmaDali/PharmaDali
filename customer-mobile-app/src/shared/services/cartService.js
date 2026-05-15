@@ -30,6 +30,17 @@ function hasRxMarker(value) {
   return typeof value === 'string' && /prescription required|rx|prescription/i.test(value);
 }
 
+function buildProductName(product, fallback) {
+  const base =
+    product?.product_name ||
+    product?.brand_name ||
+    product?.generic_name ||
+    fallback;
+  const details = [product?.strength, product?.form, product?.size].filter(Boolean).join(' ');
+
+  return details ? `${base} (${details})` : base;
+}
+
 function mapCartApiItem(item) {
   const quantity = Number(item?.quantity ?? 1);
   const safeQuantity = Number.isFinite(quantity) && quantity > 0 ? Math.floor(quantity) : 1;
@@ -38,18 +49,14 @@ function mapCartApiItem(item) {
   const safeUnitPrice = Number.isFinite(unitPrice) && unitPrice >= 0 ? unitPrice : 0;
 
   const categoryName = item?.category?.category_name || '';
-  const description =
-    item?.product?.product_name ||
-    item?.product?.brand_name ||
-    item?.product?.generic_name ||
-    'Unnamed product';
+  const description = buildProductName(item?.product, 'Unnamed product');
 
   return {
     id: Number(item?.id ?? 0),
     cartId: Number(item?.cart_id ?? 0),
     branchProductId: Number(item?.branch_product_id ?? 0),
     description,
-    size: item?.product?.strength || item?.product?.form || 'N/A',
+    size: item?.product?.strength || item?.product?.form || item?.product?.size || 'N/A',
     price: safeUnitPrice,
     quantity: safeQuantity,
     selected: false,
