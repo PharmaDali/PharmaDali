@@ -44,7 +44,17 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       items: (order?.items || []).map((item) => {
         const product = item?.branch_product?.product;
         const prescription = item?.order_item_prescription;
-        const categoryName = item?.branch_product?.category?.category_name || '';
+        const categoryName = item?.branch_product?.category?.category_name
+          || product?.category?.category_name
+          || product?.category_name
+          || '';
+        const baseName = item?.product_name
+          || product?.product_name
+          || product?.brand_name
+          || product?.generic_name
+          || 'Medicine item';
+        const strengthForm = [product?.strength, product?.form, product?.size].filter(Boolean).join(' ');
+        const description = strengthForm ? `${baseName} (${strengthForm})` : baseName;
         
         const prescriptionRequired = Boolean(product?.is_prescribed);
         const hasPrescriptionImage = Boolean(prescription?.prescription_image_path);
@@ -59,10 +69,10 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
           img: BetadineImg,
           product,
           categoryName,
-          description: item?.product_name || 'Medicine item',
+          description,
           price: Number(item?.unit_price_snapshot ?? 0).toFixed(2),
           quantity: item?.quantity ?? 0,
-          size: product?.strength || '-',
+          size: product?.strength || product?.form || product?.size || '-',
           prescriptionRequired,
           prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,
           status: itemDisplayStatus,
@@ -107,6 +117,16 @@ export default function Orders() {
   const forReviewOrders = orders.filter((o) => o.status === 'For Review');
   const preparingOrders = orders.filter((o) => o.status === 'Preparing');
   const issueOrders = orders.filter((o) => o.status === 'Issues');
+  const activeOrders = activeTab === 'For Review'
+    ? forReviewOrders
+    : activeTab === 'Preparing'
+      ? preparingOrders
+      : issueOrders;
+  const emptyMessage = activeTab === 'For Review'
+    ? 'No orders awaiting review today.'
+    : activeTab === 'Preparing'
+      ? 'No orders are being prepared right now.'
+      : 'No orders need attention today.';
 
   const tabCounts = {
     'For Review': forReviewOrders.length,
@@ -194,6 +214,12 @@ export default function Orders() {
       )}
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {!loading && activeOrders.length === 0 && (
+          <Text className="px-4 py-6 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#7A7A7A' }}>
+            {emptyMessage}
+          </Text>
+        )}
+
         {activeTab === 'For Review' &&
           forReviewOrders.map((order, idx) => (
             <ReviewOrderCard key={idx} order={order} onApprove={handleApprove} onReject={handleReject} onPending={handlePending} />

@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@react-native-community/slider": "5.0.1",
-    "expo": "~54.0.33",
+    "expo": "~54.0.34",
     "expo-constants": "~18.0.13",
     "expo-image-picker": "~17.0.10",
     "expo-linear-gradient": "~15.0.8",

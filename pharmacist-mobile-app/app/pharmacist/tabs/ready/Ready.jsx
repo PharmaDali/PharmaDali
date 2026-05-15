@@ -36,16 +36,26 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       status: mapApiStatusToTabStatus(order?.status),
       items: (order?.items || []).map((item) => {
         const product = item?.branch_product?.product;
+        const categoryName = item?.branch_product?.category?.category_name || '';
         const prescription = item?.order_item_prescription;
         const prescriptionRequired = Boolean(product?.is_prescribed);
         const hasPrescriptionImage = Boolean(prescription?.prescription_image_path);
+        const baseName = item?.product_name
+          || product?.product_name
+          || product?.brand_name
+          || product?.generic_name
+          || 'Medicine item';
+        const strengthForm = [product?.strength, product?.form, product?.size].filter(Boolean).join(' ');
+        const description = strengthForm ? `${baseName} (${strengthForm})` : baseName;
 
         return {
           img: BetadineImg,
-          description: item?.product_name || 'Medicine item',
+          product,
+          categoryName,
+          description,
           price: Number(item?.unit_price_snapshot ?? 0).toFixed(2),
           quantity: item?.quantity ?? 0,
-          size: product?.strength || '-',
+          size: product?.strength || product?.form || product?.size || '-',
           prescriptionRequired,
           prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,
         };
@@ -97,6 +107,11 @@ const Ready = () => {
     () => orders.filter((order) => order.status === activeTab),
     [activeTab, orders]
   );
+  const emptyMessage = activeTab === 'For Pickup'
+    ? 'No orders are ready for pickup today.'
+    : activeTab === 'Completed'
+      ? 'No completed pickups today.'
+      : 'No expired pickup orders today.';
 
   return (
     <View className="flex-1 bg-gray-50">
@@ -120,6 +135,12 @@ const Ready = () => {
       )}
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {!loading && filteredOrders.length === 0 && (
+          <Text className="px-4 py-6 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#7A7A7A' }}>
+            {emptyMessage}
+          </Text>
+        )}
+
         {filteredOrders.map((order, idx) => (
           <ReadyOrderCard
             key={`${order.orderNumber}-${idx}`}
