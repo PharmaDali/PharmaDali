@@ -12,6 +12,7 @@ const Account = () => {
 
   const [profile, setProfile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -19,6 +20,7 @@ const Account = () => {
     const loadProfile = async () => {
       try {
         setErrorMessage('');
+        setLoading(true);
         const response = await getPharmacistProfile();
 
         if (isMounted) {
@@ -28,6 +30,10 @@ const Account = () => {
         if (isMounted) {
           setProfile(null);
           setErrorMessage(error?.message || 'Failed to load profile.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
       }
     };
@@ -47,7 +53,9 @@ const Account = () => {
   }, [firstName, lastName]);
 
   const contactNumber = profile?.user?.mobile_number || 'No contact number';
-  const initial = (firstName || fullName || 'P').charAt(0).toUpperCase();
+  const initial = loading ? '' : (firstName || fullName || 'P').charAt(0).toUpperCase();
+  const displayName = loading ? 'Loading profile...' : fullName;
+  const displayContact = loading ? 'Loading contact...' : contactNumber;
 
   return (
     <View style={styles.container}>
@@ -66,8 +74,8 @@ const Account = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.textSemiBoldDark} className="text-lg mt-2">{fullName}</Text>
-        <Text style={styles.textLight} className="text-sm">{contactNumber}</Text>
+        <Text style={styles.textSemiBoldDark} className="text-lg mt-2">{displayName}</Text>
+        <Text style={styles.textLight} className="text-sm">{displayContact}</Text>
         {!!errorMessage && (
           <Text style={styles.errorText} className="text-xs mt-2 text-center">{errorMessage}</Text>
         )}
