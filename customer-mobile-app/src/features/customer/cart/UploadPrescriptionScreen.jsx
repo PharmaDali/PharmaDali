@@ -6,7 +6,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { colors } from '@src/shared/theme/colorPalette'
 import LogoHeader from '@src/shared/components/LogoHeader'
 import StepIndicator from '@src/shared/components/StepIndicator'
-import BetadineImg from '@assets/images/betadine_img.png'
+import ProductImage from '@shared/components/ProductImage'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
 
 const MAX_PRESCRIPTION_SIZE_BYTES = 5 * 1024 * 1024
@@ -17,35 +17,33 @@ function sleep(ms) {
   })
 }
 
-function resolveItemImageSource(item) {
-  const imageUri =
-    item?.imgUri ||
-    item?.imageUri ||
-    item?.image_url ||
-    item?.imageUrl ||
-    item?.product?.image_url ||
-    item?.product?.imageUrl
-
-  if (typeof imageUri === 'string' && imageUri.trim().length > 0) {
-    return { uri: imageUri }
+function truncateText(value, maxLength = 48) {
+  const text = String(value || '').trim();
+  if (text.length <= maxLength) {
+    return text;
   }
 
-  if (item?.img) {
-    return item.img
-  }
-
-  return BetadineImg
+  return `${text.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
 }
 
 function PrescriptionItemRow({ item }) {
-  const imageSource = resolveItemImageSource(item)
+  const displayName = truncateText(item.description)
 
   return (
     <View className="flex-row items-center mt-3">
-      <Image source={imageSource} className="w-14 h-14 rounded-lg" resizeMode="contain" />
+      <ProductImage
+        source={item.img}
+        product={item.product}
+        categoryName={item?.category?.category_name}
+        quantity={item.quantity}
+        isPrescribed={item.prescriptionRequired}
+        width={56}
+        height={56}
+        containerStyle={{ borderRadius: 8 }}
+      />
       <View className="flex-1 ml-3">
         <Text className="text-xs" style={styles.fontMedium} numberOfLines={2}>
-          {item.description}
+          {displayName}
         </Text>
       </View>
       <Text className="text-xs text-gray-500 ml-2" style={styles.fontMedium}>{item.quantity}x</Text>

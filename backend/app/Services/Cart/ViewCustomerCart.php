@@ -31,7 +31,7 @@ class ViewCustomerCart
 				'cart:id,customer_id,branch_id,status',
 				'cart.branch:id,branch_name,location',
 				'branchProduct:id,branch_id,product_id,category_id,stock,selling_price,is_available,expiry_date',
-				'branchProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,is_prescribed',
+				'branchProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
 				'branchProduct.category:id,category_name,description',
 			])
 			->whereHas('cart', function ($query) use ($customerId) {
@@ -67,6 +67,7 @@ class ViewCustomerCart
 					'description' => $item->branchProduct?->product?->description,
 					'form' => $item->branchProduct?->product?->form,
 					'strength' => $item->branchProduct?->product?->strength,
+					'size' => $item->branchProduct?->product?->size,
 					'is_prescribed' => $prescriptionRequired,
 				],
 				'prescription_required' => $prescriptionRequired,

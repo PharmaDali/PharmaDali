@@ -47,7 +47,18 @@ function QuantityControl({ quantity, onIncrement, onDecrement }) {
   );
 }
 
+function truncateText(value, maxLength = 48) {
+  const text = String(value || '').trim();
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
+}
+
 function CartItem({ item, onToggle, onIncrement, onDecrement }) {
+  const displayName = truncateText(item.description);
+
   return (
     <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-3 mx-4">
       <Checkbox checked={item.selected} onPress={onToggle} />
@@ -63,7 +74,7 @@ function CartItem({ item, onToggle, onIncrement, onDecrement }) {
       />
       <View className="flex-1 ml-3">
         <Text className="text-xs" style={styles.fontSemiBold} numberOfLines={2}>
-          {item.description}
+          {displayName}
         </Text>
         {item.prescriptionRequired && (
           <View className="flex-row items-center mt-1">
