@@ -32,6 +32,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('branches/{branchId}/products', [BranchProductController::class, 'showBranchProducts']);
     Route::get('branches/{branchId}/categories', [BranchProductController::class, 'showBranchCategories']);
 
+    Route::middleware('ability:pharmacist,branch_admin')->group(function () {
+        Route::get('branch/forecasts', [ForecastController::class, 'index']);
+    });
+
     Route::middleware('ability:customer')->group(function () {
         Route::get('customer/dashboard', function () {
             return response()->json(['message' => 'Customer dashboard access granted']);
@@ -62,6 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacist/orders', [OrderController::class, 'index']);
         Route::get('pharmacist/orders/{order}', [OrderController::class, 'show']);
         Route::patch('pharmacist/orders/{order}/status', [OrderController::class, 'updateStatusByPharmacist']);
+
     });
 
     Route::middleware(['ability:branch_admin'])->group(function () {
@@ -74,7 +79,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
 
         Route::post('branch/forecasts/sync', [ForecastSyncController::class, 'sync']);
-        Route::get('branch/forecasts', [ForecastController::class, 'index']);
         Route::get('branch/forecast-insights', [ForecastInsightController::class, 'show']);
 
         Route::post('products', [BranchProductController::class, 'store']);
