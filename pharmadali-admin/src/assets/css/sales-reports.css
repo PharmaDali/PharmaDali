@@ -14,128 +14,158 @@
   margin-bottom: 15px;
 }
 
-/* Revenue Cards */
-.revenue-card {
-  background: var(--pd-gradient-revenue);
-  border-radius: var(--pd-radius-md);
-  padding: 15px 20px;
-  min-width: 180px;
+/* Summary Cards */
+.summary-cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
 }
 
-.revenue-label {
+.summary-card {
+  background: var(--pd-primary-light);
+  border-radius: var(--pd-radius-md);
+  padding: 12px 18px;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(72, 170, 217, 0.18);
+}
+
+.summary-label {
   font-size: 12px;
-  opacity: 0.95;
   color: var(--pd-text-medium);
 }
 
-.revenue-currency {
-  font-size: 14px;
+.summary-value {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.summary-currency {
+  font-size: 12px;
   color: var(--pd-text-medium);
 }
 
-.revenue-amount {
-  font-size: 36px;
-  line-height: 1.1;
-  color: var(--pd-text-medium);
+.summary-amount {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--pd-text-dark);
+  letter-spacing: 0.2px;
 }
 
-/* Filters */
-.filter-label {
-  font-size: 13px;
-  color: var(--pd-text-muted);
-}
-
-.filter-input {
-  border: 1.5px solid var(--pd-border);
+/* Report Card */
+.report-card {
+  background: #ffffff;
   border-radius: var(--pd-radius-md);
-  padding: 8px 38px 8px 16px;
-  font-size: 13px;
-  color: #ffffff;
-  background: #808790;
-  min-width: 200px;
+  padding: 18px;
+  border: 1px solid var(--pd-border);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
-.filter-input.with-search-icon {
-  padding-left: 38px;
-  padding-right: 16px;
+.report-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
 }
 
-.filter-input:focus,
-.filter-select:focus {
-  border-color: var(--pd-primary-dark);
-  outline: none;
+.report-title {
+  font-size: 16px;
+  color: var(--pd-text-medium);
+  margin: 0;
 }
 
-.filter-input-icon,
-.filter-search-icon {
+.report-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.report-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.report-input {
+  position: relative;
+}
+
+.report-input input {
+  border: 1px solid var(--pd-border);
+  background: #f5f8fb;
+  border-radius: var(--pd-radius-md);
+  padding: 7px 34px 7px 14px;
+  font-size: 12px;
+  color: var(--pd-text-medium);
+  min-width: 170px;
+}
+
+.report-input i {
   position: absolute;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: rgba(255,255,255,0.9);
-  font-size: 14px;
+  color: var(--pd-text-medium);
+  font-size: 13px;
 }
 
-.filter-input-icon {
-  right: 14px;
+.report-actions {
+  display: flex;
+  gap: 10px;
 }
 
-.filter-search-icon {
-  left: 14px;
-  z-index: 1;
-}
-
-.filter-select {
-  border: 1.5px solid var(--pd-border);
+.report-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--pd-primary-light);
+  background: #f3f9ff;
+  color: var(--pd-text-medium);
   border-radius: var(--pd-radius-md);
-  padding: 8px 35px 8px 16px;
-  font-size: 13px;
-  color: var(--pd-text-placeholder);
-  min-width: 180px;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2348AAD9' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
+  padding: 6px 10px;
+  font-size: 12px;
 }
 
-/* Data Cards */
-.data-card {
-  height: 320px;
-  min-height: 320px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+.report-table-wrapper {
+  border-radius: var(--pd-radius-md);
+  overflow: hidden;
+  border: 1px solid var(--pd-border);
 }
 
-@media (min-width: 992px) {
-  .row.g-3 > .col-lg-7,
-  .row.g-3 > .col-lg-5 {
-    display: flex;
-  }
-
-  .row.g-3 > .col-lg-7 .data-card,
-  .row.g-3 > .col-lg-5 .data-card {
-    width: 100%;
-    height: 100%;
-  }
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
 }
 
-.forecast-th {
-  font-size: 13px;
-  color: #555;
-  padding: 8px 0;
-  border-bottom: 1.5px solid #eee;
+.report-table thead th {
+  background: var(--pd-primary-light);
+  color: var(--pd-text-medium);
+  font-weight: 600;
+  padding: 10px 12px;
 }
 
-.forecast-td {
-  font-size: 13px;
-  color: #000;
-  padding: 12px 0;
-  border-bottom: 1px solid #f3f3f3;
+.report-table tbody td {
+  padding: 10px 12px;
+  color: var(--pd-text-medium);
+  border-bottom: 1px solid #eef3f8;
 }
 
-/* Stockout Risk */
-.stockout-title {
-  font-size: 17px;
-  color: var(--pd-primary);
-  margin-bottom: 18px;
+.report-table tbody tr:nth-child(odd) {
+  background: #f7fbff;
+}
+
+.report-total {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px 6px 0;
+  font-size: 12px;
+  color: var(--pd-text-medium);
+  font-weight: 600;
 }
 
 .stockout-row {
