@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import "../assets/css/inventory.css";
+import Modal from "../components/Modal";
+import infoIcon from "../assets/icons/modal-icons/info.svg";
 
 const INVENTORY_ITEMS = [
   {
@@ -220,6 +222,7 @@ function Inventory() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalEditing, setIsModalEditing] = useState(false);
   const [modalDraft, setModalDraft] = useState(null);
+  const [showConfirmSave, setShowConfirmSave] = useState(false);
 
   const decoratedItems = useMemo(
     () =>
@@ -305,6 +308,7 @@ function Inventory() {
     setSelectedItem(null);
     setModalDraft(null);
     setIsModalEditing(false);
+    setShowConfirmSave(false);
   };
 
   const handleDraftChange = (field, value) => {
@@ -337,6 +341,23 @@ function Inventory() {
     );
     setSelectedItem(updatedItem);
     setIsModalEditing(false);
+  };
+
+  const handleRequestSave = () => {
+    if (!isModalEditing) {
+      return;
+    }
+
+    setShowConfirmSave(true);
+  };
+
+  const handleConfirmSave = () => {
+    handleSaveChanges();
+    setShowConfirmSave(false);
+  };
+
+  const handleCancelSave = () => {
+    setShowConfirmSave(false);
   };
 
   return (
@@ -612,7 +633,7 @@ function Inventory() {
                   <button
                     type="button"
                     className="btn inventory-modal-btn inventory-modal-btn-primary"
-                    onClick={handleSaveChanges}
+                    onClick={handleRequestSave}
                     disabled={!isModalEditing}
                   >
                     Save Changes
@@ -774,6 +795,31 @@ function Inventory() {
           </div>
         </div>
       )}
+
+      <Modal
+        isOpen={showConfirmSave}
+        onClose={handleCancelSave}
+        size="sm"
+        showCloseButton={false}
+        closeOnOverlay={false}
+        className="pos-confirm-modal"
+      >
+        <div className="pos-confirm-content">
+          <img src={infoIcon} alt="Information" className="pos-confirm-icon" />
+          <h3 className="pos-confirm-title">Confirm Changes?</h3>
+          <p className="pos-confirm-text">
+            Changes will be reflected in the inventory after you save.
+          </p>
+          <div className="pos-confirm-actions">
+            <button type="button" className="pos-confirm-primary" onClick={handleConfirmSave}>
+              Continue
+            </button>
+            <button type="button" className="pos-confirm-secondary" onClick={handleCancelSave}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
     </section>
   );
 }

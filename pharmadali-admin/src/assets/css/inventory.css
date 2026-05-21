@@ -578,6 +578,7 @@ select.inventory-modal-input {
   opacity: 1;
 }
 
+
 .inventory-table-scroll::-webkit-scrollbar {
   width: 8px;
   height: 8px;
