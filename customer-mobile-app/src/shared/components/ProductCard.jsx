@@ -7,7 +7,7 @@ import RxIcon from '@assets/icons/rx_icon.svg';
 import ProductImage from '@shared/components/ProductImage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export default function ProductCard({
+const ProductCard = ({
   img,
   product,
   categoryName,
@@ -21,7 +21,7 @@ export default function ProductCard({
   onAddToCart,
   isPrescribed = false,
   isAvailable = true,
-}) {
+}) => {
   const router = useRouter();
   const [isQuantityModalOpen, setIsQuantityModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
@@ -91,7 +91,7 @@ export default function ProductCard({
         >
           {category}
         </Text>
-        {isPrescribed && (
+        {Boolean(isPrescribed) && (
           <View className="flex-row items-center mt-1">
             <RxIcon width={12} height={12} />
             <Text className="text-[10px] ml-1" style={styles.rxText}>Prescription Required</Text>
@@ -230,7 +230,9 @@ export default function ProductCard({
       </Modal>
     </TouchableOpacity>
   );
-}
+};
+
+export default ProductCard;
 
 const styles = StyleSheet.create({
   priceBold: {

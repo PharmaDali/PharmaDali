@@ -10,9 +10,13 @@ import { useFocusEffect } from '@react-navigation/native'
 import { getCartItemCount } from '@shared/services/cartService'
 import { subscribeCartCountUpdates } from '@shared/services/cartCountEvents'
 import { resetCartProductIdsCache, initializeCartProductIdsCache } from '@shared/utils/cartUtils'
+import { useSearchContext } from '@shared/SearchContext'
+import { usePathname } from 'expo-router'
 
 const TopBar = () => {
   const router = useRouter();
+  const pathname = usePathname();
+  const { searchQuery, setSearchQuery } = useSearchContext();
 
   const [cartCount, setCartCount] = useState(0);
 
@@ -67,6 +71,18 @@ const TopBar = () => {
         mode="outlined"
         left={<TextInput.Icon icon="magnify" />}
         theme={theme}
+        value={searchQuery}
+        onChangeText={(text) => {
+          setSearchQuery(text);
+          if (pathname !== '/customer/tabs/Search') {
+            router.push('/customer/tabs/Search');
+          }
+        }}
+        onFocus={() => {
+          if (pathname !== '/customer/tabs/Search') {
+            router.push('/customer/tabs/Search');
+          }
+        }}
       />
     </View>
   )

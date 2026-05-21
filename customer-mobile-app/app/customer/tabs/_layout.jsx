@@ -6,6 +6,7 @@ import { Slot, usePathname, useRouter } from 'expo-router';
 import { colors } from '@src/shared/theme/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
 import { SelectionPhaseProvider, useSelectionPhase } from '@src/shared/SelectionPhaseContext';
+import { SearchProvider } from '@src/shared/SearchContext';
 
 const detailHeaders = {
   '/customer/tabs/orders/ViewOrderDetails': 'Order Details',
@@ -51,7 +52,9 @@ export default function RootLayout() {
   return (
     <PaperProvider>
       <SelectionPhaseProvider>
-        <LayoutContent />
+        <SearchProvider>
+          <LayoutContent />
+        </SearchProvider>
       </SelectionPhaseProvider>
     </PaperProvider>
   );
