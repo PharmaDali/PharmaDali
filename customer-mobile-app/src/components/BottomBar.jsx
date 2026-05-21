@@ -42,28 +42,21 @@ export default function BottomBar() {
       }}
       style={{ backgroundColor: '#fff' }}
       inactiveColor={colors.buttonColor}
-      activeColor={colors.buttonColor}
+      activeColor="#fff"
       activeIndicatorStyle={{
-        backgroundColor: 'transparent', 
+        backgroundColor: colors.buttonColor, 
       }}
-      renderIcon={({ route, focused, color }) => {
+      renderIcon={({ route, focused }) => {
         const Icon = focused ? route.focusedIcon : route.unfocusedIcon;
-        const useStroke = ['home', 'shop'].includes(route.key);
-        
-        return (
-          <Icon 
-            width={24} 
-            height={24} 
-            fill={useStroke ? 'none' : color} 
-            stroke={useStroke ? color : undefined}
-            strokeWidth={useStroke ? 2 : undefined}
-          />
-        );
+        return <Icon width={24} height={24} />;
       }}
-      renderLabel={({ route, color }) => (
+      renderLabel={({ route }) => (
         <Text
           className="text-[10px] text-center"
-          style={{ color, fontFamily: 'Poppins-Medium' }}
+          style={{ 
+            color: colors.buttonColor, 
+            fontFamily: 'Poppins-Medium' 
+          }}
           numberOfLines={1}
         >
           {route.title}
