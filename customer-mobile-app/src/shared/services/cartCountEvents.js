@@ -12,10 +12,10 @@ export function subscribeCartCountUpdates(listener) {
   };
 }
 
-export function notifyCartCountUpdated() {
+export function notifyCartCountUpdated(event) {
   for (const listener of cartCountListeners) {
     try {
-      listener();
+      listener(event);
     } catch {
       // Ignore listener errors so one failure does not block other subscribers.
     }

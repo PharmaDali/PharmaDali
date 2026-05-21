@@ -51,7 +51,6 @@ const Shop = () => {
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
-  const [addingProductId, setAddingProductId] = useState(null)
   const { toast, showSuccess, showError } = useToast()
 
   // Pagination state
@@ -150,10 +149,8 @@ const Shop = () => {
     })
   }
 
-  const handleAddToCart = async ({ branchProductId }) => {
-    setAddingProductId(branchProductId)
-
-    const result = await addBranchProductToCart({
+  const handleAddToCart = ({ branchProductId }) => {
+    addBranchProductToCart({
       branchId: selectedBranchId,
       branchProductId,
       quantity: 1,
@@ -161,16 +158,11 @@ const Shop = () => {
         missingBranch: 'Please select a branch and try again.',
         missingProduct: 'Please select a branch and try again.',
       },
+    }).then((result) => {
+      if (!result.ok) {
+        showError(result.errorMessage)
+      }
     })
-
-    setAddingProductId(null)
-
-    if (result.ok) {
-      showSuccess(result.message)
-      return
-    }
-
-    showError(result.errorMessage)
   }
 
   const renderProductItem = useCallback(({ item, index }) => (
@@ -196,13 +188,8 @@ const Shop = () => {
         onAddToCart={handleAddToCart}
         style={{ width: 160 }}
       />
-      {addingProductId === item?.id && (
-        <Text className="mt-1 ml-1 text-[11px]" style={{ fontFamily: 'Poppins-Medium', color: '#48AAD9' }}>
-          Adding...
-        </Text>
-      )}
     </View>
-  ), [selectedBranchId, addingProductId, handleAddToCart])
+  ), [selectedBranchId, handleAddToCart])
 
   const ListHeader = useCallback(() => (
     <View>

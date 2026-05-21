@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useFocusEffect } from '@react-navigation/native'
 import { getCartItemCount } from '@shared/services/cartService'
 import { subscribeCartCountUpdates } from '@shared/services/cartCountEvents'
+import { resetCartProductIdsCache, initializeCartProductIdsCache } from '@shared/utils/cartUtils'
 
 const TopBar = () => {
   const router = useRouter();
@@ -19,6 +20,8 @@ const TopBar = () => {
     try {
       const count = await getCartItemCount();
       setCartCount(count);
+      resetCartProductIdsCache();
+      initializeCartProductIdsCache();
     } catch {
       setCartCount(0);
     }
@@ -31,8 +34,12 @@ const TopBar = () => {
   );
 
   useEffect(() => {
-    const unsubscribe = subscribeCartCountUpdates(() => {
-      loadCartCount();
+    const unsubscribe = subscribeCartCountUpdates((event) => {
+      if (event && event.type === 'increment') {
+        setCartCount((prev) => prev + (event.quantity || 1));
+      } else {
+        loadCartCount();
+      }
     });
 
     return unsubscribe;

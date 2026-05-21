@@ -21,7 +21,6 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
   const { loading, categories, branchProducts, normalizeSelectedBranch } = useHomeTab(selectedBranch);
-  const [addingProductId, setAddingProductId] = useState(null);
   const { toast, showSuccess, showError } = useToast();
 
   const branchStatusLabel = selectedBranch?.isOpen
@@ -34,12 +33,10 @@ export default function HomeScreen() {
     setSelectionPhase(false);
   };
 
-  const handleAddToCart = async ({ branchProductId }) => {
+  const handleAddToCart = ({ branchProductId }) => {
     const branchId = selectedBranch?.id ?? selectedBranch?.branch_id;
 
-    setAddingProductId(branchProductId);
-
-    const result = await addBranchProductToCart({
+    addBranchProductToCart({
       branchId,
       branchProductId,
       quantity: 1,
@@ -47,16 +44,11 @@ export default function HomeScreen() {
         missingBranch: 'Please select a branch and try again.',
         missingProduct: 'Please select a branch and try again.',
       },
+    }).then((result) => {
+      if (!result.ok) {
+        showError(result.errorMessage);
+      }
     });
-
-    setAddingProductId(null);
-
-    if (result.ok) {
-      showSuccess(result.message);
-      return;
-    }
-
-    showError(result.errorMessage);
   };
 
   if (loading) return <SkeletonHome />;
