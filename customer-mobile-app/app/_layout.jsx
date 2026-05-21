@@ -17,7 +17,13 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="customer/tabs/cart/OrderSubmitted" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="index" />
+        <Stack.Screen name="customer/index" />
+        <Stack.Screen name="customer/auth/CreateNewPasswordFPW" />
+        <Stack.Screen name="customer/auth/EnterMobileNumberFPW" />
+        <Stack.Screen name="customer/auth/EnterOTPFPW" />
+        <Stack.Screen name="customer/auth/Register" />
+        <Stack.Screen name="customer/tabs" />
       </Stack>
     </SafeAreaProvider>
   );

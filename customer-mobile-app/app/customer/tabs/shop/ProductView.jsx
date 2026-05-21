@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@src/shared/theme/colorPalette';
@@ -13,6 +13,7 @@ import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg';
 import { addBranchProductToCart } from '@shared/utils/cartUtils';
 import ToastMessage from '@shared/components/ToastMessage';
 import { useToast } from '@shared/hooks/useToast';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const productData = {
   1: {
@@ -51,20 +52,34 @@ const ProductView = () => {
   const { productId, branchProductId, branchId } = useLocalSearchParams();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const { toast, showSuccess, showError } = useToast();
+  const [isQuantityModalOpen, setIsQuantityModalOpen] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [isAddedSuccess, setIsAddedSuccess] = useState(false);
 
   const product = productData[productId] || productData.default;
 
-  const handleAddToCart = () => {
+  const handleAddToCartPress = () => {
+    setQuantity(1);
+    setIsQuantityModalOpen(true);
+  };
+
+  const handleConfirmAddToCart = () => {
+    setIsQuantityModalOpen(false);
     addBranchProductToCart({
       branchId,
       branchProductId,
-      quantity: 1,
+      quantity,
       validationMessages: {
         missingProduct: 'Please add this item from the Shop list.',
         missingBranch: 'Please select a branch first.',
       },
     }).then((result) => {
-      if (!result.ok) {
+      if (result && result.ok) {
+        setIsAddedSuccess(true);
+        setTimeout(() => {
+          setIsAddedSuccess(false);
+        }, 2000);
+      } else if (result && !result.ok) {
         showError(result.errorMessage);
       }
     });
@@ -96,12 +111,22 @@ const ProductView = () => {
 
         <View className="px-5 mb-4">
           <TouchableOpacity
-            className="bg-[#48AAD9] rounded-xl py-3 items-center"
-            onPress={handleAddToCart}
+            className={`rounded-xl py-3 items-center flex-row justify-center ${isAddedSuccess ? 'bg-[#059669]' : 'bg-[#48AAD9]'}`}
+            onPress={handleAddToCartPress}
+            disabled={isAddedSuccess}
           >
-            <Text className="text-sm text-white" style={styles.fontSemiBold}>
-              Add to cart
-            </Text>
+            {isAddedSuccess ? (
+              <>
+                <MaterialCommunityIcons name="check-circle" size={18} color="white" style={{ marginRight: 6 }} />
+                <Text className="text-sm text-white" style={styles.fontSemiBold}>
+                  Added to Cart
+                </Text>
+              </>
+            ) : (
+              <Text className="text-sm text-white" style={styles.fontSemiBold}>
+                Add to cart
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -141,6 +166,113 @@ const ProductView = () => {
           </ScrollView>
         </View>
       </ScrollView>
+
+      {/* Quantity Selection Modal Overlay */}
+      <Modal
+        visible={isQuantityModalOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsQuantityModalOpen(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 bg-black/50 justify-center items-center px-5"
+          activeOpacity={1}
+          onPress={() => setIsQuantityModalOpen(false)}
+        >
+          <TouchableOpacity
+            className="bg-white rounded-[20px] p-5 w-full max-w-[320px] shadow-lg elevation-5"
+            activeOpacity={1}
+          >
+            <Text
+              className="text-base text-center mb-4"
+              style={{ fontFamily: 'Poppins-Bold', color: colors.textColor }}
+            >
+              Select Quantity
+            </Text>
+
+            {/* Product info preview */}
+            <View className="flex-row items-center p-2.5 bg-gray-50 rounded-xl mb-5">
+              <Image
+                source={product.images[0]}
+                className="w-[50px] h-[50px] rounded-md"
+              />
+              <View className="flex-1 ml-3">
+                <Text
+                  className="text-[11px] text-gray-600"
+                  style={{ fontFamily: 'Poppins-Medium' }}
+                  numberOfLines={2}
+                >
+                  {product.name}
+                </Text>
+                <Text
+                  className="text-[13px] mt-0.5 text-[#48AAD9]"
+                  style={{ fontFamily: 'Poppins-Bold' }}
+                >
+                  PHP {product.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                </Text>
+              </View>
+            </View>
+
+            {/* Quantity selector adjustment controls */}
+            <View className="flex-row justify-center items-center mb-5">
+              <TouchableOpacity
+                onPress={() => setQuantity(q => Math.max(1, q - 1))}
+                className="w-[38px] h-[38px] rounded-[10px] border-2 border-[#48AAD9] justify-center items-center bg-white"
+              >
+                <Text
+                  className="text-base text-[#48AAD9]"
+                  style={{ fontFamily: 'Poppins-Bold' }}
+                >
+                  −
+                </Text>
+              </TouchableOpacity>
+              <Text
+                className="mx-[18px] text-base text-[#444444]"
+                style={{ fontFamily: 'Poppins-Bold' }}
+              >
+                {quantity}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setQuantity(q => q + 1)}
+                className="w-[38px] h-[38px] rounded-[10px] border-2 border-[#48AAD9] justify-center items-center bg-white"
+              >
+                <Text
+                  className="text-base text-[#48AAD9]"
+                  style={{ fontFamily: 'Poppins-Bold' }}
+                >
+                  +
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Action buttons */}
+            <View className="flex-row">
+              <TouchableOpacity
+                onPress={() => setIsQuantityModalOpen(false)}
+                className="flex-1 py-3 mr-1.5 rounded-xl border border-gray-200 items-center justify-center"
+              >
+                <Text
+                  className="text-[13px] text-gray-500"
+                  style={{ fontFamily: 'Poppins-SemiBold' }}
+                >
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleConfirmAddToCart}
+                className="flex-1 py-3 ml-1.5 rounded-xl bg-[#48AAD9] items-center justify-center"
+              >
+                <Text
+                  className="text-[13px] text-white"
+                  style={{ fontFamily: 'Poppins-SemiBold' }}
+                >
+                  Add to Cart
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };
@@ -169,5 +301,6 @@ const styles = StyleSheet.create({
   fontMedium: {
     fontFamily: 'Poppins-Medium',
   },
+
 });
 

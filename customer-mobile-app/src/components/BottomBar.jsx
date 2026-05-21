@@ -1,6 +1,9 @@
-import { useState } from 'react';
 import { BottomNavigation } from 'react-native-paper';
 import { useRouter, usePathname } from 'expo-router';
+import { Text, View } from 'react-native';
+import { colors } from '@shared/theme/colorPalette';
+
+// Icons
 import homeIcon from '@assets/icons/home_icon.svg';
 import homeIconFocused from '@assets/icons/home_icon_focused.svg';
 import ordersIcon from '@assets/icons/orders_icon.svg';
@@ -11,7 +14,6 @@ import shopIcon from '@assets/icons/shop_icon.svg';
 import shopIconFocused from '@assets/icons/shop_icon_focused.svg';
 import notificationsIcon from '@assets/icons/notifications_icon.svg';
 import notificationsIconFocused from '@assets/icons/notifications_icon_focused.svg';
-import { Text } from 'react-native';
 
 const routes = [
   { key: 'home', title: 'Home', focusedIcon: homeIconFocused, unfocusedIcon: homeIcon, path: '/customer/tabs/Home' },
@@ -35,27 +37,33 @@ export default function BottomBar() {
     <BottomNavigation.Bar
       navigationState={{ index: index >= 0 ? index : 0, routes }}
       onTabPress={({ route }) => {
-        if (pathname === route.path) {
-          return;
-        }
-
+        if (pathname === route.path) return;
         router.replace(route.path);
       }}
       style={{ backgroundColor: '#fff' }}
-      inactiveColor='#48AAD9'
-      activeColor='#48AAD9'
+      inactiveColor={colors.buttonColor}
+      activeColor={colors.buttonColor}
       activeIndicatorStyle={{
-        backgroundColor: '#48AAD9',
-
+        backgroundColor: 'transparent', 
       }}
-      renderLabel={({ route, focused, color }) => (
+      renderIcon={({ route, focused, color }) => {
+        const Icon = focused ? route.focusedIcon : route.unfocusedIcon;
+        const useStroke = ['home', 'shop'].includes(route.key);
+        
+        return (
+          <Icon 
+            width={24} 
+            height={24} 
+            fill={useStroke ? 'none' : color} 
+            stroke={useStroke ? color : undefined}
+            strokeWidth={useStroke ? 2 : undefined}
+          />
+        );
+      }}
+      renderLabel={({ route, color }) => (
         <Text
-          style={{
-            color: color,
-            fontSize: 10,
-            textAlign: 'center',
-            fontFamily: 'Poppins-Medium',
-          }}
+          className="text-[10px] text-center"
+          style={{ color, fontFamily: 'Poppins-Medium' }}
           numberOfLines={1}
         >
           {route.title}

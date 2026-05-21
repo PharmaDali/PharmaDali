@@ -23,6 +23,29 @@ export async function getProducts(branchId, categoryId = null, { cursor = null, 
   });
 }
 
+export async function searchProducts(branchId, query, { cursor = null, perPage = null } = {}) {
+  const searchParams = new URLSearchParams();
+
+  if (query) {
+    searchParams.append('query', query);
+  }
+
+  if (cursor) {
+    searchParams.append('cursor', cursor);
+  }
+
+  if (perPage !== null && perPage !== undefined) {
+    searchParams.append('per_page', String(perPage));
+  }
+
+  const queryString = searchParams.toString();
+  const endpoint = `/branches/${branchId}/products${queryString ? `?${queryString}` : ''}`;
+
+  return apiRequest(endpoint, {
+    method: 'GET',
+  });
+}
+
 export async function getBranchCategories(branchId, forceRefresh = false) {
   const searchParams = new URLSearchParams();
 

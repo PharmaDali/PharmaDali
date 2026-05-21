@@ -13,6 +13,7 @@ use App\Http\Requests\UpdateBranchProductsRequest;
 use App\Http\Requests\ShowBranchProductRequest;
 use App\Services\BranchProduct\ShowBranchProductService;
 use App\Services\BranchProduct\ShowBranchCategoriesService;
+use App\Services\BranchProduct\SearchBranchProductService;
 use Maatwebsite\Excel\Facades\Excel;
 
 class BranchProductController extends Controller
@@ -60,16 +61,25 @@ class BranchProductController extends Controller
     /**
      * Display branch-specific products for customer purchasing flow.
      */
-    public function showBranchProducts(ShowBranchProductRequest $request, ShowBranchProductService $showBranchProductService)
+    public function showBranchProducts(ShowBranchProductRequest $request, ShowBranchProductService $showBranchProductService, SearchBranchProductService $searchBranchProductService)
     {
         $validated = $request->validated();
 
-        $paginator = $showBranchProductService->handle(
-            branchId: (int) $validated['branch_id'],
-            categoryId: isset($validated['category_id']) ? (int) $validated['category_id'] : null,
-            perPage: (int) ($validated['per_page'] ?? 20),
-            cursor: $validated['cursor'] ?? null,
-        );
+        if ($request->has('query') && !empty($validated['query'])) {
+            $paginator = $searchBranchProductService->handle(
+                branchId: (int) $validated['branch_id'],
+                query: $validated['query'],
+                perPage: (int) ($validated['per_page'] ?? 20),
+                cursor: $validated['cursor'] ?? null,
+            );
+        } else {
+            $paginator = $showBranchProductService->handle(
+                branchId: (int) $validated['branch_id'],
+                categoryId: isset($validated['category_id']) ? (int) $validated['category_id'] : null,
+                perPage: (int) ($validated['per_page'] ?? 20),
+                cursor: $validated['cursor'] ?? null,
+            );
+        }
 
         return response()->json([
             'status' => 'success',

@@ -43,6 +43,7 @@ class ShowBranchProductRequest extends FormRequest
             ],
             'cursor' => ['nullable', 'string'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
+            'query' => ['sometimes', 'string', 'min:1', 'max:100'],
         ];
     }
 }

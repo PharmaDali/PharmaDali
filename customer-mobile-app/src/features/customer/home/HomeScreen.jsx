@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity } from 'react-native';
 import { colors } from '@src/shared/theme/colorPalette';
 import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,11 +10,13 @@ import ProductCard from '@shared/components/ProductCard';
 import BandaidImg from '@assets/images/bandaid_img.png';
 import SkeletonHome from '@shared/components/SkeletonHome';
 import BranchSelectionOverlay from '@shared/components/BranchSelectionOverlay';
+import SearchOverlay from '@shared/components/SearchOverlay';
 import { useSelectionPhase } from '@shared/SelectionPhaseContext';
 import { formatProductPrice, useHomeTab } from '@shared/hooks/useHomeTab';
 import { addBranchProductToCart } from '@shared/utils/cartUtils';
 import ToastMessage from '@shared/components/ToastMessage';
 import { useToast } from '@shared/hooks/useToast';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function HomeScreen() {
   const route = useRouter();
@@ -22,6 +24,7 @@ export default function HomeScreen() {
   const { setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
   const { loading, categories, branchProducts, normalizeSelectedBranch } = useHomeTab(selectedBranch);
   const { toast, showSuccess, showError } = useToast();
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const branchStatusLabel = selectedBranch?.isOpen
     ? (selectedBranch?.formattedClosingHour ? `Open til ${selectedBranch.formattedClosingHour}` : 'Open now')
@@ -33,13 +36,13 @@ export default function HomeScreen() {
     setSelectionPhase(false);
   };
 
-  const handleAddToCart = ({ branchProductId }) => {
+  const handleAddToCart = useCallback(({ branchProductId, quantity = 1 }) => {
     const branchId = selectedBranch?.id ?? selectedBranch?.branch_id;
 
-    addBranchProductToCart({
+    return addBranchProductToCart({
       branchId,
       branchProductId,
-      quantity: 1,
+      quantity,
       validationMessages: {
         missingBranch: 'Please select a branch and try again.',
         missingProduct: 'Please select a branch and try again.',
@@ -48,8 +51,9 @@ export default function HomeScreen() {
       if (!result.ok) {
         showError(result.errorMessage);
       }
+      return result;
     });
-  };
+  }, [selectedBranch, showError]);
 
   if (loading) return <SkeletonHome />;
 
@@ -70,15 +74,28 @@ export default function HomeScreen() {
         type={toast.type}
         topOffset={insets.top + 8}
       />
+      
+      {isSearchVisible && (
+        <SearchOverlay
+          visible={isSearchVisible}
+          onClose={() => setIsSearchVisible(false)}
+          branchId={selectedBranch?.id ?? selectedBranch?.branch_id}
+          onAddToCart={handleAddToCart}
+        />
+      )}
+
       <ScrollView
         className="bg-white"
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
       >
-      <Text className="text-3xl text-start px-4 py-6" style={styles.greetingMedium}>
-        Magandang Araw, <Text style={styles.greetingBold}>Denmar!</Text>
-      </Text>
-      <View className="px-4">
+      <View className="flex-row items-center justify-between px-4 pt-6">
+        <Text className="text-3xl text-start" style={styles.greetingMedium}>
+          Magandang Araw, <Text style={styles.greetingBold}>Denmar!</Text>
+        </Text>
+      </View>
+
+      <View className="px-4 mt-2">
         <View className={`flex-row items-center rounded-full px-4 py-2 self-end shadow-sm border ${isBranchOpen ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'}`}>
           <View className={`w-6 h-6 rounded-full mr-2 items-center justify-center ${isBranchOpen ? 'bg-green-600' : 'bg-red-600'}`}>
             <StoreIcon width={24} height={24} />

@@ -49,7 +49,7 @@ export async function addBranchProductToCart({
     };
   }
 
-  // Check if item is already in the cart to avoid false optimistic increments
+  // Check if the product is already in the cart using the cache. If the cache is not initialized, fetch from server.
   let isAlreadyInCart = false;
   if (cartBranchProductIds !== null) {
     isAlreadyInCart = cartBranchProductIds.has(normalizedBranchProductId);
@@ -75,7 +75,6 @@ export async function addBranchProductToCart({
       quantity,
     });
 
-    // Successfully added: Add to cache to ensure subsequent clicks are handled correctly
     if (cartBranchProductIds !== null) {
       cartBranchProductIds.add(normalizedBranchProductId);
     }
