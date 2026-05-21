@@ -149,11 +149,11 @@ const Shop = () => {
     })
   }
 
-  const handleAddToCart = ({ branchProductId }) => {
-    addBranchProductToCart({
+  const handleAddToCart = ({ branchProductId, quantity = 1 }) => {
+    return addBranchProductToCart({
       branchId: selectedBranchId,
       branchProductId,
-      quantity: 1,
+      quantity,
       validationMessages: {
         missingBranch: 'Please select a branch and try again.',
         missingProduct: 'Please select a branch and try again.',
@@ -162,6 +162,7 @@ const Shop = () => {
       if (!result.ok) {
         showError(result.errorMessage)
       }
+      return result
     })
   }
 

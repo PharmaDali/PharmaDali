@@ -33,13 +33,13 @@ export default function HomeScreen() {
     setSelectionPhase(false);
   };
 
-  const handleAddToCart = ({ branchProductId }) => {
+  const handleAddToCart = ({ branchProductId, quantity = 1 }) => {
     const branchId = selectedBranch?.id ?? selectedBranch?.branch_id;
 
-    addBranchProductToCart({
+    return addBranchProductToCart({
       branchId,
       branchProductId,
-      quantity: 1,
+      quantity,
       validationMessages: {
         missingBranch: 'Please select a branch and try again.',
         missingProduct: 'Please select a branch and try again.',
@@ -48,6 +48,7 @@ export default function HomeScreen() {
       if (!result.ok) {
         showError(result.errorMessage);
       }
+      return result;
     });
   };
 
