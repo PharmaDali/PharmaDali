@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import "../assets/css/inventory.css";
+import Modal from "../components/Modal";
 import infoIcon from "../assets/icons/modal-icons/info.svg";
 
 const INVENTORY_ITEMS = [
@@ -795,35 +796,30 @@ function Inventory() {
         </div>
       )}
 
-      {showConfirmSave && (
-        <div className="inventory-confirm-overlay" role="dialog" aria-modal="true">
-          <div className="inventory-confirm-modal">
-            <div className="inventory-confirm-icon">
-              <img src={infoIcon} alt="Information" />
-            </div>
-            <h5 className="inventory-confirm-title">Confirm Changes?</h5>
-            <p className="inventory-confirm-text">
-              Changes will be reflected in the inventory after you save.
-            </p>
-            <div className="inventory-confirm-actions">
-              <button
-                type="button"
-                className="btn inventory-confirm-btn inventory-confirm-btn-primary"
-                onClick={handleConfirmSave}
-              >
-                Continue
-              </button>
-              <button
-                type="button"
-                className="btn inventory-confirm-btn inventory-confirm-btn-outline"
-                onClick={handleCancelSave}
-              >
-                Cancel
-              </button>
-            </div>
+      <Modal
+        isOpen={showConfirmSave}
+        onClose={handleCancelSave}
+        size="sm"
+        showCloseButton={false}
+        closeOnOverlay={false}
+        className="pos-confirm-modal"
+      >
+        <div className="pos-confirm-content">
+          <img src={infoIcon} alt="Information" className="pos-confirm-icon" />
+          <h3 className="pos-confirm-title">Confirm Changes?</h3>
+          <p className="pos-confirm-text">
+            Changes will be reflected in the inventory after you save.
+          </p>
+          <div className="pos-confirm-actions">
+            <button type="button" className="pos-confirm-primary" onClick={handleConfirmSave}>
+              Continue
+            </button>
+            <button type="button" className="pos-confirm-secondary" onClick={handleCancelSave}>
+              Cancel
+            </button>
           </div>
         </div>
-      )}
+      </Modal>
     </section>
   );
 }
