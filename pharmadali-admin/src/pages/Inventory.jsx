@@ -165,6 +165,39 @@ const formatExpiry = (days) => {
   return `${month}/${year}`;
 };
 
+const formatExpiryMonthValue = (days) => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${year}-${month}`;
+};
+
+const getDaysUntilMonth = (value) => {
+  if (!value) {
+    return 0;
+  }
+
+  const [yearValue, monthValue] = value.split("-");
+  const year = Number(yearValue);
+  const month = Number(monthValue);
+
+  if (!year || !month) {
+    return 0;
+  }
+
+  const targetDate = new Date(year, month - 1, 1);
+  const today = new Date();
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffMs = targetDate.getTime() - todayDate.getTime();
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+};
+
+const toNumber = (value, fallback = 0) => {
+  const next = Number(value);
+  return Number.isNaN(next) ? fallback : next;
+};
+
 const getWeeksLeft = (item) => {
   const velocityRates = { Fast: 4, Medium: 2, Slow: 1 };
   const weeklyUsage = (velocityRates[item.velocity] ?? 2) * 7;
@@ -183,16 +216,19 @@ function Inventory() {
   const [priceFilter, setPriceFilter] = useState("All");
   const [stockFilter, setStockFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [inventoryItems, setInventoryItems] = useState(INVENTORY_ITEMS);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [isModalEditing, setIsModalEditing] = useState(false);
+  const [modalDraft, setModalDraft] = useState(null);
 
   const decoratedItems = useMemo(
     () =>
-      INVENTORY_ITEMS.map((item) => ({
+      inventoryItems.map((item) => ({
         ...item,
         status: getInventoryStatus(item),
         expiryLabel: formatExpiry(item.expiringInDays),
       })),
-    [],
+    [inventoryItems],
   );
 
   const categoryOptions = useMemo(() => CATEGORY_FILTERS, []);
@@ -247,6 +283,61 @@ function Inventory() {
     .filter((item) => item.expiringInDays > 0 && item.expiringInDays <= 30)
     .sort((a, b) => a.expiringInDays - b.expiringInDays)
     .slice(0, 3);
+
+  const handleSelectItem = (item) => {
+    setSelectedItem(item);
+    setIsModalEditing(false);
+    setModalDraft({
+      name: item.name,
+      brand: item.brand,
+      category: item.category,
+      form: item.form,
+      id: item.id,
+      sellingPrice: item.sellingPrice,
+      reorderPoint: item.reorderPoint,
+      quantity: item.quantity,
+      expiryMonth: formatExpiryMonthValue(item.expiringInDays),
+      needsPrescription: false,
+    });
+  };
+
+  const handleModalClose = () => {
+    setSelectedItem(null);
+    setModalDraft(null);
+    setIsModalEditing(false);
+  };
+
+  const handleDraftChange = (field, value) => {
+    setModalDraft((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleSaveChanges = () => {
+    if (!selectedItem || !modalDraft) {
+      return;
+    }
+
+    const updatedItem = {
+      ...selectedItem,
+      name: modalDraft.name.trim() || selectedItem.name,
+      brand: modalDraft.brand.trim() || selectedItem.brand,
+      category: modalDraft.category.trim() || selectedItem.category,
+      form: modalDraft.form.trim() || selectedItem.form,
+      id: modalDraft.id.trim() || selectedItem.id,
+      sellingPrice: toNumber(modalDraft.sellingPrice, selectedItem.sellingPrice),
+      reorderPoint: toNumber(modalDraft.reorderPoint, selectedItem.reorderPoint),
+      quantity: toNumber(modalDraft.quantity, selectedItem.quantity),
+      expiringInDays: getDaysUntilMonth(modalDraft.expiryMonth),
+    };
+
+    setInventoryItems((prev) =>
+      prev.map((item) => (item.id === selectedItem.id ? updatedItem : item)),
+    );
+    setSelectedItem(updatedItem);
+    setIsModalEditing(false);
+  };
 
   return (
     <section className="inventory-page">
@@ -428,7 +519,7 @@ function Inventory() {
                       <tr
                         key={item.id}
                         className={selectedItem?.id === item.id ? "inventory-row-selected" : ""}
-                        onClick={() => setSelectedItem(item)}
+                        onClick={() => handleSelectItem(item)}
                       >
                         <td>
                           <p className="inventory-item-name mb-0">{item.name}</p>
@@ -501,19 +592,29 @@ function Inventory() {
         </div>
       </div>
 
-      {selectedItem && (
+      {selectedItem && modalDraft && (
         <div className="inventory-modal-overlay" role="dialog" aria-modal="true">
           <div className="inventory-modal">
             <div className="inventory-modal-header">
               <div className="inventory-modal-heading">
                 <h5 className="inventory-modal-title mb-0">Product Details</h5>
               </div>
-              <div className="inventory-modal-actions">
+              <div className={`inventory-modal-actions${isModalEditing ? " is-editing" : ""}`}>
                 <div className="inventory-modal-action-buttons">
-                  <button type="button" className="btn inventory-modal-btn inventory-modal-btn-outline">
+                  <button
+                    type="button"
+                    className="btn inventory-modal-btn inventory-modal-btn-outline"
+                    onClick={() => setIsModalEditing(true)}
+                    disabled={isModalEditing}
+                  >
                     Edit
                   </button>
-                  <button type="button" className="btn inventory-modal-btn inventory-modal-btn-primary">
+                  <button
+                    type="button"
+                    className="btn inventory-modal-btn inventory-modal-btn-primary"
+                    onClick={handleSaveChanges}
+                    disabled={!isModalEditing}
+                  >
                     Save Changes
                   </button>
                 </div>
@@ -521,7 +622,7 @@ function Inventory() {
                   type="button"
                   className="btn inventory-modal-close"
                   aria-label="Close"
-                  onClick={() => setSelectedItem(null)}
+                  onClick={handleModalClose}
                 >
                   <i className="fa-solid fa-xmark" aria-hidden="true" />
                 </button>
@@ -534,19 +635,48 @@ function Inventory() {
                 <div className="inventory-modal-grid">
                   <div>
                     <p className="inventory-modal-label">Generic Name</p>
-                    <p className="inventory-modal-value">{selectedItem.name}</p>
+                    <input
+                      type="text"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.name}
+                      onChange={(event) => handleDraftChange("name", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
                   </div>
                   <div>
                     <p className="inventory-modal-label">Brand Name</p>
-                    <p className="inventory-modal-value">{selectedItem.brand}</p>
+                    <input
+                      type="text"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.brand}
+                      onChange={(event) => handleDraftChange("brand", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
                   </div>
                   <div>
                     <p className="inventory-modal-label">Category</p>
-                    <p className="inventory-modal-value">{selectedItem.category}</p>
+                    <select
+                      className="form-select inventory-modal-input"
+                      value={modalDraft.category}
+                      onChange={(event) => handleDraftChange("category", event.target.value)}
+                      disabled={!isModalEditing}
+                    >
+                      {CATEGORY_FILTERS.filter((category) => category !== "All").map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div>
                     <p className="inventory-modal-label">Form</p>
-                    <p className="inventory-modal-value">{selectedItem.form}</p>
+                    <input
+                      type="text"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.form}
+                      onChange={(event) => handleDraftChange("form", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
                   </div>
                 </div>
               </div>
@@ -556,23 +686,59 @@ function Inventory() {
                 <div className="inventory-modal-grid">
                   <div>
                     <p className="inventory-modal-label">Barcode</p>
-                    <p className="inventory-modal-value">{selectedItem.id}</p>
+                    <input
+                      type="text"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.id}
+                      onChange={(event) => handleDraftChange("id", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
                   </div>
                   <div>
                     <p className="inventory-modal-label">Needs Prescription</p>
-                    <p className="inventory-modal-value">False</p>
+                    <select
+                      className="form-select inventory-modal-input"
+                      value={modalDraft.needsPrescription ? "true" : "false"}
+                      onChange={(event) =>
+                        handleDraftChange("needsPrescription", event.target.value === "true")
+                      }
+                      disabled={!isModalEditing}
+                    >
+                      <option value="false">False</option>
+                      <option value="true">True</option>
+                    </select>
                   </div>
                   <div>
                     <p className="inventory-modal-label">Expiry Date</p>
-                    <p className="inventory-modal-value">{selectedItem.expiryLabel}</p>
+                    <input
+                      type="month"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.expiryMonth}
+                      onChange={(event) => handleDraftChange("expiryMonth", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
                   </div>
                   <div>
                     <p className="inventory-modal-label">Selling Cost</p>
-                    <p className="inventory-modal-value">Php {selectedItem.sellingPrice.toFixed(2)}</p>
+                    <input
+                      type="number"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.sellingPrice}
+                      onChange={(event) => handleDraftChange("sellingPrice", event.target.value)}
+                      step="0.01"
+                      min="0"
+                      disabled={!isModalEditing}
+                    />
                   </div>
                   <div>
                     <p className="inventory-modal-label">Dosage/Size</p>
-                    <p className="inventory-modal-value">{selectedItem.form}</p>
+                    <input
+                      type="text"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.form}
+                      onChange={(event) => handleDraftChange("form", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
                   </div>
                 </div>
               </div>
@@ -582,11 +748,25 @@ function Inventory() {
                 <div className="inventory-modal-grid">
                   <div>
                     <p className="inventory-modal-label">Reorder Level</p>
-                    <p className="inventory-modal-value">{selectedItem.reorderPoint}</p>
+                    <input
+                      type="number"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.reorderPoint}
+                      onChange={(event) => handleDraftChange("reorderPoint", event.target.value)}
+                      min="0"
+                      disabled={!isModalEditing}
+                    />
                   </div>
                   <div>
                     <p className="inventory-modal-label">Initial Stock Quantity</p>
-                    <p className="inventory-modal-value">{selectedItem.quantity}</p>
+                    <input
+                      type="number"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.quantity}
+                      onChange={(event) => handleDraftChange("quantity", event.target.value)}
+                      min="0"
+                      disabled={!isModalEditing}
+                    />
                   </div>
                 </div>
               </div>
