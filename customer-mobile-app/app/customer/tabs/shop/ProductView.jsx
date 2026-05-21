@@ -50,15 +50,12 @@ const ProductView = () => {
   const insets = useSafeAreaInsets();
   const { productId, branchProductId, branchId } = useLocalSearchParams();
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
   const { toast, showSuccess, showError } = useToast();
 
   const product = productData[productId] || productData.default;
 
-  const handleAddToCart = async () => {
-    setIsAdding(true);
-
-    const result = await addBranchProductToCart({
+  const handleAddToCart = () => {
+    addBranchProductToCart({
       branchId,
       branchProductId,
       quantity: 1,
@@ -66,16 +63,11 @@ const ProductView = () => {
         missingProduct: 'Please add this item from the Shop list.',
         missingBranch: 'Please select a branch first.',
       },
+    }).then((result) => {
+      if (!result.ok) {
+        showError(result.errorMessage);
+      }
     });
-
-    setIsAdding(false);
-
-    if (result.ok) {
-      showSuccess(result.message);
-      return;
-    }
-
-    showError(result.errorMessage);
   };
 
   return (
@@ -104,12 +96,11 @@ const ProductView = () => {
 
         <View className="px-5 mb-4">
           <TouchableOpacity
-            className={`${isAdding ? 'bg-[#90cbe6]' : 'bg-[#48AAD9]'} rounded-xl py-3 items-center`}
+            className="bg-[#48AAD9] rounded-xl py-3 items-center"
             onPress={handleAddToCart}
-            disabled={isAdding}
           >
             <Text className="text-sm text-white" style={styles.fontSemiBold}>
-              {isAdding ? 'Adding...' : 'Add to cart'}
+              Add to cart
             </Text>
           </TouchableOpacity>
         </View>
