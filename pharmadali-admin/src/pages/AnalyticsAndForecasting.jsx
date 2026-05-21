@@ -645,16 +645,19 @@ function AnalyticsAndForecasting() {
                     <div className="row g-3 mb-3 aif-demand-row">
                         <div className="col-12 col-md-4 col-lg-3">
                             <article className="card border-0 rounded-3 p-3 h-100 aif-card aif-insight-card aif-demand-insight">
+                                <p className="aif-insight-card-title">Demand Insight</p>
                                 <div className="aif-insight-icon">
                                     <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
                                 </div>
                                 <div className="aif-insight-inner">
-                                    <p className={`aif-insight-text${insightsLoading ? " aif-insight-loading" : ""}`}>
-                                        {insightsLoading
-                                            ? "AI insight is loading..."
-                                            : (demandInsight
-                                                || "Unable to generate demand insights at this time. Please try again later.")}
-                                    </p>
+                                    <div className="aif-insight-copy">
+                                        <p className={`aif-insight-text${insightsLoading ? " aif-insight-loading" : ""}`}>
+                                            {insightsLoading
+                                                ? "AI insight is loading..."
+                                                : (demandInsight
+                                                    || "Unable to generate demand insights at this time. Please try again later.")}
+                                        </p>
+                                    </div>
                                 </div>
                             </article>
                         </div>
@@ -740,16 +743,19 @@ function AnalyticsAndForecasting() {
                     <div className="row g-3 mb-3 aif-sales-row">
                         <div className="col-12">
                             <article className="card border-0 rounded-3 h-100 aif-card aif-insight-card aif-insight-card-sales aif-sales-insight">
+                                <p className="aif-insight-card-title">Sales Insight</p>
                                 <div className="aif-insight-icon">
                                     <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
                                 </div>
                                 <div className="aif-insight-inner">
-                                    <p className={`aif-insight-text${insightsLoading ? " aif-insight-loading" : ""}`}>
-                                        {insightsLoading
-                                            ? "AI insight is loading..."
-                                            : (salesInsight
-                                                || "Unable to generate sales insights at this time. Please try again later.")}
-                                    </p>
+                                    <div className="aif-insight-copy">
+                                        <p className={`aif-insight-text${insightsLoading ? " aif-insight-loading" : ""}`}>
+                                            {insightsLoading
+                                                ? "AI insight is loading..."
+                                                : (salesInsight
+                                                    || "Unable to generate sales insights at this time. Please try again later.")}
+                                        </p>
+                                    </div>
                                 </div>
                             </article>
                         </div>
@@ -792,16 +798,18 @@ function AnalyticsAndForecasting() {
                     <div className="row g-3 mb-3 aif-stock-row">
                         <div className="col-12">
                             <article className="card border-0 rounded-3 h-100 aif-card aif-insight-card aif-insight-card-sales aif-stock-insight">
+                                <p className="aif-insight-card-title">Stock Insights</p>
                                 <div className="aif-insight-icon">
                                     <img src={AIIcon} alt="AI Insight" style={{ width: "30px", height: "30px" }} />
                                 </div>
                                 <div className="aif-insight-inner">
-                                    <p className="aif-insight-label">AI Recommendation</p>
-                                    <p className="aif-insight-text">
-                                        Adjust reordering frequency for high-demand items and limit
-                                        restocking of slow-moving products to maintain balanced
-                                        inventory levels.
-                                    </p>
+                                    <div className="aif-insight-copy">
+                                        <p className="aif-insight-text">
+                                            Adjust reordering frequency for high-demand items and limit
+                                            restocking of slow-moving products to maintain balanced
+                                            inventory levels.
+                                        </p>
+                                    </div>
                                 </div>
                             </article>
                         </div>
