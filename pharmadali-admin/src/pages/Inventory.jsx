@@ -183,6 +183,7 @@ function Inventory() {
   const [priceFilter, setPriceFilter] = useState("All");
   const [stockFilter, setStockFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const decoratedItems = useMemo(
     () =>
@@ -424,7 +425,11 @@ function Inventory() {
                     </tr>
                   ) : (
                     filteredItems.map((item) => (
-                      <tr key={item.id}>
+                      <tr
+                        key={item.id}
+                        className={selectedItem?.id === item.id ? "inventory-row-selected" : ""}
+                        onClick={() => setSelectedItem(item)}
+                      >
                         <td>
                           <p className="inventory-item-name mb-0">{item.name}</p>
                           <p className="inventory-item-meta mb-0">{item.brand}</p>
@@ -495,6 +500,100 @@ function Inventory() {
           </div>
         </div>
       </div>
+
+      {selectedItem && (
+        <div className="inventory-modal-overlay" role="dialog" aria-modal="true">
+          <div className="inventory-modal">
+            <div className="inventory-modal-header">
+              <div className="inventory-modal-heading">
+                <h5 className="inventory-modal-title mb-0">Product Details</h5>
+              </div>
+              <div className="inventory-modal-actions">
+                <div className="inventory-modal-action-buttons">
+                  <button type="button" className="btn inventory-modal-btn inventory-modal-btn-outline">
+                    Edit
+                  </button>
+                  <button type="button" className="btn inventory-modal-btn inventory-modal-btn-primary">
+                    Save Changes
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="btn inventory-modal-close"
+                  aria-label="Close"
+                  onClick={() => setSelectedItem(null)}
+                >
+                  <i className="fa-solid fa-xmark" aria-hidden="true" />
+                </button>
+              </div>
+            </div>
+
+            <div className="inventory-modal-body">
+              <div className="inventory-modal-section">
+                <h6 className="inventory-modal-section-title">Basic Information</h6>
+                <div className="inventory-modal-grid">
+                  <div>
+                    <p className="inventory-modal-label">Generic Name</p>
+                    <p className="inventory-modal-value">{selectedItem.name}</p>
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Brand Name</p>
+                    <p className="inventory-modal-value">{selectedItem.brand}</p>
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Category</p>
+                    <p className="inventory-modal-value">{selectedItem.category}</p>
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Form</p>
+                    <p className="inventory-modal-value">{selectedItem.form}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="inventory-modal-section">
+                <h6 className="inventory-modal-section-title">Inventory Data</h6>
+                <div className="inventory-modal-grid">
+                  <div>
+                    <p className="inventory-modal-label">Barcode</p>
+                    <p className="inventory-modal-value">{selectedItem.id}</p>
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Needs Prescription</p>
+                    <p className="inventory-modal-value">False</p>
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Expiry Date</p>
+                    <p className="inventory-modal-value">{selectedItem.expiryLabel}</p>
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Selling Cost</p>
+                    <p className="inventory-modal-value">Php {selectedItem.sellingPrice.toFixed(2)}</p>
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Dosage/Size</p>
+                    <p className="inventory-modal-value">{selectedItem.form}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="inventory-modal-section">
+                <h6 className="inventory-modal-section-title">Stock Settings</h6>
+                <div className="inventory-modal-grid">
+                  <div>
+                    <p className="inventory-modal-label">Reorder Level</p>
+                    <p className="inventory-modal-value">{selectedItem.reorderPoint}</p>
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Initial Stock Quantity</p>
+                    <p className="inventory-modal-value">{selectedItem.quantity}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
