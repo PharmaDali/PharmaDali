@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import "../assets/css/inventory.css";
+import infoIcon from "../assets/icons/modal-icons/info.svg";
 
 const INVENTORY_ITEMS = [
   {
@@ -220,6 +221,7 @@ function Inventory() {
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalEditing, setIsModalEditing] = useState(false);
   const [modalDraft, setModalDraft] = useState(null);
+  const [showConfirmSave, setShowConfirmSave] = useState(false);
 
   const decoratedItems = useMemo(
     () =>
@@ -305,6 +307,7 @@ function Inventory() {
     setSelectedItem(null);
     setModalDraft(null);
     setIsModalEditing(false);
+    setShowConfirmSave(false);
   };
 
   const handleDraftChange = (field, value) => {
@@ -337,6 +340,23 @@ function Inventory() {
     );
     setSelectedItem(updatedItem);
     setIsModalEditing(false);
+  };
+
+  const handleRequestSave = () => {
+    if (!isModalEditing) {
+      return;
+    }
+
+    setShowConfirmSave(true);
+  };
+
+  const handleConfirmSave = () => {
+    handleSaveChanges();
+    setShowConfirmSave(false);
+  };
+
+  const handleCancelSave = () => {
+    setShowConfirmSave(false);
   };
 
   return (
@@ -612,7 +632,7 @@ function Inventory() {
                   <button
                     type="button"
                     className="btn inventory-modal-btn inventory-modal-btn-primary"
-                    onClick={handleSaveChanges}
+                    onClick={handleRequestSave}
                     disabled={!isModalEditing}
                   >
                     Save Changes
@@ -770,6 +790,36 @@ function Inventory() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showConfirmSave && (
+        <div className="inventory-confirm-overlay" role="dialog" aria-modal="true">
+          <div className="inventory-confirm-modal">
+            <div className="inventory-confirm-icon">
+              <img src={infoIcon} alt="Information" />
+            </div>
+            <h5 className="inventory-confirm-title">Confirm Changes?</h5>
+            <p className="inventory-confirm-text">
+              Changes will be reflected in the inventory after you save.
+            </p>
+            <div className="inventory-confirm-actions">
+              <button
+                type="button"
+                className="btn inventory-confirm-btn inventory-confirm-btn-primary"
+                onClick={handleConfirmSave}
+              >
+                Continue
+              </button>
+              <button
+                type="button"
+                className="btn inventory-confirm-btn inventory-confirm-btn-outline"
+                onClick={handleCancelSave}
+              >
+                Cancel
+              </button>
             </div>
           </div>
         </div>
