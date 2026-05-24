@@ -13,18 +13,9 @@ import { addBranchProductToCart } from '@shared/utils/cartUtils'
 import { useToast } from '@shared/hooks/useToast'
 import ToastMessage from '@shared/components/ToastMessage'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { toTitleCase } from '@shared/utils/stringUtils'
 
 const PRODUCTS_PER_PAGE = 20
-
-const toTitleCase = (str) => {
-  if (!str) return ''
-  return str.replace(
-    /\w\S*/g,
-    function(txt) {
-      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-    }
-  );
-}
 
 function normalizeApiList(payload) {
   if (Array.isArray(payload)) {
