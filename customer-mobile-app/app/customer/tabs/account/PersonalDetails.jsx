@@ -2,28 +2,11 @@ import { StyleSheet, Text, View, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { colors } from '@src/shared/theme/colorPalette'
 import { getCustomerProfile } from '@src/shared/services/customerProfileService';
+import { useProfile } from '@src/shared/hooks/useProfile';
 import { toTitleCase } from '@src/shared/utils/stringUtils';
 
 const PersonalDetails = () => {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const result = await getCustomerProfile();
-      if (result.status === 'success') {
-        setProfile(result.data.user);
-      }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { profile, loading } = useProfile();
 
   if (loading) {
     return (

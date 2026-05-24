@@ -46,6 +46,13 @@ export async function searchProducts(branchId, query, { cursor = null, perPage =
   });
 }
 
+export async function getBranchProduct(branchId, branchProductId) {
+  const endpoint = `/branches/${branchId}/products/${branchProductId}`;
+  return apiRequest(endpoint, {
+    method: 'GET',
+  });
+}
+
 export async function getBranchCategories(branchId, forceRefresh = false) {
   const searchParams = new URLSearchParams();
 
