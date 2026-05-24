@@ -1,0 +1,33 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Medical Box -->
+  <path
+    d="M8 18C8 15.7909 9.79086 14 12 14H36C38.2091 14 40 15.7909 40 18V35C40 37.2091 38.2091 39 36 39H12C9.79086 39 8 37.2091 8 35V18Z"
+    stroke="#48AAD9"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Handle -->
+  <path
+    d="M18 14V11C18 8.79086 19.7909 7 22 7H26C28.2091 7 30 8.79086 30 11V14"
+    stroke="#48AAD9"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Cross -->
+  <path
+    d="M24 21V31"
+    stroke="#48AAD9"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+  <path
+    d="M19 26H29"
+    stroke="#48AAD9"
+    stroke-width="3"
+    stroke-linecap="round"
+  />
+</svg>

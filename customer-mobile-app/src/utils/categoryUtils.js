@@ -10,6 +10,8 @@ import InfantIcon from '@assets/icons/category-icons/infant-icon.svg';
 import MilkIcon from '@assets/icons/category-icons/milk-icon.svg';
 import DrinksIcon from '@assets/icons/category-icons/drinks-icon.svg';
 import VitaminsIcon from '@assets/icons/category-icons/vitamins-icon.svg';
+import SuppliesIcon from '@assets/icons/category-icons/supplies-icon.svg';
+import UclassifiedIcon from '@assets/icons/category-icons/unclassified-icon.svg';
 
 export const CATEGORY_ICONS = {
   'Branded': BrandedIcon,
@@ -24,4 +26,6 @@ export const CATEGORY_ICONS = {
   'Milk': MilkIcon,
   'Drinks': DrinksIcon,
   'Vitamins': VitaminsIcon,
+  'Supplies': SuppliesIcon,
+  'Unclassified': UclassifiedIcon,
 };
