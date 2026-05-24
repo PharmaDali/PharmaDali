@@ -6,6 +6,7 @@ import AccountIcon from '@assets/icons/account_icon.svg'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import EditIcon from '@assets/icons/edit_icon.svg'
 import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
+import { toTitleCase } from '@shared/utils/stringUtils';
 
 const Account = () => {
   const router = useRouter();
@@ -74,7 +75,7 @@ const Account = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.textSemiBoldDark} className="text-lg mt-2">{displayName}</Text>
+        <Text style={styles.textSemiBoldDark} className="text-lg mt-2">{toTitleCase(displayName)}</Text>
         <Text style={styles.textLight} className="text-sm">{displayContact}</Text>
         {!!errorMessage && (
           <Text style={styles.errorText} className="text-xs mt-2 text-center">{errorMessage}</Text>

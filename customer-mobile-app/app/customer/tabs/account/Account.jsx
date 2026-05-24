@@ -1,13 +1,46 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router';
 import { colors } from '@src/shared/theme/colorPalette'
 import AccountIcon from '@assets/icons/account_icon.svg'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import EditIcon from '@assets/icons/edit_icon.svg'
+import { getCustomerProfile } from '@src/shared/services/customerProfileService';
+import { toTitleCase } from '@src/shared/utils/stringUtils';
 
 const Account = () => {
   const router = useRouter();
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const result = await getCustomerProfile();
+      if (result.status === 'success') {
+        setProfile(result.data.user);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  const { first_name, last_name, mobile_number } = profile || {};
+  const initials = first_name ? first_name.charAt(0).toUpperCase() : '';
+
   return (
     <View style={styles.container}>
       <View style={styles.card} className="m-4 p-6 my-10 rounded-xl border border-gray-200 items-center">
@@ -17,7 +50,7 @@ const Account = () => {
           <View className="w-20 h-20 rounded-full items-center justify-center overflow-hidden"
             style={styles.defaultPicture}>
             <Text style={styles.textBold} className="text-3xl">
-              D
+              {initials}
             </Text>
           </View>
           <TouchableOpacity className="w-6 h-6 rounded-full items-center justify-center -mt-3 ml-10">
@@ -25,8 +58,8 @@ const Account = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.textSemiBoldDark} className="text-lg mt-2">Denmar Redondo</Text>
-        <Text style={styles.textLight} className="text-sm">09123456789</Text>
+        <Text style={styles.textSemiBoldDark} className="text-lg mt-2">{toTitleCase(first_name)} {toTitleCase(last_name)}</Text>
+        <Text style={styles.textLight} className="text-sm">{mobile_number}</Text>
       </View>
 
       <TouchableOpacity
