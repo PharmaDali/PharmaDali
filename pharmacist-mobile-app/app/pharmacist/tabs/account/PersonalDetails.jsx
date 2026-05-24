@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useMemo, useState } from 'react'
 import { colors } from '@src/shared/theme/colorPalette'
 import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
+import { toTitleCase } from '@shared/utils/stringUtils';
 
 const PersonalDetails = () => {
   const [profile, setProfile] = useState(null);
@@ -52,8 +53,8 @@ const PersonalDetails = () => {
             <Text style={styles.labelText}>Contact Number: </Text>
           </View>
           <View>
-            <Text style={styles.text}>{profile?.user?.first_name || '-'}</Text>
-            <Text style={styles.text}>{profile?.user?.last_name || '-'}</Text>
+            <Text style={styles.text}>{toTitleCase(profile?.user?.first_name) || '-'}</Text>
+            <Text style={styles.text}>{toTitleCase(profile?.user?.last_name) || '-'}</Text>
             <Text style={styles.text}>{birthday}</Text>
             <Text style={styles.text}>{contactNumber}</Text>
           </View>
