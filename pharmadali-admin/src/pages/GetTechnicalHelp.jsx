@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import "../assets/css/get-technical-help.css";
+import successfulIcon from "../assets/icons/modal-icons/successful-task.svg";
 
 const SUPPORT_LINKS = [
     {
@@ -150,13 +151,51 @@ function SupportHome({ onNavigate }) {
 
 function ContactSupportView({ onBack }) {
     const [submitted, setSubmitted] = useState(false);
+    const [showCallbackModal, setShowCallbackModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [ticketRefId, setTicketRefId] = useState("");
+    const [callbackData, setCallbackData] = useState({
+        phone: "",
+        bestTime: "",
+        summary: "",
+    });
 
     const handleSubmit = (event) => {
         event.preventDefault();
         setSubmitted(true);
     };
 
+    const handleCallbackClick = () => {
+        setShowCallbackModal(true);
+    };
+
+    const handleCallbackClose = () => {
+        setShowCallbackModal(false);
+        setCallbackData({ phone: "", bestTime: "", summary: "" });
+    };
+
+    const handleCallbackChange = (e) => {
+        const { name, value } = e.target;
+        setCallbackData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleCallbackSubmit = (e) => {
+        e.preventDefault();
+        // Generate a ticket reference ID
+        const refId = "TKT-" + Date.now().toString().slice(-8);
+        setTicketRefId(refId);
+        setShowSuccessModal(true);
+        setShowCallbackModal(false);
+        setCallbackData({ phone: "", bestTime: "", summary: "" });
+    };
+
+    const handleSuccessModalClose = () => {
+        setShowSuccessModal(false);
+        setTicketRefId("");
+    };
+
     return (
+        <>
         <section className="dashboard-page tech-help-page">
             <button type="button" className="btn btn-link p-0 tech-help-back-link" onClick={onBack}>
                 <i className="fa-solid fa-arrow-left me-2" aria-hidden="true" />
@@ -199,7 +238,7 @@ function ContactSupportView({ onBack }) {
                                 <button type="submit" className="btn tech-help-submit-btn">
                                     Submit Support Ticket
                                 </button>
-                                <button type="button" className="btn tech-help-callback-btn">
+                                <button type="button" className="btn tech-help-callback-btn" onClick={handleCallbackClick}>
                                     <i className="fa-solid fa-phone-volume me-2" aria-hidden="true" />
                                     Request Priority Callback
                                 </button>
@@ -252,6 +291,320 @@ function ContactSupportView({ onBack }) {
                 </div>
             </div>
         </section>
+
+        {showCallbackModal && (
+            <div
+                style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: 1000,
+                }}
+                onClick={handleCallbackClose}
+            >
+                <div
+                    style={{
+                        backgroundColor: "white",
+                        borderRadius: "12px",
+                        overflow: "hidden",
+                        maxWidth: "420px",
+                        width: "90%",
+                        maxHeight: "90vh",
+                        overflowY: "auto",
+                        position: "relative",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div
+                        style={{
+                            background: "linear-gradient(135deg, #48AAD9 0%, #48AAD9 100%)",
+                            padding: "20px 24px",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            color: "white",
+                        }}
+                    >
+                        <h3 style={{ margin: 0, fontSize: "18px", fontWeight: "600" }}>
+                            Priority Callback Request
+                        </h3>
+                        <button
+                            onClick={handleCallbackClose}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                fontSize: "24px",
+                                cursor: "pointer",
+                                color: "white",
+                                padding: 0,
+                            }}
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleCallbackSubmit} style={{ padding: "24px" }}>
+                        <div style={{ marginBottom: "20px" }}>
+                            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", fontSize: "14px", color: "#333" }}>
+                                Phone number for callback:
+                            </label>
+                            <input
+                                type="tel"
+                                name="phone"
+                                value={callbackData.phone}
+                                onChange={handleCallbackChange}
+                                placeholder="+1 (555) 000-0000"
+                                style={{
+                                    width: "100%",
+                                    padding: "10px 12px",
+                                    border: "1px solid #e0e0e0",
+                                    borderRadius: "6px",
+                                    fontSize: "14px",
+                                    backgroundColor: "#f5f5f5",
+                                }}
+                                required
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: "20px" }}>
+                            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", fontSize: "14px", color: "#333" }}>
+                                Best Time to Call:
+                            </label>
+                            <select
+                                name="bestTime"
+                                value={callbackData.bestTime}
+                                onChange={handleCallbackChange}
+                                style={{
+                                    width: "100%",
+                                    padding: "10px 12px",
+                                    border: "1px solid #e0e0e0",
+                                    borderRadius: "6px",
+                                    fontSize: "14px",
+                                    backgroundColor: "#f5f5f5",
+                                }}
+                                required
+                            >
+                                <option value="">Select time:</option>
+                                <option value="09:00">9:00 AM - 10:00 AM</option>
+                                <option value="10:00">10:00 AM - 11:00 AM</option>
+                                <option value="11:00">11:00 AM - 12:00 PM</option>
+                                <option value="14:00">2:00 PM - 3:00 PM</option>
+                                <option value="15:00">3:00 PM - 4:00 PM</option>
+                                <option value="16:00">4:00 PM - 5:00 PM</option>
+                            </select>
+                        </div>
+
+                        <div style={{ marginBottom: "12px", padding: "12px", backgroundColor: "#f0f7ff", borderRadius: "6px" }}>
+                            <p style={{ margin: 0, fontSize: "13px", color: "#666" }}>
+                                <strong>Operating Hours:</strong> 8:00 AM - 2:00 PM
+                            </p>
+                        </div>
+
+                        <div style={{ marginBottom: "20px", fontSize: "13px", color: "#666", lineHeight: "1.5" }}>
+                            <p style={{ margin: 0 }}>
+                                Provide your details and a support specialist will call you at the selected time.
+                            </p>
+                        </div>
+
+                        <div style={{ marginBottom: "20px" }}>
+                            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", fontSize: "14px", color: "#333" }}>
+                                Brief Summary: (optional)
+                            </label>
+                            <textarea
+                                name="summary"
+                                value={callbackData.summary}
+                                onChange={handleCallbackChange}
+                                placeholder="Briefly describe the issue you need help with..."
+                                style={{
+                                    width: "100%",
+                                    padding: "10px 12px",
+                                    border: "1px solid #e0e0e0",
+                                    borderRadius: "6px",
+                                    fontSize: "14px",
+                                    backgroundColor: "#f5f5f5",
+                                    fontFamily: "inherit",
+                                    resize: "vertical",
+                                    minHeight: "80px",
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ display: "flex", gap: "12px" }}>
+                            <button
+                                type="button"
+                                onClick={handleCallbackClose}
+                                style={{
+                                    flex: 1,
+                                    padding: "10px 16px",
+                                    border: "1px solid #48AAD9",
+                                    backgroundColor: "transparent",
+                                    color: "#48AAD9",
+                                    borderRadius: "6px",
+                                    fontSize: "14px",
+                                    fontWeight: "500",
+                                    cursor: "pointer",
+                                    transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.backgroundColor = "#f0f7ff";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.backgroundColor = "transparent";
+                                }}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="submit"
+                                style={{
+                                    flex: 1,
+                                    padding: "10px 16px",
+                                    border: "none",
+                                    backgroundColor: "#48AAD9",
+                                    color: "white",
+                                    borderRadius: "6px",
+                                    fontSize: "14px",
+                                    fontWeight: "500",
+                                    cursor: "pointer",
+                                    transition: "all 0.2s ease",
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.target.style.backgroundColor = "#3a92b8";
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.target.style.backgroundColor = "#48AAD9";
+                                }}
+                            >
+                                Submit Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        )}
+
+        {showSuccessModal && (
+            <div
+                style={{
+                    position: "fixed",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: "rgba(0, 0, 0, 0.5)",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: 1001,
+                }}
+            >
+                <div
+                    style={{
+                        backgroundColor: "white",
+                        borderRadius: "12px",
+                        overflow: "hidden",
+                        maxWidth: "420px",
+                        width: "90%",
+                        padding: "40px 24px",
+                        textAlign: "center",
+                    }}
+                >
+                    <div
+                        style={{
+                            marginBottom: "24px",
+                            display: "flex",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <img src={successfulIcon} alt="success" style={{ width: "64px", height: "64px" }} />
+                    </div>
+
+                    <h2
+                        style={{
+                            fontSize: "22px",
+                            fontWeight: "700",
+                            marginBottom: "16px",
+                            color: "#1f2937",
+                        }}
+                    >
+                        Ticket Successfully Submitted
+                    </h2>
+
+                    <p
+                        style={{
+                            fontSize: "14px",
+                            color: "#666",
+                            lineHeight: "1.6",
+                            marginBottom: "16px",
+                        }}
+                    >
+                        Your support ticket has been received and added to our queue. We have sent a confirmation email with your ticket details to the user [user email].
+                    </p>
+
+                    <div
+                        style={{
+                            backgroundColor: "#f0f7ff",
+                            padding: "12px",
+                            borderRadius: "6px",
+                            marginBottom: "16px",
+                        }}
+                    >
+                        <p
+                            style={{
+                                margin: 0,
+                                fontSize: "13px",
+                                color: "#333",
+                                fontWeight: "500",
+                            }}
+                        >
+                            Ticket Reference ID: <strong>{ticketRefId}</strong>
+                        </p>
+                    </div>
+
+                    <p
+                        style={{
+                            fontSize: "13px",
+                            color: "#666",
+                            lineHeight: "1.5",
+                            marginBottom: "24px",
+                        }}
+                    >
+                        A support specialist will review your issue and respond shortly, usually within 2 hours.
+                    </p>
+
+                    <button
+                        onClick={handleSuccessModalClose}
+                        style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            backgroundColor: "#48AAD9",
+                            color: "white",
+                            border: "none",
+                            borderRadius: "6px",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            transition: "background-color 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#3a92b8";
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "#48AAD9";
+                        }}
+                    >
+                        DONE
+                    </button>
+                </div>
+            </div>
+        )}
+        </>
     );
 }
 
