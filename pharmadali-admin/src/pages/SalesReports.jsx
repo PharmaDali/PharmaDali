@@ -1,5 +1,8 @@
 
 import { useState } from "react";
+import calendarIcon from "../assets/icons/sale-and-reports/calendar.svg";
+import pdfIcon from "../assets/icons/sale-and-reports/pdf-icon.svg";
+import printIcon from "../assets/icons/sale-and-reports/print.svg";
 
 const REVENUE_CARDS = [
   { label: "Daily Sales", amount: "20,003", currency: "PHP" },
@@ -155,20 +158,20 @@ function SalesReports() {
               <div className="report-filters">
                 <div className="report-input">
                   <input type="text" placeholder="Start Date - Time" />
-                  <i className="fa-regular fa-calendar" />
+                  <img src={calendarIcon} alt="calendar" className="report-input-icon" />
                 </div>
                 <div className="report-input">
                   <input type="text" placeholder="End Date - Time" />
-                  <i className="fa-regular fa-calendar" />
+                  <img src={calendarIcon} alt="calendar" className="report-input-icon" />
                 </div>
               </div>
               <div className="report-actions">
                 <button className="report-action" type="button">
-                  <i className="fa-regular fa-file-pdf" />
+                  <img src={pdfIcon} alt="pdf" className="report-action-icon" />
                   <span>PDF</span>
                 </button>
                 <button className="report-action" type="button">
-                  <i className="fa-solid fa-print" />
+                  <img src={printIcon} alt="print" className="report-action-icon" />
                   <span>Print</span>
                 </button>
               </div>

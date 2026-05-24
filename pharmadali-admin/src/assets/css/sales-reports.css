@@ -113,6 +113,16 @@
   font-size: 13px;
 }
 
+.report-input-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+}
+
 .report-actions {
   display: flex;
   gap: 10px;
@@ -128,6 +138,11 @@
   border-radius: var(--pd-radius-md);
   padding: 6px 10px;
   font-size: 12px;
+}
+
+.report-action-icon {
+  width: 16px;
+  height: 16px;
 }
 
 .report-table-wrapper {
