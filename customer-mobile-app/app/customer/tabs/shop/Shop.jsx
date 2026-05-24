@@ -2,7 +2,6 @@ import { Text, View, TouchableOpacity, FlatList, ActivityIndicator } from 'react
 import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import BandaidImg from '@assets/images/bandaid_img.png'
 import ProductCard from '@src/shared/components/ProductCard'
 import { useSelectionPhase } from '@src/shared/SelectionPhaseContext'
 import { getBranchCategories, getProducts } from '@src/shared/services/productService'
@@ -172,7 +171,7 @@ const Shop = () => {
         productId={String(item?.product_id ?? '')}
         branchProductId={item?.id}
         branchId={selectedBranchId}
-        img={BandaidImg}
+        img={item?.product?.image_url}
         product={item?.product}
         categoryName={item?.category?.category_name}
         description={item?.product?.product_name || 'Unnamed product'}
