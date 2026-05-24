@@ -1,8 +1,38 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { StyleSheet, Text, View, ActivityIndicator } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { colors } from '@src/shared/theme/colorPalette'
+import { getCustomerProfile } from '@src/shared/services/customerProfileService';
+import { toTitleCase } from '@src/shared/utils/stringUtils';
 
 const PersonalDetails = () => {
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const result = await getCustomerProfile();
+      if (result.status === 'success') {
+        setProfile(result.data.user);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View className="items-center justify-center mt-10 bg-white border border-gray-300 rounded-xl px-4 py-6 mx-4">
@@ -15,10 +45,10 @@ const PersonalDetails = () => {
             <Text style={styles.labelText}>Contact Number: </Text>
           </View>
           <View>
-            <Text style={styles.text}>Denmar</Text>
-            <Text style={styles.text}>Redondo</Text>
-            <Text style={styles.text}>08/12/2004</Text>
-            <Text style={styles.text}>09123456789</Text>
+            <Text style={styles.text}>{toTitleCase(profile?.first_name) || 'N/A'}</Text>
+            <Text style={styles.text}>{toTitleCase(profile?.last_name) || 'N/A'}</Text>
+            <Text style={styles.text}>{profile?.date_of_birth || 'N/A'}</Text>
+            <Text style={styles.text}>{profile?.mobile_number || 'N/A'}</Text>
           </View>
         </View>
       </View>
