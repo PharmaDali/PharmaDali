@@ -1,50 +1,19 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@src/shared/theme/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
-import ImageSlider from '@src/shared/components/ImageSlider';
+import ProductImage from '@src/shared/components/ProductImage';
 import ProductCard from '@src/shared/components/ProductCard';
-import BandaidImg from '@assets/images/bandaid_img.png';
-import BetadineImg from '@assets/images/betadine_img.png';
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg';
 import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg';
 import { addBranchProductToCart } from '@shared/utils/cartUtils';
+import { getBranchProduct, getProducts } from '@shared/services/productService';
 import ToastMessage from '@shared/components/ToastMessage';
+import SkeletonProductView from '@src/shared/components/SkeletonProductView';
 import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
-const productData = {
-  1: {
-    name: 'OMRON MC-720 Digital Forehead Thermometer for Baby and Body Temperature',
-    price: 3480.00,
-    images: [BandaidImg, BandaidImg, BandaidImg],
-    category: 'First Aid Accessories',
-    details: 'OMRON Digital Forehead Thermometer MC720\n\nProvides non-contact forehead temperature measurement suitable for all ages, including infants and young children.\n\nThe Forehead Thermometer is non-intrusive. A measurement can be taken even while the child is sleeping. It offers a more comfortable temperature measurement especially for young children.\n\nBenefits of Omron Digital Forehead Thermometer:\n- Selectable °C / °F\n- Easy-to-Fold Design\n- Backlight\n- Last Reading on the Same Display with Current Reading\n- Silent Mode\n- 25 Memories\n- 3-in-1 Measurement\n- Gentle and Easy to Use',
-  },
-  2: {
-    name: 'Betadine Antiseptic Povidone Iodine 10% 60ml',
-    price: 109.00,
-    images: [BetadineImg, BetadineImg],
-    category: 'First Aid',
-    details: 'Betadine Antiseptic Solution contains Povidone-Iodine 10% for the treatment and prevention of infection in minor cuts, wounds, and burns.',
-  },
-  default: {
-    name: 'MEDIPLAST Sterilized Gauze Pads 4x4',
-    price: 9.50,
-    images: [BandaidImg],
-    category: 'First Aid',
-    details: 'Sterilized gauze pads for wound care and first aid treatment.',
-  },
-};
-
-const similarProducts = [
-  { img: BandaidImg, description: 'OMRON TH839S Digital Ear Thermometer for Baby...', category: 'First Aid Accessories', price: 'PHP 1,918.75' },
-  { img: BetadineImg, description: 'SAFEPLUS Infrared Forehead Thermometer', category: 'First Aid Accessories', price: 'PHP 1,118.75' },
-  { img: BandaidImg, description: 'MEDIPLAST Sterilized Gauze Pads 4x4', category: 'First Aid', price: 'PHP 9.50' },
-  { img: BetadineImg, description: 'Betadine Antiseptic Povidone Iodine 10% 60ml', category: 'First Aid', price: 'PHP 109.00' },
-];
 
 const ProductView = () => {
   const router = useRouter();
@@ -56,7 +25,57 @@ const ProductView = () => {
   const [quantity, setQuantity] = useState(1);
   const [isAddedSuccess, setIsAddedSuccess] = useState(false);
 
-  const product = productData[productId] || productData.default;
+  const [productData, setProductData] = useState(null);
+  const [similarProducts, setSimilarProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchProductData = async () => {
+      try {
+        const result = await getBranchProduct(branchId, branchProductId);
+        if (!isMounted) return;
+
+        if (result.status === 'success') {
+          const productInfo = result.data;
+          setProductData(productInfo);
+
+          // Fetch similar products in the same category
+          if (productInfo.category_id) {
+            const similarResult = await getProducts(branchId, productInfo.category_id, {
+              perPage: 6,
+            });
+            if (isMounted && similarResult.status === 'success') {
+              // Filter out the current product
+              const filtered = similarResult.data.filter(
+                (p) => String(p.id) !== String(branchProductId)
+              );
+              setSimilarProducts(filtered);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        if (isMounted) {
+          showError('Failed to load product details.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    if (branchId && branchProductId) {
+      setLoading(true);
+      fetchProductData();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [branchId, branchProductId]);
 
   const handleAddToCartPress = () => {
     setQuantity(1);
@@ -85,6 +104,25 @@ const ProductView = () => {
     });
   };
 
+  if (loading) {
+    return <SkeletonProductView />;
+  }
+
+  if (!productData) {
+    return (
+      <View className="flex-1 bg-white justify-center items-center px-5">
+        <Text style={styles.fontMedium}>Product not found.</Text>
+        <TouchableOpacity onPress={() => router.back()} className="mt-4 py-2 px-4 bg-[#48AAD9] rounded-lg">
+          <Text className="text-white">Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const { product, selling_price, category } = productData;
+  const name = product?.product_name || product?.brand_name || 'Unnamed Product';
+  const description = product?.description || 'No description available.';
+
   return (
     <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
       <ToastMessage
@@ -100,12 +138,21 @@ const ProductView = () => {
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <ImageSlider images={product.images} height={260} />
+        <View className="items-center bg-gray-50 py-4">
+          <ProductImage
+            product={product}
+            categoryName={category?.category_name}
+            width={260}
+            height={260}
+          />
+        </View>
 
         <View className="px-5 pt-4 pb-3">
-          <Text className="text-base" style={styles.productName}>{product.name}</Text>
+          <Text className="text-base" style={styles.productName}>
+            {[name, product?.strength, product?.form, product?.size].filter(Boolean).join(' ')}
+          </Text>
           <Text className="text-xl mt-2" style={styles.priceText}>
-            PHP {product.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            PHP {Number(selling_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
           </Text>
         </View>
 
@@ -143,7 +190,7 @@ const ProductView = () => {
         {detailsOpen && (
           <View className="px-5 pb-4">
             <Text className="text-sm text-gray-600 leading-5" style={styles.fontMedium}>
-              {product.details}
+              {description}
             </Text>
           </View>
         )}
@@ -152,18 +199,28 @@ const ProductView = () => {
 
         <View className="px-5 pt-4 pb-6">
           <Text className="text-lg mb-3" style={styles.fontBold}>Similar Products</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {similarProducts.map((item, index) => (
-              <ProductCard
-                key={index}
-                img={item.img}
-                description={item.description}
-                category={item.category}
-                price={item.price}
-                style={{ width: 150, marginRight: 12 }}
-              />
-            ))}
-          </ScrollView>
+          {similarProducts.length > 0 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {similarProducts.map((item) => (
+                <ProductCard
+                  key={item.id}
+                  product={item.product}
+                  categoryName={item.category?.category_name}
+                  description={`${item.product?.product_name || item.product?.brand_name} ${item.product?.strength || ''} ${item.product?.form || ''}`}
+                  category={item.category?.category_name}
+                  price={`PHP ${Number(item.selling_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`}
+                  productId={String(item.product_id)}
+                  branchProductId={String(item.id)}
+                  branchId={branchId}
+                  isPrescribed={Boolean(item.product?.is_prescribed)}
+                  isAvailable={item.is_available}
+                  style={{ width: 150, marginRight: 12 }}
+                />
+              ))}
+            </ScrollView>
+          ) : (
+            <Text className="text-gray-400 italic">No similar products found.</Text>
+          )}
         </View>
       </ScrollView>
 
@@ -192,9 +249,11 @@ const ProductView = () => {
 
             {/* Product info preview */}
             <View className="flex-row items-center p-2.5 bg-gray-50 rounded-xl mb-5">
-              <Image
-                source={product.images[0]}
-                className="w-[50px] h-[50px] rounded-md"
+              <ProductImage
+                product={product}
+                categoryName={category?.category_name}
+                width={50}
+                height={50}
               />
               <View className="flex-1 ml-3">
                 <Text
@@ -202,13 +261,13 @@ const ProductView = () => {
                   style={{ fontFamily: 'Poppins-Medium' }}
                   numberOfLines={2}
                 >
-                  {product.name}
+                  {name}
                 </Text>
                 <Text
                   className="text-[13px] mt-0.5 text-[#48AAD9]"
                   style={{ fontFamily: 'Poppins-Bold' }}
                 >
-                  PHP {product.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                  PHP {Number(selling_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
                 </Text>
               </View>
             </View>
