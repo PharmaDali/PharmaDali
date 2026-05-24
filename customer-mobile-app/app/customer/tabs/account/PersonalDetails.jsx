@@ -9,21 +9,29 @@ const PersonalDetails = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    let isMounted = true;
 
-  const fetchProfile = async () => {
-    try {
-      const result = await getCustomerProfile();
-      if (result.status === 'success') {
-        setProfile(result.data.user);
+    const fetchProfileData = async () => {
+      try {
+        const result = await getCustomerProfile();
+        if (isMounted && result.status === 'success') {
+          setProfile(result.data.user);
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchProfileData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   if (loading) {
     return (
