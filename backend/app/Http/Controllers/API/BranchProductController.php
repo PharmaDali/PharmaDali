@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ImportBranchProductsRequest;
 use App\Imports\BranchProductsImport;
 use App\Models\Products;
+use App\Models\BranchProduct;
 use App\Http\Requests\CreateBranchProductRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -55,6 +56,25 @@ class BranchProductController extends Controller
         return response()->json([
             'status' => 'success',
             'data' => $product
+        ]);
+    }
+
+    /**
+     * Display a specific branch product.
+     */
+    public function showSingleBranchProduct(int $branchId, int $branchProductId)
+    {
+        $branchProduct = BranchProduct::with([
+            'product',
+            'category'
+        ])
+            ->where('branch_id', $branchId)
+            ->where('id', $branchProductId)
+            ->firstOrFail();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $branchProduct
         ]);
     }
 
