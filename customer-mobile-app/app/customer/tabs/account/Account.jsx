@@ -6,37 +6,12 @@ import AccountIcon from '@assets/icons/account_icon.svg'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import EditIcon from '@assets/icons/edit_icon.svg'
 import { getCustomerProfile } from '@src/shared/services/customerProfileService';
+import { useProfile } from '@src/shared/hooks/useProfile';
 import { toTitleCase } from '@src/shared/utils/stringUtils';
 
 const Account = () => {
   const router = useRouter();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchProfile = async () => {
-      try {
-        const result = await getCustomerProfile();
-        if (isMounted && result.status === 'success') {
-          setProfile(result.data.user);
-        }
-      } catch (error) {
-        console.error('Error fetching profile:', error);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchProfile();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const { profile, loading } = useProfile();
 
   if (loading) {
     return (

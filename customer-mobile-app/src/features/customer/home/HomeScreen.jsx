@@ -7,20 +7,22 @@ import { useRouter } from 'expo-router';
 import StoreIcon from '@assets/icons/store_icon.svg';
 import HomeCarousel from '@assets/icons/home_carousel.svg';
 import ProductCard from '@shared/components/ProductCard';
-import BandaidImg from '@assets/images/bandaid_img.png';
 import SkeletonHome from '@shared/components/SkeletonHome';
 import BranchSelectionOverlay from '@shared/components/BranchSelectionOverlay';
 import SearchOverlay from '@shared/components/SearchOverlay';
 import { useSelectionPhase } from '@shared/SelectionPhaseContext';
 import { formatProductPrice, useHomeTab } from '@shared/hooks/useHomeTab';
+import { useProfile } from '@shared/hooks/useProfile';
 import { addBranchProductToCart } from '@shared/utils/cartUtils';
 import ToastMessage from '@shared/components/ToastMessage';
 import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { toTitleCase } from '@shared/utils/stringUtils';
 
 export default function HomeScreen() {
   const route = useRouter();
   const insets = useSafeAreaInsets();
+  const { profile } = useProfile();
   const { setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
   const { loading, categories, branchProducts, normalizeSelectedBranch } = useHomeTab(selectedBranch);
   const { toast, showSuccess, showError } = useToast();
@@ -91,7 +93,7 @@ export default function HomeScreen() {
       >
       <View className="flex-row items-center justify-between px-4 pt-6">
         <Text className="text-3xl text-start" style={styles.greetingMedium}>
-          Magandang Araw, <Text style={styles.greetingBold}>Denmar!</Text>
+          Magandang Araw, <Text style={styles.greetingBold}>{toTitleCase(profile?.first_name) || 'User'}!</Text>
         </Text>
       </View>
 
@@ -163,7 +165,7 @@ export default function HomeScreen() {
                   productId={String(item?.product_id ?? '')}
                   branchProductId={item?.id}
                   branchId={branchId}
-                  img={BandaidImg}
+                  img={item?.product?.image_url}
                   product={item?.product}
                   categoryName={item?.category?.category_name}
                   description={item?.product?.product_name || 'Unnamed product'}
