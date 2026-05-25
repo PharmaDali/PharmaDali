@@ -112,13 +112,6 @@
   padding-bottom: 8px;
 }
 
-
-.pos-payment-modal .pd-modal__title {
-  font-size: clamp(1.35rem, 1.7vw, 1.7rem);
-  font-weight: 700;
-  color: #222;
-}
-
 .pos-payment-modal .pd-modal__body {
   padding-top: 4px;
 }
@@ -389,10 +382,6 @@
 
   .pos-payment-actions > .btn {
     min-width: 0;
-  }
-
-  .pos-payment-modal .pd-modal__title {
-    font-size: 1.25rem;
   }
 
   .pos-payment-meta {

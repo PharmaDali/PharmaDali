@@ -613,188 +613,179 @@ function Inventory() {
         </div>
       </div>
 
-      {selectedItem && modalDraft && (
-        <div className="inventory-modal-overlay" role="dialog" aria-modal="true">
-          <div className="inventory-modal">
-            <div className="inventory-modal-header">
-              <div className="inventory-modal-heading">
-                <h5 className="inventory-modal-title mb-0">Product Details</h5>
-              </div>
-              <div className={`inventory-modal-actions${isModalEditing ? " is-editing" : ""}`}>
-                <div className="inventory-modal-action-buttons">
-                  <button
-                    type="button"
-                    className="btn inventory-modal-btn inventory-modal-btn-outline"
-                    onClick={() => setIsModalEditing(true)}
-                    disabled={isModalEditing}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="btn inventory-modal-btn inventory-modal-btn-primary"
-                    onClick={handleRequestSave}
+      <Modal
+        isOpen={!!selectedItem}
+        onClose={handleModalClose}
+        title="Product Details"
+        size="md"
+        className="inventory-details-modal"
+        showCloseButton={true}
+        footer={
+          <div className={`inventory-modal-actions${isModalEditing ? " is-editing" : ""}`}>
+            <button
+              type="button"
+              className="btn inventory-modal-btn inventory-modal-btn-outline"
+              onClick={() => setIsModalEditing(true)}
+              disabled={isModalEditing}
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              className="btn inventory-modal-btn inventory-modal-btn-primary"
+              onClick={handleRequestSave}
+              disabled={!isModalEditing}
+            >
+              Save Changes
+            </button>
+          </div>
+        }
+      >
+        {selectedItem && modalDraft && (
+          <div className="inventory-modal-body-content">
+            <div className="inventory-modal-section">
+              <h6 className="inventory-modal-section-title">Basic Information</h6>
+              <div className="inventory-modal-grid">
+                <div>
+                  <p className="inventory-modal-label">Generic Name</p>
+                  <input
+                    type="text"
+                    className="form-control inventory-modal-input"
+                    value={modalDraft.name}
+                    onChange={(event) => handleDraftChange("name", event.target.value)}
+                    disabled={!isModalEditing}
+                  />
+                </div>
+                <div>
+                  <p className="inventory-modal-label">Brand Name</p>
+                  <input
+                    type="text"
+                    className="form-control inventory-modal-input"
+                    value={modalDraft.brand}
+                    onChange={(event) => handleDraftChange("brand", event.target.value)}
+                    disabled={!isModalEditing}
+                  />
+                </div>
+                <div>
+                  <p className="inventory-modal-label">Category</p>
+                  <select
+                    className="form-select inventory-modal-input"
+                    value={modalDraft.category}
+                    onChange={(event) => handleDraftChange("category", event.target.value)}
                     disabled={!isModalEditing}
                   >
-                    Save Changes
-                  </button>
+                    {CATEGORY_FILTERS.filter((category) => category !== "All").map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <button
-                  type="button"
-                  className="btn inventory-modal-close"
-                  aria-label="Close"
-                  onClick={handleModalClose}
-                >
-                  <i className="fa-solid fa-xmark" aria-hidden="true" />
-                </button>
+                <div>
+                  <p className="inventory-modal-label">Form</p>
+                  <input
+                    type="text"
+                    className="form-control inventory-modal-input"
+                    value={modalDraft.form}
+                    onChange={(event) => handleDraftChange("form", event.target.value)}
+                    disabled={!isModalEditing}
+                  />
+                </div>
               </div>
             </div>
 
-            <div className="inventory-modal-body">
-              <div className="inventory-modal-section">
-                <h6 className="inventory-modal-section-title">Basic Information</h6>
-                <div className="inventory-modal-grid">
-                  <div>
-                    <p className="inventory-modal-label">Generic Name</p>
-                    <input
-                      type="text"
-                      className="form-control inventory-modal-input"
-                      value={modalDraft.name}
-                      onChange={(event) => handleDraftChange("name", event.target.value)}
-                      disabled={!isModalEditing}
-                    />
-                  </div>
-                  <div>
-                    <p className="inventory-modal-label">Brand Name</p>
-                    <input
-                      type="text"
-                      className="form-control inventory-modal-input"
-                      value={modalDraft.brand}
-                      onChange={(event) => handleDraftChange("brand", event.target.value)}
-                      disabled={!isModalEditing}
-                    />
-                  </div>
-                  <div>
-                    <p className="inventory-modal-label">Category</p>
-                    <select
-                      className="form-select inventory-modal-input"
-                      value={modalDraft.category}
-                      onChange={(event) => handleDraftChange("category", event.target.value)}
-                      disabled={!isModalEditing}
-                    >
-                      {CATEGORY_FILTERS.filter((category) => category !== "All").map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <p className="inventory-modal-label">Form</p>
-                    <input
-                      type="text"
-                      className="form-control inventory-modal-input"
-                      value={modalDraft.form}
-                      onChange={(event) => handleDraftChange("form", event.target.value)}
-                      disabled={!isModalEditing}
-                    />
-                  </div>
+            <div className="inventory-modal-section">
+              <h6 className="inventory-modal-section-title">Inventory Data</h6>
+              <div className="inventory-modal-grid">
+                <div>
+                  <p className="inventory-modal-label">Barcode</p>
+                  <input
+                    type="text"
+                    className="form-control inventory-modal-input"
+                    value={modalDraft.id}
+                    onChange={(event) => handleDraftChange("id", event.target.value)}
+                    disabled={!isModalEditing}
+                  />
+                </div>
+                <div>
+                  <p className="inventory-modal-label">Needs Prescription</p>
+                  <select
+                    className="form-select inventory-modal-input"
+                    value={modalDraft.needsPrescription ? "true" : "false"}
+                    onChange={(event) =>
+                      handleDraftChange("needsPrescription", event.target.value === "true")
+                    }
+                    disabled={!isModalEditing}
+                  >
+                    <option value="false">False</option>
+                    <option value="true">True</option>
+                  </select>
+                </div>
+                <div>
+                  <p className="inventory-modal-label">Expiry Date</p>
+                  <input
+                    type="month"
+                    className="form-control inventory-modal-input"
+                    value={modalDraft.expiryMonth}
+                    onChange={(event) => handleDraftChange("expiryMonth", event.target.value)}
+                    disabled={!isModalEditing}
+                  />
+                </div>
+                <div>
+                  <p className="inventory-modal-label">Selling Cost</p>
+                  <input
+                    type="number"
+                    className="form-control inventory-modal-input"
+                    value={modalDraft.sellingPrice}
+                    onChange={(event) => handleDraftChange("sellingPrice", event.target.value)}
+                    step="0.01"
+                    min="0"
+                    disabled={!isModalEditing}
+                  />
+                </div>
+                <div>
+                  <p className="inventory-modal-label">Dosage/Size</p>
+                  <input
+                    type="text"
+                    className="form-control inventory-modal-input"
+                    value={modalDraft.form}
+                    onChange={(event) => handleDraftChange("form", event.target.value)}
+                    disabled={!isModalEditing}
+                  />
                 </div>
               </div>
+            </div>
 
-              <div className="inventory-modal-section">
-                <h6 className="inventory-modal-section-title">Inventory Data</h6>
-                <div className="inventory-modal-grid">
-                  <div>
-                    <p className="inventory-modal-label">Barcode</p>
-                    <input
-                      type="text"
-                      className="form-control inventory-modal-input"
-                      value={modalDraft.id}
-                      onChange={(event) => handleDraftChange("id", event.target.value)}
-                      disabled={!isModalEditing}
-                    />
-                  </div>
-                  <div>
-                    <p className="inventory-modal-label">Needs Prescription</p>
-                    <select
-                      className="form-select inventory-modal-input"
-                      value={modalDraft.needsPrescription ? "true" : "false"}
-                      onChange={(event) =>
-                        handleDraftChange("needsPrescription", event.target.value === "true")
-                      }
-                      disabled={!isModalEditing}
-                    >
-                      <option value="false">False</option>
-                      <option value="true">True</option>
-                    </select>
-                  </div>
-                  <div>
-                    <p className="inventory-modal-label">Expiry Date</p>
-                    <input
-                      type="month"
-                      className="form-control inventory-modal-input"
-                      value={modalDraft.expiryMonth}
-                      onChange={(event) => handleDraftChange("expiryMonth", event.target.value)}
-                      disabled={!isModalEditing}
-                    />
-                  </div>
-                  <div>
-                    <p className="inventory-modal-label">Selling Cost</p>
-                    <input
-                      type="number"
-                      className="form-control inventory-modal-input"
-                      value={modalDraft.sellingPrice}
-                      onChange={(event) => handleDraftChange("sellingPrice", event.target.value)}
-                      step="0.01"
-                      min="0"
-                      disabled={!isModalEditing}
-                    />
-                  </div>
-                  <div>
-                    <p className="inventory-modal-label">Dosage/Size</p>
-                    <input
-                      type="text"
-                      className="form-control inventory-modal-input"
-                      value={modalDraft.form}
-                      onChange={(event) => handleDraftChange("form", event.target.value)}
-                      disabled={!isModalEditing}
-                    />
-                  </div>
+            <div className="inventory-modal-section">
+              <h6 className="inventory-modal-section-title">Stock Settings</h6>
+              <div className="inventory-modal-grid">
+                <div>
+                  <p className="inventory-modal-label">Reorder Level</p>
+                  <input
+                    type="number"
+                    className="form-control inventory-modal-input"
+                    value={modalDraft.reorderPoint}
+                    onChange={(event) => handleDraftChange("reorderPoint", event.target.value)}
+                    min="0"
+                    disabled={!isModalEditing}
+                  />
                 </div>
-              </div>
-
-              <div className="inventory-modal-section">
-                <h6 className="inventory-modal-section-title">Stock Settings</h6>
-                <div className="inventory-modal-grid">
-                  <div>
-                    <p className="inventory-modal-label">Reorder Level</p>
-                    <input
-                      type="number"
-                      className="form-control inventory-modal-input"
-                      value={modalDraft.reorderPoint}
-                      onChange={(event) => handleDraftChange("reorderPoint", event.target.value)}
-                      min="0"
-                      disabled={!isModalEditing}
-                    />
-                  </div>
-                  <div>
-                    <p className="inventory-modal-label">Initial Stock Quantity</p>
-                    <input
-                      type="number"
-                      className="form-control inventory-modal-input"
-                      value={modalDraft.quantity}
-                      onChange={(event) => handleDraftChange("quantity", event.target.value)}
-                      min="0"
-                      disabled={!isModalEditing}
-                    />
-                  </div>
+                <div>
+                  <p className="inventory-modal-label">Initial Stock Quantity</p>
+                  <input
+                    type="number"
+                    className="form-control inventory-modal-input"
+                    value={modalDraft.quantity}
+                    onChange={(event) => handleDraftChange("quantity", event.target.value)}
+                    min="0"
+                    disabled={!isModalEditing}
+                  />
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       <Modal
         isOpen={showConfirmSave}
