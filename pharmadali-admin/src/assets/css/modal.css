@@ -55,7 +55,8 @@
 .pd-modal__title {
   margin: 0;
   font-size: 1.1rem;
-  color: var(--pd-text-dark);
+  color: #48AAD9 !important;
+  font-weight: 700;
 }
 
 .pd-modal__close {

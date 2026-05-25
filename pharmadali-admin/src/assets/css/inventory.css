@@ -390,44 +390,7 @@
   align-items: stretch;
 }
 
-.inventory-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  z-index: 1050;
-}
 
-.inventory-modal {
-  width: min(550px, 100%);
-  background: #ffffff;
-  border-radius: 18px;
-  border: 1px solid #e6eef7;
-  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.2);
-  overflow: hidden;
-}
-
-.inventory-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.15rem 1.5rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.inventory-modal-heading {
-  min-width: 0;
-}
-
-.inventory-modal-title {
-  font-size: 1.08rem;
-  font-weight: 600;
-  color: #48AAD9;
-}
 
 .inventory-modal-actions {
   display: flex;
@@ -453,8 +416,8 @@
 
 .inventory-modal-btn-outline {
   background: #ffffff;
-  border: 1px solid #6eb5ea;
-  color: #2f80c7;
+  border: 1px solid #48AAD9;
+  color: #48AAD9;
 }
 
 .inventory-modal-btn-primary {
@@ -466,8 +429,8 @@
 .inventory-modal-btn-outline:disabled,
 .inventory-modal-btn-outline:disabled {
   background: #ffffff;
-  border-color: #6eb5ea;
-  color: #2f80c7;
+  border-color: #48AAD9;
+  color: #48AAD9;
   opacity: 1;
 }
 
@@ -482,7 +445,7 @@
 .inventory-modal-actions.is-editing .inventory-modal-btn-outline {
   background: #bfe7fb;
   border-color: #bfe7fb;
-  color: #2f80c7;
+  color: #48AAD9;
 }
 
 .inventory-modal-actions.is-editing .inventory-modal-btn-primary {
@@ -491,18 +454,7 @@
   color: #ffffff;
 }
 
-.inventory-modal-close {
-  border: 0;
-  background: transparent;
-  color: #9ca3af;
-  font-size: 1.05rem;
-  padding: 0.15rem 0.35rem;
-  line-height: 1;
-}
 
-.inventory-modal-body {
-  padding: 1.05rem 1.5rem 1.6rem;
-}
 
 .inventory-modal-section {
   padding: 1.05rem 0;
@@ -624,11 +576,6 @@ select.inventory-modal-input {
 }
 
 @media (max-width: 575.98px) {
-  .inventory-modal-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
   .inventory-modal-actions {
     width: 100%;
     flex-wrap: wrap;
