@@ -27,7 +27,7 @@ const statusConfig = {
   },
 };
 
-export default function ReadyOrderCard({ order, onMarkAsCompleted }) {
+export default function ReadyOrderCard({ order }) {
   const [expanded, setExpanded] = useState(false);
   const isForPickup = order.status === 'For Pickup';
   const status = statusConfig[order.status] ?? statusConfig['For Pickup'];
@@ -61,16 +61,14 @@ export default function ReadyOrderCard({ order, onMarkAsCompleted }) {
           </View>
 
           {isForPickup && (
-            <View className="border-t border-gray-100 pb-4 pt-3 items-center">
-              <TouchableOpacity
-                className="rounded-xl px-6 py-2"
-                style={styles.markCompletedButton}
-                onPress={() => onMarkAsCompleted?.(order)}
+            <View className="px-4 pb-4 pt-1">
+              <View 
+                className="bg-blue-50 border border-blue-100 p-3 rounded-xl flex-row items-start"
               >
-                <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>
-                  Mark as Completed
+                <Text className="text-[11px] flex-1" style={{ fontFamily: 'Poppins-Medium', color: '#2aabe2' }}>
+                  Please complete the checkout for this pickup order in the Admin Web Pickup Orders tab once the customer arrives.
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
           )}
         </View>
@@ -128,9 +126,6 @@ const styles = StyleSheet.create({
   totalPrice: {
     fontFamily: 'Poppins-Bold',
     color: colors.buttonColor,
-  },
-  markCompletedButton: {
-    backgroundColor: colors.buttonColor,
   },
   viewMoreButton: {
     borderColor: '#89C5E5',
