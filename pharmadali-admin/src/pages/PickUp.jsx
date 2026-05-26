@@ -1,61 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Modal from "../components/Modal";
 import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg";
 import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
 import errorIcon from "../assets/icons/modal-icons/error.svg";
 import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg";
+import { fetchPickupOrders, completePickupOrder } from "../services/posService";
 import "../assets/css/pospage.css";
 
-const SAMPLE_ORDERS = [
-  {
-    id: "ORD-1025",
-    customer: "Denmar Redondo",
-    contact: "09123451234",
-    items: 2,
-    total: "PHP 108.00",
-    status: "Ready",
-    orderDetails: ["Cetirizine | box x 1", "Bioflu | box x 1"],
-  },
-  {
-    id: "ORD-1026",
-    customer: "James Orlanes",
-    contact: "09129112233",
-    items: 10,
-    total: "PHP 908.00",
-    status: "Ready",
-    orderDetails: ["Paracetamol | box x 2", "Amoxicillin | box x 8"],
-  },
-  {
-    id: "ORD-1027",
-    customer: "James Mercado",
-    contact: "09134561234",
-    items: 8,
-    total: "PHP 1108.00",
-    status: "Ready",
-    orderDetails: ["Vitamin C | box x 3", "Loperamide | box x 5"],
-  },
-  {
-    id: "ORD-1028",
-    customer: "Abigail Barrion",
-    contact: "09131239876",
-    items: 4,
-    total: "PHP 258.00",
-    status: "Ready",
-    orderDetails: ["Loratadine | box x 2", "Ascorbic Acid | box x 2"],
-  },
-  {
-    id: "ORD-1029",
-    customer: "Althea Alvarez",
-    contact: "09136784521",
-    items: 6,
-    total: "PHP 408.00",
-    status: "Ready",
-    orderDetails: ["Mefenamic Acid | box x 3", "Cetirizine | box x 3"],
-  },
-];
-
 function PickUp() {
-  const [orders, setOrders] = useState(SAMPLE_ORDERS);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [activeOrder, setActiveOrder] = useState(null);
@@ -66,29 +20,45 @@ function PickUp() {
   const [cashReceived, setCashReceived] = useState("");
   const [gcashReference, setGcashReference] = useState("");
   const [paymentResult, setPaymentResult] = useState("success");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const filtered = orders.filter((order) => {
-    const matchesSearch =
-      order.id.toLowerCase().includes(search.toLowerCase()) ||
-      order.customer.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus =
-      statusFilter === "All" ||
-      order.status.toLowerCase() === statusFilter.toLowerCase();
+  const loadOrders = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await fetchPickupOrders({
+        search,
+        status: statusFilter
+      });
+      if (response.status === "success") {
+        setOrders(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [search, statusFilter]);
 
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
 
   const getStatusClassName = (status) => {
-    if (status.toLowerCase() === "completed") return "pickup-status-completed";
+    const s = status.toLowerCase();
+    if (s === "completed") return "pickup-status-completed";
+    if (s === "ready_for_pickup") return "pickup-status-ready";
     return "pickup-status-ready";
   };
 
-  const parseAmount = (amountText) => Number(amountText.replace(/[^\d.]/g, ""));
-  const orderTotal = activeOrder ? parseAmount(activeOrder.total) : 0;
+  const orderTotal = activeOrder ? Number(activeOrder.total_amount) : 0;
   const cashNumeric = Number(cashReceived);
   const changeAmount = Number.isFinite(cashNumeric) ? cashNumeric - orderTotal : 0;
   const isCashValid = Number.isFinite(cashNumeric) && cashNumeric >= orderTotal;
   const isGcashValid = /^\d{13,}$/.test(gcashReference.trim());
+  
+  // Update overall validation to depend on choice
+  const isPaymentValid = paymentMethod === "cash" ? isCashValid : isGcashValid;
+
   const showCashError = paymentMethod === "cash" && cashReceived.trim() !== "" && !isCashValid;
   const cashShortage = showCashError ? Math.max(orderTotal - cashNumeric, 0) : 0;
 
@@ -101,37 +71,36 @@ function PickUp() {
       return;
     }
 
+    if (activeOrder.status.toLowerCase() !== "ready_for_pickup") {
+      return;
+    }
+
     setCashReceived(orderTotal.toFixed(2));
     setGcashReference("");
     setIsPaymentModalOpen(true);
   };
 
-  const processPayment = () => {
-    const isSuccess = paymentMethod === "cash"
-      ? isCashValid
-      : isGcashValid;
+  const processPayment = async () => {
+    if (!activeOrder) return;
 
-    setPaymentResult(isSuccess ? "success" : "failed");
-    setIsPaymentModalOpen(false);
-    setIsPaymentResultModalOpen(true);
+    try {
+      const response = await completePickupOrder(activeOrder.id, paymentMethod);
 
-    if (!isSuccess || !activeOrder) {
-      return;
+      if (response.status === "success") {
+        setPaymentResult("success");
+        loadOrders();
+        setActiveOrder(response.data);
+      } else {
+        setPaymentResult("failed");
+        setErrorMessage(response.message || "Something went wrong.");
+      }
+    } catch (error) {
+      setPaymentResult("failed");
+      setErrorMessage(error.message || "An unexpected error occurred.");
+    } finally {
+      setIsPaymentModalOpen(false);
+      setIsPaymentResultModalOpen(true);
     }
-
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === activeOrder.id
-          ? { ...order, status: "Completed" }
-          : order
-      )
-    );
-
-    setActiveOrder((prevOrder) =>
-      prevOrder
-        ? { ...prevOrder, status: "Completed" }
-        : prevOrder
-    );
   };
 
   const openConfirmModal = () => {
@@ -183,50 +152,66 @@ function PickUp() {
           </div>
 
           <div className="pickup-card">
-            <table className="pickup-table w-100">
-              <colgroup>
-                <col style={{ width: "16%" }} />
-                <col style={{ width: "26%" }} />
-                <col style={{ width: "12%" }} />
-                <col style={{ width: "18%" }} />
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "14%" }} />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Customer</th>
-                  <th className="pickup-col-center">Items</th>
-                  <th className="pickup-col-center">Total</th>
-                  <th className="pickup-col-center">Status</th>
-                  <th className="pickup-col-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((order) => (
-                  <tr
-                    key={order.id}
-                    className={activeOrder?.id === order.id ? "pickup-row-selected" : ""}
-                  >
-                    <td>{order.id}</td>
-                    <td>{order.customer}</td>
-                    <td className="pickup-col-center">{order.items}</td>
-                    <td className="pickup-col-center">{order.total}</td>
-                    <td className="pickup-col-center">
-                      <span className={getStatusClassName(order.status)}>{order.status}</span>
-                    </td>
-                    <td className="pickup-col-center">
-                      <button
-                        className="pickup-view-btn"
-                        onClick={() => openDetailsPanel(order)}
-                      >
-                        View Details
-                      </button>
-                    </td>
+            {loading ? (
+              <div className="p-4 text-center">Loading orders...</div>
+            ) : (
+              <table className="pickup-table w-100">
+                <colgroup>
+                  <col style={{ width: "16%" }} />
+                  <col style={{ width: "26%" }} />
+                  <col style={{ width: "12%" }} />
+                  <col style={{ width: "18%" }} />
+                  <col style={{ width: "14%" }} />
+                  <col style={{ width: "14%" }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>Order Number</th>
+                    <th>Customer</th>
+                    <th className="pickup-col-center">Items</th>
+                    <th className="pickup-col-center">Total Amount</th>
+                    <th className="pickup-col-center">Status</th>
+                    <th className="pickup-col-center">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {orders.map((order) => (
+                    <tr
+                      key={order.id}
+                      className={activeOrder?.id === order.id ? "pickup-row-selected" : ""}
+                    >
+                      <td className="fw-semibold">{order.order_number}</td>
+                      <td>
+                        {order.customer?.user 
+                          ? `${order.customer.user.first_name} ${order.customer.user.last_name}`
+                          : "Guest Customer"
+                        }
+                      </td>
+                      <td className="pickup-col-center">{order.items?.length || 0}</td>
+                      <td className="pickup-col-center">PHP {Number(order.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                      <td className="pickup-col-center">
+                        <span className={getStatusClassName(order.status)}>
+                          {order.status === 'ready_for_pickup' ? 'Ready' : order.status}
+                        </span>
+                      </td>
+                      <td className="pickup-col-center">
+                        <button
+                          className="pickup-view-btn"
+                          onClick={() => openDetailsPanel(order)}
+                        >
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {orders.length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="text-center py-4 text-muted">No pickup orders found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
         {activeOrder && (
@@ -243,16 +228,25 @@ function PickUp() {
               </button>
             </div>
 
-            <p className="pickup-details-customer">Customer: {activeOrder.customer}</p>
-            <p className="pickup-details-contact">Contact: {activeOrder.contact}</p>
+            <p className="pickup-details-customer">
+              Customer: {activeOrder.customer?.user 
+                ? `${activeOrder.customer.user.first_name} ${activeOrder.customer.user.last_name}`
+                : "Guest Customer"
+              }
+            </p>
+            <p className="pickup-details-contact">
+              Order No: <strong>{activeOrder.order_number}</strong>
+            </p>
 
             <hr className="pickup-details-divider" />
 
             <div className="pickup-details-section">
-              <p className="pickup-details-section-title">Order Details</p>
+              <p className="pickup-details-section-title">Order Items</p>
               <ul className="pickup-details-list">
-                {activeOrder.orderDetails.map((item, index) => (
-                  <li key={`${activeOrder.id}-${index}`}>{item}</li>
+                {activeOrder.items?.map((item, index) => (
+                  <li key={`${activeOrder.id}-${index}`}>
+                    {item.product_name} x {item.quantity}
+                  </li>
                 ))}
               </ul>
             </div>
@@ -261,59 +255,70 @@ function PickUp() {
 
             <div className="pickup-details-row">
               <span>Total Amount</span>
-              <strong>{activeOrder.total}</strong>
+              <strong>PHP {Number(activeOrder.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
             </div>
 
             <hr className="pickup-details-divider" />
 
             <div className="pickup-details-row pickup-details-status">
               <span>Status:</span>
-              <strong className={getStatusClassName(activeOrder.status)}>{activeOrder.status}</strong>
+              <strong className={getStatusClassName(activeOrder.status)}>
+                {activeOrder.status === "ready_for_pickup" ? "Ready" : 
+                 activeOrder.status.charAt(0).toUpperCase() + activeOrder.status.slice(1)}
+              </strong>
             </div>
 
-
-            <div className="pickup-payment-method-wrap">
-              <p className="pickup-details-section-title">Select Payment Method</p>
-              <div className="d-flex gap-2 pos-payment-actions">
-                <button
-                  className="btn flex-grow-1 py-2"
-                  style={{
-                    fontSize: 13,
-                    background: paymentMethod === "cash" ? "#2aabe2" : "white",
-                    color: paymentMethod === "cash" ? "white" : "#555",
-                    border: "1.5px solid #dde3ec",
-                    borderRadius: "var(--pd-radius-md)",
-                  }}
-                  onClick={() => setPaymentMethod("cash")}
-                  type="button"
-                >
-                  Cash
-                </button>
-                <button
-                  className="btn flex-grow-1 py-2"
-                  style={{
-                    fontSize: 13,
-                    background: paymentMethod === "gcash" ? "#2aabe2" : "white",
-                    color: paymentMethod === "gcash" ? "white" : "#555",
-                    border: "1.5px solid #dde3ec",
-                    borderRadius: "var(--pd-radius-md)",
-                  }}
-                  onClick={() => setPaymentMethod("gcash")}
-                  type="button"
-                >
-                  GCash
-                </button>
+            {activeOrder.status === "completed" ? (
+              <div className="pickup-details-row mt-3">
+                <span>Payment Method:</span>
+                <strong className="text-uppercase">{activeOrder.payment_method || "N/A"}</strong>
               </div>
-            </div>
+            ) : (
+              <div className="pickup-payment-method-wrap">
+                <p className="pickup-details-section-title">Select Payment Method</p>
+                <div className="d-flex gap-2 pos-payment-actions">
+                  <button
+                    className="btn flex-grow-1 py-2"
+                    style={{
+                      fontSize: 13,
+                      background: paymentMethod === "cash" ? "#2aabe2" : "white",
+                      color: paymentMethod === "cash" ? "white" : "#555",
+                      border: "1.5px solid #dde3ec",
+                      borderRadius: "var(--pd-radius-md)",
+                    }}
+                    onClick={() => setPaymentMethod("cash")}
+                    type="button"
+                  >
+                    Cash
+                  </button>
+                  <button
+                    className="btn flex-grow-1 py-2"
+                    style={{
+                      fontSize: 13,
+                      background: paymentMethod === "gcash" ? "#2aabe2" : "white",
+                      color: paymentMethod === "gcash" ? "white" : "#555",
+                      border: "1.5px solid #dde3ec",
+                      borderRadius: "var(--pd-radius-md)",
+                    }}
+                    onClick={() => setPaymentMethod("gcash")}
+                    type="button"
+                  >
+                    GCash
+                  </button>
+                </div>
+              </div>
+            )}
 
-            <button
-              type="button"
-              className="pickup-complete-sale-btn"
-              onClick={openCompleteSaleModal}
-              disabled={activeOrder.status.toLowerCase() === "completed"}
-            >
-              {activeOrder.status.toLowerCase() === "completed" ? "Sale Completed" : "Complete Sale"}
-            </button>
+            {activeOrder.status !== "completed" && (
+              <button
+                type="button"
+                className="pickup-complete-sale-btn"
+                onClick={openCompleteSaleModal}
+                disabled={activeOrder.status !== "ready_for_pickup"}
+              >
+                Complete Sale
+              </button>
+            )}
           </aside>
         )}
       </div>
@@ -389,7 +394,7 @@ function PickUp() {
           type="button"
           className="pos-payment-confirm-btn"
           onClick={openConfirmModal}
-          disabled={paymentMethod === "cash" ? !isCashValid : !isGcashValid}
+          disabled={!isPaymentValid}
         >
           Confirm
         </button>
@@ -442,7 +447,10 @@ function PickUp() {
             className="pos-result-icon"
           />
           <p className="pos-result-text">
-            Payment {paymentResult === "success" ? "Successful" : "Unsuccessful"}
+            {paymentResult === "success" 
+              ? "Order Picked Up Successfully!" 
+              : errorMessage || "Payment Unsuccessful"
+            }
           </p>
         </div>
       </Modal>
