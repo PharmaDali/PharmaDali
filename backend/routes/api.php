@@ -11,6 +11,7 @@ use App\Http\Controllers\API\CustomerProfileController;
 use App\Http\Controllers\API\ForecastController;
 use App\Http\Controllers\API\ForecastInsightController;
 use App\Http\Controllers\API\ForecastSyncController;
+use App\Http\Controllers\API\PosController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -76,6 +77,8 @@ Route::middleware('auth:sanctum')->group(function () {
             fn() =>
             response()->json(['message' => 'Branch Admin dashboard'])
         );
+
+        Route::get('pos/products', [PosController::class, 'getProducts']);
 
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
 
