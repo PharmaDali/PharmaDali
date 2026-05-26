@@ -58,4 +58,48 @@ class PosController extends Controller
             ], 400);
         }
     }
+
+    /**
+     * Get pickup orders for the branch with search and status filtering.
+     */
+    public function getPickupOrders(Request $request)
+    {
+        try {
+            $orders = $this->posService->getPickupOrders($request->all(), $request->user());
+            return response()->json([
+                'status' => 'success',
+                'data' => $orders
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * Complete a pickup order.
+     */
+    public function completePickupOrder(Request $request, \App\Models\Order $order)
+    {
+        $request->validate([
+            'payment_method' => 'required|string|in:cash,gcash,card,maya',
+        ]);
+
+        try {
+            $order = $this->posService->completePickupOrder($order, $request->payment_method, $request->user());
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Pickup order completed successfully',
+                'data' => $order
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
 }

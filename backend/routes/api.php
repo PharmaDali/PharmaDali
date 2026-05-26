@@ -83,6 +83,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('pos/products', [PosController::class, 'getProducts']);
         Route::post('pos/orders', [PosController::class, 'storeOrder']);
+        Route::get('pos/pickup-orders', [PosController::class, 'getPickupOrders']);
+        Route::patch('pos/pickup-orders/{order}/complete', [PosController::class, 'completePickupOrder']);
 
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
 

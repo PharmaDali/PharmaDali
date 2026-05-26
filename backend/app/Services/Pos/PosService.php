@@ -93,4 +93,82 @@ class PosService
             return $order;
         });
     }
+
+    /**
+     * Get pickup orders for the branch with search and filtering.
+     */
+    public function getPickupOrders(array $filters, $user)
+    {
+        if (!$user) {
+            throw new \Exception("Unauthorized");
+        }
+
+        $branchId = $user->branch_id;
+        $search = $filters['search'] ?? null;
+        $status = $filters['status'] ?? 'all'; // all, ready, completed
+
+        $query = Order::with([
+            'customer.user:id,first_name,last_name',
+            'items.branchProduct.product:id,product_name,generic_name',
+            'items.branchProduct.category:id,category_name'
+        ])
+        ->whereNotNull('customer_id'); // Pickup orders always have a customer
+
+        if ($branchId) {
+            $query->where('branch_id', $branchId);
+        }
+
+        // Status Filtering
+        if ($status === 'ready') {
+            $query->where('status', 'ready_for_pickup');
+        } elseif ($status === 'completed') {
+            $query->where('status', 'completed');
+        } else {
+            // 'all' includes ready and completed by default for this tab, 
+            $query->whereIn('status', ['ready_for_pickup', 'completed']);
+        }
+
+        // Search functionality
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('order_number', 'like', "%{$search}%")
+                  ->orWhereHas('customer.user', function ($uq) use ($search) {
+                      $uq->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        return $query->latest()->get();
+    }
+
+    /**
+     * Complete a pickup order and update payment info.
+     */
+    public function completePickupOrder(Order $order, string $paymentMethod, $user)
+    {
+        if ($order->branch_id !== $user->branch_id) {
+            throw new \Exception("Unauthorized: Order does not belong to your branch.");
+        }
+
+        if ($order->status === 'completed') {
+            throw new \Exception("Order is already completed.");
+        }
+
+        if ($order->status !== 'ready_for_pickup') {
+            throw new \Exception("Order must be in 'ready_for_pickup' status to be completed at POS.");
+        }
+
+        return DB::transaction(function () use ($order, $paymentMethod) {
+            $order->update([
+                'status' => 'completed',
+                'payment_method' => $paymentMethod,
+                'payment_status' => 'paid',
+                'completed_at' => now(),
+                'picked_up_at' => now(),
+            ]);
+
+            return $order->load(['customer.user', 'items.branchProduct.product']);
+        });
+    }
 }
