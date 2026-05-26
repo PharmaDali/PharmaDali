@@ -9,3 +9,8 @@ export const fetchPosProducts = async ({ search = "", page = 1, perPage = 20 } =
   const response = await apiRequest.get(`/pos/products?${params.toString()}`);
   return response;
 };
+
+export const createPosOrder = async (orderData) => {
+  const response = await apiRequest.post("/pos/orders", orderData);
+  return response;
+};

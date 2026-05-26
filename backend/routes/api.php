@@ -63,6 +63,9 @@ Route::middleware('auth:sanctum')->group(function () {
             return response()->json(['message' => 'Pharmacist dashboard access granted']);
         });
 
+        Route::get('pos/products', [PosController::class, 'getProducts']);
+        Route::post('pos/orders', [PosController::class, 'storeOrder']);
+
         Route::get('pharmacist/profile', [PharmacistProfileController::class, 'show']);
 
         Route::get('pharmacist/orders', [OrderController::class, 'index']);
@@ -79,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
         );
 
         Route::get('pos/products', [PosController::class, 'getProducts']);
+        Route::post('pos/orders', [PosController::class, 'storeOrder']);
 
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
 

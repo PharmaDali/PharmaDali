@@ -6,7 +6,7 @@ import errorIcon from "../assets/icons/modal-icons/error.svg";
 import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg";
 import Modal from "../components/Modal";
 import "../assets/css/pospage.css";
-import { fetchPosProducts } from "../services/posService";
+import { fetchPosProducts, createPosOrder } from "../services/posService";
 import { toTitleCase } from "../utils/stringUtils";
 
 function EmptyState({ minHeight = 260, iconWidth = 150, className = "", message = "Search for items" }) {
@@ -234,6 +234,7 @@ function PosPage() {
   const [cashReceived, setCashReceived] = useState("");
   const [gcashReference, setGcashReference] = useState("");
   const [paymentResult, setPaymentResult] = useState("success");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -312,18 +313,36 @@ function PosPage() {
   const showCashError = paymentMethod === "cash" && cashReceived.trim() !== "" && !isCashValid;
   const cashShortage = showCashError ? Math.max(orderTotal - cashNumeric, 0) : 0;
 
-  const processPayment = () => {
-    const isSuccess = paymentMethod === "cash"
-      ? isCashValid
-      : isGcashValid;
+  const processPayment = async () => {
+    setIsProcessingPayment(true);
+    try {
+      const orderData = {
+        items: orderItems.map(item => ({
+          id: item.id,
+          qty: item.qty
+        })),
+        payment_method: paymentMethod,
+        note: `POS Sale - ${paymentMethod.toUpperCase()}${paymentMethod === 'gcash' ? ' Ref: ' + gcashReference : ''}`
+      };
 
-    setPaymentResult(isSuccess ? "success" : "failed");
-    setIsPaymentModalOpen(false);
-    setIsPaymentResultModalOpen(true);
-
-    if (isSuccess) {
-      setOrderItems([]);
-      setSelectedProduct(null);
+      const response = await createPosOrder(orderData);
+      
+      if (response.status === 'success') {
+        setPaymentResult("success");
+        setOrderItems([]);
+        setSelectedProduct(null);
+        // Refresh product list to show updated stock
+        loadProducts(debouncedSearch, 1, true);
+      } else {
+        setPaymentResult("failed");
+      }
+    } catch (error) {
+      console.error("Payment failed:", error);
+      setPaymentResult("failed");
+    } finally {
+      setIsProcessingPayment(false);
+      setIsPaymentModalOpen(false);
+      setIsPaymentResultModalOpen(true);
     }
   };
 
@@ -523,10 +542,20 @@ function PosPage() {
             Please review the details before proceeding. This action cannot be undone.
           </p>
           <div className="pos-confirm-actions">
-            <button type="button" className="pos-confirm-primary" onClick={handleConfirmContinue}>
-              Continue
+            <button 
+              type="button" 
+              className="pos-confirm-primary" 
+              onClick={handleConfirmContinue}
+              disabled={isProcessingPayment}
+            >
+              {isProcessingPayment ? "Processing..." : "Continue"}
             </button>
-            <button type="button" className="pos-confirm-secondary" onClick={handleConfirmCancel}>
+            <button 
+              type="button" 
+              className="pos-confirm-secondary" 
+              onClick={handleConfirmCancel}
+              disabled={isProcessingPayment}
+            >
               Cancel
             </button>
           </div>
