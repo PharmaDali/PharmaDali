@@ -33,7 +33,7 @@ const MENU_SECTIONS = [
     items: [
       { to: "/", icon: dashboardIcon, label: "Dashboard" },
       { to: "/pos", icon: posIcon, label: "POS" },
-      { to: "/pick-up", icon: pickupOrdersIcon, label: "Pickup Orders" },
+      { to: "/pick-up", icon: pickupOrdersIcon, label: "Pickup Orders", badgeKey: "pickup" },
       { to: "/inventory", icon: inventoryIcon, label: "Inventory" },
     ],
   },
@@ -66,12 +66,14 @@ const MENU_SECTIONS = [
   },
 ];
 
-function SideBar({ isOpen, onToggle, unreadNotificationsCount = null }) {
+function SideBar({ isOpen, onToggle, unreadNotificationsCount = null, readyPickupOrdersCount = 0 }) {
 
   const navigate = useNavigate();
   const notificationsBadge = formatUnreadBadge(
     unreadNotificationsCount ?? VISUAL_UNREAD_BADGE
   );
+
+  const pickupBadge = formatUnreadBadge(readyPickupOrdersCount);
   
   const handleLogout = async (event) => {
     event.preventDefault();
@@ -157,6 +159,8 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = null }) {
                 const badgeValue =
                   item.badgeKey === "notifications"
                     ? notificationsBadge
+                    : item.badgeKey === "pickup"
+                    ? pickupBadge
                     : null;
 
                 return (

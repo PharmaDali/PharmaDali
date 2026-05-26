@@ -87,15 +87,6 @@ const Ready = () => {
     loadOrders();
   }, [loadOrders]);
 
-  const handleMarkAsCompleted = async (order) => {
-    try {
-      await updateOrderStatusByPharmacist(order.id, 'complete');
-      await loadOrders();
-    } catch {
-      // Handle error
-    }
-  };
-
   const counts = useMemo(() => {
     return readyTabs.reduce((acc, tab) => {
       acc[tab] = orders.filter((o) => o.status === tab).length;
@@ -145,7 +136,6 @@ const Ready = () => {
           <ReadyOrderCard
             key={`${order.orderNumber}-${idx}`}
             order={order}
-            onMarkAsCompleted={handleMarkAsCompleted}
           />
         ))}
 

@@ -14,7 +14,7 @@ class UpdatePharmacistOrderStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'action' => ['required', 'string', 'in:approve,ready,complete,pending,reject'],
+            'action' => ['required', 'string', 'in:approve,ready,pending,reject'],
             'reason' => ['sometimes', 'nullable', 'string', 'max:500'],
         ];
     }

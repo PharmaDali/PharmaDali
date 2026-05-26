@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import adminMedsIcon from "../assets/icons/admin-meds.svg";
 import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg";
 import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
@@ -6,24 +6,10 @@ import errorIcon from "../assets/icons/modal-icons/error.svg";
 import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg";
 import Modal from "../components/Modal";
 import "../assets/css/pospage.css";
+import { fetchPosProducts, createPosOrder } from "../services/posService";
+import { toTitleCase } from "../utils/stringUtils";
 
-const SAMPLE_PRODUCTS = [
-  { id: 1, genericName: "Amoxicillin", brandName: "Amoxil",   strength: "500 mg Capsule",           price: 21.12, stocks: 120 },
-  { id: 2, genericName: "Amoxicillin", brandName: "Ambimox",  strength: "500 mg Capsule",           price: 4.05,  stocks: 185 },
-  { id: 3, genericName: "Amoxicillin", brandName: "Saphmox",  strength: "500 mg Capsule",           price: 4.02,  stocks: 264 },
-  { id: 4, genericName: "Amoxicillin", brandName: "Axmel",    strength: "250 mg Capsule",           price: 4.71,  stocks: 150 },
-  { id: 5, genericName: "Amoxicillin", brandName: "Axmel",    strength: "250 mg/5 mL Suspension",   price: 163.88,stocks: 250 },
-  { id: 6, genericName: "Amoxicillin", brandName: "Ambimox",  strength: "500 mg Capsule",           price: 4.05,  stocks: 185 },
-  { id: 7, genericName: "Amoxicillin", brandName: "Saphmox",  strength: "500 mg Capsule",           price: 4.02,  stocks: 264 },
-  { id: 8, genericName: "Amoxicillin", brandName: "Axmel",    strength: "250 mg Capsule",           price: 4.71,  stocks: 150 },
-  { id: 9, genericName: "Amoxicillin", brandName: "Axmel",    strength: "250 mg/5 mL Suspension",   price: 163.88,stocks: 250 },
-  { id: 10,genericName: "Aspirin",     brandName: "Bayer",    strength: "325 mg Tablet",            price: 2.50,  stocks: 500 },
-  { id: 11,genericName: "Azithromycin",brandName: "Zithromax",strength: "500 mg Tablet",            price: 55.00, stocks: 80  },
-  { id: 12,genericName: "Ibuprofen",   brandName: "Advil",    strength: "200 mg Tablet",            price: 5.00,  stocks: 320 },
-  { id: 13,genericName: "Paracetamol", brandName: "Biogesic", strength: "500 mg Tablet",            price: 1.50,  stocks: 600 },
-];
-
-function EmptyState({ minHeight = 260, iconWidth = 150, className = "" }) {
+function EmptyState({ minHeight = 260, iconWidth = 150, className = "", message = "Search for items" }) {
   return (
     <div
       className={`d-flex flex-column align-items-center justify-content-center h-100 ${className}`.trim()}
@@ -31,15 +17,28 @@ function EmptyState({ minHeight = 260, iconWidth = 150, className = "" }) {
     >
       <img src={adminMedsIcon} alt="No items" width={iconWidth} className="mb-2" />
       <p className="mb-0" style={{ fontSize: 13, color: "#b5bec8" }}>
-        Search for items
+        {message}
       </p>
     </div>
   );
 }
 
-const COL_WIDTHS = ["22%", "18%", "28%", "17%", "15%"];
+const COL_WIDTHS = ["40%", "30%", "30%"];
 
-function ProductTable({ results, selectedId, onSelect }) {
+function ProductTable({ results, selectedId, onSelect, onScroll, loadingMore }) {
+  const getFullProductName = (product) => {
+    if (!product) return "---";
+    const parts = [
+      product.product_name,
+      product.generic_name,
+      product.brand_name ? `(${product.brand_name})` : null,
+      product.form,
+      product.strength,
+      product.size,
+    ];
+    return toTitleCase(parts.filter(Boolean).join(" "));
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
       
@@ -49,16 +48,14 @@ function ProductTable({ results, selectedId, onSelect }) {
         </colgroup>
         <thead>
           <tr style={{ background: "#96D2EE" }}>
-            <th className="px-3 py-2 fw-semibold border-0" style={{ color: "#555", background: "#96D2EE" }}>Generic Name</th>
-            <th className="px-3 py-2 fw-semibold border-0" style={{ color: "#555", background: "#96D2EE" }}>Brand Name</th>
-            <th className="px-3 py-2 fw-semibold border-0" style={{ color: "#555", background: "#96D2EE" }}>Strength</th>
-            <th className="px-3 py-2 fw-semibold border-0" style={{ color: "#555", background: "#96D2EE" }}>Price (PHP)</th>
-            <th className="px-3 py-2 fw-semibold border-0" style={{ color: "#555", background: "#96D2EE" }}>Stocks</th>
+            <th className="px-3 py-2 fw-semibold border-0 text-center" style={{ color: "#555", background: "#96D2EE" }}>Product Name</th>
+            <th className="px-3 py-2 fw-semibold border-0 text-end" style={{ color: "#555", background: "#96D2EE" }}>Price (PHP)</th>
+            <th className="px-3 py-2 fw-semibold border-0 text-center" style={{ color: "#555", background: "#96D2EE" }}>Stocks</th>
           </tr>
         </thead>
       </table>
       
-      <div className="pos-scroll" style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
+      <div className="pos-scroll" onScroll={onScroll} style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
         <table className="table table-hover mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
           <colgroup>
             {COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
@@ -74,21 +71,22 @@ function ProductTable({ results, selectedId, onSelect }) {
                   background: selectedId === item.id ? "#e8f0fe" : "white",
                 }}
               >
-                <td className="py-3 border-0 border-bottom" style={{ color: "#333", borderLeft: selectedId === item.id ? "4px solid #96D2EE" : "4px solid transparent", paddingLeft: 8, paddingRight: 12 }}>{item.genericName}</td>
-                <td className="px-3 py-3 border-0 border-bottom" style={{ color: "#333" }}>{item.brandName}</td>
-                <td className="px-3 py-3 border-0 border-bottom" style={{ color: "#333" }}>{item.strength}</td>
-                <td className="px-3 py-3 border-0 border-bottom" style={{ color: "#333" }}>{item.price.toFixed(2)}</td>
-                <td className="px-3 py-3 border-0 border-bottom" style={{ color: "#333" }}>{item.stocks}</td>
+                <td className="py-3 border-0 border-bottom text-center" style={{ color: "#333", borderLeft: selectedId === item.id ? "4px solid #96D2EE" : "4px solid transparent", paddingLeft: 8, paddingRight: 12 }}>
+                  {getFullProductName(item.product)}
+                </td>
+                <td className="px-3 py-3 border-0 border-bottom text-end" style={{ color: "#333" }}>{parseFloat(item.selling_price).toFixed(2)}</td>
+                <td className="px-3 py-3 border-0 border-bottom text-center" style={{ color: "#333" }}>{item.stock}</td>
               </tr>
             ))}
           </tbody>
         </table>
+        {loadingMore && <div className="text-center py-2" style={{ fontSize: 12, color: "#888" }}>Loading more products...</div>}
       </div>
     </div>
   );
 }
 
-const ORDER_COL_WIDTHS = ["40%", "11%", "20%", "19%", "10%"];
+const ORDER_COL_WIDTHS = ["50%", "25%", "25%"];
 
 function CurrentOrder({
   items,
@@ -97,8 +95,21 @@ function CurrentOrder({
   onCompleteSale,
   onRemove,
 }) {
+  const getFullProductName = (product) => {
+    if (!product) return "---";
+    const parts = [
+      product.product_name,
+      product.generic_name,
+      product.brand_name ? `(${product.brand_name})` : null,
+      product.form,
+      product.strength,
+      product.size,
+    ];
+    return toTitleCase(parts.filter(Boolean).join(" "));
+  };
+
   const totalQty = items.reduce((s, i) => s + i.qty, 0);
-  const orderTotal = items.reduce((s, i) => s + i.qty * i.product.price, 0);
+  const orderTotal = items.reduce((s, i) => s + i.qty * i.selling_price, 0);
   const isOrderEmpty = items.length === 0;
 
   return (
@@ -113,11 +124,9 @@ function CurrentOrder({
           </colgroup>
           <thead>
             <tr>
-              <th className="px-3 py-2 fw-semibold border-0" style={{ color: "#555", background: "#96D2EE" }}>Product</th>
+              <th className="px-3 py-2 fw-semibold border-0 text-center" style={{ color: "#555", background: "#96D2EE" }}>Product</th>
               <th className="px-2 py-2 fw-semibold border-0 text-center" style={{ color: "#555", background: "#96D2EE" }}>Qty</th>
-              <th className="px-2 py-2 fw-semibold border-0 text-end" style={{ color: "#555", background: "#96D2EE" }}>Price (PHP)</th>
               <th className="px-3 py-2 fw-semibold border-0 text-end" style={{ color: "#555", background: "#96D2EE" }}>Subtotal</th>
-              <th className="px-2 py-2 fw-semibold border-0" style={{ color: "#555", background: "#96D2EE" }}></th>
             </tr>
           </thead>
         </table>
@@ -134,19 +143,20 @@ function CurrentOrder({
                 {ORDER_COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
               </colgroup>
               <tbody>
-                {items.map(({ product, qty }) => (
-                  <tr key={product.id}>
-                    <td className="px-3 py-2 border-0 border-bottom" style={{ color: "#333" }}>
-                      {product.genericName} {product.brandName}
+                {items.map(({ id, product, qty, selling_price }) => (
+                  <tr key={id}>
+                    <td className="px-3 py-2 border-0 border-bottom text-center" style={{ color: "#333" }}>
+                      {getFullProductName(product)}
                     </td>
                     <td className="px-2 py-2 border-0 border-bottom text-center" style={{ color: "#333" }}>{qty}</td>
-                    <td className="px-2 py-2 border-0 border-bottom text-end" style={{ color: "#333" }}>{product.price.toFixed(2)}</td>
-                    <td className="px-3 py-2 border-0 border-bottom text-end" style={{ color: "#333" }}>{(qty * product.price).toFixed(2)}</td>
-                    <td className="px-2 py-2 border-0 border-bottom text-center">
-                      <button
-                        onClick={() => onRemove(product.id)}
-                        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#e25252", fontSize: 14, lineHeight: 1 }}
-                      >&times;</button>
+                    <td className="px-3 py-2 border-0 border-bottom text-end" style={{ color: "#333" }}>
+                      <div className="d-flex align-items-center justify-content-end gap-2">
+                        <span>{(qty * selling_price).toFixed(2)}</span>
+                        <button
+                          onClick={() => onRemove(id)}
+                          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#e25252", fontSize: 14, lineHeight: 1 }}
+                        >&times;</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -208,6 +218,13 @@ function CurrentOrder({
 
 function PosPage() {
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
@@ -217,34 +234,65 @@ function PosPage() {
   const [cashReceived, setCashReceived] = useState("");
   const [gcashReference, setGcashReference] = useState("");
   const [paymentResult, setPaymentResult] = useState("success");
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const loadProducts = useCallback(async (searchQuery, targetPage, isInitial = false) => {
+    if (isInitial) setLoading(true);
+    else setLoadingMore(true);
+
+    try {
+      const response = await fetchPosProducts({ search: searchQuery, page: targetPage });
+      const newProducts = response.data;
+      
+      setProducts(prev => isInitial ? newProducts : [...prev, ...newProducts]);
+      setHasMore(response.current_page < response.last_page);
+      setPage(response.current_page);
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProducts(debouncedSearch, 1, true);
+  }, [debouncedSearch, loadProducts]);
+
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    if (scrollHeight - scrollTop <= clientHeight + 50 && hasMore && !loadingMore) {
+      loadProducts(debouncedSearch, page + 1);
+    }
+  };
 
   function addToOrder(product) {
     setSelectedProduct(product);
     setOrderItems((prev) => {
-      const existing = prev.find((i) => i.product.id === product.id);
+      const existing = prev.find((i) => i.id === product.id);
       if (existing) {
         return prev.map((i) =>
-          i.product.id === product.id ? { ...i, qty: i.qty + 1 } : i
+          i.id === product.id ? { ...i, qty: i.qty + 1 } : i
         );
       }
-      return [...prev, { product, qty: 1 }];
+      return [...prev, { ...product, qty: 1 }];
     });
   }
 
   function removeFromOrder(productId) {
-    setOrderItems((prev) => prev.filter((i) => i.product.id !== productId));
+    setOrderItems((prev) => prev.filter((i) => i.id !== productId));
   }
 
-  const filtered = search.trim()
-    ? SAMPLE_PRODUCTS.filter(
-        (p) =>
-          p.genericName.toLowerCase().includes(search.toLowerCase()) ||
-          p.brandName.toLowerCase().includes(search.toLowerCase())
-      )
-    : [];
-
   const orderTotal = orderItems.reduce(
-    (sum, item) => sum + item.qty * item.product.price,
+    (sum, item) => sum + item.qty * item.selling_price,
     0
   );
 
@@ -265,18 +313,36 @@ function PosPage() {
   const showCashError = paymentMethod === "cash" && cashReceived.trim() !== "" && !isCashValid;
   const cashShortage = showCashError ? Math.max(orderTotal - cashNumeric, 0) : 0;
 
-  const processPayment = () => {
-    const isSuccess = paymentMethod === "cash"
-      ? isCashValid
-      : isGcashValid;
+  const processPayment = async () => {
+    setIsProcessingPayment(true);
+    try {
+      const orderData = {
+        items: orderItems.map(item => ({
+          id: item.id,
+          qty: item.qty
+        })),
+        payment_method: paymentMethod,
+        note: `POS Sale - ${paymentMethod.toUpperCase()}${paymentMethod === 'gcash' ? ' Ref: ' + gcashReference : ''}`
+      };
 
-    setPaymentResult(isSuccess ? "success" : "failed");
-    setIsPaymentModalOpen(false);
-    setIsPaymentResultModalOpen(true);
-
-    if (isSuccess) {
-      setOrderItems([]);
-      setSelectedProduct(null);
+      const response = await createPosOrder(orderData);
+      
+      if (response.status === 'success') {
+        setPaymentResult("success");
+        setOrderItems([]);
+        setSelectedProduct(null);
+        // Refresh product list to show updated stock
+        loadProducts(debouncedSearch, 1, true);
+      } else {
+        setPaymentResult("failed");
+      }
+    } catch (error) {
+      console.error("Payment failed:", error);
+      setPaymentResult("failed");
+    } finally {
+      setIsProcessingPayment(false);
+      setIsPaymentModalOpen(false);
+      setIsPaymentResultModalOpen(true);
     }
   };
 
@@ -337,14 +403,22 @@ function PosPage() {
           <div className="card-body p-3 pt-3 overflow-hidden pos-product-body" style={{ flex: 1, minHeight: 0 }}>
             <div className="card border-1 shadow-md" style={{ height: "100%", overflow: "hidden" }}>
               <div className="card-body d-flex flex-column p-0" style={{ flex: 1, minHeight: 0 }}>
-                {filtered.length > 0 ? (
+                {loading && products.length === 0 ? (
+                  <div className="d-flex justify-content-center align-items-center h-100">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+                ) : products.length > 0 ? (
                   <ProductTable
-                    results={filtered}
+                    results={products}
                     selectedId={selectedProduct?.id}
                     onSelect={addToOrder}
+                    onScroll={handleScroll}
+                    loadingMore={loadingMore}
                   />
                 ) : (
-                  <EmptyState />
+                  <EmptyState message={search ? "No products found." : "Search for items"} />
                 )}
               </div>
             </div>
@@ -468,10 +542,20 @@ function PosPage() {
             Please review the details before proceeding. This action cannot be undone.
           </p>
           <div className="pos-confirm-actions">
-            <button type="button" className="pos-confirm-primary" onClick={handleConfirmContinue}>
-              Continue
+            <button 
+              type="button" 
+              className="pos-confirm-primary" 
+              onClick={handleConfirmContinue}
+              disabled={isProcessingPayment}
+            >
+              {isProcessingPayment ? "Processing..." : "Continue"}
             </button>
-            <button type="button" className="pos-confirm-secondary" onClick={handleConfirmCancel}>
+            <button 
+              type="button" 
+              className="pos-confirm-secondary" 
+              onClick={handleConfirmCancel}
+              disabled={isProcessingPayment}
+            >
               Cancel
             </button>
           </div>

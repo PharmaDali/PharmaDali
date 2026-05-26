@@ -11,6 +11,7 @@ use App\Http\Controllers\API\CustomerProfileController;
 use App\Http\Controllers\API\ForecastController;
 use App\Http\Controllers\API\ForecastInsightController;
 use App\Http\Controllers\API\ForecastSyncController;
+use App\Http\Controllers\API\PosController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -62,6 +63,9 @@ Route::middleware('auth:sanctum')->group(function () {
             return response()->json(['message' => 'Pharmacist dashboard access granted']);
         });
 
+        Route::get('pos/products', [PosController::class, 'getProducts']);
+        Route::post('pos/orders', [PosController::class, 'storeOrder']);
+
         Route::get('pharmacist/profile', [PharmacistProfileController::class, 'show']);
 
         Route::get('pharmacist/orders', [OrderController::class, 'index']);
@@ -76,6 +80,11 @@ Route::middleware('auth:sanctum')->group(function () {
             fn() =>
             response()->json(['message' => 'Branch Admin dashboard'])
         );
+
+        Route::get('pos/products', [PosController::class, 'getProducts']);
+        Route::post('pos/orders', [PosController::class, 'storeOrder']);
+        Route::get('pos/pickup-orders', [PosController::class, 'getPickupOrders']);
+        Route::patch('pos/pickup-orders/{order}/complete', [PosController::class, 'completePickupOrder']);
 
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
 
