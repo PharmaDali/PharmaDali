@@ -322,6 +322,8 @@ function PosPage() {
           qty: item.qty
         })),
         payment_method: paymentMethod,
+        amount_received: Number(cashReceived),
+        change_amount: Math.max(changeAmount, 0),
         note: `POS Sale - ${paymentMethod.toUpperCase()}${paymentMethod === 'gcash' ? ' Ref: ' + gcashReference : ''}`
       };
 

@@ -40,6 +40,8 @@ class PosController extends Controller
             'items.*.id' => 'required|exists:branch_products,id',
             'items.*.qty' => 'required|integer|min:1',
             'payment_method' => 'required|string',
+            'amount_received' => 'nullable|numeric|min:0',
+            'change_amount' => 'nullable|numeric|min:0',
             'note' => 'nullable|string',
         ]);
 
@@ -85,10 +87,18 @@ class PosController extends Controller
     {
         $request->validate([
             'payment_method' => 'required|string|in:cash,gcash,card,maya',
+            'amount_received' => 'nullable|numeric|min:0',
+            'change_amount' => 'nullable|numeric|min:0',
         ]);
 
         try {
-            $order = $this->posService->completePickupOrder($order, $request->payment_method, $request->user());
+            $order = $this->posService->completePickupOrder(
+                $order, 
+                $request->payment_method, 
+                $request->user(),
+                $request->amount_received,
+                $request->change_amount
+            );
 
             return response()->json([
                 'status' => 'success',
