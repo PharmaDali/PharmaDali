@@ -24,9 +24,11 @@ export const fetchPickupOrders = async ({ search = "", status = "all" } = {}) =>
   return response;
 };
 
-export const completePickupOrder = async (orderId, paymentMethod) => {
+export const completePickupOrder = async (orderId, paymentMethod, amountReceived = null, changeAmount = null) => {
   const response = await apiRequest.patch(`/pos/pickup-orders/${orderId}/complete`, {
     payment_method: paymentMethod,
+    amount_received: amountReceived,
+    change_amount: changeAmount,
   });
   return response;
 };

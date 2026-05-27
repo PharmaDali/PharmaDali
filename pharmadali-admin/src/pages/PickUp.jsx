@@ -84,7 +84,12 @@ function PickUp() {
     if (!activeOrder) return;
 
     try {
-      const response = await completePickupOrder(activeOrder.id, paymentMethod);
+      const response = await completePickupOrder(
+        activeOrder.id, 
+        paymentMethod,
+        Number(cashReceived),
+        Math.max(changeAmount, 0)
+      );
 
       if (response.status === "success") {
         setPaymentResult("success");
