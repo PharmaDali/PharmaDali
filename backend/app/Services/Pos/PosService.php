@@ -68,6 +68,8 @@ class PosService
                 'payment_status' => 'paid',
                 'subtotal' => $orderTotal,
                 'total_amount' => $orderTotal,
+                'amount_received' => $data['amount_received'] ?? $orderTotal,
+                'change_amount' => $data['change_amount'] ?? 0,
                 'placed_at' => now(),
                 'completed_at' => now(),
                 'note' => $data['note'] ?? 'POS Walk-in Sale',
@@ -145,7 +147,7 @@ class PosService
     /**
      * Complete a pickup order and update payment info.
      */
-    public function completePickupOrder(Order $order, string $paymentMethod, $user)
+    public function completePickupOrder(Order $order, string $paymentMethod, $user, $amountReceived = null, $changeAmount = null)
     {
         if ($order->branch_id !== $user->branch_id) {
             throw new \Exception("Unauthorized: Order does not belong to your branch.");
@@ -159,11 +161,13 @@ class PosService
             throw new \Exception("Order must be in 'ready_for_pickup' status to be completed at POS.");
         }
 
-        return DB::transaction(function () use ($order, $paymentMethod) {
+        return DB::transaction(function () use ($order, $paymentMethod, $amountReceived, $changeAmount) {
             $order->update([
                 'status' => 'completed',
                 'payment_method' => $paymentMethod,
                 'payment_status' => 'paid',
+                'amount_received' => $amountReceived ?? $order->total_amount,
+                'change_amount' => $changeAmount ?? 0,
                 'completed_at' => now(),
                 'picked_up_at' => now(),
             ]);
