@@ -1,7 +1,8 @@
-import { BottomNavigation } from 'react-native-paper';
+import { BottomNavigation, Badge } from 'react-native-paper';
 import { useRouter, usePathname } from 'expo-router';
 import { Text, View } from 'react-native';
 import { colors } from '@shared/theme/colorPalette';
+import { useUnreadNotifications } from '@shared/hooks/useUnreadNotifications';
 
 // Icons
 import homeIcon from '@assets/icons/home_icon.svg';
@@ -26,6 +27,7 @@ const routes = [
 export default function BottomBar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { unreadCount } = useUnreadNotifications();
 
   const index = routes.findIndex(r => {
     if (pathname === r.path) return true;
@@ -48,7 +50,26 @@ export default function BottomBar() {
       }}
       renderIcon={({ route, focused }) => {
         const Icon = focused ? route.focusedIcon : route.unfocusedIcon;
-        return <Icon width={24} height={24} />;
+        return (
+          <View>
+            <Icon width={24} height={24} />
+            {route.key === 'notifications' && unreadCount > 0 && (
+              <Badge 
+                size={16} 
+                style={{ 
+                  position: 'absolute', 
+                  top: -4, 
+                  right: -4, 
+                  backgroundColor: '#FF4D4D',
+                  color: 'white',
+                  fontFamily: 'Poppins-Bold',
+                }}
+              >
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </Badge>
+            )}
+          </View>
+        );
       }}
       renderLabel={({ route }) => (
         <Text
