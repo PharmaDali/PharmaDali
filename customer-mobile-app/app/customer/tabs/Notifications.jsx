@@ -1,141 +1,82 @@
-import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native'
 import React, { useState } from 'react'
+import { useRouter } from 'expo-router'
 import { colors } from '@src/shared/theme/colorPalette'
 import ClockIcon from '@assets/icons/clock_icon.svg'
-import PromotionsIcon from '@assets/icons/promotions_icon.svg'
-import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
-import BandaidImg from '@assets/images/bandaid_img.png'
-import BetadineImg from '@assets/images/betadine_img.png'
-
-const orderNotifications = [
-  {
-    img: BandaidImg,
-    title: 'Order Approved',
-    description: 'Order ',
-    orderNumber: '#6',
-    descriptionEnd: ' has been approved. Kindly wait for your order to be prepared.',
-    date: 'Januanry 25, 2026, 10:00am',
-  },
-  {
-    img: BetadineImg,
-    title: 'Payment Confirmed',
-    description: 'Payment for order ',
-    orderNumber: '#5',
-    descriptionEnd: ' has been confirmed. Kindly pickup your order.',
-    date: 'Januanry 20, 2026, 09:10am',
-  },
-  {
-    img: BandaidImg,
-    title: 'Order Ready',
-    description: 'Order ',
-    orderNumber: '#5',
-    descriptionEnd: ' has been processed and ready for pickup.',
-    date: 'Januanry 20, 2026, 09:05am',
-  },
-  {
-    img: BetadineImg,
-    title: 'Order Rejected',
-    description: 'Order ',
-    orderNumber: '#4',
-    descriptionEnd: ' cannot be fulfilled and has been rejected.',
-    date: 'Januanry 10, 2026, 10:00am',
-  },
-]
-
-const pharmaDaliUpdates = [
-  {
-    icon: <PromotionsIcon width={28} height={28} />,
-    title: 'Promotions',
-    description: 'Check all the promos available at PharmaDali!',
-    trailing: <ArrowForwardIcon width={18} height={18} />,
-  },
-]
+import { useNotifications } from '@shared/hooks/useNotifications'
 
 const Notifications = () => {
-  const [activeTab, setActiveTab] = useState('orders')
+  const router = useRouter();
+  const { notifications, loading, refetch, markAsRead, timeAgo } = useNotifications();
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
+
+  const handleNotificationPress = async (item) => {
+    if (!item.read_at) {
+      await markAsRead(item.id);
+    }
+
+    if (item.type.includes('OrderPlaced') || item.type.includes('OrderStatus')) {
+      router.push('/customer/tabs/orders/Orders');
+    }
+  };
+
+  const getNotificationTitle = (type) => {
+    if (type.includes('OrderPlaced')) return 'Order Placed';
+    if (type.includes('OrderStatus')) return 'Order Status Updated';
+    return 'Notification';
+  };
 
   return (
     <ScrollView
       style={styles.container}
       showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
     >
-      <View className="items-center">
-        <View className="flex-row items-center gap-6 mt-5 rounded-2xl shadow-xl px-8 py-2 bg-white border border-gray-200 self-center">
-          <TouchableOpacity onPress={() => setActiveTab('orders')}>
-            <Text
-              className="text-base"
-              style={activeTab === 'orders' ? styles.semiBoldText : styles.text}
-            >
-              Order Updates
-            </Text>
-            {activeTab === 'orders' && (
-              <View className="mt-1 h-0.5 rounded-full" style={{ backgroundColor: colors.buttonColor }} />
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setActiveTab('pharmadali')}>
-            <Text
-              className="text-base"
-              style={activeTab === 'pharmadali' ? styles.semiBoldText : styles.text}
-            >
-              PharmaDali Updates
-            </Text>
-            {activeTab === 'pharmadali' && (
-              <View className="mt-1 h-0.5 rounded-full" style={{ backgroundColor: colors.buttonColor }} />
-            )}
-          </TouchableOpacity>
-        </View>
+      <View className="px-4 pt-6 pb-2">
+        <Text className="text-2xl" style={styles.titleText}>Notifications</Text>
       </View>
-      
 
-      <View className="h-px bg-gray-200 mx-4" />
+      <View className="h-px bg-gray-200 mx-4 mb-2" />
 
-      <View className="px-4 pt-2 pb-6">
-        {activeTab === 'orders'
-          ? orderNotifications.length > 0
-            ? orderNotifications.map((item, index) => (
+      <View className="px-4 pb-6">
+        {loading && !refreshing ? (
+          <ActivityIndicator size="large" color={colors.buttonColor} className="mt-10" />
+        ) : notifications.length > 0 ? (
+          notifications.map((item) => (
+            <TouchableOpacity 
+              key={item.id} 
+              onPress={() => handleNotificationPress(item)}
+            >
               <NotificationCard
-                key={index}
-                left={<Image source={item.img} className="w-16 h-16 rounded-lg" resizeMode="contain" />}
-                title={item.title}
+                isRead={!!item.read_at}
+                title={getNotificationTitle(item.type)}
                 description={
                   <Text className="text-xs leading-4" style={styles.text}>
-                    {item.description}
-                    <Text style={{ color: colors.buttonColor, fontFamily: 'Poppins-SemiBold' }}>
-                      {item.orderNumber}
-                    </Text>
-                    {item.descriptionEnd}
+                    {item.data.message}
                   </Text>
                 }
                 footer={
                   <View className="flex-row items-center mt-2">
                     <ClockIcon width={14} height={14} />
                     <Text className="text-xs ml-1 text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
-                      {item.date}
+                      {timeAgo(item.created_at)}
                     </Text>
                   </View>
                 }
               />
-            ))
-            : <EmptyState message="No order updates" />
-          : pharmaDaliUpdates.length > 0
-            ? pharmaDaliUpdates.map((item, index) => (
-              <NotificationCard
-                key={index}
-                left={
-                  <View className="w-12 h-12 rounded-full items-center justify-center">
-                    {item.icon}
-                  </View>
-                }
-                title={item.title}
-                description={
-                  <Text className="text-xs leading-4" style={styles.text}>
-                    {item.description}
-                  </Text>
-                }
-                trailing={item.trailing}
-              />
-            ))
-            : <EmptyState message="No PharmaDali updates" />}
+            </TouchableOpacity>
+          ))
+        ) : (
+          <EmptyState message="No notifications available" />
+        )}
       </View>
     </ScrollView>
   )
@@ -151,14 +92,20 @@ function EmptyState({ message }) {
   )
 }
 
-function NotificationCard({ left, title, description, footer, trailing }) {
+function NotificationCard({ title, description, footer, trailing, isRead }) {
   return (
-    <View className="flex-row bg-white rounded-2xl p-4 mt-2 border border-gray-200 items-center">
-      {left}
-      <View className="flex-1 ml-3">
-        <Text className="text-sm mb-1" style={{ fontFamily: 'Poppins-Bold', color: colors.textColor }}>
-          {title}
-        </Text>
+    <View 
+      className={`flex-row rounded-2xl p-4 mt-2 border items-center ${isRead ? 'bg-gray-50 border-gray-100' : 'bg-white border-blue-100 shadow-sm'}`}
+    >
+      <View className="flex-1">
+        <View className="flex-row items-center mb-1">
+          {!isRead && (
+            <View className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
+          )}
+          <Text className="text-sm" style={{ fontFamily: 'Poppins-Bold', color: colors.textColor }}>
+            {title}
+          </Text>
+        </View>
         {description}
         {footer}
       </View>
@@ -180,6 +127,10 @@ const styles = StyleSheet.create({
   },
   text: {
     fontFamily: 'Poppins-Medium',
+    color: colors.textColor,
+  },
+  titleText: {
+    fontFamily: 'Poppins-Bold',
     color: colors.textColor,
   },
   semiBoldText: {

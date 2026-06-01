@@ -11,6 +11,7 @@ use App\Http\Controllers\API\CustomerProfileController;
 use App\Http\Controllers\API\ForecastController;
 use App\Http\Controllers\API\ForecastInsightController;
 use App\Http\Controllers\API\ForecastSyncController;
+use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PosController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +25,13 @@ Route::post('admin/login', [AuthController::class, 'adminLogin']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('user', [AuthController::class, 'userInfo']);
     Route::post('logout', [AuthController::class, 'logout']);
+
+    // Notifications
+    Route::get('notifications', [NotificationController::class, 'index']);
+    Route::get('notifications/unread', [NotificationController::class, 'unread']);
+    Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
 
     Route::get('branches', [BranchController::class, 'index']);
     Route::get('branches/{id}', [BranchController::class, 'show']);
