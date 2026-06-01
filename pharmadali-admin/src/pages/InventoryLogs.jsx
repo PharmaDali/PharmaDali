@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/css/inventory.css";
+import Modal from "../components/Modal";
 
 const INVENTORY_LOG_ENTRIES = [
   {
@@ -45,6 +46,16 @@ function InventoryLogs() {
   const [actionFilter, setActionFilter] = useState("All");
   const [dateRange, setDateRange] = useState("");
   const [tableActionFilter, setTableActionFilter] = useState("All");
+  const [selectedLog, setSelectedLog] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState({
+    productName: "",
+    barcode: "",
+    search: "",
+    expiryDate: "",
+    quantityReceived: "",
+    batches: [{ batchNumber: "", expiryDate: "", quantity: "" }],
+  });
 
   const filteredLogs = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -66,6 +77,54 @@ function InventoryLogs() {
   const lowStockCount = 20;
   const expiringSoonCount = 20;
   const expiredCount = 15;
+
+  const handleRowClick = (log) => {
+    setSelectedLog(log);
+    setModalData({
+      productName: log.productName,
+      barcode: "",
+      search: "",
+      expiryDate: "",
+      quantityReceived: "",
+      batches: [{ batchNumber: "", expiryDate: "", quantity: "" }],
+    });
+    setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    setSelectedLog(null);
+    setShowModal(false);
+  };
+
+  const handleAddBatch = () => {
+    setModalData((prev) => ({
+      ...prev,
+      batches: [...prev.batches, { batchNumber: "", expiryDate: "", quantity: "" }],
+    }));
+  };
+
+  const handleRemoveBatch = (index) => {
+    setModalData((prev) => ({
+      ...prev,
+      batches: prev.batches.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleBatchChange = (index, field, value) => {
+    setModalData((prev) => ({
+      ...prev,
+      batches: prev.batches.map((batch, i) =>
+        i === index ? { ...batch, [field]: value } : batch,
+      ),
+    }));
+  };
+
+  const handleModalFieldChange = (field, value) => {
+    setModalData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
   return (
     <section className="inventory-page">
@@ -231,7 +290,12 @@ function InventoryLogs() {
                 </tr>
               ) : (
                 filteredLogs.map((log) => (
-                  <tr key={log.id}>
+                  <tr
+                    key={log.id}
+                    onClick={() => handleRowClick(log)}
+                    style={{ cursor: "pointer" }}
+                    className={selectedLog?.id === log.id ? "inventory-row-selected" : ""}
+                  >
                     <td>
                       <p className="inventory-item-name mb-0">{log.productName}</p>
                     </td>
@@ -254,6 +318,193 @@ function InventoryLogs() {
           </table>
         </div>
       </article>
+
+      {selectedLog && (
+        <Modal
+          isOpen={showModal}
+          onClose={handleModalClose}
+          title={selectedLog.action === "Stock IN" ? "Stock In" : "Stock Out"}
+          size="md"
+          className="inventory-modal"
+        >
+          {selectedLog.action === "Stock IN" ? (
+            <div className="inventory-modal-body-content">
+              <p className="inventory-modal-subtitle mb-3">
+                Record newly received medicine stocks into the inventory system.
+              </p>
+
+              <div className="inventory-modal-search mb-4">
+                <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
+                <input
+                  type="text"
+                  className="form-control inventory-modal-search-input"
+                  placeholder="Search by generic name or product name"
+                  value={modalData.search}
+                  onChange={(e) => handleModalFieldChange("search", e.target.value)}
+                />
+              </div>
+
+              <div className="inventory-modal-grid mb-4">
+                <div>
+                  <label className="inventory-modal-label">Product Name</label>
+                  <input
+                    type="text"
+                    className="form-control inventory-modal-input"
+                    value={modalData.productName}
+                    disabled
+                  />
+                </div>
+                <div>
+                  <label className="inventory-modal-label">Barcode</label>
+                  <input
+                    type="text"
+                    className="form-control inventory-modal-input"
+                    placeholder="899999123123"
+                    value={modalData.barcode}
+                    onChange={(e) => handleModalFieldChange("barcode", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="inventory-modal-section">
+                <h6 className="inventory-modal-section-title">Batches</h6>
+
+                {modalData.batches.map((batch, index) => (
+                  <div key={index} className="inventory-batch-card">
+                    <div className="inventory-batch-header">
+                      <span>Batch #{index + 1}</span>
+                      {modalData.batches.length > 1 && (
+                        <button
+                          type="button"
+                          className="btn inventory-batch-delete"
+                          onClick={() => handleRemoveBatch(index)}
+                        >
+                          <i className="fa-solid fa-trash" aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="inventory-batch-grid">
+                      <div>
+                        <label className="inventory-modal-label">Batch number</label>
+                        <input
+                          type="text"
+                          className="form-control inventory-modal-input"
+                          placeholder="Enter batch number"
+                          value={batch.batchNumber}
+                          onChange={(e) =>
+                            handleBatchChange(index, "batchNumber", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="inventory-modal-label">Expiry Date</label>
+                        <input
+                          type="text"
+                          className="form-control inventory-modal-input"
+                          placeholder="MM/DD/YYYY"
+                          value={batch.expiryDate}
+                          onChange={(e) =>
+                            handleBatchChange(index, "expiryDate", e.target.value)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="inventory-modal-label">Quantity</label>
+                        <input
+                          type="text"
+                          className="form-control inventory-modal-input"
+                          placeholder="Enter quantity"
+                          value={batch.quantity}
+                          onChange={(e) => handleBatchChange(index, "quantity", e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  className="btn inventory-add-batch-btn"
+                  onClick={handleAddBatch}
+                >
+                  + Add new batch
+                </button>
+              </div>
+
+              <div className="inventory-modal-footer">
+                <button type="button" className="btn inventory-modal-btn-outline" onClick={handleModalClose}>
+                  Cancel
+                </button>
+                <button type="button" className="btn inventory-modal-btn-primary">
+                  Record stock in
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="inventory-modal-body-content">
+              <p className="inventory-modal-subtitle mb-3">
+                Remove or pull out products from the inventory system.
+              </p>
+
+              <div className="inventory-modal-search mb-4">
+                <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
+                <input
+                  type="text"
+                  className="form-control inventory-modal-search-input"
+                  placeholder="Search by generic name or product name"
+                  value={modalData.search}
+                  onChange={(e) => handleModalFieldChange("search", e.target.value)}
+                />
+              </div>
+
+              <div className="inventory-modal-grid mb-4">
+                <div>
+                  <label className="inventory-modal-label">Barcode</label>
+                  <input
+                    type="text"
+                    className="form-control inventory-modal-input"
+                    placeholder="Tuseran"
+                    value={modalData.barcode}
+                    onChange={(e) => handleModalFieldChange("barcode", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="inventory-modal-grid mb-4">
+                <div>
+                  <label className="inventory-modal-label">Expiry Date</label>
+                  <input
+                    type="text"
+                    className="form-control inventory-modal-input"
+                    placeholder="Expiry Date"
+                    value={modalData.expiryDate}
+                    onChange={(e) => handleModalFieldChange("expiryDate", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="inventory-modal-label">Quantity Received</label>
+                  <input
+                    type="text"
+                    className="form-control inventory-modal-input"
+                    placeholder="24"
+                    value={modalData.quantityReceived}
+                    onChange={(e) => handleModalFieldChange("quantityReceived", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="inventory-modal-footer">
+                <button type="button" className="btn inventory-modal-btn-outline" onClick={handleModalClose}>
+                  Cancel
+                </button>
+                <button type="button" className="btn inventory-modal-btn-primary">
+                  Commit stock out
+                </button>
+              </div>
+            </div>
+            )}
+        </Modal>
+      )}
     </section>
   );
 }
