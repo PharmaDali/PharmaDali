@@ -5,6 +5,7 @@ namespace App\Services\Pos;
 use App\Models\BranchProduct;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Notifications\OrderCompletedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -171,6 +172,11 @@ class PosService
                 'completed_at' => now(),
                 'picked_up_at' => now(),
             ]);
+
+            // Notify customer that order is completed
+            if ($order->customer && $order->customer->user) {
+                $order->customer->user->notify(new OrderCompletedNotification($order));
+            }
 
             return $order->load(['customer.user', 'items.branchProduct.product']);
         });

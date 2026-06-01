@@ -7,8 +7,18 @@ import { useNotifications } from '@shared/hooks/useNotifications'
 
 const Notifications = () => {
   const router = useRouter();
-  const { notifications, loading, refetch, markAsRead, timeAgo } = useNotifications();
+  const { notifications, loading, refetch, markAsRead, markAllRead, timeAgo } = useNotifications();
   const [refreshing, setRefreshing] = useState(false);
+
+  React.useEffect(() => {
+    // When the user opens this screen, mark all as read to clear the badge
+    if (notifications.length > 0) {
+      const hasUnread = notifications.some(n => !n.read_at);
+      if (hasUnread) {
+        markAllRead();
+      }
+    }
+  }, [notifications]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -21,7 +31,7 @@ const Notifications = () => {
       await markAsRead(item.id);
     }
 
-    if (item.type.includes('OrderPlaced') || item.type.includes('OrderStatus')) {
+    if (item.type.includes('OrderPlaced') || item.type.includes('OrderStatus') || item.type.includes('OrderCompleted')) {
       router.push('/customer/tabs/orders/Orders');
     }
   };
@@ -29,6 +39,7 @@ const Notifications = () => {
   const getNotificationTitle = (type) => {
     if (type.includes('OrderPlaced')) return 'Order Placed';
     if (type.includes('OrderStatus')) return 'Order Status Updated';
+    if (type.includes('OrderCompleted')) return 'Order Completed';
     return 'Notification';
   };
 
