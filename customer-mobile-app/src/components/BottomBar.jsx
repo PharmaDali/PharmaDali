@@ -55,18 +55,14 @@ export default function BottomBar() {
             <Icon width={24} height={24} />
             {route.key === 'notifications' && unreadCount > 0 && (
               <Badge 
-                size={16} 
+                size={10} 
                 style={{ 
                   position: 'absolute', 
-                  top: -4, 
-                  right: -4, 
+                  top: -2, 
+                  right: -2, 
                   backgroundColor: '#FF4D4D',
-                  color: 'white',
-                  fontFamily: 'Poppins-Bold',
                 }}
-              >
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </Badge>
+              />
             )}
           </View>
         );

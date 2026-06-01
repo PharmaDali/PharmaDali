@@ -7,8 +7,18 @@ import { useNotifications } from '@shared/hooks/useNotifications'
 
 const Notifications = () => {
   const router = useRouter();
-  const { notifications, loading, refetch, markAsRead, timeAgo } = useNotifications();
+  const { notifications, loading, refetch, markAsRead, markAllRead, timeAgo } = useNotifications();
   const [refreshing, setRefreshing] = useState(false);
+
+  React.useEffect(() => {
+    // When the user opens this screen, mark all as read to clear the badge
+    if (notifications.length > 0) {
+      const hasUnread = notifications.some(n => !n.read_at);
+      if (hasUnread) {
+        markAllRead();
+      }
+    }
+  }, [notifications]);
 
   const onRefresh = async () => {
     setRefreshing(true);
