@@ -7,6 +7,17 @@ import { colors } from '@src/shared/theme/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
 import { SelectionPhaseProvider, useSelectionPhase } from '@src/shared/SelectionPhaseContext';
 import { SearchProvider } from '@src/shared/SearchContext';
+import { useEffect } from 'react';
+import * as Notifications from 'expo-notifications';
+import { syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 const detailHeaders = {
   '/customer/tabs/orders/ViewOrderDetails': 'Order Details',
@@ -35,9 +46,29 @@ function DetailTopBar({ title }) {
 
 function LayoutContent() {
   const pathname = usePathname()
+  const router = useRouter()
   const detailTitle = detailHeaders[pathname]
   const isFullScreen = fullScreenRoutes.includes(pathname)
   const { selectionPhase } = useSelectionPhase()
+
+  useEffect(() => {
+    syncFcmTokenWithBackend();
+
+    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+      const { order_id, type } = response.notification.request.content.data;
+      if (order_id) {
+        // redirect to order details if it's an order-related notification
+        router.push({
+            pathname: '/customer/tabs/orders/ViewOrderDetails',
+            params: { id: order_id }
+        });
+      }
+    });
+
+    return () => {
+      Notifications.removeNotificationSubscription(responseListener);
+    };
+  }, []);
 
   return (
     <View style={styles.container}>
