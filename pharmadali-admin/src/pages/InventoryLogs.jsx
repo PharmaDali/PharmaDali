@@ -77,7 +77,7 @@ function InventoryLogs() {
         >
           Inventory
         </button>
-        <span className="breadcrumb-separator">/</span>
+        <span className="breadcrumb-separator">&rsaquo;</span>
         <span className="breadcrumb-current">Inventory logs</span>
       </div>
 
