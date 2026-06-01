@@ -190,13 +190,21 @@
   align-items: center;
   gap: 0.7rem;
   padding: 0.85rem 1rem;
-  flex-wrap: wrap;
+}
+
+.inventory-table-actions .inventory-select {
+  padding: 0.45rem 1.1rem;
+  height: auto;
+  min-height: 38px;
+  flex-shrink: 0;
+  width: 160px;
 }
 
 .inventory-action-group {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.55rem;
+  flex-shrink: 0;
 }
 
 .inventory-action-btn {

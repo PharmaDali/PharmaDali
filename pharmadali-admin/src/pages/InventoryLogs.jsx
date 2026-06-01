@@ -44,6 +44,7 @@ function InventoryLogs() {
   const [query, setQuery] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
   const [dateRange, setDateRange] = useState("");
+  const [tableActionFilter, setTableActionFilter] = useState("All");
 
   const filteredLogs = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -53,13 +54,13 @@ function InventoryLogs() {
         normalizedQuery.length === 0 || log.productName.toLowerCase().includes(normalizedQuery);
 
       const matchesAction =
-        actionFilter === "All" ||
-        (actionFilter === "Stock In" && log.action === "Stock IN") ||
-        (actionFilter === "Stock Out" && log.action === "Stock OUT");
+        tableActionFilter === "All" ||
+        (tableActionFilter === "Stock In" && log.action === "Stock IN") ||
+        (tableActionFilter === "Stock Out" && log.action === "Stock OUT");
 
       return matchesQuery && matchesAction;
     });
-  }, [query, actionFilter]);
+  }, [query, tableActionFilter]);
 
   const totalProducts = 798;
   const lowStockCount = 20;
@@ -76,7 +77,7 @@ function InventoryLogs() {
         >
           Inventory
         </button>
-        <span className="breadcrumb-separator">·</span>
+        <span className="breadcrumb-separator">/</span>
         <span className="breadcrumb-current">Inventory logs</span>
       </div>
 
@@ -181,22 +182,30 @@ function InventoryLogs() {
             <button
               type="button"
               className="btn inventory-action-btn inventory-action-primary"
+              onClick={() => setTableActionFilter("Stock In")}
             >
               Stock In
             </button>
             <button
               type="button"
               className="btn inventory-action-btn inventory-action-primary"
+              onClick={() => setTableActionFilter("Stock Out")}
             >
               Stock Out
             </button>
-            <button
-              type="button"
-              className="btn inventory-action-btn inventory-action-muted"
-            >
-              All
-            </button>
           </div>
+          <select
+            className="form-select inventory-select"
+            value={tableActionFilter}
+            onChange={(event) => setTableActionFilter(event.target.value)}
+            aria-label="Action filter"
+          >
+            {ACTION_FILTERS.map((action) => (
+              <option key={action} value={action}>
+                {action}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="inventory-table-scroll">
