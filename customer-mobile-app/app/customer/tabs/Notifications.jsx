@@ -31,7 +31,7 @@ const Notifications = () => {
       await markAsRead(item.id);
     }
 
-    if (item.type.includes('OrderPlaced') || item.type.includes('OrderStatus')) {
+    if (item.type.includes('OrderPlaced') || item.type.includes('OrderStatus') || item.type.includes('OrderCompleted')) {
       router.push('/customer/tabs/orders/Orders');
     }
   };
@@ -39,6 +39,7 @@ const Notifications = () => {
   const getNotificationTitle = (type) => {
     if (type.includes('OrderPlaced')) return 'Order Placed';
     if (type.includes('OrderStatus')) return 'Order Status Updated';
+    if (type.includes('OrderCompleted')) return 'Order Completed';
     return 'Notification';
   };
 
