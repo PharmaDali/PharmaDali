@@ -6,44 +6,66 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
+use App\Models\Branch;
+use App\Notifications\OrderPlacedNotification;
+use App\Notifications\NewOrderPharmacistNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 
 class PlaceOrderService
 {
     public function handle(?User $user, array $payload): JsonResponse
     {
         if (!$user || $user->role !== 'customer') {
-            return $this->errorResponse('Only customers can place orders.', 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Only customers can place orders.',
+            ], 403);
         }
 
         $customer = $user->customer;
 
         if (!$customer) {
-            return $this->errorResponse('Customer profile not found.', 403);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Customer profile not found.',
+            ], 403);
         }
 
         $activeCart = $this->resolveActiveCart($customer->id, $user->id);
 
         if (!$activeCart) {
-            return $this->errorResponse('No active cart found for checkout.', 422);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No active cart found for checkout.',
+            ], 422);
         }
 
         $selectedCartItemIds = $this->normalizeSelectedCartItemIds($payload);
 
         if ($selectedCartItemIds->isEmpty()) {
-            return $this->errorResponse('No selected cart items found for checkout.', 422);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No selected cart items found for checkout.',
+            ], 422);
         }
 
         $cartItems = $this->resolveSelectedCartItems($activeCart, $selectedCartItemIds);
 
         if ($cartItems->isEmpty()) {
-            return $this->errorResponse('Cannot place an order with an empty cart.', 422);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Cannot place an order with an empty cart.',
+            ], 422);
         }
 
         if ($cartItems->count() !== $selectedCartItemIds->count()) {
-            return $this->errorResponse('Some selected cart items are invalid for this checkout.', 422);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Some selected cart items are invalid for this checkout.',
+            ], 422);
         }
 
         $order = DB::transaction(fn () => $this->createOrderFromCart(
@@ -53,6 +75,16 @@ class PlaceOrderService
             customerId: (int) $customer->id,
             selectedCartItemIds: $selectedCartItemIds,
         ));
+
+        // Send Notification to Customer
+        $user->notify(new OrderPlacedNotification($order));
+
+        // Send Notification to Pharmacists in the branch
+        $branch = Branch::find($order->branch_id);
+        if ($branch) {
+            $pharmacists = $branch->pharmacists;
+            Notification::send($pharmacists, new NewOrderPharmacistNotification($order));
+        }
 
         return response()->json([
             'status' => 'success',

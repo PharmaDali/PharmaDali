@@ -4,6 +4,7 @@ namespace App\Services\Order;
 
 use App\Models\Order;
 use App\Models\User;
+use App\Notifications\OrderStatusNotification;
 use Illuminate\Http\JsonResponse;
 
 class UpdateOrderStatusByPharmacistService
@@ -82,6 +83,11 @@ class UpdateOrderStatusByPharmacistService
         }
 
         $order->update($updatePayload);
+
+        $order = $order->fresh();
+
+        // Notify customer about status change
+        $order->customer->user->notify(new OrderStatusNotification($order));
 
         $successMessage = match ($action) {
             'approve' => 'Order approved successfully.',
