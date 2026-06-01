@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use App\Services\Notification\FcmService;
 
 class OrderStatusNotification extends Notification
 {
@@ -28,6 +29,20 @@ class OrderStatusNotification extends Notification
      */
     public function via(object $notifiable): array
     {
+        // Send FCM if token exists
+        if ($notifiable->fcm_token) {
+            $fcmService = app(FcmService::class);
+            $fcmService->sendPushNotification(
+                $notifiable,
+                'Order Status Updated',
+                'Your order #' . $this->order->order_number . ' is now ' . str_replace('_', ' ', $this->order->status) . '.',
+                [
+                    'order_id' => (string)$this->order->id,
+                    'type' => 'order_status_change'
+                ]
+            );
+        }
+
         return ['mail', 'database'];
     }
 

@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use App\Services\Notification\FcmService;
 
 class OrderCompletedNotification extends Notification
 {
@@ -28,6 +29,20 @@ class OrderCompletedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
+        // Send FCM if token exists
+        if ($notifiable->fcm_token) {
+            $fcmService = app(FcmService::class);
+            $fcmService->sendPushNotification(
+                $notifiable,
+                'Order Completed',
+                'Your order #' . $this->order->order_number . ' has been marked as completed. Thank you!',
+                [
+                    'order_id' => (string)$this->order->id,
+                    'type' => 'order_completed'
+                ]
+            );
+        }
+
         return ['mail', 'database'];
     }
 
