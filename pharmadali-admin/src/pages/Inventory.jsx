@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "../assets/css/inventory.css";
 import Modal from "../components/Modal";
 import infoIcon from "../assets/icons/modal-icons/info.svg";
@@ -213,6 +214,7 @@ const getWeeksLeft = (item) => {
 };
 
 function Inventory() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [priceFilter, setPriceFilter] = useState("All");
@@ -495,7 +497,11 @@ function Inventory() {
                 <button type="button" className="btn inventory-action-btn inventory-action-primary">
                   + Add New Product
                 </button>
-                <button type="button" className="btn inventory-action-btn inventory-action-muted">
+                <button
+                  type="button"
+                  className="btn inventory-action-btn inventory-action-muted"
+                  onClick={() => navigate("/inventory/logs")}
+                >
                   View Inventory Logs
                 </button>
               </div>

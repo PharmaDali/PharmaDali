@@ -2,6 +2,37 @@
   color: #1f2937;
 }
 
+.inventory-breadcrumbs {
+  font-size: 13px;
+  color: #7fb2df;
+}
+
+.breadcrumb-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #7fb2df;
+  cursor: pointer;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.breadcrumb-link:hover {
+  color: #2f80c7;
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  margin: 0 0.5rem;
+  color: #d6e6fb;
+}
+
+.breadcrumb-current {
+  color: #2f80c7;
+  font-weight: 600;
+}
+
 .inventory-metrics {
   margin-bottom: 1rem;
   display: grid;
@@ -294,6 +325,26 @@
 .inventory-status-normal {
   background: #c7f2c9;
   color: #17663a;
+}
+
+.inventory-log-action-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.inventory-log-action-stock-in {
+  background: #c7f2c9;
+  color: #17663a;
+}
+
+.inventory-log-action-stock-out {
+  background: #ffb6b9;
+  color: #8a1f2b;
 }
 
 .inventory-empty-state {
