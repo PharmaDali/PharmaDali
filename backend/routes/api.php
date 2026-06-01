@@ -8,6 +8,7 @@ use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\OrderItemPrescription;
 use App\Http\Controllers\API\PharmacistProfileController;
 use App\Http\Controllers\API\CustomerProfileController;
+use App\Http\Controllers\API\FcmTokenController;
 use App\Http\Controllers\API\ForecastController;
 use App\Http\Controllers\API\ForecastInsightController;
 use App\Http\Controllers\API\ForecastSyncController;
@@ -32,6 +33,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
     Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
+
+    // FCM Token
+    Route::post('fcm-token', [FcmTokenController::class, 'update']);
+    Route::delete('fcm-token', [FcmTokenController::class, 'remove']);
 
     Route::get('branches', [BranchController::class, 'index']);
     Route::get('branches/{id}', [BranchController::class, 'show']);

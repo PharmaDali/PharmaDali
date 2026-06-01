@@ -41,3 +41,16 @@ export async function deleteNotification(id) {
     method: 'DELETE',
   });
 }
+
+export async function updateFcmToken(token) {
+  return apiRequest('/fcm-token', {
+    method: 'POST',
+    body: { fcm_token: token },
+  });
+}
+
+export async function removeFcmToken() {
+  return apiRequest('/fcm-token', {
+    method: 'DELETE',
+  });
+}

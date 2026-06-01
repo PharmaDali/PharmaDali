@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use App\Services\Notification\FcmService;
 
 class NewOrderPharmacistNotification extends Notification
 {
@@ -28,6 +29,20 @@ class NewOrderPharmacistNotification extends Notification
      */
     public function via(object $notifiable): array
     {
+        // Send FCM if token exists
+        if ($notifiable->fcm_token) {
+            $fcmService = app(FcmService::class);
+            $fcmService->sendPushNotification(
+                $notifiable,
+                'New Order Received',
+                'New order #' . $this->order->order_number . ' received. Please process it.',
+                [
+                    'order_id' => (string)$this->order->id,
+                    'type' => 'new_order_pharmacist'
+                ]
+            );
+        }
+
         return ['mail', 'database'];
     }
 

@@ -83,6 +83,9 @@ class AuthController extends Controller
 
     public function logout(Request $request): JsonResponse
     {
+        // clear FCM token on logout to stop push notifications to this device
+        $request->user()->update(['fcm_token' => null]);
+        
         $request->user()->currentAccessToken()?->delete();
 
         return response()->json(['message' => 'Logged out successfully']);
