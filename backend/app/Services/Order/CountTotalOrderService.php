@@ -8,6 +8,6 @@ class CountTotalOrderService
 {
     public function handle(): int
     {
-        return Order::count();
+        return Order::whereDate('created_at', today())->count();
     }
 }
