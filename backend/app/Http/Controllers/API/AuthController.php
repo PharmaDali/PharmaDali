@@ -78,7 +78,7 @@ class AuthController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        return response()->json($user->load(['pharmacist', 'customer']));
+        return response()->json($user->load(['pharmacist', 'customer', 'branch']));
     }
 
     public function logout(Request $request): JsonResponse
