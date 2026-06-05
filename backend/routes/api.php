@@ -110,6 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('products/{id}', [BranchProductController::class, 'destroy']);
 
         Route::get('branch/orders/count', [OrderController::class, 'countTotalOrders']);
+        Route::get('branch/orders/stats', [OrderController::class, 'getTodayStats']);
         Route::get('branch/orders', [OrderController::class, 'index']);
         Route::get('branch/orders/{order}', [OrderController::class, 'show']);
     });

@@ -62,4 +62,9 @@ class OrderService
     {
         return (new CountTotalOrderService())->handle();
     }
+
+    public function getTodayStats(): array
+    {
+        return (new GetTodayStatsService())->handle();
+    }
 }
