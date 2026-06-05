@@ -22,9 +22,9 @@ function PickUp() {
   const [paymentResult, setPaymentResult] = useState("success");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const loadOrders = useCallback(async () => {
+  const loadOrders = useCallback(async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const response = await fetchPickupOrders({
         search,
         status: statusFilter
@@ -35,12 +35,21 @@ function PickUp() {
     } catch (error) {
       console.error("Failed to fetch orders:", error);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, [search, statusFilter]);
 
   useEffect(() => {
     loadOrders();
+  }, [loadOrders]);
+
+  // Polling for auto-refresh
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadOrders(false);
+    }, 10000); // refresh every 10 seconds
+
+    return () => clearInterval(interval);
   }, [loadOrders]);
 
   const getStatusClassName = (status) => {
@@ -95,6 +104,8 @@ function PickUp() {
         setPaymentResult("success");
         loadOrders();
         setActiveOrder(response.data);
+        // Trigger global refresh for notification/pickup badges
+        window.dispatchEvent(new CustomEvent("order-status-updated"));
       } else {
         setPaymentResult("failed");
         setErrorMessage(response.message || "Something went wrong.");
