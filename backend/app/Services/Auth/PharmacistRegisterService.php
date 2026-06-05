@@ -36,9 +36,11 @@ class PharmacistRegisterService
                 'branch_id'     => $createdBy->branch_id,
             ]);
 
+            $employeeNumber = 'PHAR-' . $user->id . '-' . $createdBy->branch_id;
+
             $user->pharmacist()->create([
-                'employee_number' => $data['employee_number'],
-                'license_number'  => $data['license_number'],
+                'employee_number' => $employeeNumber,
+                'license_number'  => $data['license_number'] ?? null,
             ]);
 
             return $user;
