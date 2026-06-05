@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { fetchPharmacists, createPharmacist } from "../services/pharmacistService";
 import "../assets/css/pharmacists.css";
 
 const INITIAL_PHARMACISTS = [
@@ -38,7 +39,8 @@ const getAvatarInitials = (name) => {
 };
 
 function Pharmacists() {
-	const [pharmacists, setPharmacists] = useState(INITIAL_PHARMACISTS);
+	const [pharmacists, setPharmacists] = useState([]);
+	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState("");
 	const [showModal, setShowModal] = useState(false);
 	const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -46,12 +48,31 @@ function Pharmacists() {
 	const [formData, setFormData] = useState({
 		firstName: "",
 		lastName: "",
+		email: "",
+		password: "",
+		password_confirmation: "",
 		mobile: "",
 		birthdate: "",
 		status: "Active",
 		licenseNumber: "",
 	});
 	const [editingId, setEditingId] = useState(null);
+
+	const loadPharmacists = async () => {
+		try {
+			setLoading(true);
+			const response = await fetchPharmacists();
+			setPharmacists(response);
+		} catch (error) {
+			console.error("Failed to load pharmacists:", error);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	useEffect(() => {
+		loadPharmacists();
+	}, []);
 
 	const rows = useMemo(() => {
 		const q = search.trim().toLowerCase();
@@ -60,27 +81,34 @@ function Pharmacists() {
 			return pharmacists;
 		}
 
-		return pharmacists.filter((item) =>
-			[item.id, item.name, item.mobile].join(" ").toLowerCase().includes(q),
-		);
+		return pharmacists.filter((item) => {
+			const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
+			const empNumber = item.pharmacist?.employee_number?.toLowerCase() || "";
+			return fullName.includes(q) || empNumber.includes(q) || (item.mobile_number || "").includes(q);
+		});
 	}, [search, pharmacists]);
 
 	const handleOpenModal = (pharmacist = null) => {
 		if (pharmacist) {
-			const [firstName, ...lastNameParts] = pharmacist.name.split(" ");
 			setFormData({
-				firstName,
-				lastName: lastNameParts.join(" "),
-				mobile: pharmacist.mobile,
-				birthdate: pharmacist.birthdate || "",
-				status: pharmacist.status || "Active",
-				licenseNumber: pharmacist.licenseNumber || "",
+				firstName: pharmacist.first_name || "",
+				lastName: pharmacist.last_name || "",
+				email: pharmacist.email || "",
+				password: "",
+				password_confirmation: "",
+				mobile: pharmacist.mobile_number || "",
+				birthdate: pharmacist.date_of_birth?.split("T")[0] || "",
+				status: pharmacist.is_active ? "Active" : "Inactive",
+				licenseNumber: pharmacist.pharmacist?.license_number || "",
 			});
 			setEditingId(pharmacist.id);
 		} else {
 			setFormData({
 				firstName: "",
 				lastName: "",
+				email: "",
+				password: "",
+				password_confirmation: "",
 				mobile: "",
 				birthdate: "",
 				status: "Active",
@@ -107,6 +135,9 @@ function Pharmacists() {
 		setFormData({
 			firstName: "",
 			lastName: "",
+			email: "",
+			password: "",
+			password_confirmation: "",
 			mobile: "",
 			birthdate: "",
 			status: "Active",
@@ -122,42 +153,40 @@ function Pharmacists() {
 		}));
 	};
 
-	const handleSave = (e) => {
+	const handleSave = async (e) => {
 		e.preventDefault();
-		const fullName = `${formData.firstName} ${formData.lastName}`.trim();
 
 		if (editingId) {
-			// Update existing pharmacist
-			setPharmacists((prev) =>
-				prev.map((item) =>
-					item.id === editingId
-						? {
-								...item,
-								name: fullName,
-								mobile: formData.mobile,
-								birthdate: formData.birthdate,
-								status: formData.status,
-								licenseNumber: formData.licenseNumber,
-							}
-					: item,
-				),
-			);
-		} else {
-			// Add new pharmacist
-			const newId = `USE-${String(Math.max(...pharmacists.map((p) => parseInt(p.id.split("-")[1])), 0) + 1).padStart(4, "0")}`;
-			setPharmacists((prev) => [
-				...prev,
-				{
-					id: newId,
-					name: fullName,
-					mobile: formData.mobile,
-					birthdate: formData.birthdate,
-					status: formData.status,
-					licenseNumber: formData.licenseNumber,
-				},
-			]);
+			// Update existing pharmacist is not fully implemented yet in the API, we will just show an alert or handle local update for now if it was.
+			// But for now, we just close or you can implement update logic later.
+			console.log("Update not implemented");
+			handleCloseModal();
+			return;
 		}
-		handleCloseModal();
+
+		try {
+			if (formData.password !== formData.password_confirmation) {
+				alert("Passwords do not match");
+				return;
+			}
+			
+			await createPharmacist({
+				first_name: formData.firstName,
+				last_name: formData.lastName,
+				email: formData.email,
+				password: formData.password,
+				password_confirmation: formData.password_confirmation,
+				mobile_number: formData.mobile,
+				date_of_birth: formData.birthdate || null,
+				license_number: formData.licenseNumber || null,
+				is_active: formData.status === "Active"
+			});
+			
+			await loadPharmacists();
+			handleCloseModal();
+		} catch (error) {
+			alert(error.message || "Failed to create pharmacist");
+		}
 	};
 
 	const handleDelete = (id) => {
@@ -204,7 +233,7 @@ function Pharmacists() {
 					<table className="table mb-0 pharmacists-table">
 						<thead>
 							<tr>
-								<th>ID</th>
+								<th>Employee Number</th>
 								<th>Pharmacist Name</th>
 								<th>Mobile Number</th>
 								<th>Age</th>
@@ -213,7 +242,13 @@ function Pharmacists() {
 							</tr>
 						</thead>
 						<tbody>
-							{rows.length === 0 ? (
+							{loading ? (
+								<tr>
+									<td colSpan={6} className="text-center text-muted py-4">
+										Loading pharmacists...
+									</td>
+								</tr>
+							) : rows.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="text-center text-muted py-4">
 										No pharmacist found.
@@ -222,13 +257,13 @@ function Pharmacists() {
 							) : (
 								rows.map((item) => (
 									<tr key={item.id}>
-										<td>{item.id}</td>
-										<td>{item.name}</td>
-										<td>{item.mobile}</td>
-										<td>{calculateAge(item.birthdate)}</td>
+										<td>{item.pharmacist?.employee_number || `PHAR-${item.id}-${item.branch_id}`}</td>
+										<td>{`${item.first_name} ${item.last_name}`}</td>
+										<td>{item.mobile_number}</td>
+										<td>{item.date_of_birth ? calculateAge(item.date_of_birth) : "N/A"}</td>
 										<td>
-											<span className={`pharmacists-status-badge pharmacists-status-${item.status.toLowerCase()}`}>
-												{item.status}
+											<span className={`pharmacists-status-badge pharmacists-status-${item.is_active ? "active" : "inactive"}`}>
+												{item.is_active ? "Active" : "Inactive"}
 											</span>
 										</td>
 										<td>
@@ -293,6 +328,21 @@ function Pharmacists() {
 									/>
 								</div>
 							</div>
+
+              <div className="pharmacists-form-row pharmacists-form-row-single">
+                <div className="pharmacists-form-group">
+									<label className="pharmacists-form-label">Email</label>
+									<input
+										type="email"
+										className="form-control pharmacists-form-input"
+										name="email"
+										value={formData.email}
+										onChange={handleInputChange}
+										placeholder="Enter email address"
+										required
+									/>
+								</div>
+              </div>
 
 							<div className="pharmacists-form-row">
 								<div className="pharmacists-form-group">

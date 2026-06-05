@@ -10,7 +10,7 @@ import {
 import { Line } from "react-chartjs-2";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchOrdersCount } from "../services/dashboardService";
+import { fetchTodayStats } from "../services/dashboardService";
 import { apiRequest } from "../shared/api/apiClient";
 import {
   buildSalesSeriesFromForecastRows,
@@ -416,6 +416,7 @@ function ForecastPreview({ items, loading, onKnowMore }) {
 function DashBoard() {
   const navigate = useNavigate();
   const [ordersCount, setOrdersCount] = useState(null);
+  const [salesToday, setSalesToday] = useState(null);
   const [quickInsights, setQuickInsights] = useState(EMPTY_QUICK_INSIGHTS);
   const [forecastPreview, setForecastPreview] = useState(EMPTY_FORECAST);
   const [quickInsightsLoading, setQuickInsightsLoading] = useState(true);
@@ -424,23 +425,33 @@ function DashBoard() {
   useEffect(() => {
     let mounted = true;
 
-    const loadOrdersCount = async () => {
+    const loadTodayStats = async () => {
       try {
-        const totalOrders = await fetchOrdersCount();
+        const stats = await fetchTodayStats();
         if (mounted) {
-          setOrdersCount(totalOrders);
+          setOrdersCount(stats?.total_orders ?? 0);
+          setSalesToday(stats?.total_sales ?? 0);
         }
       } catch {
         if (mounted) {
           setOrdersCount(0);
+          setSalesToday(0);
         }
       }
     };
 
-    loadOrdersCount();
+    loadTodayStats();
+
+    // Auto-refresh orders count
+    const interval = setInterval(loadTodayStats, 30000); 
+
+    // Also listen for manual updates
+    window.addEventListener("order-status-updated", loadTodayStats);
 
     return () => {
       mounted = false;
+      clearInterval(interval);
+      window.removeEventListener("order-status-updated", loadTodayStats);
     };
   }, []);
 
@@ -587,15 +598,22 @@ function DashBoard() {
 
   const statCards = useMemo(
     () =>
-      STAT_CARDS.map((card) =>
-        card.label === "Orders Today"
-          ? {
+      STAT_CARDS.map((card) => {
+        if (card.label === "Orders Today") {
+          return {
             ...card,
             value: ordersCount === null ? "Loading..." : Number(ordersCount).toLocaleString(),
-          }
-          : card,
-      ),
-    [ordersCount],
+          };
+        }
+        if (card.label === "Sales Today") {
+          return {
+            ...card,
+            value: salesToday === null ? "Loading..." : Number(salesToday).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+          };
+        }
+        return card;
+      }),
+    [ordersCount, salesToday],
   );
 
   return (

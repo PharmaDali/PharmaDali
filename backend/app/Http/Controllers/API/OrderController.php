@@ -76,4 +76,9 @@ class OrderController extends Controller
             'total_orders' => $this->orderService->countTotalOrders(),
         ]);
     }
+
+    public function getTodayStats(): JsonResponse
+    {
+        return response()->json($this->orderService->getTodayStats());
+    }
 }

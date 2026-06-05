@@ -26,10 +26,18 @@ export const usePickupOrdersCount = (refreshInterval = 30000) => {
   useEffect(() => {
     getPickupCount();
     
+    // Listen for manual updates (e.g. from PickUp page)
+    window.addEventListener("order-status-updated", getPickupCount);
+
     if (refreshInterval > 0) {
       const interval = setInterval(getPickupCount, refreshInterval);
-      return () => clearInterval(interval);
+      return () => {
+        clearInterval(interval);
+        window.removeEventListener("order-status-updated", getPickupCount);
+      };
     }
+
+    return () => window.removeEventListener("order-status-updated", getPickupCount);
   }, [getPickupCount, refreshInterval]);
 
   return { readyPickupCount, refreshCount: getPickupCount };

@@ -7,6 +7,7 @@ use App\Http\Controllers\API\CustomerCartController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\OrderItemPrescription;
 use App\Http\Controllers\API\PharmacistProfileController;
+use App\Http\Controllers\API\BranchPharmacistController;
 use App\Http\Controllers\API\CustomerProfileController;
 use App\Http\Controllers\API\FcmTokenController;
 use App\Http\Controllers\API\ForecastController;
@@ -100,6 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('pos/pickup-orders/{order}/complete', [PosController::class, 'completePickupOrder']);
 
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
+        Route::get('pharmacists', [BranchPharmacistController::class, 'index']);
 
         Route::post('branch/forecasts/sync', [ForecastSyncController::class, 'sync']);
         Route::get('branch/forecast-insights', [ForecastInsightController::class, 'show']);
@@ -110,6 +112,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('products/{id}', [BranchProductController::class, 'destroy']);
 
         Route::get('branch/orders/count', [OrderController::class, 'countTotalOrders']);
+        Route::get('branch/orders/stats', [OrderController::class, 'getTodayStats']);
         Route::get('branch/orders', [OrderController::class, 'index']);
         Route::get('branch/orders/{order}', [OrderController::class, 'show']);
     });
