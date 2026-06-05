@@ -18,7 +18,7 @@ export const login = async (credentials) => {
 	return data;
 };
 
-export const getCurrentUser = async () => apiRequest.get("/admin/me");
+export const getCurrentUser = async () => apiRequest.get("/user");
 
 export const logout = async () => {
 	try {

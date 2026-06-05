@@ -7,6 +7,7 @@ import { usePickupOrdersCount } from "../hooks/usePickupOrders";
 
 function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [user, setUser] = useState(null);
   const { readyPickupCount } = usePickupOrdersCount();
   const navigate = useNavigate();
 
@@ -18,13 +19,17 @@ function MainLayout() {
     * Rejections are suppressed to prevent uncaught promise warnings in the console,
     * as auth failures are handled globally.
     */
-    getCurrentUser().catch(() => { });
+    getCurrentUser()
+      .then((data) => {
+        setUser(data);
+      })
+      .catch(() => { });
   }, []);
 
   return (
     <div className="layout-wrapper">
       <NavBar onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
-      <SideBar isOpen={sidebarOpen} onToggle={toggleSidebar} readyPickupOrdersCount={readyPickupCount} />
+      <SideBar isOpen={sidebarOpen} onToggle={toggleSidebar} readyPickupOrdersCount={readyPickupCount} user={user} />
       <main
         className={`main-content${sidebarOpen ? " sidebar-open" : ""}`}
       >

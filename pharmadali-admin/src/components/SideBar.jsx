@@ -25,7 +25,7 @@ const formatUnreadBadge = (count) => {
     return "99+";
   }
 
-  return String(Math.trunc(numericCount)).padStart(2, "0");
+  return String(Math.trunc(numericCount)).padStart(2);
 };
 
 const MENU_SECTIONS = [
@@ -66,7 +66,7 @@ const MENU_SECTIONS = [
   },
 ];
 
-function SideBar({ isOpen, onToggle, unreadNotificationsCount = null, readyPickupOrdersCount = 0 }) {
+function SideBar({ isOpen, onToggle, unreadNotificationsCount = null, readyPickupOrdersCount = 0, user = null }) {
 
   const navigate = useNavigate();
   const notificationsBadge = formatUnreadBadge(
@@ -74,6 +74,12 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = null, readyPicku
   );
 
   const pickupBadge = formatUnreadBadge(readyPickupOrdersCount);
+
+  const displayName = user ? `${user.first_name}` : "Admin";
+  const pharmacyName = user?.branch?.branch_name || "PharmaDali Branch";
+  const avatarUrl = user 
+    ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.first_name)}+${encodeURIComponent(user.last_name)}&background=4A90E2&color=fff&size=45`
+    : "https://ui-avatars.com/api/?name=Admin&background=4A90E2&color=fff&size=45";
   
   const handleLogout = async (event) => {
     event.preventDefault();
@@ -102,15 +108,15 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = null, readyPicku
             <div className="d-flex align-items-center gap-2">
               <div className="position-relative d-inline-block">
                 <img
-                  src="https://ui-avatars.com/api/?name=Denmar&background=4A90E2&color=fff&size=45"
+                  src={avatarUrl}
                   alt="Profile"
                   className="rounded-2 profile-avatar"
                 />
                 <span className="online-indicator position-absolute rounded-circle" />
               </div>
               <div>
-                <p className="fw-semibold m-0 profile-name">Denmar</p>
-                <p className="m-0 profile-pharmacy">Laily&#39;s Pharmacy</p>
+                <p className="fw-semibold m-0 profile-name">{displayName}</p>
+                <p className="m-0 profile-pharmacy">{pharmacyName}</p>
               </div>
             </div>
             <div className="dropdown">
