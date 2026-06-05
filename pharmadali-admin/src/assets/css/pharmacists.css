@@ -369,6 +369,10 @@
   margin-bottom: 1rem;
 }
 
+.pharmacists-form-row.pharmacists-form-row-single {
+  grid-template-columns: 1fr;
+}
+
 .pharmacists-form-group {
   display: flex;
   flex-direction: column;
