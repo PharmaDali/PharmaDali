@@ -505,18 +505,6 @@ function Inventory() {
                   View Inventory Logs
                 </button>
               </div>
-              <select
-                className="form-select inventory-table-filter"
-                aria-label="Table filter"
-                value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
-              >
-                {STATUS_FILTERS.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div className="inventory-table-scroll">
