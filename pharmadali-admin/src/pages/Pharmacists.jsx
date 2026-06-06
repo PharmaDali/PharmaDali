@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { fetchPharmacists, createPharmacist, updatePharmacist, deletePharmacist } from "../services/pharmacistService";
 import "../assets/css/pharmacists.css";
 
@@ -47,6 +47,8 @@ function Pharmacists() {
 		licenseNumber: "",
 	});
 	const [editingId, setEditingId] = useState(null);
+	const [isSaving, setIsSaving] = useState(false);
+	const lastSubmitRef = useRef(0);
 
 	const loadPharmacists = async () => {
 		try {
@@ -140,6 +142,10 @@ function Pharmacists() {
 	const handleSave = async (e) => {
 		e.preventDefault();
 
+		const now = Date.now();
+		if (now - lastSubmitRef.current < 2000) return;
+		lastSubmitRef.current = now;
+
 		const payload = {
 			first_name: formData.firstName,
 			last_name: formData.lastName,
@@ -150,6 +156,7 @@ function Pharmacists() {
 			is_active: formData.status === "Active",
 		};
 
+		setIsSaving(true);
 		try {
 			if (editingId) {
 				await updatePharmacist(editingId, payload);
@@ -160,6 +167,8 @@ function Pharmacists() {
 			handleCloseModal();
 		} catch (error) {
 			alert(error.message || (editingId ? "Failed to update pharmacist" : "Failed to create pharmacist"));
+		} finally {
+			setIsSaving(false);
 		}
 	};
 
@@ -307,20 +316,22 @@ function Pharmacists() {
 								</div>
 							</div>
 
-              <div className="pharmacists-form-row pharmacists-form-row-single">
-                <div className="pharmacists-form-group">
-									<label className="pharmacists-form-label">Email</label>
-									<input
-										type="email"
-										className="form-control pharmacists-form-input"
-										name="email"
-										value={formData.email}
-										onChange={handleInputChange}
-										placeholder="Enter email address"
-										required
-									/>
-								</div>
-              </div>
+{!editingId && (
+						<div className="pharmacists-form-row pharmacists-form-row-single">
+							<div className="pharmacists-form-group">
+								<label className="pharmacists-form-label">Email</label>
+								<input
+									type="email"
+									className="form-control pharmacists-form-input"
+									name="email"
+									value={formData.email}
+									onChange={handleInputChange}
+									placeholder="Enter email address"
+									required
+								/>
+							</div>
+						</div>
+					)}
 
 							<div className="pharmacists-form-row">
 								<div className="pharmacists-form-group">
@@ -380,14 +391,23 @@ function Pharmacists() {
 									type="button"
 									className="btn pharmacists-btn-cancel"
 									onClick={handleCloseModal}
+									disabled={isSaving}
 								>
 									Cancel
 								</button>
 								<button
 									type="submit"
 									className="btn pharmacists-btn-save"
+									disabled={isSaving}
 								>
-									Save
+									{isSaving ? (
+										<>
+											<span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+											{editingId ? "Saving..." : "Creating..."}
+										</>
+									) : (
+										"Save"
+									)}
 								</button>
 							</div>
 						</form>
@@ -434,6 +454,15 @@ function Pharmacists() {
 									<label className="pharmacists-details-label">Last name</label>
 									<p className="pharmacists-details-value">
 										{viewingPharmacist.last_name}
+									</p>
+								</div>
+							</div>
+
+							<div className="pharmacists-details-row pharmacists-details-row-single">
+								<div className="pharmacists-details-group">
+									<label className="pharmacists-details-label">Email</label>
+									<p className="pharmacists-details-value">
+										{viewingPharmacist.email}
 									</p>
 								</div>
 							</div>
