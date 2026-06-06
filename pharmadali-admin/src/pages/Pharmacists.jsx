@@ -2,14 +2,6 @@ import { useMemo, useState, useEffect } from "react";
 import { fetchPharmacists, createPharmacist, updatePharmacist, deletePharmacist } from "../services/pharmacistService";
 import "../assets/css/pharmacists.css";
 
-const INITIAL_PHARMACISTS = [
-	{ id: "USE-1025", name: "Denmar Redondo", mobile: "09123456789", birthdate: "2005-03-15", status: "Active", licenseNumber: "LIC-2024-0001" },
-	{ id: "USE-1026", name: "James Francis Mercado", mobile: "09171234567", birthdate: "1998-07-22", status: "Active", licenseNumber: "LIC-2023-0147" },
-	{ id: "USE-1027", name: "Abigail Barrion", mobile: "09987654321", birthdate: "1994-02-18", status: "Active", licenseNumber: "LIC-2022-0984" },
-	{ id: "USE-1028", name: "James Patrick Orlanes", mobile: "09051234567", birthdate: "1999-11-08", status: "Inactive", licenseNumber: "LIC-2021-0662" },
-	{ id: "USE-1029", name: "Althea Mishka Alvarez", mobile: "09182345678", birthdate: "1996-05-28", status: "Active", licenseNumber: "LIC-2020-0319" },
-];
-
 const calculateAge = (birthdate) => {
 	const today = new Date();
 	const birth = new Date(birthdate);
@@ -243,7 +235,7 @@ function Pharmacists() {
 							) : (
 								rows.map((item) => (
 									<tr key={item.id}>
-										<td>{item.pharmacist?.employee_number || `PHAR-${item.id}-${item.branch_id}`}</td>
+										<td>{item.pharmacist?.employee_number || "—"}</td>
 										<td>{`${item.first_name} ${item.last_name}`}</td>
 										<td>{item.mobile_number}</td>
 										<td>{item.date_of_birth ? calculateAge(item.date_of_birth) : "N/A"}</td>
