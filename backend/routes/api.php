@@ -102,6 +102,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
         Route::get('pharmacists', [BranchPharmacistController::class, 'index']);
+        Route::put('pharmacists/{pharmacist}', [BranchPharmacistController::class, 'update']);
+        Route::delete('pharmacists/{pharmacist}', [BranchPharmacistController::class, 'destroy']);
 
         Route::post('branch/forecasts/sync', [ForecastSyncController::class, 'sync']);
         Route::get('branch/forecast-insights', [ForecastInsightController::class, 'show']);

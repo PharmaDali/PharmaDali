@@ -3,9 +3,11 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Notifications\PharmacistWelcomeNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class PharmacistRegisterService
 {
@@ -23,12 +25,14 @@ class PharmacistRegisterService
             ], 422);
         }
 
-        $user = DB::transaction(function () use ($data, $createdBy) {
+        $temporaryPassword = Str::password(12);
+
+        $user = DB::transaction(function () use ($data, $createdBy, $temporaryPassword) {
             $user = User::create([
                 'first_name'    => $data['first_name'],
                 'last_name'     => $data['last_name'],
                 'email'         => $data['email'],
-                'password'      => Hash::make($data['password']),
+                'password'      => Hash::make($temporaryPassword),
                 'mobile_number' => $data['mobile_number'],
                 'date_of_birth' => $data['date_of_birth'] ?? null,
                 'address'       => $data['address'] ?? null,
@@ -48,14 +52,14 @@ class PharmacistRegisterService
 
         $user->load(['pharmacist', 'branch']);
 
-        $token = $user->createToken('API Token', ['pharmacist'])->plainTextToken;
+        $user->notify(new PharmacistWelcomeNotification(
+            employeeNumber: $user->pharmacist->employee_number,
+            temporaryPassword: $temporaryPassword,
+        ));
 
         return response()->json([
-            'message'    => 'Pharmacist registered successfully',
-            'token'      => $token,
-            'token_type' => 'Bearer',
-            'role'       => 'pharmacist',
-            'user'       => $user,
+            'message' => 'Pharmacist registered successfully. Login credentials have been sent to their email.',
+            'user'    => $user,
         ], 201);
     }
 }

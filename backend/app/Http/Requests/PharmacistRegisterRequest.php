@@ -18,7 +18,6 @@ class PharmacistRegisterRequest extends FormRequest
             'first_name'      => ['required', 'string', 'max:255'],
             'last_name'       => ['required', 'string', 'max:255'],
             'email'           => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password'        => ['required', 'string', 'min:8', 'confirmed'],
             'mobile_number'   => ['required', 'string', 'max:20'],
             'date_of_birth'   => ['nullable', 'date'],
             'address'         => ['nullable', 'string', 'max:255'],
@@ -33,9 +32,6 @@ class PharmacistRegisterRequest extends FormRequest
             'last_name.required'       => 'Last name is required.',
             'email.required'           => 'Email is required.',
             'email.unique'             => 'This email is already taken.',
-            'password.required'        => 'Password is required.',
-            'password.min'             => 'Password must be at least 8 characters.',
-            'password.confirmed'       => 'Password confirmation does not match.',
             'mobile_number.required'   => 'Mobile number is required.',
             'license_number.unique'    => 'This license number is already taken.',
         ];
