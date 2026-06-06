@@ -43,6 +43,15 @@ class PlaceOrderService
             ], 422);
         }
 
+        $branch = Branch::find($activeCart->branch_id);
+
+        if (!$branch || !$this->isBranchOpen($branch)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The pharmacy branch is currently closed. Orders cannot be placed at this time.',
+            ], 422);
+        }
+
         $selectedCartItemIds = $this->normalizeSelectedCartItemIds($payload);
 
         if ($selectedCartItemIds->isEmpty()) {
@@ -80,11 +89,8 @@ class PlaceOrderService
         $user->notify(new OrderPlacedNotification($order));
 
         // Send Notification to Pharmacists in the branch
-        $branch = Branch::find($order->branch_id);
-        if ($branch) {
-            $pharmacists = $branch->pharmacists;
-            Notification::send($pharmacists, new NewOrderPharmacistNotification($order));
-        }
+        $pharmacists = $branch->pharmacists;
+        Notification::send($pharmacists, new NewOrderPharmacistNotification($order));
 
         return response()->json([
             'status' => 'success',
@@ -207,6 +213,42 @@ class PlaceOrderService
                 'status' => 'completed',
             ]);
         }
+    }
+
+    private function isBranchOpen(Branch $branch): bool
+    {
+        if (!$branch->is_active) {
+            return false;
+        }
+
+        if (!$branch->opening_hour || !$branch->closing_hour) {
+            return false;
+        }
+
+        $now = now();
+        $currentMinutes = ($now->hour * 60) + $now->minute;
+
+        $openingMinutes = $this->timeToMinutes($branch->opening_hour);
+        $closingMinutes = $this->timeToMinutes($branch->closing_hour);
+
+        if ($openingMinutes === $closingMinutes) {
+            return false;
+        }
+
+        // Normal schedule (e.g., 09:00 - 21:00)
+        if ($openingMinutes < $closingMinutes) {
+            return $currentMinutes >= $openingMinutes && $currentMinutes < $closingMinutes;
+        }
+
+        // Overnight schedule (e.g., 20:00 - 06:00)
+        return $currentMinutes >= $openingMinutes || $currentMinutes < $closingMinutes;
+    }
+
+    private function timeToMinutes(string $time): int
+    {
+        [$hours, $minutes] = explode(':', $time);
+
+        return ((int) $hours * 60) + (int) $minutes;
     }
 
     private function errorResponse(string $message, int $status): JsonResponse

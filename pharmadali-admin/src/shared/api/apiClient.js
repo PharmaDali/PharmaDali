@@ -29,6 +29,7 @@ apiClient.interceptors.response.use(
       localStorage.removeItem("token");
       localStorage.removeItem("isAuthenticated");
       localStorage.removeItem("userRole");
+      localStorage.removeItem("tokenExpiry");
       // Use window.location as we are outside of React components/hooks
       window.location.href = "/login";
     }

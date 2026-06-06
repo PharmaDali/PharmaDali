@@ -26,5 +26,6 @@ export const logout = async () => {
 	} finally {
 		setAuthToken(null);
 		localStorage.removeItem(AUTH_TOKEN_KEY);
+		localStorage.removeItem("tokenExpiry");
 	}
 };
