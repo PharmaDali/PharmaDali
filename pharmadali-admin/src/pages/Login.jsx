@@ -20,6 +20,7 @@ function Login() {
     try {
       await login(credentials);
       localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("tokenExpiry", String(Date.now() + 8 * 60 * 60 * 1000));
       navigate("/", { replace: true });
     } catch (err) {
       setError(err?.message || "Invalid email or password.");
