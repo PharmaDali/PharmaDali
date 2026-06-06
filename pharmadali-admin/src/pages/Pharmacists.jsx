@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
-import { fetchPharmacists, createPharmacist } from "../services/pharmacistService";
+import { fetchPharmacists, createPharmacist, updatePharmacist, deletePharmacist } from "../services/pharmacistService";
 import "../assets/css/pharmacists.css";
 
 const INITIAL_PHARMACISTS = [
@@ -49,8 +49,6 @@ function Pharmacists() {
 		firstName: "",
 		lastName: "",
 		email: "",
-		password: "",
-		password_confirmation: "",
 		mobile: "",
 		birthdate: "",
 		status: "Active",
@@ -94,8 +92,6 @@ function Pharmacists() {
 				firstName: pharmacist.first_name || "",
 				lastName: pharmacist.last_name || "",
 				email: pharmacist.email || "",
-				password: "",
-				password_confirmation: "",
 				mobile: pharmacist.mobile_number || "",
 				birthdate: pharmacist.date_of_birth?.split("T")[0] || "",
 				status: pharmacist.is_active ? "Active" : "Inactive",
@@ -107,8 +103,6 @@ function Pharmacists() {
 				firstName: "",
 				lastName: "",
 				email: "",
-				password: "",
-				password_confirmation: "",
 				mobile: "",
 				birthdate: "",
 				status: "Active",
@@ -136,8 +130,6 @@ function Pharmacists() {
 			firstName: "",
 			lastName: "",
 			email: "",
-			password: "",
-			password_confirmation: "",
 			mobile: "",
 			birthdate: "",
 			status: "Active",
@@ -156,42 +148,36 @@ function Pharmacists() {
 	const handleSave = async (e) => {
 		e.preventDefault();
 
-		if (editingId) {
-			// Update existing pharmacist is not fully implemented yet in the API, we will just show an alert or handle local update for now if it was.
-			// But for now, we just close or you can implement update logic later.
-			console.log("Update not implemented");
-			handleCloseModal();
-			return;
-		}
+		const payload = {
+			first_name: formData.firstName,
+			last_name: formData.lastName,
+			email: formData.email,
+			mobile_number: formData.mobile,
+			date_of_birth: formData.birthdate || null,
+			license_number: formData.licenseNumber || null,
+			is_active: formData.status === "Active",
+		};
 
 		try {
-			if (formData.password !== formData.password_confirmation) {
-				alert("Passwords do not match");
-				return;
+			if (editingId) {
+				await updatePharmacist(editingId, payload);
+			} else {
+				await createPharmacist(payload);
 			}
-			
-			await createPharmacist({
-				first_name: formData.firstName,
-				last_name: formData.lastName,
-				email: formData.email,
-				password: formData.password,
-				password_confirmation: formData.password_confirmation,
-				mobile_number: formData.mobile,
-				date_of_birth: formData.birthdate || null,
-				license_number: formData.licenseNumber || null,
-				is_active: formData.status === "Active"
-			});
-			
 			await loadPharmacists();
 			handleCloseModal();
 		} catch (error) {
-			alert(error.message || "Failed to create pharmacist");
+			alert(error.message || (editingId ? "Failed to update pharmacist" : "Failed to create pharmacist"));
 		}
 	};
 
-	const handleDelete = (id) => {
-		if (window.confirm("Are you sure you want to delete this pharmacist?")) {
-			setPharmacists((prev) => prev.filter((item) => item.id !== id));
+  	const handleDelete = async (id) => {
+		if (!window.confirm("Are you sure you want to delete this pharmacist?")) return;
+		try {
+			await deletePharmacist(id);
+			await loadPharmacists();
+		} catch (error) {
+			alert(error.message || "Failed to delete pharmacist");
 		}
 	};
 
@@ -439,9 +425,9 @@ function Pharmacists() {
 							<div className="pharmacists-avatar-section">
 								<div 
 									className="pharmacists-avatar"
-									style={{ backgroundColor: getAvatarColor(viewingPharmacist.birthdate) }}
+									style={{ backgroundColor: getAvatarColor(viewingPharmacist.date_of_birth) }}
 								>
-									{getAvatarInitials(viewingPharmacist.name)}
+									{getAvatarInitials(`${viewingPharmacist.first_name} ${viewingPharmacist.last_name}`)}
 								</div>
 							</div>
 
@@ -449,13 +435,13 @@ function Pharmacists() {
 								<div className="pharmacists-details-group">
 									<label className="pharmacists-details-label">First name</label>
 									<p className="pharmacists-details-value">
-										{viewingPharmacist.name.split(" ")[0]}
+										{viewingPharmacist.first_name}
 									</p>
 								</div>
 								<div className="pharmacists-details-group">
 									<label className="pharmacists-details-label">Last name</label>
 									<p className="pharmacists-details-value">
-										{viewingPharmacist.name.split(" ").slice(1).join(" ")}
+										{viewingPharmacist.last_name}
 									</p>
 								</div>
 							</div>
@@ -464,14 +450,14 @@ function Pharmacists() {
 								<div className="pharmacists-details-group">
 									<label className="pharmacists-details-label">Mobile number</label>
 									<p className="pharmacists-details-value">
-										{viewingPharmacist.mobile}
+										{viewingPharmacist.mobile_number}
 									</p>
 								</div>
 								<div className="pharmacists-details-group">
 									<label className="pharmacists-details-label">Status</label>
 									<p className="pharmacists-details-value">
-										<span className={`pharmacists-status-badge pharmacists-status-${viewingPharmacist.status.toLowerCase()}`}>
-											{viewingPharmacist.status}
+										<span className={`pharmacists-status-badge pharmacists-status-${viewingPharmacist.is_active ? "active" : "inactive"}`}>
+											{viewingPharmacist.is_active ? "Active" : "Inactive"}
 										</span>
 									</p>
 								</div>
@@ -481,7 +467,7 @@ function Pharmacists() {
 								<div className="pharmacists-details-group">
 									<label className="pharmacists-details-label">License number</label>
 									<p className="pharmacists-details-value">
-										{viewingPharmacist.licenseNumber || "—"}
+										{viewingPharmacist.pharmacist?.license_number || "—"}
 									</p>
 								</div>
 							</div>
