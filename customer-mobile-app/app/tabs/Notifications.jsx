@@ -1,14 +1,17 @@
-import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native'
-import React, { useState } from 'react'
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native'
+import React, { useState, useCallback } from 'react'
 import { useRouter } from 'expo-router'
 import { colors } from '@src/shared/theme/colorPalette'
 import ClockIcon from '@assets/icons/clock_icon.svg'
 import { useNotifications } from '@shared/hooks/useNotifications'
 
+const PAGE_SIZE = 10;
+
 const Notifications = () => {
   const router = useRouter();
   const { notifications, loading, refetch, markAsRead, markAllRead, timeAgo } = useNotifications();
   const [refreshing, setRefreshing] = useState(false);
+  const [page, setPage] = useState(1);
 
   React.useEffect(() => {
     // When the user opens this screen, mark all as read to clear the badge
@@ -22,6 +25,7 @@ const Notifications = () => {
 
   const onRefresh = async () => {
     setRefreshing(true);
+    setPage(1);
     await refetch();
     setRefreshing(false);
   };
@@ -51,54 +55,82 @@ const Notifications = () => {
     return 'Notification';
   };
 
+  const displayedNotifications = notifications.slice(0, page * PAGE_SIZE);
+  const hasMore = displayedNotifications.length < notifications.length;
+
+  const loadMore = useCallback(() => {
+    if (hasMore) setPage(prev => prev + 1);
+  }, [hasMore]);
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity onPress={() => handleNotificationPress(item)}>
+      <NotificationCard
+        isRead={!!item.read_at}
+        title={getNotificationTitle(item.type)}
+        description={
+          <Text className="text-xs leading-4" style={styles.text}>
+            {item.data.message}
+          </Text>
+        }
+        footer={
+          <View className="flex-row items-center mt-2">
+            <ClockIcon width={14} height={14} />
+            <Text className="text-xs ml-1 text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
+              {timeAgo(item.created_at)}
+            </Text>
+          </View>
+        }
+      />
+    </TouchableOpacity>
+  );
+
+  if (loading && !refreshing) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.buttonColor} />
+      </View>
+    );
+  }
+
   return (
-    <ScrollView
+    <FlatList
       style={styles.container}
       showsVerticalScrollIndicator={false}
+      data={displayedNotifications}
+      keyExtractor={(item) => String(item.id)}
+      renderItem={renderItem}
+      contentContainerStyle={styles.listContent}
+      onEndReached={loadMore}
+      onEndReachedThreshold={0.4}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
-    >
-      <View className="px-4 pt-6 pb-2">
-        <Text className="text-2xl" style={styles.titleText}>Notifications</Text>
-      </View>
-
-      <View className="h-px bg-gray-200 mx-4 mb-2" />
-
-      <View className="px-4 pb-6">
-        {loading && !refreshing ? (
-          <ActivityIndicator size="large" color={colors.buttonColor} className="mt-10" />
-        ) : notifications.length > 0 ? (
-          notifications.map((item) => (
-            <TouchableOpacity 
-              key={item.id} 
-              onPress={() => handleNotificationPress(item)}
-            >
-              <NotificationCard
-                isRead={!!item.read_at}
-                title={getNotificationTitle(item.type)}
-                description={
-                  <Text className="text-xs leading-4" style={styles.text}>
-                    {item.data.message}
-                  </Text>
-                }
-                footer={
-                  <View className="flex-row items-center mt-2">
-                    <ClockIcon width={14} height={14} />
-                    <Text className="text-xs ml-1 text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
-                      {timeAgo(item.created_at)}
-                    </Text>
-                  </View>
-                }
-              />
-            </TouchableOpacity>
-          ))
+      ListHeaderComponent={
+        <>
+          <View className="px-4 pt-6 pb-2">
+            <Text className="text-2xl" style={styles.titleText}>Notifications</Text>
+          </View>
+          <View className="h-px bg-gray-200 mx-4 mb-2" />
+        </>
+      }
+      ListEmptyComponent={<EmptyState message="No notifications available" />}
+      ListFooterComponent={
+        hasMore ? (
+          <View className="py-4 items-center">
+            <ActivityIndicator size="small" color={colors.buttonColor} />
+          </View>
+        ) : notifications.length > PAGE_SIZE ? (
+          <View className="py-4 items-center">
+            <Text className="text-xs text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
+              No more notifications
+            </Text>
+          </View>
         ) : (
-          <EmptyState message="No notifications available" />
-        )}
-      </View>
-    </ScrollView>
-  )
+          <View className="h-6" />
+        )
+      }
+    />
+  );
 }
 
 function EmptyState({ message }) {
@@ -143,6 +175,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F1F4FF',
+  },
+  listContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
   },
   text: {
     fontFamily: 'Poppins-Medium',

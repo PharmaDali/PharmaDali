@@ -244,6 +244,49 @@
 .inventory-table-scroll {
   overflow: auto;
   flex: 1;
+
+.inventory-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.inventory-page-item .inventory-page-link {
+  border: 1px solid #cfe0ef;
+  background: #ffffff;
+  color: #48AAD9;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0.42rem 0.78rem;
+  border-radius: 0.55rem;
+  box-shadow: none;
+  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.inventory-page-item .inventory-page-link:hover,
+.inventory-page-item .inventory-page-link:focus {
+  background: #eef6ff;
+  color: #48AAD9;
+  border-color: #8fcdf1;
+  box-shadow: none;
+}
+
+.inventory-page-item.active .inventory-page-link {
+  background: #4fa7e3;
+  border-color: #4fa7e3;
+  color: #ffffff;
+}
+
+.inventory-page-item.disabled .inventory-page-link {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.inventory-page-item .inventory-page-link:active {
+  transform: translateY(1px);
+}
   min-height: 0;
   background: #f2f7ff;
   margin: 0 1rem 1rem;
