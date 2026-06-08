@@ -120,7 +120,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('branch/orders/{order}', [OrderController::class, 'show']);
 
         // inventory
-        Route::get('branch/inventory/total-products', [InventoryController::class, 'getTotalProducts']);
+        Route::get('branch/inventory/total-products', [InventoryController::class, 'getTotalProductCount']);
+        Route::get('branch/inventory/metrics', [InventoryController::class, 'getInventoryMetrics']);
+        Route::get('branch/inventory/products', [InventoryController::class, 'getInventoryProducts']);
+        Route::get('branch/inventory/logs', [InventoryController::class, 'getInventoryLogs']);
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {
