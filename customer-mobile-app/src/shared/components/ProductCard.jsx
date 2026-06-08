@@ -29,7 +29,7 @@ const ProductCard = ({
 
   const handlePress = () => {
     router.push({
-      pathname: '/customer/tabs/shop/ProductView',
+      pathname: '/tabs/shop/ProductView',
       params: {
         productId: productId || '1',
         branchProductId: branchProductId ? String(branchProductId) : '',
@@ -256,3 +256,4 @@ const styles = StyleSheet.create({
   },
 
 });
+
