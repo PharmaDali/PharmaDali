@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useLocalSearchParams } from 'expo-router'
 import { colors } from '@src/shared/theme/colorPalette'
 import ActiveOrdersScreen from './ActiveOrdersScreen'
 import CompletedOrdersScreen from './CompletedOrdersScreen'
@@ -7,7 +8,8 @@ import { useCustomerOrders } from './useCustomerOrders'
 import SkeletonOrders from '@shared/components/SkeletonOrders'
 
 export default function OrdersScreen() {
-  const [activeTab, setActiveTab] = useState('active')
+  const { tab } = useLocalSearchParams()
+  const [activeTab, setActiveTab] = useState(tab === 'completed' ? 'completed' : 'active')
   const {
     loading,
     errorMessage,
@@ -15,6 +17,12 @@ export default function OrdersScreen() {
     completedOrders,
     reloadOrders,
   } = useCustomerOrders()
+
+  useEffect(() => {
+    if (tab === 'completed') {
+      setActiveTab('completed')
+    }
+  }, [tab])
 
   return (
     <ScrollView style={styles.container}>
