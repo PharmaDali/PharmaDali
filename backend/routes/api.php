@@ -15,6 +15,7 @@ use App\Http\Controllers\API\ForecastInsightController;
 use App\Http\Controllers\API\ForecastSyncController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PosController;
+use App\Http\Controllers\API\InventoryController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -117,6 +118,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('branch/orders/stats', [OrderController::class, 'getTodayStats']);
         Route::get('branch/orders', [OrderController::class, 'index']);
         Route::get('branch/orders/{order}', [OrderController::class, 'show']);
+
+        // inventory
+        Route::get('branch/inventory/total-products', [InventoryController::class, 'getTotalProducts']);
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {
