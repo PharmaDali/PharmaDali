@@ -1,107 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/css/inventory.css";
 import Modal from "../components/Modal";
 import infoIcon from "../assets/icons/modal-icons/info.svg";
-
-const INVENTORY_ITEMS = [
-  {
-    id: "MED-1001",
-    name: "Amoxicillin",
-    brand: "Axmel",
-    form: "500 mg Capsule",
-    category: "Antibiotic",
-    quantity: 28,
-    reorderPoint: 45,
-    expiringInDays: 17,
-    velocity: "Fast",
-    sellingPrice: 12.0,
-  },
-  {
-    id: "MED-1002",
-    name: "Paracetamol",
-    brand: "Biogesic",
-    form: "500 mg Tablet",
-    category: "Analgesic",
-    quantity: 420,
-    reorderPoint: 120,
-    expiringInDays: 205,
-    velocity: "Fast",
-    sellingPrice: 8.5,
-  },
-  {
-    id: "MED-1003",
-    name: "Cetirizine",
-    brand: "Zyrtec",
-    form: "10 mg Tablet",
-    category: "Antihistamine",
-    quantity: 81,
-    reorderPoint: 70,
-    expiringInDays: 43,
-    velocity: "Medium",
-    sellingPrice: 4.0,
-  },
-  {
-    id: "MED-1004",
-    name: "Salbutamol",
-    brand: "Ventolin",
-    form: "100 mcg Inhaler",
-    category: "Respiratory",
-    quantity: 19,
-    reorderPoint: 30,
-    expiringInDays: 95,
-    velocity: "Slow",
-    sellingPrice: 10.0,
-  },
-  {
-    id: "MED-1005",
-    name: "Ibuprofen",
-    brand: "Advil",
-    form: "200 mg Tablet",
-    category: "Analgesic",
-    quantity: 160,
-    reorderPoint: 100,
-    expiringInDays: 22,
-    velocity: "Medium",
-    sellingPrice: 6.5,
-  },
-  {
-    id: "MED-1006",
-    name: "Loperamide",
-    brand: "Diatabs",
-    form: "2 mg Capsule",
-    category: "Gastro",
-    quantity: 47,
-    reorderPoint: 50,
-    expiringInDays: 11,
-    velocity: "Slow",
-    sellingPrice: 5.0,
-  },
-  {
-    id: "MED-1007",
-    name: "Omeprazole",
-    brand: "Losec",
-    form: "20 mg Capsule",
-    category: "Gastro",
-    quantity: 95,
-    reorderPoint: 80,
-    expiringInDays: 88,
-    velocity: "Medium",
-    sellingPrice: 9.25,
-  },
-  {
-    id: "MED-1008",
-    name: "Azithromycin",
-    brand: "Zithromax",
-    form: "500 mg Tablet",
-    category: "Antibiotic",
-    quantity: 24,
-    reorderPoint: 40,
-    expiringInDays: 14,
-    velocity: "Fast",
-    sellingPrice: 11.5,
-  },
-];
+import { fetchInventoryMetrics, fetchInventoryProducts } from "../services/inventoryService";
 
 const CATEGORY_FILTERS = [
   "All",
@@ -109,17 +11,15 @@ const CATEGORY_FILTERS = [
   "Branded",
   "Infant",
   "Milk",
-  "Beverages",
-  "Sanitary",
   "Diapers",
   "Vitamins",
-  "Medical Tools",
-  "Eye Med",
+  "Supplies",
+  "Eyes Med",
   "Hygiene",
-  "Injectibles",
+  "Injectables/Vials",
   "Cosmetics",
-  "Cream",
-  "Ointments",
+  "Cream/Ointment",
+  "Unclassified",
 ];
 
 const PRICE_FILTERS = [
@@ -144,29 +44,53 @@ const STOCK_FILTERS = [
 
 const STATUS_FILTERS = ["All", "Normal", "Low Stocks", "Expiring soon", "Expired"];
 
-const getInventoryStatus = (item) => {
-  if (item.expiringInDays <= 0) {
-    return "Expired";
-  }
+const DUMMY_PRIORITY_RESTOCKS = [
+  {
+    id: "restock-dummy-1",
+    name: "Biogesic 500mg",
+    quantity: 8,
+    velocity: "Slow",
+    expiringInDays: 120,
+  },
+  {
+    id: "restock-dummy-2",
+    name: "Amoxicillin 250mg",
+    quantity: 14,
+    velocity: "Medium",
+    expiringInDays: 90,
+  },
+  {
+    id: "restock-dummy-3",
+    name: "Vitamin C Chewable",
+    quantity: 19,
+    velocity: "Fast",
+    expiringInDays: 150,
+  },
+];
 
-  if (item.expiringInDays <= 30) {
-    return "Expiring soon";
-  }
-
-  if (item.quantity <= item.reorderPoint) {
-    return "Low Stocks";
-  }
-
-  return "Normal";
-};
-
-const formatExpiry = (days) => {
-  const date = new Date();
-  date.setDate(date.getDate() + days);
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${month}/${year}`;
-};
+const DUMMY_EXPIRING_SOON = [
+  {
+    id: "expiry-dummy-1",
+    name: "Mefenamic Acid 500mg",
+    quantity: 26,
+    velocity: "Medium",
+    expiringInDays: 12,
+  },
+  {
+    id: "expiry-dummy-2",
+    name: "Cetirizine Syrup",
+    quantity: 34,
+    velocity: "Slow",
+    expiringInDays: 18,
+  },
+  {
+    id: "expiry-dummy-3",
+    name: "Paracetamol Drops",
+    quantity: 11,
+    velocity: "Fast",
+    expiringInDays: 24,
+  },
+];
 
 const formatExpiryMonthValue = (days) => {
   const date = new Date();
@@ -220,74 +144,110 @@ function Inventory() {
   const [priceFilter, setPriceFilter] = useState("All");
   const [stockFilter, setStockFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [inventoryItems, setInventoryItems] = useState(INVENTORY_ITEMS);
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [metrics, setMetrics] = useState({
+    total_products: 0,
+    low_stocks: 0,
+    expiring: 0,
+    expired: 0,
+  });
+  const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalEditing, setIsModalEditing] = useState(false);
   const [modalDraft, setModalDraft] = useState(null);
   const [showConfirmSave, setShowConfirmSave] = useState(false);
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const loadData = useCallback(async () => {
+    setCurrentPage(1);
+    setLoading(true);
+    try {
+      const [products, metricsResult] = await Promise.all([
+        fetchInventoryProducts({
+          search: query,
+          category: categoryFilter,
+          price_range: priceFilter,
+          stock_range: stockFilter,
+          status: statusFilter,
+        }),
+        fetchInventoryMetrics(),
+      ]);
+      setInventoryItems(products);
+      setMetrics(metricsResult);
+    } catch (err) {
+      console.error("Failed to load inventory data", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [query, categoryFilter, priceFilter, stockFilter, statusFilter]);
+
+  useEffect(() => {
+    loadData();
+  }, [categoryFilter, priceFilter, stockFilter, statusFilter]);
 
   const decoratedItems = useMemo(
     () =>
       inventoryItems.map((item) => ({
         ...item,
-        status: getInventoryStatus(item),
-        expiryLabel: formatExpiry(item.expiringInDays),
+        expiryLabel: item.expiryDate 
+          ? new Date(item.expiryDate).toLocaleDateString("en-PH", { month: "2-digit", year: "numeric" }) 
+          : "N/A",
       })),
     [inventoryItems],
   );
 
   const categoryOptions = useMemo(() => CATEGORY_FILTERS, []);
 
-  const filteredItems = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+  const filteredItems = decoratedItems;
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / itemsPerPage));
+  const paginatedItems = useMemo(
+    () => filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+    [filteredItems, currentPage],
+  );
+  const visiblePageNumbers = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
 
-    return decoratedItems.filter((item) => {
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        [item.name, item.brand, item.category].join(" ").toLowerCase().includes(normalizedQuery);
+    const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+    const endPage = Math.min(totalPages, startPage + 4);
 
-      const matchesCategory = categoryFilter === "All" || item.category === categoryFilter;
+    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
+  }, [currentPage, totalPages]);
 
-      const matchesPrice =
-        priceFilter === "All" ||
-        (priceFilter === "Below 10" && item.sellingPrice < 10) ||
-        (priceFilter === "10 - 50" && item.sellingPrice >= 10 && item.sellingPrice <= 50) ||
-        (priceFilter === "51 - 100" && item.sellingPrice >= 51 && item.sellingPrice <= 100) ||
-        (priceFilter === "101 - 200" && item.sellingPrice >= 101 && item.sellingPrice <= 200) ||
-        (priceFilter === "200 - 500" && item.sellingPrice >= 200 && item.sellingPrice <= 500) ||
-        (priceFilter === "500 and above" && item.sellingPrice >= 500);
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+  };
 
-      const matchesStock =
-        stockFilter === "All" ||
-        (stockFilter === "Below 10" && item.quantity < 10) ||
-        (stockFilter === "10 - 50" && item.quantity >= 10 && item.quantity <= 50) ||
-        (stockFilter === "51 - 100" && item.quantity >= 51 && item.quantity <= 100) ||
-        (stockFilter === "101 - 200" && item.quantity >= 101 && item.quantity <= 200) ||
-        (stockFilter === "200 - 500" && item.quantity >= 200 && item.quantity <= 500) ||
-        (stockFilter === "500 and above" && item.quantity >= 500);
+  const totalItems = metrics.total_products;
+  const lowStockCount = metrics.low_stocks;
+  const expiringSoonCount = metrics.expiring;
+  const expiredCount = metrics.expired;
 
-      const matchesStatus = statusFilter === "All" || item.status === statusFilter;
+  const lowStockItems = useMemo(
+    () => {
+      const items = decoratedItems
+        .filter((item) => item.quantity <= item.reorderPoint)
+        .sort((a, b) => a.quantity - b.quantity)
+        .slice(0, 3);
 
-      return matchesQuery && matchesCategory && matchesPrice && matchesStock && matchesStatus;
-    });
-  }, [categoryFilter, decoratedItems, priceFilter, query, statusFilter, stockFilter]);
+      return items.length > 0 ? items : DUMMY_PRIORITY_RESTOCKS;
+    },
+    [decoratedItems],
+  );
 
-  const totalItems = decoratedItems.length;
-  const lowStockCount = decoratedItems.filter((item) => item.status === "Low Stocks").length;
-  const expiringSoonCount = decoratedItems.filter(
-    (item) => item.status === "Expiring soon",
-  ).length;
-  const expiredCount = decoratedItems.filter((item) => item.status === "Expired").length;
+  const expiringItems = useMemo(
+    () => {
+      const items = decoratedItems
+        .filter((item) => item.expiringInDays > 0 && item.expiringInDays <= 30)
+        .sort((a, b) => a.expiringInDays - b.expiringInDays)
+        .slice(0, 3);
 
-  const lowStockItems = decoratedItems
-    .filter((item) => item.quantity <= item.reorderPoint)
-    .sort((a, b) => a.quantity - b.quantity)
-    .slice(0, 3);
-
-  const expiringItems = decoratedItems
-    .filter((item) => item.expiringInDays > 0 && item.expiringInDays <= 30)
-    .sort((a, b) => a.expiringInDays - b.expiringInDays)
-    .slice(0, 3);
+      return items.length > 0 ? items : DUMMY_EXPIRING_SOON;
+    },
+    [decoratedItems],
+  );
 
   const handleSelectItem = (item) => {
     setSelectedItem(item);
@@ -401,6 +361,11 @@ function Inventory() {
               className="form-control inventory-input"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  loadData();
+                }
+              }}
               placeholder="Search by product name"
               aria-label="Search inventory"
             />
@@ -480,7 +445,7 @@ function Inventory() {
         </div>
 
         <div className="inventory-field inventory-search-action">
-          <button type="button" className="btn inventory-search-btn">
+          <button type="button" className="btn inventory-search-btn" onClick={loadData}>
             Search
           </button>
         </div>
@@ -491,9 +456,6 @@ function Inventory() {
           <article className="inventory-table-card h-100">
             <div className="inventory-table-actions">
               <div className="inventory-action-group">
-                <button type="button" className="btn inventory-action-btn inventory-action-primary">
-                  + Add New Medicine
-                </button>
                 <button type="button" className="btn inventory-action-btn inventory-action-primary">
                   + Add New Product
                 </button>
@@ -520,7 +482,18 @@ function Inventory() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredItems.length === 0 ? (
+                  {loading ? (
+                    <tr>
+                      <td colSpan={6}>
+                        <div className="inventory-empty-state">
+                          <div className="spinner-border text-primary mb-2" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                          </div>
+                          <p className="mb-0">Loading inventory items...</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredItems.length === 0 ? (
                     <tr>
                       <td colSpan={6}>
                         <div className="inventory-empty-state">
@@ -530,7 +503,7 @@ function Inventory() {
                       </td>
                     </tr>
                   ) : (
-                    filteredItems.map((item) => (
+                    paginatedItems.map((item) => (
                       <tr
                         key={item.id}
                         className={selectedItem?.id === item.id ? "inventory-row-selected" : ""}
@@ -559,6 +532,55 @@ function Inventory() {
                 </tbody>
               </table>
             </div>
+            {!loading && filteredItems.length > 0 && (
+              <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 px-3 py-3 border-top">
+                <small className="text-muted">
+                  Showing {(currentPage - 1) * itemsPerPage + 1}-
+                  {Math.min(currentPage * itemsPerPage, filteredItems.length)} of {filteredItems.length}
+                </small>
+
+                <nav aria-label="Inventory product table pagination">
+                  <ul className="pagination pagination-sm mb-0 inventory-pagination">
+                    <li className={`page-item inventory-page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                      <button
+                        type="button"
+                        className="page-link inventory-page-link"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        Previous
+                      </button>
+                    </li>
+
+                    {visiblePageNumbers.map((pageNumber) => (
+                      <li
+                        key={pageNumber}
+                        className={`page-item inventory-page-item ${currentPage === pageNumber ? "active" : ""}`}
+                      >
+                        <button
+                          type="button"
+                          className="page-link inventory-page-link"
+                          onClick={() => handlePageChange(pageNumber)}
+                        >
+                          {pageNumber}
+                        </button>
+                      </li>
+                    ))}
+
+                    <li className={`page-item inventory-page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                      <button
+                        type="button"
+                        className="page-link inventory-page-link"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Next
+                      </button>
+                    </li>
+                  </ul>
+                </nav>
+              </div>
+            )}
           </article>
         </div>
 

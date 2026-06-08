@@ -1,42 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/css/inventory.css";
 import Modal from "../components/Modal";
-
-const INVENTORY_LOG_ENTRIES = [
-  {
-    id: "LOG-001",
-    productName: "Biogesic",
-    action: "Stock IN",
-    quantity: 50,
-    dateTime: "2025-01-01 10:03",
-    user: "Denmar Redondo",
-  },
-  {
-    id: "LOG-002",
-    productName: "Biogesic",
-    action: "Stock IN",
-    quantity: 50,
-    dateTime: "2025-01-01 10:03",
-    user: "Denmar Redondo",
-  },
-  {
-    id: "LOG-003",
-    productName: "Biogesic",
-    action: "Stock IN",
-    quantity: 50,
-    dateTime: "2025-01-01 10:03",
-    user: "Denmar Redondo",
-  },
-  {
-    id: "LOG-004",
-    productName: "Biogesic",
-    action: "Stock OUT",
-    quantity: 50,
-    dateTime: "2025-01-01 10:03",
-    user: "Denmar Redondo",
-  },
-];
+import { fetchInventoryMetrics, fetchInventoryLogs } from "../services/inventoryService";
 
 const ACTION_FILTERS = ["All", "Stock In", "Stock Out"];
 
@@ -57,26 +23,51 @@ function InventoryLogs() {
     batches: [{ batchNumber: "", expiryDate: "", quantity: "" }],
   });
 
-  const filteredLogs = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+  const [logs, setLogs] = useState([]);
+  const [metrics, setMetrics] = useState({
+    total_products: 0,
+    low_stocks: 0,
+    expiring: 0,
+    expired: 0,
+  });
+  const [loading, setLoading] = useState(true);
 
-    return INVENTORY_LOG_ENTRIES.filter((log) => {
-      const matchesQuery =
-        normalizedQuery.length === 0 || log.productName.toLowerCase().includes(normalizedQuery);
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const activeAction = tableActionFilter !== "All" ? tableActionFilter : actionFilter;
+      const [logsResult, metricsResult] = await Promise.all([
+        fetchInventoryLogs({
+          search: query,
+          action: activeAction !== "All" ? activeAction : undefined,
+          date_range: dateRange,
+        }),
+        fetchInventoryMetrics(),
+      ]);
+      setLogs(logsResult);
+      setMetrics(metricsResult);
+    } catch (err) {
+      console.error("Failed to load inventory logs", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [query, actionFilter, tableActionFilter, dateRange]);
 
-      const matchesAction =
-        tableActionFilter === "All" ||
-        (tableActionFilter === "Stock In" && log.action === "Stock IN") ||
-        (tableActionFilter === "Stock Out" && log.action === "Stock OUT");
+  const handleActionChange = useCallback((val) => {
+    setActionFilter(val);
+    setTableActionFilter(val);
+  }, []);
 
-      return matchesQuery && matchesAction;
-    });
-  }, [query, tableActionFilter]);
+  useEffect(() => {
+    loadData();
+  }, [actionFilter, tableActionFilter, dateRange]);
 
-  const totalProducts = 798;
-  const lowStockCount = 20;
-  const expiringSoonCount = 20;
-  const expiredCount = 15;
+  const filteredLogs = logs;
+
+  const totalProducts = metrics.total_products || 0;
+  const lowStockCount = metrics.low_stocks || 0;
+  const expiringSoonCount = metrics.expiring || 0;
+  const expiredCount = metrics.expired || 0;
 
   const handleRowClick = (log) => {
     setSelectedLog(log);
@@ -175,6 +166,11 @@ function InventoryLogs() {
               className="form-control inventory-input"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  loadData();
+                }
+              }}
               placeholder="Search by Product name"
               aria-label="Search inventory logs"
             />
@@ -189,7 +185,7 @@ function InventoryLogs() {
             id="logs-action"
             className="form-select inventory-select"
             value={actionFilter}
-            onChange={(event) => setActionFilter(event.target.value)}
+            onChange={(event) => handleActionChange(event.target.value)}
           >
             {ACTION_FILTERS.map((action) => (
               <option key={action} value={action}>
@@ -229,7 +225,7 @@ function InventoryLogs() {
         </div>
 
         <div className="inventory-field inventory-search-action">
-          <button type="button" className="btn inventory-search-btn">
+          <button type="button" className="btn inventory-search-btn" onClick={loadData}>
             Search
           </button>
         </div>
@@ -241,14 +237,14 @@ function InventoryLogs() {
             <button
               type="button"
               className="btn inventory-action-btn inventory-action-primary"
-              onClick={() => setTableActionFilter("Stock In")}
+              onClick={() => handleActionChange("Stock In")}
             >
               Stock In
             </button>
             <button
               type="button"
               className="btn inventory-action-btn inventory-action-primary"
-              onClick={() => setTableActionFilter("Stock Out")}
+              onClick={() => handleActionChange("Stock Out")}
             >
               Stock Out
             </button>
@@ -256,7 +252,7 @@ function InventoryLogs() {
           <select
             className="form-select inventory-select"
             value={tableActionFilter}
-            onChange={(event) => setTableActionFilter(event.target.value)}
+            onChange={(event) => handleActionChange(event.target.value)}
             aria-label="Action filter"
           >
             {ACTION_FILTERS.map((action) => (
@@ -279,7 +275,18 @@ function InventoryLogs() {
               </tr>
             </thead>
             <tbody>
-              {filteredLogs.length === 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan={5}>
+                    <div className="inventory-empty-state">
+                      <div className="spinner-border text-primary mb-2" role="status">
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                      <p className="mb-0">Loading inventory logs...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredLogs.length === 0 ? (
                 <tr>
                   <td colSpan={5}>
                     <div className="inventory-empty-state">
