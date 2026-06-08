@@ -31,7 +31,15 @@ const Notifications = () => {
       await markAsRead(item.id);
     }
 
-    if (item.type.includes('OrderPlaced') || item.type.includes('OrderStatus') || item.type.includes('OrderCompleted')) {
+    if (item.type.includes('OrderCompleted')) {
+      router.push({
+        pathname: '/customer/tabs/orders/Orders',
+        params: { tab: 'completed' },
+      });
+      return;
+    }
+
+    if (item.type.includes('OrderPlaced') || item.type.includes('OrderStatus')) {
       router.push('/customer/tabs/orders/Orders');
     }
   };
