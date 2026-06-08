@@ -24,3 +24,4 @@ export async function uploadOrderItemPrescription(orderItemId, imageAsset) {
     body: formData,
   });
 }
+

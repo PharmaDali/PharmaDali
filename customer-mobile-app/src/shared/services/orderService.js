@@ -46,3 +46,4 @@ export async function fetchCustomerOrderDetails(orderId) {
 
   return payload?.data || null;
 }
+

@@ -1,24 +1,28 @@
 import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
 import theme from '@src/shared/theme/inputTheme';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
-import AnimatedSplashLayout from '@src/shared/components/AnimatedSplashLayout';
-import { loginCustomer } from '@src/shared/services/authService';
-import { validateCustomerLogin } from '@src/shared/validation/authValidation';
+import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
+import { loginPharmacist } from '@src/shared/services/authService';
+import { validatePharmacistLogin } from '@src/shared/validation/authValidation';
 
-export default function LoginScreen() {
+const PharmacistLogin = () => {
+
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const passwordToggleIcon = useConfirmPasswordToggle();
-  const [email, setEmail] = React.useState('');
+  const [employeeNumber, setEmployeeNumber] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState('');
 
   const handleLogin = async () => {
-    const validationMessage = validateCustomerLogin({ email, password });
+    const validationMessage = validatePharmacistLogin({ employeeNumber, password });
     if (validationMessage) {
       setErrorMessage(validationMessage);
       return;
@@ -28,10 +32,8 @@ export default function LoginScreen() {
     setIsSubmitting(true);
 
     try {
-      const token = await loginCustomer({ email, password });
-
-      await SecureStore.setItemAsync('customer_token', JSON.stringify(token));
-
+      const token = await loginPharmacist({ employeeNumber, password });
+      await SecureStore.setItemAsync('pharmacist_token', JSON.stringify(token));
       router.replace('/tabs/Home');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
@@ -41,16 +43,28 @@ export default function LoginScreen() {
   };
 
   return (
-    <AnimatedSplashLayout>
+    <View className="flex-1 bg-white px-4" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+      <View className="flex-row items-center justify-between px-4 pb-2">
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={24} color="#48AAD9" />
+        </TouchableOpacity>
+        <TouchableOpacity className="flex-row items-center">
+          <Text style={styles.tagalogText}>Tagalog</Text>
+          <Ionicons name="caret-down" size={12} color="#48AAD9" />
+        </TouchableOpacity>
+      </View>
+
+      <View className="items-center mt-2">
+        <DescriptiveLogo />
+      </View>
+
       <TextInput
-        label="Email"
+        label="Employee Number"
         mode="outlined"
         theme={theme}
         style={styles.input}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
+        value={employeeNumber}
+        onChangeText={setEmployeeNumber}
       />
       <TextInput
         label="Password"
@@ -61,27 +75,36 @@ export default function LoginScreen() {
         right={passwordToggleIcon.icon}
         value={password}
         onChangeText={setPassword}
-        autoCapitalize="none"
-      />
+      />  
       {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-      <Link href="/auth/EnterMobileNumberFPW" style={styles.forgotPassword}>Forgot Password?</Link>
+      <Link href="" style={styles.forgotPassword}>Forgot Password?</Link>
       <View style={{ alignItems: 'center' }}>
         <Button mode="contained" style={styles.loginButton} onPress={handleLogin} loading={isSubmitting} disabled={isSubmitting}>
           Mag-Login
         </Button>
         <Text style={styles.noAccountText}>Wala pang account?</Text>
-        <Button mode="outlined" style={styles.registerButton} labelStyle={styles.registerButtonLabel} onPress={() => router.push('/auth/Register')}>
+        <Button mode="outlined" style={styles.registerButton} labelStyle={styles.registerButtonLabel} onPress={() => router.push('')}>
           Mag-Register
         </Button>
       </View>
-    </AnimatedSplashLayout>
+    </View>
   );
-}
+};
+
+export default PharmacistLogin;
 
 const styles = StyleSheet.create({
   errorText: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 13,
     color: '#E53935',
-    marginBottom: 8,
+    marginTop: 12,
+  },
+  tagalogText: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 13,
+    color: '#48AAD9',
+    marginRight: 2,
   },
   input: {
     marginBottom: 16,

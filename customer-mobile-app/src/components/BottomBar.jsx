@@ -17,11 +17,11 @@ import notificationsIcon from '@assets/icons/notifications_icon.svg';
 import notificationsIconFocused from '@assets/icons/notifications_icon_focused.svg';
 
 const routes = [
-  { key: 'home', title: 'Home', focusedIcon: homeIconFocused, unfocusedIcon: homeIcon, path: '/customer/tabs/Home' },
-  { key: 'shop', title: 'Shop', focusedIcon: shopIconFocused, unfocusedIcon: shopIcon, path: '/customer/tabs/shop/Shop' },
-  { key: 'orders', title: 'Orders', focusedIcon: ordersIconFocused, unfocusedIcon: ordersIcon, path: '/customer/tabs/orders/Orders' },
-  { key: 'notifications', title: 'Notifications', focusedIcon: notificationsIconFocused, unfocusedIcon: notificationsIcon, path: '/customer/tabs/Notifications' },
-  { key: 'profile', title: 'Account', focusedIcon: accountIconFocused, unfocusedIcon: accountIcon, path: '/customer/tabs/account/Account' }
+  { key: 'home', title: 'Home', focusedIcon: homeIconFocused, unfocusedIcon: homeIcon, path: '/tabs/Home' },
+  { key: 'shop', title: 'Shop', focusedIcon: shopIconFocused, unfocusedIcon: shopIcon, path: '/tabs/shop/Shop' },
+  { key: 'orders', title: 'Orders', focusedIcon: ordersIconFocused, unfocusedIcon: ordersIcon, path: '/tabs/orders/Orders' },
+  { key: 'notifications', title: 'Notifications', focusedIcon: notificationsIconFocused, unfocusedIcon: notificationsIcon, path: '/tabs/Notifications' },
+  { key: 'profile', title: 'Account', focusedIcon: accountIconFocused, unfocusedIcon: accountIcon, path: '/tabs/account/Account' }
 ];
 
 export default function BottomBar() {
@@ -32,7 +32,7 @@ export default function BottomBar() {
   const index = routes.findIndex(r => {
     if (pathname === r.path) return true;
     const dir = r.path.substring(0, r.path.lastIndexOf('/') + 1);
-    return dir !== '/customer/tabs/' && pathname.startsWith(dir);
+    return dir !== '/tabs/' && pathname.startsWith(dir);
   });
 
   return (

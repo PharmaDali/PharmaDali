@@ -18,12 +18,11 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
-        <Stack.Screen name="customer/index" />
-        <Stack.Screen name="customer/auth/CreateNewPasswordFPW" />
-        <Stack.Screen name="customer/auth/EnterMobileNumberFPW" />
-        <Stack.Screen name="customer/auth/EnterOTPFPW" />
-        <Stack.Screen name="customer/auth/Register" />
-        <Stack.Screen name="customer/tabs" />
+        <Stack.Screen name="auth/CreateNewPasswordFPW" />
+        <Stack.Screen name="auth/EnterMobileNumberFPW" />
+        <Stack.Screen name="auth/EnterOTPFPW" />
+        <Stack.Screen name="auth/Register" />
+        <Stack.Screen name="tabs" />
       </Stack>
     </SafeAreaProvider>
   );

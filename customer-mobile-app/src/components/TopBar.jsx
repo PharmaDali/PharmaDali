@@ -53,7 +53,7 @@ const TopBar = () => {
     <View style={{ backgroundColor: colors.buttonColor}} className="py-4 px-5 pt-3">
       <View className="flex-row items-center justify-between mb-[-20px]">
         <MainLogo />
-        <TouchableOpacity onPress={() => router.push('/customer/tabs/cart/Cart')}>
+        <TouchableOpacity onPress={() => router.push('/tabs/cart/Cart')}>
           <View className="relative w-[30px] h-[30px] items-center justify-center">
             <CartIcon width={30} height={30} />
           {cartCount > 0 && (
@@ -74,13 +74,13 @@ const TopBar = () => {
         value={searchQuery}
         onChangeText={(text) => {
           setSearchQuery(text);
-          if (pathname !== '/customer/tabs/Search') {
-            router.push('/customer/tabs/Search');
+          if (pathname !== '/tabs/Search') {
+            router.push('/tabs/Search');
           }
         }}
         onFocus={() => {
-          if (pathname !== '/customer/tabs/Search') {
-            router.push('/customer/tabs/Search');
+          if (pathname !== '/tabs/Search') {
+            router.push('/tabs/Search');
           }
         }}
       />

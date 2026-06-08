@@ -180,3 +180,4 @@ export async function getCartItemCount() {
     return total + (Number.isFinite(qty) && qty > 0 ? qty : 1);
   }, 0);
 }
+
