@@ -12,8 +12,8 @@ class InventoryController extends Controller
         private readonly InventoryService $inventoryService,
     ) {}
 
-    public function getTotalProducts(Request $request)
+    public function getTotalProductCount(Request $request)
     {
-        return $this->inventoryService->getTotalProducts($request->user()->branch_id);
+        return $this->inventoryService->getTotalProductCount($request->user()->branch_id);
     }
 }

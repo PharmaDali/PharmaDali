@@ -6,7 +6,7 @@ use App\Models\BranchProduct;
 
 class InventoryService
 {
-    public function getTotalProducts($branchId)
+    public function getTotalProductCount($branchId)
     {
         return BranchProduct::where('branch_id', $branchId)->count();
     }
