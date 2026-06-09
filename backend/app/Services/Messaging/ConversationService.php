@@ -126,7 +126,7 @@ class ConversationService
         ]);
     }
 
-    public function sendMessage(User $user, Conversation $conversation, string $body): JsonResponse
+    public function sendMessage(User $user, Conversation $conversation, ?string $body, $image = null): JsonResponse
     {
         if (!$this->userCanParticipateInConversation($user, $conversation)) {
             return response()->json([
@@ -135,25 +135,35 @@ class ConversationService
             ], 403);
         }
 
-        $body = trim($body);
+        $body = $body !== null ? trim($body) : '';
 
-        if ($body === '') {
+        if ($body === '' && !$image) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Message body is required.',
+                'message' => 'Message body or image is required.',
             ], 422);
         }
 
-        $message = DB::transaction(function () use ($conversation, $user, $body) {
+        $message = DB::transaction(function () use ($conversation, $user, $body, $image) {
             if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
                 $this->claimConversationForPharmacist($conversation, $user);
             }
 
+            $metadata = null;
+            if ($image) {
+                $path = $image->store('chat_images', 'public');
+                $metadata = [
+                    'image_url' => asset('storage/' . $path),
+                    'image_path' => $path,
+                ];
+            }
+
             $message = $conversation->messages()->create([
                 'sender_user_id' => $user->id,
-                'message_type' => 'user',
+                'message_type' => $image ? 'image' : 'user',
                 'visibility' => 'public',
-                'body' => $body,
+                'body' => $body !== '' ? $body : null,
+                'metadata' => $metadata,
             ]);
 
             $conversation->forceFill([

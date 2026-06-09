@@ -49,7 +49,8 @@ class ConversationController extends Controller
         return $this->conversationService->sendMessage(
             $request->user(),
             $conversation,
-            $request->validated()['body']
+            $request->validated()['body'] ?? null,
+            $request->file('image')
         );
     }
 }

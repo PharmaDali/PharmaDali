@@ -26,11 +26,35 @@ export async function getCustomerConversation(conversationId) {
   return payload?.data ?? null;
 }
 
-export async function sendCustomerMessage(conversationId, body) {
-  const payload = await apiRequest(`/customer/messages/conversations/${conversationId}/messages`, {
-    method: 'POST',
-    body: { body },
-  });
+export async function sendCustomerMessage(conversationId, body, imageFile = null) {
+  if (imageFile) {
+    const formData = new FormData();
+    if (body) {
+      formData.append('body', body);
+    }
+    
+    const fileUri = imageFile.uri;
+    const fileName = imageFile.fileName || imageFile.name || `chat-image-${Date.now()}.jpg`;
+    const fileType = imageFile.mimeType || imageFile.type || 'image/jpeg';
+    
+    formData.append('image', {
+      uri: fileUri,
+      name: fileName,
+      type: fileType,
+    });
 
-  return payload?.data ?? null;
+    const payload = await apiRequest(`/customer/messages/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    return payload?.data ?? null;
+  } else {
+    const payload = await apiRequest(`/customer/messages/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      body: { body },
+    });
+
+    return payload?.data ?? null;
+  }
 }
