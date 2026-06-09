@@ -35,7 +35,7 @@ class ConversationController extends Controller
     {
         return $this->conversationService->startConversation(
             $request->user(),
-            (int) $request->validated()['counterpart_user_id']
+            (int) $request->validated()['order_id']
         );
     }
 

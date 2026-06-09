@@ -21,6 +21,8 @@ const fullScreenRoutes = [
   '/tabs/cart/PickupDetails',
   '/tabs/cart/OrderSubmitted',
   '/tabs/shop/ProductView',
+  '/tabs/chat/Chat',
+  '/tabs/chat/Conversation',
 ]
 
 function DetailTopBar({ title }) {

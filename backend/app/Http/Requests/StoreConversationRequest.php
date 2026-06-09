@@ -14,7 +14,7 @@ class StoreConversationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'counterpart_user_id' => ['required', 'integer', 'exists:users,id'],
+            'order_id' => ['required', 'integer', 'exists:orders,id'],
         ];
     }
 }

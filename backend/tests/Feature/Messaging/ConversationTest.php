@@ -5,7 +5,7 @@ namespace Tests\Feature\Messaging;
 use App\Models\Branch;
 use App\Models\Conversation;
 use App\Models\Customer;
-use App\Models\Pharmacist;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -36,54 +36,47 @@ class ConversationTest extends TestCase
             'is_active' => true,
         ]);
 
-        Customer::create([
+        $customer = Customer::create([
             'user_id' => $customerUser->id,
             'branch_id' => null,
         ]);
 
-        $pharmacistUser = User::create([
-            'first_name' => 'Pharmacist',
-            'last_name' => 'One',
-            'email' => 'pharmacist@example.com',
-            'password' => 'password',
-            'role' => 'pharmacist',
-            'mobile_number' => '09000000002',
+        $order = Order::create([
+            'order_number' => 'ORD-0001',
+            'customer_id' => $customer->id,
             'branch_id' => $branch->id,
-            'is_active' => true,
-        ]);
-
-        Pharmacist::create([
-            'user_id' => $pharmacistUser->id,
-            'employee_number' => 'EMP-001',
-            'license_number' => 'LIC-001',
+            'status' => 'pending',
+            'payment_method' => 'cod',
+            'payment_status' => 'unpaid',
+            'subtotal' => 100,
+            'discount_amount' => 0,
+            'total_amount' => 100,
+            'placed_at' => now(),
         ]);
 
         Sanctum::actingAs($customerUser, ['customer']);
 
         $firstResponse = $this->postJson('/api/customer/messages/conversations', [
-            'counterpart_user_id' => $pharmacistUser->id,
+            'order_id' => $order->id,
         ]);
 
         $firstResponse->assertCreated();
-        $this->assertDatabaseHas('customers', [
-            'user_id' => $customerUser->id,
-            'branch_id' => $branch->id,
-        ]);
         $this->assertDatabaseHas('conversations', [
+            'order_id' => $order->id,
             'customer_user_id' => $customerUser->id,
-            'pharmacist_user_id' => $pharmacistUser->id,
-            'branch_id' => $branch->id,
+            'pharmacy_id' => $branch->id,
+            'status' => 'open',
         ]);
 
         $secondResponse = $this->postJson('/api/customer/messages/conversations', [
-            'counterpart_user_id' => $pharmacistUser->id,
+            'order_id' => $order->id,
         ]);
 
         $secondResponse->assertCreated();
         $this->assertSame(1, Conversation::count());
     }
 
-    public function test_customer_cannot_start_a_conversation_with_a_pharmacist_from_another_branch(): void
+    public function test_customer_cannot_start_a_conversation_for_another_customers_order(): void
     {
         $this->prepareSchema();
 
@@ -117,27 +110,39 @@ class ConversationTest extends TestCase
             'branch_id' => $branchA->id,
         ]);
 
-        $pharmacistUser = User::create([
-            'first_name' => 'Pharmacist',
-            'last_name' => 'Two',
-            'email' => 'pharmacist2@example.com',
+        $otherCustomerUser = User::create([
+            'first_name' => 'Customer',
+            'last_name' => 'Three',
+            'email' => 'customer3@example.com',
             'password' => 'password',
-            'role' => 'pharmacist',
+            'role' => 'customer',
             'mobile_number' => '09000000004',
             'branch_id' => $branchB->id,
             'is_active' => true,
         ]);
 
-        Pharmacist::create([
-            'user_id' => $pharmacistUser->id,
-            'employee_number' => 'EMP-002',
-            'license_number' => 'LIC-002',
+        $otherCustomer = Customer::create([
+            'user_id' => $otherCustomerUser->id,
+            'branch_id' => $branchB->id,
+        ]);
+
+        $order = Order::create([
+            'order_number' => 'ORD-0002',
+            'customer_id' => $otherCustomer->id,
+            'branch_id' => $branchB->id,
+            'status' => 'pending',
+            'payment_method' => 'cod',
+            'payment_status' => 'unpaid',
+            'subtotal' => 80,
+            'discount_amount' => 0,
+            'total_amount' => 80,
+            'placed_at' => now(),
         ]);
 
         Sanctum::actingAs($customerUser, ['customer']);
 
         $response = $this->postJson('/api/customer/messages/conversations', [
-            'counterpart_user_id' => $pharmacistUser->id,
+            'order_id' => $order->id,
         ]);
 
         $response->assertForbidden();
@@ -214,13 +219,59 @@ class ConversationTest extends TestCase
             });
         }
 
+        if (!Schema::hasTable('orders')) {
+            Schema::create('orders', function (Blueprint $table) {
+                $table->id();
+                $table->string('order_number')->unique();
+                $table->unsignedBigInteger('customer_id');
+                $table->unsignedBigInteger('branch_id');
+                $table->string('status');
+                $table->string('payment_method');
+                $table->string('payment_status');
+                $table->decimal('subtotal', 10, 2)->default(0);
+                $table->decimal('discount_amount', 10, 2)->default(0);
+                $table->decimal('total_amount', 10, 2)->default(0);
+                $table->timestamp('placed_at')->nullable();
+                $table->timestamps();
+            });
+        }
+
         if (!Schema::hasTable('conversations')) {
             Schema::create('conversations', function (Blueprint $table) {
                 $table->id();
-                $table->unsignedBigInteger('branch_id');
+                $table->unsignedBigInteger('order_id')->unique();
+                $table->unsignedBigInteger('pharmacy_id');
                 $table->unsignedBigInteger('customer_user_id');
-                $table->unsignedBigInteger('pharmacist_user_id');
+                $table->unsignedBigInteger('assigned_pharmacist_user_id')->nullable();
+                $table->string('status')->default('open');
+                $table->timestamp('closed_at')->nullable();
                 $table->timestamp('last_message_at')->nullable();
+                $table->timestamps();
+            });
+        }
+
+        if (!Schema::hasTable('conversation_participants')) {
+            Schema::create('conversation_participants', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('conversation_id');
+                $table->unsignedBigInteger('user_id');
+                $table->string('participant_role');
+                $table->timestamp('joined_at')->nullable();
+                $table->timestamp('left_at')->nullable();
+                $table->boolean('is_active')->default(true);
+                $table->timestamps();
+            });
+        }
+
+        if (!Schema::hasTable('conversation_assignments')) {
+            Schema::create('conversation_assignments', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('conversation_id');
+                $table->unsignedBigInteger('pharmacist_user_id');
+                $table->unsignedBigInteger('assigned_by_user_id')->nullable();
+                $table->timestamp('assigned_at')->nullable();
+                $table->timestamp('released_at')->nullable();
+                $table->boolean('is_current')->default(true);
                 $table->timestamps();
             });
         }
@@ -229,8 +280,11 @@ class ConversationTest extends TestCase
             Schema::create('conversation_messages', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('conversation_id');
-                $table->unsignedBigInteger('sender_user_id');
+                $table->unsignedBigInteger('sender_user_id')->nullable();
+                $table->string('message_type')->default('user');
+                $table->string('visibility')->default('public');
                 $table->text('body');
+                $table->json('metadata')->nullable();
                 $table->timestamp('read_at')->nullable();
                 $table->timestamps();
             });

@@ -69,7 +69,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="relative flex-1 bg-white">
       <ToastMessage
         visible={toast.visible}
         message={toast.message}
@@ -87,9 +87,9 @@ export default function HomeScreen() {
       )}
 
       <ScrollView
-        className="bg-white"
-        style={{ flex: 1 }}
+        className="flex-1 bg-white"
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 96 }}
       >
       <View className="flex-row items-center justify-between px-4 pt-6">
         <Text className="text-3xl text-start" style={styles.greetingMedium}>
@@ -188,6 +188,15 @@ export default function HomeScreen() {
         />
       </View>
       </ScrollView>
+
+      <TouchableOpacity
+        onPress={() => route.push('/tabs/chat/Chat')}
+        activeOpacity={0.9}
+        className="absolute right-4 h-14 w-14 items-center justify-center rounded-full bg-sky-500 shadow-lg shadow-slate-900/30"
+        style={{ bottom: Math.max(insets.bottom, 16) + 12 }}
+      >
+        <MaterialCommunityIcons name="message-text-outline" size={26} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 }

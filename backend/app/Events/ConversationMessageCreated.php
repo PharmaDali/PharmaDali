@@ -20,7 +20,18 @@ class ConversationMessageCreated implements ShouldBroadcastNow
 
     public function broadcastOn(): array
     {
-        return [new PrivateChannel('conversations.' . $this->message->conversation_id)];
+        $channels = [];
+
+        if ($this->message->visibility !== 'staff_only') {
+            $channels[] = new PrivateChannel('conversations.' . $this->message->conversation_id);
+            $channels[] = new PrivateChannel('conversations.' . $this->message->conversation_id . '.staff');
+        }
+
+        if (in_array($this->message->message_type, ['internal_note', 'system'], true) || $this->message->visibility === 'staff_only') {
+            $channels[] = new PrivateChannel('conversations.' . $this->message->conversation_id . '.staff');
+        }
+
+        return $channels;
     }
 
     public function broadcastAs(): string
@@ -36,7 +47,10 @@ class ConversationMessageCreated implements ShouldBroadcastNow
                 'id' => $this->message->id,
                 'conversation_id' => $this->message->conversation_id,
                 'sender_user_id' => $this->message->sender_user_id,
+                'message_type' => $this->message->message_type,
+                'visibility' => $this->message->visibility,
                 'body' => $this->message->body,
+                'metadata' => $this->message->metadata,
                 'read_at' => $this->message->read_at,
                 'created_at' => $this->message->created_at,
                 'sender' => $this->message->sender,

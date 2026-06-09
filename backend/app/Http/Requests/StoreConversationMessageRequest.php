@@ -15,6 +15,8 @@ class StoreConversationMessageRequest extends FormRequest
     {
         return [
             'body' => ['required', 'string', 'max:2000'],
+            'message_type' => ['sometimes', 'string', 'in:user,internal_note'],
+            'visibility' => ['sometimes', 'string', 'in:public,staff_only'],
         ];
     }
 }

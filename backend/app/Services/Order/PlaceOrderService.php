@@ -7,15 +7,22 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use App\Models\Branch;
+use App\Services\Messaging\ConversationService;
 use App\Notifications\OrderPlacedNotification;
 use App\Notifications\NewOrderPharmacistNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Log;
 
 class PlaceOrderService
 {
+    public function __construct(
+        private readonly ConversationService $conversationService,
+    ) {
+    }
+
     public function handle(?User $user, array $payload): JsonResponse
     {
         if (!$user || $user->role !== 'customer') {
@@ -77,26 +84,43 @@ class PlaceOrderService
             ], 422);
         }
 
-        $order = DB::transaction(fn () => $this->createOrderFromCart(
-            activeCart: $activeCart,
-            cartItems: $cartItems,
-            payload: $payload,
-            customerId: (int) $customer->id,
-            selectedCartItemIds: $selectedCartItemIds,
-        ));
+        try {
+            $order = DB::transaction(function () use ($activeCart, $cartItems, $payload, $customer, $selectedCartItemIds, $user, $branch) {
+                $order = $this->createOrderFromCart(
+                    activeCart: $activeCart,
+                    cartItems: $cartItems,
+                    payload: $payload,
+                    customerId: (int) $customer->id,
+                    selectedCartItemIds: $selectedCartItemIds,
+                );
 
-        // Send Notification to Customer
-        $user->notify(new OrderPlacedNotification($order));
+                // Send Notification to Customer
+                $user->notify(new OrderPlacedNotification($order));
 
-        // Send Notification to Pharmacists in the branch
-        $pharmacists = $branch->pharmacists;
-        Notification::send($pharmacists, new NewOrderPharmacistNotification($order));
+                // Send Notification to Pharmacists in the branch
+                $pharmacists = $branch->pharmacists;
+                Notification::send($pharmacists, new NewOrderPharmacistNotification($order));
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Order placed successfully.',
-            'data' => $order,
-        ], 201);
+                $this->conversationService->appendSystemMessage($order, 'Order received', [
+                    'status' => $order->status,
+                    'order_number' => $order->order_number,
+                ]);
+
+                return $order;
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Order placed successfully.',
+                'data' => $order,
+            ], 201);
+        } catch (\Throwable $e) {
+            Log::error('Order placement failed: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while placing your order. Your cart has not been modified. Please try again later.',
+            ], 500);
+        }
     }
 
     private function resolveActiveCart(int $customerId, int $userId): ?Cart
@@ -114,8 +138,8 @@ class PlaceOrderService
     private function normalizeSelectedCartItemIds(array $payload): Collection
     {
         return collect($payload['cart_item_ids'] ?? [])
-            ->map(fn ($id) => (int) $id)
-            ->filter(fn ($id) => $id > 0)
+            ->map(fn($id) => (int) $id)
+            ->filter(fn($id) => $id > 0)
             ->unique()
             ->values();
     }
