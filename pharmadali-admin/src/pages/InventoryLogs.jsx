@@ -11,7 +11,7 @@ function InventoryLogs() {
   const [query, setQuery] = useState("");
   const [actionFilter, setActionFilter] = useState("All");
   const [dateRange, setDateRange] = useState("");
-  const [tableActionFilter, setTableActionFilter] = useState("All");
+
   const [selectedLog, setSelectedLog] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState({
@@ -35,7 +35,7 @@ function InventoryLogs() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const activeAction = tableActionFilter !== "All" ? tableActionFilter : actionFilter;
+      const activeAction = actionFilter;
       const [logsResult, metricsResult] = await Promise.all([
         fetchInventoryLogs({
           search: query,
@@ -51,16 +51,15 @@ function InventoryLogs() {
     } finally {
       setLoading(false);
     }
-  }, [query, actionFilter, tableActionFilter, dateRange]);
+  }, [query, actionFilter, dateRange]);
 
   const handleActionChange = useCallback((val) => {
     setActionFilter(val);
-    setTableActionFilter(val);
   }, []);
 
   useEffect(() => {
     loadData();
-  }, [actionFilter, tableActionFilter, dateRange]);
+  }, [actionFilter, dateRange]);
 
   const filteredLogs = logs;
 
@@ -249,18 +248,7 @@ function InventoryLogs() {
               Stock Out
             </button>
           </div>
-          <select
-            className="form-select inventory-select"
-            value={tableActionFilter}
-            onChange={(event) => handleActionChange(event.target.value)}
-            aria-label="Action filter"
-          >
-            {ACTION_FILTERS.map((action) => (
-              <option key={action} value={action}>
-                {action}
-              </option>
-            ))}
-          </select>
+
         </div>
 
         <div className="inventory-table-scroll">
@@ -509,7 +497,7 @@ function InventoryLogs() {
                 </button>
               </div>
             </div>
-            )}
+          )}
         </Modal>
       )}
     </section>
