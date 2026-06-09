@@ -27,6 +27,7 @@ export default function HomeScreen() {
   const { loading, categories, branchProducts, normalizeSelectedBranch } = useHomeTab(selectedBranch);
   const { toast, showSuccess, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [hasUnreadMessage, setHasUnreadMessage] = useState(true);
 
   const branchStatusLabel = selectedBranch?.isOpen
     ? (selectedBranch?.formattedClosingHour ? `Open til ${selectedBranch.formattedClosingHour}` : 'Open now')
@@ -190,12 +191,18 @@ export default function HomeScreen() {
       </ScrollView>
 
       <TouchableOpacity
-        onPress={() => route.push('/tabs/chat/Chat')}
+        onPress={() => {
+          setHasUnreadMessage(false);
+          route.push('/tabs/chat/Chat');
+        }}
         activeOpacity={0.9}
         className="absolute right-4 h-14 w-14 items-center justify-center rounded-full bg-sky-500 shadow-lg shadow-slate-900/30"
         style={{ bottom: Math.max(insets.bottom, 16) + 12 }}
       >
         <MaterialCommunityIcons name="message-text-outline" size={26} color="#fff" />
+        {hasUnreadMessage && (
+          <View className="absolute top-3 right-3 h-3 w-3 rounded-full bg-red-500 border-2 border-sky-500" />
+        )}
       </TouchableOpacity>
     </View>
   );

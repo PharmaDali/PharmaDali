@@ -6,7 +6,6 @@ import { TextInput } from 'react-native-paper'
 import CartIcon from '@assets/icons/cart_icon.svg'
 import theme from '@shared/theme/inputTheme'
 import React, { useCallback, useEffect, useState } from 'react'
-import { useFocusEffect } from '@react-navigation/native'
 import { getCartItemCount } from '@shared/services/cartService'
 import { subscribeCartCountUpdates } from '@shared/services/cartCountEvents'
 import { resetCartProductIdsCache, initializeCartProductIdsCache } from '@shared/utils/cartUtils'
@@ -31,11 +30,9 @@ const TopBar = () => {
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadCartCount();
-    }, [loadCartCount]),
-  );
+  useEffect(() => {
+    loadCartCount();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = subscribeCartCountUpdates((event) => {

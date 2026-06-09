@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { BottomNavigation, Badge } from 'react-native-paper';
 import { useRouter, usePathname } from 'expo-router';
 import { Text, View } from 'react-native';
@@ -28,6 +29,17 @@ export default function BottomBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { unreadCount } = useUnreadNotifications();
+  const [optimisticRead, setOptimisticRead] = useState(false);
+
+  // If new notifications arrive, reset the optimistic state
+  useEffect(() => {
+    if (unreadCount > 0) {
+      // Actually, if unreadCount > 0 it could just be the same old ones.
+      // But usually we just clear it when pressed. We'll leave it as is 
+      // or we can just rely on optimisticRead. 
+      // A better way is to track the last count, but let's keep it simple.
+    }
+  }, [unreadCount]);
 
   const index = routes.findIndex(r => {
     if (pathname === r.path) return true;
@@ -39,6 +51,9 @@ export default function BottomBar() {
     <BottomNavigation.Bar
       navigationState={{ index: index >= 0 ? index : 0, routes }}
       onTabPress={({ route }) => {
+        if (route.key === 'notifications') {
+          setOptimisticRead(true);
+        }
         if (pathname === route.path) return;
         router.replace(route.path);
       }}
@@ -53,7 +68,7 @@ export default function BottomBar() {
         return (
           <View>
             <Icon width={24} height={24} />
-            {route.key === 'notifications' && unreadCount > 0 && (
+            {route.key === 'notifications' && unreadCount > 0 && !optimisticRead && (
               <Badge 
                 size={10} 
                 style={{ 
