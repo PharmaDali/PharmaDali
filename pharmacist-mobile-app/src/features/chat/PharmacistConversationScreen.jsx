@@ -2,17 +2,20 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@src/shared/theme/colorPalette';
 import {
   getPharmacistConversation,
@@ -31,9 +34,47 @@ const formatTime = (value) => {
   }).format(date);
 };
 
+const formatDateLabel = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (date.toDateString() === today.toDateString()) return 'Today';
+  if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
+};
+
+const getInitials = (name) => {
+  if (!name) return '?';
+  return name.trim().split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+};
+
+const groupMessagesByDate = (messages) => {
+  const grouped = [];
+  let lastDate = null;
+  messages.forEach((msg) => {
+    const dateLabel = formatDateLabel(msg.created_at);
+    if (dateLabel && dateLabel !== lastDate) {
+      grouped.push({ _type: 'separator', id: `sep-${msg.id}`, label: dateLabel });
+      lastDate = dateLabel;
+    }
+    grouped.push({ ...msg, _type: 'message' });
+  });
+  return grouped;
+};
+
+const getParticipantName = (person) => {
+  const firstName = person?.first_name || person?.user?.first_name || '';
+  const lastName = person?.last_name || person?.user?.last_name || '';
+  return `${firstName} ${lastName}`.trim() || 'Customer';
+};
+
 export default function PharmacistConversationScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [initialBottomInset] = useState(insets.bottom);
   const { conversationId } = useLocalSearchParams();
   const flatListRef = useRef(null);
 
@@ -44,8 +85,51 @@ export default function PharmacistConversationScreen() {
   const [sending, setSending] = useState(false);
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
+  const [selectedImage, setSelectedImage] = useState(null);
+
+  const pickFromGallery = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedImage(result.assets[0]);
+        setError('');
+      }
+    } catch (e) {
+      setError('Failed to select image.');
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        setError('Camera permission is required.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedImage(result.assets[0]);
+        setError('');
+      }
+    } catch (e) {
+      setError('Failed to take photo.');
+    }
+  };
+
+  const clearSelectedImage = () => {
+    setSelectedImage(null);
+  };
 
   const conversationPartner = useMemo(() => conversation?.customer ?? null, [conversation]);
+
+  const partnerName = useMemo(() => {
+    return conversationPartner ? getParticipantName(conversationPartner) : 'Customer';
+  }, [conversationPartner]);
 
   const loadProfile = useCallback(async () => {
     const payload = await getPharmacistProfile();
@@ -103,47 +187,113 @@ export default function PharmacistConversationScreen() {
 
   useEffect(() => {
     if (flatListRef.current && messages.length > 0) {
-      flatListRef.current.scrollToEnd({ animated: true });
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }
   }, [messages]);
 
   const handleSend = useCallback(async () => {
     const trimmed = draft.trim();
-    if (!trimmed || !conversationId) return;
+    if ((!trimmed && !selectedImage) || !conversationId) return;
 
     try {
       setSending(true);
       setDraft('');
-      await sendPharmacistMessage(conversationId, trimmed);
+      const img = selectedImage;
+      setSelectedImage(null);
+      await sendPharmacistMessage(conversationId, trimmed || '', img);
       await loadConversation();
     } catch (e) {
       setDraft(trimmed);
+      setSelectedImage(selectedImage);
       setError(e?.message || 'Failed to send message.');
     } finally {
       setSending(false);
     }
-  }, [conversationId, draft, loadConversation]);
+  }, [conversationId, draft, selectedImage, loadConversation]);
+
+  const grouped = useMemo(() => groupMessagesByDate(messages), [messages]);
 
   const renderMessage = ({ item }) => {
+    if (item._type === 'separator') {
+      return (
+        <View style={styles.dateSepRow}>
+          <View style={styles.dateSepLine} />
+          <Text style={styles.dateLabel}>{item.label}</Text>
+          <View style={styles.dateSepLine} />
+        </View>
+      );
+    }
+
+    if (item.message_type === 'system') {
+      return (
+        <View style={styles.systemRow}>
+          <View style={styles.systemPill}>
+            <Text style={styles.systemText}>{item.body}</Text>
+          </View>
+        </View>
+      );
+    }
+
     const isMine = item?.sender_user_id === currentUserId;
 
     return (
-      <View style={[styles.messageRow, isMine ? styles.messageRowMine : styles.messageRowTheirs]}>
-        <View style={[styles.bubble, isMine ? styles.mineBubble : styles.theirsBubble]}>
-          <Text style={[styles.messageText, isMine ? styles.mineText : styles.theirsText]}>
-            {item?.body}
-          </Text>
-          <Text style={[styles.timeText, isMine ? styles.mineTime : styles.theirsTime]}>
-            {formatTime(item?.created_at)}
-          </Text>
+      <View style={[styles.messageRow, isMine ? styles.rowMine : styles.rowTheirs]}>
+        {!isMine && (
+          <View style={styles.partnerAvatar}>
+            <Text style={styles.partnerAvatarText}>{getInitials(partnerName)}</Text>
+          </View>
+        )}
+        <View style={styles.bubbleWrapper}>
+          {!isMine && <Text style={styles.senderLabel}>{partnerName}</Text>}
+          <View
+            style={[
+              styles.bubble,
+              isMine ? styles.mineBubble : styles.theirsBubble,
+              (item?.message_type === 'image' || item?.metadata?.image_url) && { padding: 4, borderRadius: 12 }
+            ]}
+          >
+            {(item?.message_type === 'image' || item?.metadata?.image_url) && item?.metadata?.image_url ? (
+              <Image
+                source={{ uri: item.metadata.image_url }}
+                style={{ width: 200, height: 200, borderRadius: 8, marginBottom: item?.body ? 4 : 0 }}
+                resizeMode="cover"
+              />
+            ) : null}
+            {!!item?.body && (
+              <Text
+                style={[
+                  styles.messageText,
+                  isMine ? styles.mineText : styles.theirsText,
+                  (item?.message_type === 'image' || item?.metadata?.image_url) && { paddingHorizontal: 8, paddingVertical: 4 }
+                ]}
+              >
+                {item?.body}
+              </Text>
+            )}
+            <View
+              style={[
+                styles.timeRow,
+                isMine ? styles.timeRowMine : styles.timeRowTheirs,
+                (item?.message_type === 'image' || item?.metadata?.image_url) && { paddingHorizontal: 8, paddingBottom: 4 }
+              ]}
+            >
+              <Text style={[styles.timeText, isMine ? styles.mineTime : styles.theirsTime]}>
+                {formatTime(item?.created_at)}
+              </Text>
+              {isMine && (
+                <MaterialCommunityIcons name="check-all" size={12} color="rgba(255,255,255,0.65)" style={{ marginLeft: 2 }} />
+              )}
+            </View>
+          </View>
         </View>
+        {!isMine && <View style={{ width: 36 }} />}
       </View>
     );
   };
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-sky-50">
+      <View style={[styles.centerState, { paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color={colors.buttonColor} />
         <Text style={styles.stateText}>Opening chat...</Text>
       </View>
@@ -151,156 +301,427 @@ export default function PharmacistConversationScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-sky-50"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={insets.top}
-    >
-      <View className="flex-row items-center rounded-b-[28px] bg-sky-500 px-4 pb-4" style={{ paddingTop: insets.top + 10 }}>
-        <Pressable onPress={() => router.back()} className="mr-2 h-10 w-10 items-center justify-center rounded-full bg-white/15">
-          <MaterialCommunityIcons name="chevron-left" size={30} color="#fff" />
-        </Pressable>
-        <View className="flex-1">
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {conversationPartner ? `${conversationPartner.first_name || ''} ${conversationPartner.last_name || ''}`.trim() : 'Chat'}
-          </Text>
-          <Text className="mt-0.5" style={styles.headerSubtitle} numberOfLines={1}>
-            {conversation?.branch?.branch_name || 'Branch conversation'}
-          </Text>
+    <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+      {/* ── Header ── */}
+      <View
+        style={[styles.header, { paddingTop: insets.top + 10 }]}
+      >
+        <View style={styles.headerRow}>
+          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+            <MaterialCommunityIcons name="chevron-left" size={28} color="#fff" />
+          </Pressable>
+
+          <View style={styles.headerAvatar}>
+            <Text style={styles.headerAvatarText}>{getInitials(partnerName)}</Text>
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text style={styles.headerName} numberOfLines={1}>{partnerName}</Text>
+            <View style={styles.headerSubRow}>
+              <View style={styles.onlineDot} />
+              <Text style={styles.headerSub} numberOfLines={1}>
+                {conversation?.branch?.branch_name || conversation?.pharmacy?.branch_name || 'Pharmacy'}
+              </Text>
+            </View>
+          </View>
+
+          {conversation?.order?.order_number && (
+            <View style={styles.orderBadge}>
+              <Text style={styles.orderBadgeText}>
+                #{conversation.order.order_number.split('-').pop()}
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
-      <View className="flex-1">
-        {!!error && <Text className="mx-4 mt-3" style={styles.errorText}>{error}</Text>}
+      {/* ── Scrollable area + input wrapped in KAV ── */}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+      >
+        {!!error && (
+          <View style={styles.errorBanner}>
+            <MaterialCommunityIcons name="alert-circle-outline" size={16} color="#DC2626" />
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
 
         <FlatList
           ref={flatListRef}
-          data={messages}
+          data={grouped}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderMessage}
-          className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, flexGrow: 1 }}
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 16,
+            paddingBottom: 0,
+            flexGrow: 1,
+          }}
           showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          overScrollMode="never"
           ListEmptyComponent={
-            <View className="items-center justify-center py-12">
-              <MaterialCommunityIcons name="message-outline" size={34} color="#94A3B8" />
+            <View style={styles.emptyState}>
+              <View style={styles.emptyIcon}>
+                <MaterialCommunityIcons name="message-text-outline" size={34} color={colors.buttonColor} />
+              </View>
               <Text style={styles.emptyTitle}>Start the conversation</Text>
-              <Text className="mt-1 px-7 text-center" style={styles.emptySubtitle}>Send a message to support this customer in real time.</Text>
+              <Text style={styles.emptySubtitle}>
+                Send a message to support this customer in real time.
+              </Text>
             </View>
           }
         />
 
-        <View className="flex-row items-end border-t border-slate-200 bg-white px-3 pt-2" style={{ paddingBottom: Math.max(insets.bottom, 12) }}>
+        {selectedImage && (
+          <View style={styles.imagePreviewContainer}>
+            <View style={styles.imagePreviewWrapper}>
+              <Image source={{ uri: selectedImage.uri }} style={styles.imagePreview} />
+              <TouchableOpacity onPress={clearSelectedImage} style={styles.clearImageBtn} activeOpacity={0.7}>
+                <MaterialCommunityIcons name="close" size={14} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        <View style={[styles.inputBar, { paddingBottom: Math.max(initialBottomInset, 12) }]}>
+          <TouchableOpacity onPress={pickFromGallery} style={styles.attachBtn} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="image-outline" size={24} color="#64748B" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={takePhoto} style={styles.attachBtn} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="camera-outline" size={24} color="#64748B" />
+          </TouchableOpacity>
           <TextInput
             value={draft}
             onChangeText={setDraft}
             placeholder="Type a message..."
             placeholderTextColor="#94A3B8"
-            className="mr-2 min-h-[48px] max-h-[120px] flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 py-3"
             style={styles.input}
             multiline
+            blurOnSubmit={false}
           />
-          <Pressable onPress={handleSend} className={`mb-[2px] h-12 w-12 items-center justify-center rounded-full ${sending ? 'opacity-70' : ''}`} style={{ backgroundColor: colors.buttonColor }}>
-            {sending ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <MaterialCommunityIcons name="send" size={22} color="#fff" />
-            )}
+          <Pressable
+            onPress={handleSend}
+            disabled={(!draft.trim() && !selectedImage) || sending}
+            style={[styles.sendBtn, ((!draft.trim() && !selectedImage) || sending) && { opacity: 0.45 }]}
+          >
+            {sending
+              ? <ActivityIndicator size="small" color="#fff" />
+              : <MaterialCommunityIcons name="send" size={20} color="#fff" />
+            }
           </Pressable>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  headerTitle: {
+  centerState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F8FAFC',
+  },
+  stateText: {
+    marginTop: 10,
+    fontFamily: 'Poppins-Medium',
+    color: '#64748B',
+    fontSize: 14,
+  },
+  header: {
+    backgroundColor: colors.buttonColor,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backBtn: {
+    marginRight: 8,
+    height: 38,
+    width: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerAvatar: {
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  headerAvatarText: {
     fontFamily: 'Poppins-Bold',
     color: '#fff',
-    fontSize: 20,
+    fontSize: 14,
   },
-  headerSubtitle: {
+  headerName: {
+    fontFamily: 'Poppins-Bold',
+    color: '#fff',
+    fontSize: 16,
+  },
+  headerSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 1,
+  },
+  onlineDot: {
+    height: 7,
+    width: 7,
+    borderRadius: 4,
+    backgroundColor: '#34D399',
+    marginRight: 5,
+  },
+  headerSub: {
     fontFamily: 'Poppins-Medium',
     color: 'rgba(255,255,255,0.85)',
-    marginTop: 2,
+    fontSize: 12,
   },
-  body: {
-    flex: 1,
+  orderBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginLeft: 8,
   },
-  errorText: {
-    color: '#B91C1C',
-    fontFamily: 'Poppins-Medium',
+  orderBadgeText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#fff',
+    fontSize: 11,
   },
+  // Messages
   messageRow: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  messageRowMine: {
-    justifyContent: 'flex-end',
+  rowMine: { justifyContent: 'flex-end' },
+  rowTheirs: { justifyContent: 'flex-start' },
+  bubbleWrapper: { maxWidth: '76%' },
+  partnerAvatar: {
+    height: 30,
+    width: 30,
+    borderRadius: 15,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+    alignSelf: 'flex-end',
   },
-  messageRowTheirs: {
-    justifyContent: 'flex-start',
+  partnerAvatarText: {
+    fontFamily: 'Poppins-Bold',
+    fontSize: 10,
+    color: colors.buttonColor,
+  },
+  senderLabel: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 11,
+    color: colors.buttonColor,
+    marginBottom: 3,
+    marginLeft: 4,
   },
   bubble: {
-    maxWidth: '82%',
-    borderRadius: 20,
+    borderRadius: 18,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 9,
   },
   mineBubble: {
     backgroundColor: colors.buttonColor,
-    borderBottomRightRadius: 6,
+    borderBottomRightRadius: 4,
   },
   theirsBubble: {
     backgroundColor: '#fff',
-    borderBottomLeftRadius: 6,
+    borderBottomLeftRadius: 4,
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
   },
   messageText: {
     fontFamily: 'Poppins-Medium',
     fontSize: 14,
     lineHeight: 20,
   },
-  mineText: {
-    color: '#fff',
+  mineText: { color: '#fff' },
+  theirsText: { color: '#1E293B' },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 3,
   },
-  theirsText: {
-    color: colors.textColor,
-  },
+  timeRowMine: { justifyContent: 'flex-end' },
+  timeRowTheirs: { justifyContent: 'flex-start' },
   timeText: {
-    marginTop: 6,
+    fontFamily: 'Poppins-Medium',
+    fontSize: 10,
+  },
+  mineTime: { color: 'rgba(255,255,255,0.65)' },
+  theirsTime: { color: '#94A3B8' },
+  dateSepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 14,
+  },
+  dateSepLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E2E8F0',
+  },
+  dateLabel: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 11,
+    color: '#94A3B8',
+    marginHorizontal: 10,
+  },
+  systemRow: {
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  systemPill: {
+    backgroundColor: '#F1F5F9',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 5,
+  },
+  systemText: {
     fontFamily: 'Poppins-Medium',
     fontSize: 11,
-  },
-  mineTime: {
-    color: 'rgba(255,255,255,0.8)',
-  },
-  theirsTime: {
-    color: '#94A3B8',
+    color: '#64748B',
   },
   emptyState: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
+    paddingTop: 48,
+    paddingHorizontal: 32,
+  },
+  emptyIcon: {
+    height: 68,
+    width: 68,
+    borderRadius: 34,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
   },
   emptyTitle: {
-    marginTop: 10,
     fontFamily: 'Poppins-Bold',
-    color: colors.textColor,
+    color: '#1E293B',
     fontSize: 17,
+    marginBottom: 4,
   },
   emptySubtitle: {
     fontFamily: 'Poppins-Medium',
     color: '#64748B',
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  inputBar: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    paddingHorizontal: 12,
+    paddingTop: 8,
   },
   input: {
+    flex: 1,
+    minHeight: 44,
+    maxHeight: 120,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 12 : 10,
+    paddingBottom: Platform.OS === 'ios' ? 12 : 10,
     fontFamily: 'Poppins-Medium',
-    color: colors.textColor,
+    fontSize: 14,
+    color: '#1E293B',
+    marginRight: 8,
   },
-  stateText: {
-    marginTop: 12,
+  sendBtn: {
+    height: 44,
+    width: 44,
+    borderRadius: 22,
+    backgroundColor: colors.buttonColor,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    marginHorizontal: 16,
+    marginTop: 10,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  errorText: {
     fontFamily: 'Poppins-Medium',
-    color: '#64748B',
+    color: '#DC2626',
+    fontSize: 12,
+    flex: 1,
+    marginLeft: 6,
+  },
+  attachBtn: {
+    height: 44,
+    width: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+    marginRight: 4,
+  },
+  imagePreviewContainer: {
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  imagePreviewWrapper: {
+    width: 80,
+    height: 80,
+    position: 'relative',
+  },
+  imagePreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  clearImageBtn: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    borderRadius: 12,
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
