@@ -533,33 +533,53 @@ function Inventory() {
               </table>
             </div>
             {!loading && filteredItems.length > 0 && (
-              <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 px-3 py-3 border-top">
-                <small className="text-muted">
-                  Showing {(currentPage - 1) * itemsPerPage + 1}-
+              <div className="inventory-pagination-bar">
+                <span className="inventory-pagination-info">
+                  Showing {(currentPage - 1) * itemsPerPage + 1}–
                   {Math.min(currentPage * itemsPerPage, filteredItems.length)} of {filteredItems.length}
-                </small>
+                </span>
 
                 <nav aria-label="Inventory product table pagination">
-                  <ul className="pagination pagination-sm mb-0 inventory-pagination">
-                    <li className={`page-item inventory-page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                  <ul className="inventory-pagination">
+                    <li className={`inventory-page-item ${currentPage === 1 ? "disabled" : ""}`}>
                       <button
                         type="button"
-                        className="page-link inventory-page-link"
+                        className="inventory-page-link inventory-page-nav"
                         onClick={() => handlePageChange(currentPage - 1)}
                         disabled={currentPage === 1}
+                        aria-label="Previous page"
                       >
-                        Previous
+                        <i className="fa-solid fa-chevron-left" aria-hidden="true" />
                       </button>
                     </li>
+
+                    {visiblePageNumbers[0] > 1 && (
+                      <>
+                        <li className="inventory-page-item">
+                          <button
+                            type="button"
+                            className="inventory-page-link"
+                            onClick={() => handlePageChange(1)}
+                          >
+                            1
+                          </button>
+                        </li>
+                        {visiblePageNumbers[0] > 2 && (
+                          <li className="inventory-page-item inventory-page-ellipsis">
+                            <span>…</span>
+                          </li>
+                        )}
+                      </>
+                    )}
 
                     {visiblePageNumbers.map((pageNumber) => (
                       <li
                         key={pageNumber}
-                        className={`page-item inventory-page-item ${currentPage === pageNumber ? "active" : ""}`}
+                        className={`inventory-page-item ${currentPage === pageNumber ? "active" : ""}`}
                       >
                         <button
                           type="button"
-                          className="page-link inventory-page-link"
+                          className="inventory-page-link"
                           onClick={() => handlePageChange(pageNumber)}
                         >
                           {pageNumber}
@@ -567,14 +587,34 @@ function Inventory() {
                       </li>
                     ))}
 
-                    <li className={`page-item inventory-page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                    {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages && (
+                      <>
+                        {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages - 1 && (
+                          <li className="inventory-page-item inventory-page-ellipsis">
+                            <span>…</span>
+                          </li>
+                        )}
+                        <li className="inventory-page-item">
+                          <button
+                            type="button"
+                            className="inventory-page-link"
+                            onClick={() => handlePageChange(totalPages)}
+                          >
+                            {totalPages}
+                          </button>
+                        </li>
+                      </>
+                    )}
+
+                    <li className={`inventory-page-item ${currentPage === totalPages ? "disabled" : ""}`}>
                       <button
                         type="button"
-                        className="page-link inventory-page-link"
+                        className="inventory-page-link inventory-page-nav"
                         onClick={() => handlePageChange(currentPage + 1)}
                         disabled={currentPage === totalPages}
+                        aria-label="Next page"
                       >
-                        Next
+                        <i className="fa-solid fa-chevron-right" aria-hidden="true" />
                       </button>
                     </li>
                   </ul>
