@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;   
 
 class CancelCustomerOrderService
 {
@@ -44,10 +45,19 @@ class CancelCustomerOrderService
             'cancellation_reason' => $reason,
         ]);
 
-        $this->conversationService->appendSystemMessage($order, 'Order cancelled by customer', [
+        $msg = $this->conversationService->appendSystemMessage($order, 'Order cancelled by customer', [
             'reason' => $reason,
             'status' => 'cancelled',
         ]);
+
+        try {
+            $msg->conversation()->update([
+                'status' => 'closed',
+                'closed_at' => now(),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Failed to close conversation on customer cancel: ' . $e->getMessage());
+        }
 
         return response()->json([
             'status' => 'success',

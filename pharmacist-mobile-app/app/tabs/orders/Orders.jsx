@@ -1,4 +1,4 @@
-import { View, ScrollView, Text } from 'react-native';
+import { View, ScrollView, Text, RefreshControl } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
@@ -87,6 +87,7 @@ export default function Orders() {
   const [activeTab, setActiveTab] = useState('For Review');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
   // Reason Overlay State
@@ -94,8 +95,8 @@ export default function Orders() {
   const [overlayAction, setOverlayAction] = useState('reject'); // 'reject' or 'pending'
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const loadOrders = useCallback(async () => {
-    setLoading(true);
+  const loadOrders = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setError('');
 
     try {
@@ -106,9 +107,15 @@ export default function Orders() {
       setError(e?.message || 'Failed to load orders.');
       setOrders([]);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadOrders(false);
+    setRefreshing(false);
+  }, [loadOrders]);
 
   useEffect(() => {
     loadOrders();
@@ -213,7 +220,17 @@ export default function Orders() {
         </Text>
       )}
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.buttonColor}
+          />
+        }
+      >
         {!loading && activeOrders.length === 0 && (
           <Text className="px-4 py-6 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#7A7A7A' }}>
             {emptyMessage}

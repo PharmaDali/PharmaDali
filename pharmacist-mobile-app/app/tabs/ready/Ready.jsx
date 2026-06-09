@@ -1,5 +1,6 @@
-import { ScrollView, View, Text } from 'react-native';
+import { ScrollView, View, Text, RefreshControl } from 'react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { colors } from '@shared/theme/colorPalette';
 import { Tabs, ReadyOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
@@ -68,10 +69,11 @@ const Ready = () => {
   const [activeTab, setActiveTab] = useState('For Pickup');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  const loadOrders = useCallback(async () => {
-    setLoading(true);
+  const loadOrders = useCallback(async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setError('');
     try {
       const data = await getBranchOrders();
@@ -79,9 +81,15 @@ const Ready = () => {
     } catch (e) {
       setError(e?.message || 'Failed to load orders.');
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadOrders(false);
+    setRefreshing(false);
+  }, [loadOrders]);
 
   useEffect(() => {
     loadOrders();
@@ -125,7 +133,17 @@ const Ready = () => {
         </Text>
       )}
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.buttonColor}
+          />
+        }
+      >
         {!loading && filteredOrders.length === 0 && (
           <Text className="px-4 py-6 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#7A7A7A' }}>
             {emptyMessage}

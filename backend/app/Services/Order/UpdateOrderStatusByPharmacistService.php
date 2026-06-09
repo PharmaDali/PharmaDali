@@ -101,11 +101,22 @@ class UpdateOrderStatusByPharmacistService
             default => 'Order rejected',
         };
 
-        $this->conversationService->appendSystemMessage($order, $systemMessage, [
+        $msg = $this->conversationService->appendSystemMessage($order, $systemMessage, [
             'action' => $action,
             'status' => $order->status,
             'reason' => $reason,
         ]);
+
+        if ($action === 'reject') {
+            try {
+                $msg->conversation()->update([
+                    'status' => 'closed',
+                    'closed_at' => now(),
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to close conversation on pharmacist reject: ' . $e->getMessage());
+            }
+        }
 
         $successMessage = match ($action) {
             'approve' => 'Order approved successfully.',
