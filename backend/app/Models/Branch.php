@@ -42,4 +42,9 @@ class Branch extends Model
             ->withPivot(['product_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
             ->withTimestamps();
     }
+
+    public function conversations()
+    {
+        return $this->hasMany(Conversation::class, 'pharmacy_id');
+    }
 }

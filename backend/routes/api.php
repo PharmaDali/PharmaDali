@@ -83,7 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('customer/order-items/{orderItem}/prescription', [OrderItemPrescription::class, 'upload']);
     });
 
-    Route::middleware('ability:pharmacist')->group(function () {
+    Route::middleware('ability:pharmacist,branch_admin')->group(function () {
         Route::get('pharmacist/dashboard', function () {
             return response()->json(['message' => 'Pharmacist dashboard access granted']);
         });

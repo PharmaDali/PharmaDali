@@ -8,8 +8,20 @@ Broadcast::channel('conversations.{conversationId}', function (User $user, int $
     return Conversation::query()
         ->whereKey($conversationId)
         ->where(function ($query) use ($user) {
-            $query->where('customer_user_id', $user->id)
-                ->orWhere('pharmacist_user_id', $user->id);
+            $query->where('customer_user_id', $user->id);
+
+            if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
+                $query->orWhere('assigned_pharmacist_user_id', $user->id)
+                    ->orWhere('pharmacy_id', $user->branch_id);
+            }
         })
         ->exists();
+});
+
+Broadcast::channel('conversations.{conversationId}.staff', function (User $user, int $conversationId) {
+    return in_array($user->role, ['pharmacist', 'branch_admin'], true)
+        && Conversation::query()
+            ->whereKey($conversationId)
+            ->where('pharmacy_id', $user->branch_id)
+            ->exists();
 });

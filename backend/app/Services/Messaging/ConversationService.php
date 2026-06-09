@@ -3,10 +3,13 @@
 namespace App\Services\Messaging;
 
 use App\Events\ConversationMessageCreated;
+use App\Models\ConversationAssignment;
+use App\Models\ConversationMessage;
+use App\Models\ConversationParticipant;
 use App\Models\Conversation;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ConversationService
@@ -16,10 +19,11 @@ class ConversationService
         $conversations = Conversation::query()
             ->forUser($user)
             ->with([
-                'branch',
+                'order:id,order_number,customer_id,branch_id,status,placed_at,completed_at,cancelled_at',
+                'pharmacy:id,branch_name,location',
                 'customer:id,first_name,last_name,email,branch_id',
-                'pharmacist:id,first_name,last_name,email,branch_id',
-                'latestMessage.sender:id,first_name,last_name',
+                'assignedPharmacist:id,first_name,last_name,email,branch_id',
+                'latestMessage.sender:id,first_name,last_name,role',
             ])
             ->orderByDesc('last_message_at')
             ->orderByDesc('id')
@@ -33,58 +37,83 @@ class ConversationService
 
     public function listContacts(User $user): JsonResponse
     {
-        $contacts = $user->role === 'customer'
-            ? $this->listCustomerContacts($user)
-            : $this->listPharmacistContacts($user);
-
-        if ($contacts instanceof JsonResponse) {
-            return $contacts;
-        }
-
-        return response()->json([
-            'status' => 'success',
-            'data' => $contacts,
-        ]);
+        return $this->listConversations($user);
     }
 
-    public function startConversation(User $user, int $counterpartUserId): JsonResponse
+    public function startConversation(User $user, int $orderId): JsonResponse
     {
-        $conversationOrError = $this->resolveOrCreateConversation($user, $counterpartUserId);
+        $order = Order::query()->with(['customer.user', 'branch'])->find($orderId);
 
-        if ($conversationOrError instanceof JsonResponse) {
-            return $conversationOrError;
+        if (!$order) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Order not found.',
+            ], 404);
         }
+
+        if (!$this->userCanAccessOrderConversation($user, $order)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You are not allowed to open this conversation.',
+            ], 403);
+        }
+
+        $conversation = $this->ensureConversationForOrder($order);
+
+        if ($user->role === 'customer') {
+            $this->upsertParticipant($conversation, $user, 'customer');
+        }
+
+        $conversation = $conversation->load($this->conversationRelations());
 
         return response()->json([
             'status' => 'success',
-            'data' => $this->formatConversation($conversationOrError->load([
-                'branch',
-                'customer:id,first_name,last_name,email,branch_id',
-                'pharmacist:id,first_name,last_name,email,branch_id',
-                'latestMessage.sender:id,first_name,last_name',
-            ])),
+            'data' => [
+                'conversation' => $this->formatConversation($conversation),
+                'messages' => $conversation->messages()
+                    ->visibleTo($user)
+                    ->with('sender:id,first_name,last_name,role')
+                    ->orderBy('id')
+                    ->paginate(50),
+            ],
         ], 201);
+    }
+
+    public function appendSystemMessage(Order $order, string $body, array $metadata = []): ConversationMessage
+    {
+        $conversation = $this->ensureConversationForOrder($order);
+
+        $message = $conversation->messages()->create([
+            'sender_user_id' => null,
+            'message_type' => 'system',
+            'visibility' => 'public',
+            'body' => $body,
+            'metadata' => $metadata,
+        ]);
+
+        $conversation->forceFill([
+            'last_message_at' => $message->created_at,
+        ])->save();
+
+        event(new ConversationMessageCreated($message));
+
+        return $message;
     }
 
     public function showConversation(User $user, Conversation $conversation): JsonResponse
     {
-        $accessError = $this->assertConversationAccess($user, $conversation);
-
-        if ($accessError instanceof JsonResponse) {
-            return $accessError;
+        if (!$this->userCanParticipateInConversation($user, $conversation)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'You are not allowed to access this conversation.',
+            ], 403);
         }
 
-        $conversation->load([
-            'branch',
-            'customer:id,first_name,last_name,email,branch_id',
-            'pharmacist:id,first_name,last_name,email,branch_id',
-            'latestMessage.sender:id,first_name,last_name',
-        ]);
+        $conversation->load($this->conversationRelations());
 
         $this->markIncomingMessagesAsRead($user, $conversation);
 
-        $messages = $conversation->messages()
-            ->with('sender:id,first_name,last_name')
+        $messages = $this->visibleMessages($conversation, $user)
             ->orderBy('id')
             ->paginate(50);
 
@@ -99,12 +128,6 @@ class ConversationService
 
     public function sendMessage(User $user, Conversation $conversation, string $body): JsonResponse
     {
-        $accessError = $this->assertConversationAccess($user, $conversation);
-
-        if ($accessError instanceof JsonResponse) {
-            return $accessError;
-        }
-
         if (!$this->userCanParticipateInConversation($user, $conversation)) {
             return response()->json([
                 'status' => 'error',
@@ -112,15 +135,32 @@ class ConversationService
             ], 403);
         }
 
+        $body = trim($body);
+
+        if ($body === '') {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Message body is required.',
+            ], 422);
+        }
+
         $message = DB::transaction(function () use ($conversation, $user, $body) {
+            if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
+                $this->claimConversationForPharmacist($conversation, $user);
+            }
+
             $message = $conversation->messages()->create([
                 'sender_user_id' => $user->id,
+                'message_type' => 'user',
+                'visibility' => 'public',
                 'body' => $body,
             ]);
 
             $conversation->forceFill([
                 'last_message_at' => $message->created_at,
             ])->save();
+
+            $this->upsertParticipant($conversation, $user, $user->role);
 
             return $message;
         });
@@ -130,169 +170,47 @@ class ConversationService
         return response()->json([
             'status' => 'success',
             'message' => 'Message sent successfully.',
-            'data' => $message->load('sender:id,first_name,last_name'),
+            'data' => $message->load('sender:id,first_name,last_name,role'),
         ], 201);
     }
 
-    private function listCustomerContacts(User $user): JsonResponse|Collection
+    public function ensureConversationForOrder(Order $order): Conversation
     {
-        $customer = $user->customer;
+        return DB::transaction(function () use ($order) {
+            $conversation = Conversation::query()->firstOrCreate(
+                ['order_id' => $order->id],
+                [
+                    'pharmacy_id' => $order->branch_id,
+                    'customer_user_id' => $order->customer?->user_id,
+                    'status' => 'open',
+                ]
+            );
 
-        if (!$customer) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Customer profile not found.',
-            ], 403);
-        }
+            $conversation->forceFill([
+                'pharmacy_id' => $conversation->pharmacy_id ?? $order->branch_id,
+                'customer_user_id' => $conversation->customer_user_id ?? $order->customer?->user_id,
+            ])->save();
 
-        if (!$customer->branch_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Select a pharmacy branch before starting a conversation.',
-            ], 422);
-        }
+            if ($order->customer?->user_id) {
+                $this->upsertParticipant($conversation, $order->customer->user, 'customer');
+            }
 
-        return User::query()
-            ->where('role', 'pharmacist')
-            ->where('branch_id', $customer->branch_id)
-            ->with('pharmacist')
-            ->orderBy('first_name')
-            ->get();
-    }
-
-    private function listPharmacistContacts(User $user): JsonResponse|Collection
-    {
-        if (!$user->branch_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Pharmacist must belong to a branch to view customers.',
-            ], 422);
-        }
-
-        return User::query()
-            ->where('role', 'customer')
-            ->whereHas('customer', function ($query) use ($user) {
-                $query->where('branch_id', $user->branch_id);
-            })
-            ->with('customer')
-            ->orderBy('first_name')
-            ->get();
-    }
-
-    private function resolveOrCreateConversation(User $user, int $counterpartUserId): Conversation|JsonResponse
-    {
-        $counterpart = User::query()->with(['customer', 'pharmacist'])->find($counterpartUserId);
-
-        if (!$counterpart) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Conversation participant not found.',
-            ], 404);
-        }
-
-        if ($user->role === 'customer') {
-            return $this->resolveCustomerConversation($user, $counterpart);
-        }
-
-        if ($user->role === 'pharmacist') {
-            return $this->resolvePharmacistConversation($user, $counterpart);
-        }
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Only customers and pharmacists can use messaging.',
-        ], 403);
-    }
-
-    private function resolveCustomerConversation(User $customerUser, User $pharmacistUser): Conversation|JsonResponse
-    {
-        if (!$customerUser->customer) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Customer profile not found.',
-            ], 403);
-        }
-
-        if ($pharmacistUser->role !== 'pharmacist' || !$pharmacistUser->branch_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'You can only start a conversation with a pharmacist.',
-            ], 422);
-        }
-
-        if ($customerUser->customer->branch_id && (int) $customerUser->customer->branch_id !== (int) $pharmacistUser->branch_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'You can only message pharmacists from your assigned branch.',
-            ], 403);
-        }
-
-        if (!$customerUser->customer->branch_id) {
-            $customerUser->customer()->update([
-                'branch_id' => $pharmacistUser->branch_id,
-            ]);
-            $customerUser->load('customer');
-        }
-
-        return Conversation::query()->firstOrCreate([
-            'customer_user_id' => $customerUser->id,
-            'pharmacist_user_id' => $pharmacistUser->id,
-        ], [
-            'branch_id' => $pharmacistUser->branch_id,
-        ]);
-    }
-
-    private function resolvePharmacistConversation(User $pharmacistUser, User $customerUser): Conversation|JsonResponse
-    {
-        if (!$pharmacistUser->branch_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Pharmacist must belong to a branch to start a conversation.',
-            ], 422);
-        }
-
-        if ($customerUser->role !== 'customer' || !$customerUser->customer) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'You can only start a conversation with a customer.',
-            ], 422);
-        }
-
-        if (!$customerUser->customer->branch_id || (int) $customerUser->customer->branch_id !== (int) $pharmacistUser->branch_id) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'This customer does not belong to your branch.',
-            ], 403);
-        }
-
-        return Conversation::query()->firstOrCreate([
-            'customer_user_id' => $customerUser->id,
-            'pharmacist_user_id' => $pharmacistUser->id,
-        ], [
-            'branch_id' => $pharmacistUser->branch_id,
-        ]);
-    }
-
-    private function assertConversationAccess(User $user, Conversation $conversation): JsonResponse|bool
-    {
-        if (!$this->userCanParticipateInConversation($user, $conversation)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'You are not allowed to access this conversation.',
-            ], 403);
-        }
-
-        return true;
+            return $conversation;
+        });
     }
 
     private function userCanParticipateInConversation(User $user, Conversation $conversation): bool
     {
-        if ($conversation->customer_user_id === $user->id) {
+        if ((int) $conversation->customer_user_id === (int) $user->id) {
             return $user->role === 'customer';
         }
 
-        if ($conversation->pharmacist_user_id === $user->id) {
-            return $user->role === 'pharmacist' && (int) $user->branch_id === (int) $conversation->branch_id;
+        if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
+            if ($conversation->assigned_pharmacist_user_id && (int) $conversation->assigned_pharmacist_user_id === (int) $user->id) {
+                return true;
+            }
+
+            return $user->branch_id !== null && (int) $user->branch_id === (int) $conversation->pharmacy_id;
         }
 
         return false;
@@ -301,6 +219,7 @@ class ConversationService
     private function markIncomingMessagesAsRead(User $user, Conversation $conversation): void
     {
         $conversation->messages()
+            ->visibleTo($user)
             ->where('sender_user_id', '!=', $user->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
@@ -310,14 +229,103 @@ class ConversationService
     {
         return [
             'id' => $conversation->id,
-            'branch_id' => $conversation->branch_id,
+            'order_id' => $conversation->order_id,
+            'pharmacy_id' => $conversation->pharmacy_id,
             'customer_user_id' => $conversation->customer_user_id,
-            'pharmacist_user_id' => $conversation->pharmacist_user_id,
+            'assigned_pharmacist_user_id' => $conversation->assigned_pharmacist_user_id,
+            'status' => $conversation->status,
             'last_message_at' => $conversation->last_message_at,
-            'branch' => $conversation->branch,
+            'closed_at' => $conversation->closed_at,
+            'order' => $conversation->order,
+            'pharmacy' => $conversation->pharmacy,
             'customer' => $conversation->customer,
-            'pharmacist' => $conversation->pharmacist,
+            'assigned_pharmacist' => $conversation->assignedPharmacist,
             'latest_message' => $conversation->latestMessage,
         ];
+    }
+
+    private function conversationRelations(): array
+    {
+        return [
+            'order:id,order_number,customer_id,branch_id,status,placed_at,completed_at,cancelled_at',
+            'pharmacy:id,branch_name,location',
+            'customer:id,first_name,last_name,email,branch_id',
+            'assignedPharmacist:id,first_name,last_name,email,branch_id',
+            'latestMessage.sender:id,first_name,last_name,role',
+        ];
+    }
+
+    private function visibleMessages(Conversation $conversation, User $user)
+    {
+        return $conversation->messages()
+            ->visibleTo($user)
+            ->with('sender:id,first_name,last_name,role')
+            ->orderBy('id');
+    }
+
+    private function userCanAccessOrderConversation(User $user, Order $order): bool
+    {
+        if ($user->role === 'customer') {
+            return $user->customer && (int) $user->customer->id === (int) $order->customer_id;
+        }
+
+        if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
+            return $user->branch_id !== null && (int) $user->branch_id === (int) $order->branch_id;
+        }
+
+        return false;
+    }
+
+    private function claimConversationForPharmacist(Conversation $conversation, User $user): void
+    {
+        if (!in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
+            return;
+        }
+
+        if ($conversation->assigned_pharmacist_user_id && (int) $conversation->assigned_pharmacist_user_id !== (int) $user->id) {
+            $currentAssignment = ConversationAssignment::query()
+                ->where('conversation_id', $conversation->id)
+                ->where('is_current', true)
+                ->first();
+
+            if ($currentAssignment) {
+                $currentAssignment->update([
+                    'is_current' => false,
+                    'released_at' => now(),
+                ]);
+            }
+        }
+
+        if ((int) $conversation->assigned_pharmacist_user_id !== (int) $user->id) {
+            $conversation->forceFill([
+                'assigned_pharmacist_user_id' => $user->id,
+            ])->save();
+
+            ConversationAssignment::query()->create([
+                'conversation_id' => $conversation->id,
+                'pharmacist_user_id' => $user->id,
+                'assigned_by_user_id' => $user->id,
+                'assigned_at' => now(),
+                'is_current' => true,
+            ]);
+        }
+
+        $this->upsertParticipant($conversation, $user, $user->role);
+    }
+
+    private function upsertParticipant(Conversation $conversation, User $user, string $role): void
+    {
+        ConversationParticipant::query()->updateOrCreate(
+            [
+                'conversation_id' => $conversation->id,
+                'user_id' => $user->id,
+            ],
+            [
+                'participant_role' => $role,
+                'joined_at' => now(),
+                'left_at' => null,
+                'is_active' => true,
+            ]
+        );
     }
 }

@@ -4,10 +4,15 @@ namespace App\Services\Order;
 
 use App\Models\Order;
 use App\Models\User;
+use App\Services\Messaging\ConversationService;
 use Illuminate\Http\JsonResponse;
 
 class CancelCustomerOrderService
 {
+    public function __construct(
+        private readonly ConversationService $conversationService,
+    ) {}
+
     private const CUSTOMER_EDITABLE_STATUSES = ['pending', 'reviewing'];
 
     public function handle(?User $user, Order $order, string $reason): JsonResponse
@@ -37,6 +42,11 @@ class CancelCustomerOrderService
             'status' => 'cancelled',
             'cancelled_at' => now(),
             'cancellation_reason' => $reason,
+        ]);
+
+        $this->conversationService->appendSystemMessage($order, 'Order cancelled by customer', [
+            'reason' => $reason,
+            'status' => 'cancelled',
         ]);
 
         return response()->json([

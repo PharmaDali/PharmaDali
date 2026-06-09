@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,20 +10,36 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Conversation extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'branch_id',
+        'order_id',
+        'pharmacy_id',
         'customer_user_id',
-        'pharmacist_user_id',
+        'assigned_pharmacist_user_id',
+        'status',
         'last_message_at',
+        'closed_at',
     ];
 
     protected $casts = [
         'last_message_at' => 'datetime',
+        'closed_at' => 'datetime',
     ];
+
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    public function pharmacy(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class);
+    }
 
     public function branch(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->pharmacy();
     }
 
     public function customer(): BelongsTo
@@ -30,14 +47,29 @@ class Conversation extends Model
         return $this->belongsTo(User::class, 'customer_user_id');
     }
 
+    public function assignedPharmacist(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_pharmacist_user_id');
+    }
+
     public function pharmacist(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'pharmacist_user_id');
+        return $this->assignedPharmacist();
     }
 
     public function messages(): HasMany
     {
         return $this->hasMany(ConversationMessage::class);
+    }
+
+    public function participants(): HasMany
+    {
+        return $this->hasMany(ConversationParticipant::class);
+    }
+
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(ConversationAssignment::class);
     }
 
     public function latestMessage(): HasOne
@@ -48,8 +80,15 @@ class Conversation extends Model
     public function scopeForUser($query, User $user)
     {
         return $query->where(function ($builder) use ($user) {
-            $builder->where('customer_user_id', $user->id)
-                ->orWhere('pharmacist_user_id', $user->id);
+            if ($user->role === 'customer') {
+                $builder->where('customer_user_id', $user->id);
+                return;
+            }
+
+            if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
+                $builder->where('pharmacy_id', $user->branch_id)
+                    ->orWhere('assigned_pharmacist_user_id', $user->id);
+            }
         });
     }
 }

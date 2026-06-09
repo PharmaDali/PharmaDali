@@ -4,11 +4,16 @@ namespace App\Services\Order;
 
 use App\Models\Order;
 use App\Models\User;
+use App\Services\Messaging\ConversationService;
 use App\Notifications\OrderStatusNotification;
 use Illuminate\Http\JsonResponse;
 
 class UpdateOrderStatusByPharmacistService
 {
+    public function __construct(
+        private readonly ConversationService $conversationService,
+    ) {}
+
     private const ACTION_TO_STATUS = [
         'approve' => 'preparing',
         'ready' => 'ready_for_pickup',
@@ -88,6 +93,19 @@ class UpdateOrderStatusByPharmacistService
 
         // Notify customer about status change
         $order->customer->user->notify(new OrderStatusNotification($order));
+
+        $systemMessage = match ($action) {
+            'approve' => 'Prescription approved',
+            'ready' => 'Ready for pickup',
+            'pending' => 'Order placed on hold',
+            default => 'Order rejected',
+        };
+
+        $this->conversationService->appendSystemMessage($order, $systemMessage, [
+            'action' => $action,
+            'status' => $order->status,
+            'reason' => $reason,
+        ]);
 
         $successMessage = match ($action) {
             'approve' => 'Order approved successfully.',

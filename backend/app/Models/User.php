@@ -15,6 +15,8 @@ use App\Models\Pharmacist;
 use App\Models\Branch;
 use App\Models\Conversation;
 use App\Models\ConversationMessage;
+use App\Models\ConversationParticipant;
+use App\Models\ConversationAssignment;
 
 /**
  * @property string $role
@@ -69,7 +71,17 @@ class User extends Authenticatable
 
     public function conversationsAsPharmacist(): HasMany
     {
-        return $this->hasMany(Conversation::class, 'pharmacist_user_id');
+        return $this->hasMany(Conversation::class, 'assigned_pharmacist_user_id');
+    }
+
+    public function conversationParticipations(): HasMany
+    {
+        return $this->hasMany(ConversationParticipant::class);
+    }
+
+    public function conversationAssignments(): HasMany
+    {
+        return $this->hasMany(ConversationAssignment::class, 'pharmacist_user_id');
     }
 
     public function sentMessages(): HasMany
