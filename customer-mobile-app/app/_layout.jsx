@@ -16,14 +16,14 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="auth/CreateNewPasswordFPW" />
-        <Stack.Screen name="auth/EnterMobileNumberFPW" />
-        <Stack.Screen name="auth/EnterOTPFPW" />
-        <Stack.Screen name="auth/Register" />
-        <Stack.Screen name="tabs" />
-      </Stack>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="auth/CreateNewPasswordFPW" />
+          <Stack.Screen name="auth/EnterMobileNumberFPW" />
+          <Stack.Screen name="auth/EnterOTPFPW" />
+          <Stack.Screen name="auth/Register" />
+          <Stack.Screen name="tabs" />
+        </Stack>
     </SafeAreaProvider>
   );
 }

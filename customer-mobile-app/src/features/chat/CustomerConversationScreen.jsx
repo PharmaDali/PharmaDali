@@ -2,17 +2,21 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   FlatList,
+  Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
 import { colors } from '@src/shared/theme/colorPalette';
 import {
   getCustomerConversation,
@@ -66,6 +70,8 @@ export default function CustomerConversationScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const [initialBottomInset] = useState(insets.bottom);
+
   const flatListRef = useRef(null);
 
   const conversationId = params?.conversationId ?? null;
@@ -78,6 +84,60 @@ export default function CustomerConversationScreen() {
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
+  const pickFromGallery = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedImage(result.assets[0]);
+        setError('');
+      }
+    } catch (e) {
+      setError('Failed to select image.');
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        setError('Camera permission is required.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 0.8,
+      });
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setSelectedImage(result.assets[0]);
+        setError('');
+      }
+    } catch (e) {
+      setError('Failed to take photo.');
+    }
+  };
+
+  const clearSelectedImage = () => {
+    setSelectedImage(null);
+  };
 
   const conversationPartner = useMemo(() => {
     if (!conversation) return null;
@@ -151,19 +211,22 @@ export default function CustomerConversationScreen() {
 
   const handleSend = useCallback(async () => {
     const trimmed = draft.trim();
-    if (!trimmed || !conversationId) return;
+    if ((!trimmed && !selectedImage) || !conversationId) return;
     try {
       setSending(true);
       setDraft('');
-      await sendCustomerMessage(conversationId, trimmed);
+      const img = selectedImage;
+      setSelectedImage(null);
+      await sendCustomerMessage(conversationId, trimmed || '', img);
       await loadConversation(conversationId);
     } catch (e) {
       setDraft(trimmed);
+      setSelectedImage(selectedImage);
       setError(e?.message || 'Failed to send message.');
     } finally {
       setSending(false);
     }
-  }, [conversationId, draft, loadConversation]);
+  }, [conversationId, draft, selectedImage, loadConversation]);
 
   const grouped = useMemo(() => groupMessagesByDate(messages), [messages]);
 
@@ -199,11 +262,38 @@ export default function CustomerConversationScreen() {
         )}
         <View style={styles.bubbleWrapper}>
           {!isMine && <Text style={styles.senderLabel}>{partnerName}</Text>}
-          <View style={[styles.bubble, isMine ? styles.mineBubble : styles.theirsBubble]}>
-            <Text style={[styles.messageText, isMine ? styles.mineText : styles.theirsText]}>
-              {item?.body}
-            </Text>
-            <View style={[styles.timeRow, isMine ? styles.timeRowMine : styles.timeRowTheirs]}>
+          <View
+            style={[
+              styles.bubble,
+              isMine ? styles.mineBubble : styles.theirsBubble,
+              (item?.message_type === 'image' || item?.metadata?.image_url) && { padding: 4, borderRadius: 12 }
+            ]}
+          >
+            {(item?.message_type === 'image' || item?.metadata?.image_url) && item?.metadata?.image_url ? (
+              <Image
+                source={{ uri: item.metadata.image_url }}
+                style={{ width: 200, height: 200, borderRadius: 8, marginBottom: item?.body ? 4 : 0 }}
+                resizeMode="cover"
+              />
+            ) : null}
+            {!!item?.body && (
+              <Text
+                style={[
+                  styles.messageText,
+                  isMine ? styles.mineText : styles.theirsText,
+                  (item?.message_type === 'image' || item?.metadata?.image_url) && { paddingHorizontal: 8, paddingVertical: 4 }
+                ]}
+              >
+                {item?.body}
+              </Text>
+            )}
+            <View
+              style={[
+                styles.timeRow,
+                isMine ? styles.timeRowMine : styles.timeRowTheirs,
+                (item?.message_type === 'image' || item?.metadata?.image_url) && { paddingHorizontal: 8, paddingBottom: 4 }
+              ]}
+            >
               <Text style={[styles.timeText, isMine ? styles.mineTime : styles.theirsTime]}>
                 {formatTime(item?.created_at)}
               </Text>
@@ -263,11 +353,11 @@ export default function CustomerConversationScreen() {
         </View>
       </View>
 
-      {/* ── KAV wraps only the scrollable area + input ── */}
+      {/* ── Scrollable area + input wrapped in KAV (avoiding ScrollView nesting error) ── */}
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={headerHeight}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
       >
         {!!error && (
           <View style={styles.errorBanner}>
@@ -285,10 +375,12 @@ export default function CustomerConversationScreen() {
           contentContainerStyle={{
             paddingHorizontal: 16,
             paddingTop: 16,
-            paddingBottom: 12,
+            paddingBottom: 0,
             flexGrow: 1,
           }}
           showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          overScrollMode="never"
           ListEmptyComponent={
             <View style={styles.emptyState}>
               <View style={styles.emptyIcon}>
@@ -302,7 +394,24 @@ export default function CustomerConversationScreen() {
           }
         />
 
-        <View style={[styles.inputBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        {selectedImage && (
+          <View style={styles.imagePreviewContainer}>
+            <View style={styles.imagePreviewWrapper}>
+              <Image source={{ uri: selectedImage.uri }} style={styles.imagePreview} />
+              <TouchableOpacity onPress={clearSelectedImage} style={styles.clearImageBtn} activeOpacity={0.7}>
+                <MaterialCommunityIcons name="close" size={14} color="#fff" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        <View style={[styles.inputBar, { paddingBottom: Math.max(initialBottomInset, 12) }]}>
+          <TouchableOpacity onPress={pickFromGallery} style={styles.attachBtn} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="image-outline" size={24} color="#64748B" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={takePhoto} style={styles.attachBtn} activeOpacity={0.7}>
+            <MaterialCommunityIcons name="camera-outline" size={24} color="#64748B" />
+          </TouchableOpacity>
           <TextInput
             value={draft}
             onChangeText={setDraft}
@@ -314,8 +423,8 @@ export default function CustomerConversationScreen() {
           />
           <Pressable
             onPress={handleSend}
-            disabled={!draft.trim() || sending}
-            style={[styles.sendBtn, (!draft.trim() || sending) && { opacity: 0.45 }]}
+            disabled={(!draft.trim() && !selectedImage) || sending}
+            style={[styles.sendBtn, ((!draft.trim() && !selectedImage) || sending) && { opacity: 0.45 }]}
           >
             {sending
               ? <ActivityIndicator size="small" color="#fff" />
@@ -595,5 +704,42 @@ const styles = StyleSheet.create({
     fontSize: 12,
     flex: 1,
     marginLeft: 6,
+  },
+  attachBtn: {
+    height: 44,
+    width: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 2,
+    marginRight: 4,
+  },
+  imagePreviewContainer: {
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
+  },
+  imagePreviewWrapper: {
+    width: 80,
+    height: 80,
+    position: 'relative',
+  },
+  imagePreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  clearImageBtn: {
+    position: 'absolute',
+    top: -6,
+    right: -6,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    borderRadius: 12,
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

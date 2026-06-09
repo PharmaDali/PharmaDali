@@ -217,6 +217,8 @@ export default function CustomerChatScreen() {
             />
           }
           showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          overScrollMode="never"
           contentContainerStyle={
             conversations.length === 0
               ? { flexGrow: 1, justifyContent: 'center' }
