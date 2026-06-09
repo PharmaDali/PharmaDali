@@ -1,24 +1,83 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Pressable,
   RefreshControl,
-  ScrollView,
-  StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@src/shared/theme/colorPalette';
-import MainLogo from '@src/shared/components/MainLogo';
 import {
-  getPharmacistChatContacts,
   getPharmacistConversations,
-  startPharmacistConversation,
 } from '@shared/services/chatService';
+
+const ORDER_STATUS_COLORS = {
+  pending:          '#F59E0B',  
+  reviewing:        '#3B82F6',  
+  preparing:        '#8B5CF6',  
+  stand_by:         '#F97316',  
+  ready_for_pickup: '#10B981',  
+  completed:        '#64748B',  
+  cancelled:        '#EF4444',  
+};
+
+const ORDER_STATUS_LABELS = {
+  pending:          'Pending',
+  reviewing:        'Reviewing',
+  preparing:        'Preparing',
+  stand_by:         'On Hold',
+  ready_for_pickup: 'Ready for Pickup',
+  completed:        'Completed',
+  cancelled:        'Cancelled',
+};
+
+const CONV_STATUS_COLORS = {
+  open:   '#10B981',
+  closed: '#94A3B8',
+};
+
+const CONV_STATUS_LABELS = {
+  open:   'Open',
+  closed: 'Closed',
+};
+
+const getStatusColor = (orderStatus, convStatus) => {
+  if (orderStatus) {
+    return ORDER_STATUS_COLORS[String(orderStatus).toLowerCase()] ?? '#94A3B8';
+  }
+  return CONV_STATUS_COLORS[String(convStatus || 'open').toLowerCase()] ?? '#10B981';
+};
+
+const getStatusLabel = (orderStatus, convStatus) => {
+  if (orderStatus) {
+    return ORDER_STATUS_LABELS[String(orderStatus).toLowerCase()] ?? String(orderStatus);
+  }
+  return CONV_STATUS_LABELS[String(convStatus || 'open').toLowerCase()] ?? 'Open';
+};
+
+const getInitials = (name) => {
+  if (!name) return '?';
+  return name.trim().split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+};
+
+const formatRelativeTime = (value) => {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const diff = Date.now() - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return `${mins}m`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d`;
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
+};
 
 const getParticipantName = (person) => {
   const firstName = person?.first_name || person?.user?.first_name || '';
@@ -31,26 +90,20 @@ const getConversationPartner = (conversation) => conversation?.customer ?? null;
 export default function PharmacistChatScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [contacts, setContacts] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
-  const [busyId, setBusyId] = useState(null);
 
   const loadData = useCallback(async () => {
     try {
       setError('');
-      const [contactsResult, conversationsResult] = await Promise.all([
-        getPharmacistChatContacts(),
-        getPharmacistConversations(),
-      ]);
-
-      setContacts(Array.isArray(contactsResult) ? contactsResult : []);
-      setConversations(Array.isArray(conversationsResult) ? conversationsResult : []);
+      const conversationsResult = await getPharmacistConversations();
+      const validConversations = (Array.isArray(conversationsResult) ? conversationsResult : [])
+        .filter(c => c.latest_message !== null && getConversationPartner(c) !== null);
+      setConversations(validConversations);
     } catch (e) {
       setError(e?.message || 'Failed to load chat data.');
-      setContacts([]);
       setConversations([]);
     } finally {
       setLoading(false);
@@ -70,199 +123,143 @@ export default function PharmacistChatScreen() {
     loadData();
   }, [loadData]);
 
-  const openConversation = useCallback(async (contact) => {
-    if (!contact?.id) return;
-
-    try {
-      setBusyId(contact.id);
-      const conversation = await startPharmacistConversation(contact.id);
-      const conversationId = conversation?.id;
-
-      if (conversationId) {
-        router.push({
-          pathname: '/tabs/chat/Conversation',
-          params: { conversationId: String(conversationId) },
-        });
-      }
-    } catch (e) {
-      setError(e?.message || 'Could not open the conversation.');
-    } finally {
-      setBusyId(null);
-    }
-  }, [router]);
-
-  const recentConversations = useMemo(() => conversations.slice(0, 8), [conversations]);
-
-  const renderConversation = ({ item }) => {
+  const renderItem = ({ item }) => {
     const partner = getConversationPartner(item);
-    const latest = item?.latest_message?.body || 'No messages yet.';
+    const partnerName = getParticipantName(partner);
+    const order = item?.order;
+    const orderNumber = order?.order_number || order?.id || item?.order_id || '';
+    const shortOrderNum = orderNumber ? String(orderNumber).split('-').pop() : '';
+    const latest = item?.latest_message?.body || '';
+    const relTime = formatRelativeTime(item?.latest_message?.created_at || item?.updated_at);
+    const orderStatus = order?.status ?? null;
+    const convStatus  = item?.status ?? null;
+    const statusColor = getStatusColor(orderStatus, convStatus);
+    const statusLabel = getStatusLabel(orderStatus, convStatus);
+    const hasUnread = item?.unread_count > 0;
 
     return (
-      <Pressable
-        onPress={() => router.push({ pathname: '/tabs/chat/Conversation', params: { conversationId: String(item.id) } })}
-        className="flex-row items-center py-3"
+      <TouchableOpacity
+        onPress={() => router.push({
+          pathname: '/tabs/chat/Conversation',
+          params: { conversationId: String(item.id) },
+        })}
+        className="flex-row items-center px-4 py-3"
+        activeOpacity={0.7}
       >
-        <View className="h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-          <Text style={styles.avatarText}>{getParticipantName(partner).charAt(0)}</Text>
-        </View>
-        <View className="ml-3 flex-1">
-          <Text style={styles.cardTitle}>{getParticipantName(partner)}</Text>
-          <Text className="mt-1" style={styles.cardSubtitle} numberOfLines={1}>{latest}</Text>
-        </View>
-        <MaterialCommunityIcons name="chevron-right" size={24} color="#9CA3AF" />
-      </Pressable>
-    );
-  };
-
-  const renderContact = ({ item }) => {
-    const isBusy = busyId === item.id;
-
-    return (
-      <Pressable onPress={() => openConversation(item)} className="flex-row items-center py-3">
-        <View className="h-12 w-12 items-center justify-center rounded-full bg-cyan-100">
-          <Text style={styles.contactAvatarText}>{getParticipantName(item).charAt(0)}</Text>
-        </View>
-        <View className="ml-3 flex-1">
-          <Text style={styles.contactName}>{getParticipantName(item)}</Text>
-          <Text className="mt-1" style={styles.contactMeta} numberOfLines={1}>
-            {item?.customer?.user?.mobile_number ? `Mobile ${item.customer.user.mobile_number}` : 'Customer in your branch'}
+        {/* Avatar */}
+        <View className="h-[52px] w-[52px] rounded-full bg-sky-100 items-center justify-center mr-3 relative">
+          <Text className="text-[17px]" style={{ fontFamily: 'Poppins-Bold', color: colors.buttonColor }}>
+            {getInitials(partnerName)}
           </Text>
+          <View
+            className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white"
+            style={{ backgroundColor: statusColor }}
+          />
         </View>
-        {isBusy ? (
-          <ActivityIndicator size="small" color={colors.buttonColor} />
-        ) : (
-          <MaterialCommunityIcons name="chat-outline" size={22} color={colors.buttonColor} />
+
+        {/* Content */}
+        <View className="flex-1 mr-1.5">
+          <View className="flex-row items-center justify-between mb-0.5">
+            <Text
+              className="text-[15px] text-slate-900 flex-1 mr-1.5"
+              style={{ fontFamily: hasUnread ? 'Poppins-Bold' : 'Poppins-SemiBold' }}
+              numberOfLines={1}
+            >
+              {partnerName}
+            </Text>
+            <Text className="text-xs text-slate-400" style={{ fontFamily: 'Poppins-Medium' }}>
+              {relTime}
+            </Text>
+          </View>
+          <Text className="text-xs text-slate-500 mb-0.5" style={{ fontFamily: 'Poppins-Medium' }} numberOfLines={1}>
+            {shortOrderNum ? `Order #${shortOrderNum} · ` : ''}{statusLabel}
+          </Text>
+          {!!latest && (
+            <Text
+              className={`text-[13px] ${hasUnread ? 'text-slate-800' : 'text-slate-400'}`}
+              style={{ fontFamily: hasUnread ? 'Poppins-SemiBold' : 'Poppins-Medium' }}
+              numberOfLines={1}
+            >
+              {latest}
+            </Text>
+          )}
+        </View>
+
+        {/* Unread badge */}
+        {hasUnread && (
+          <View className="items-center justify-center ml-1">
+            <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colors.buttonColor }} />
+          </View>
         )}
-      </Pressable>
+      </TouchableOpacity>
     );
   };
 
   return (
-    <View className="flex-1 bg-sky-50">
-      <View className="rounded-b-[28px] bg-sky-500 px-5 pb-4" style={{ paddingTop: insets.top + 12 }}>
-        <MainLogo />
-        <Text style={styles.headerTitle}>Messages</Text>
+    <View className="flex-1 bg-white">
+      {/* ── Header ── */}
+      <View
+        className="flex-row items-center px-5 pb-5"
+        style={{
+          backgroundColor: colors.buttonColor,
+          paddingTop: insets.top + 12,
+        }}
+      >
+        <TouchableOpacity onPress={() => router.back()} className="mr-3" activeOpacity={0.7}>
+          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+        </TouchableOpacity>
+        <Text className="text-2xl text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>
+          Chats
+        </Text>
       </View>
 
+      {/* ── Body ── */}
       {loading ? (
-        <View className="flex-1 items-center justify-center px-5">
+        <View className="flex-grow items-center justify-center pt-12 px-8">
           <ActivityIndicator size="large" color={colors.buttonColor} />
-          <Text style={styles.stateText}>Loading chats...</Text>
         </View>
       ) : (
-        <ScrollView
+        <FlatList
+          data={conversations}
+          keyExtractor={(item) => String(item.id)}
+          renderItem={renderItem}
           className="flex-1"
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.buttonColor}
+            />
+          }
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 24, paddingHorizontal: 16 }}
-        >
-          {!!error && <Text className="mt-4" style={styles.errorText}>{error}</Text>}
-
-          <View className="mt-4 rounded-[24px] bg-white p-4 shadow-lg shadow-slate-900/10">
-            <View className="mb-3 flex-row items-center justify-between">
-              <Text style={styles.sectionTitle}>Recent chats</Text>
-              <Text style={styles.sectionCount}>{recentConversations.length}</Text>
-            </View>
-            {recentConversations.length > 0 ? (
-              <FlatList
-                data={recentConversations}
-                keyExtractor={(item) => String(item.id)}
-                renderItem={renderConversation}
-                scrollEnabled={false}
-                ItemSeparatorComponent={() => <View className="h-px bg-slate-100" />}
-              />
-            ) : (
-              <View className="items-center justify-center rounded-2xl bg-slate-50 py-6">
-                <MaterialCommunityIcons name="message-text-outline" size={26} color="#94A3B8" />
-                <Text style={styles.emptyText}>No conversations yet.</Text>
+          showsHorizontalScrollIndicator={false}
+          overScrollMode="never"
+          contentContainerStyle={
+            conversations.length === 0
+              ? { flexGrow: 1, justifyContent: 'center' }
+              : { paddingBottom: insets.bottom + 96 }
+          }
+          ListEmptyComponent={
+            error ? (
+              <View className="flex-grow items-center justify-center pt-12 px-8">
+                <Text className="text-[13px] text-red-600 text-center" style={{ fontFamily: 'Poppins-Medium' }}>
+                  {error}
+                </Text>
               </View>
-            )}
-          </View>
-
-          <View className="mt-4 rounded-[24px] bg-white p-4 shadow-lg shadow-slate-900/10">
-            <View className="mb-3 flex-row items-center justify-between">
-              <Text style={styles.sectionTitle}>Customers in your branch</Text>
-              <Text style={styles.sectionCount}>{contacts.length}</Text>
-            </View>
-            {contacts.length > 0 ? (
-              <FlatList
-                data={contacts}
-                keyExtractor={(item) => String(item.id)}
-                renderItem={renderContact}
-                scrollEnabled={false}
-                ItemSeparatorComponent={() => <View className="h-px bg-slate-100" />}
-              />
             ) : (
-              <View className="items-center justify-center rounded-2xl bg-slate-50 py-6">
-                <MaterialCommunityIcons name="account-group-outline" size={26} color="#94A3B8" />
-                <Text style={styles.emptyText}>No customers available for your branch.</Text>
+              <View className="flex-grow items-center justify-center pt-12 px-8">
+                <MaterialCommunityIcons name="message-text-outline" size={40} color="#CBD5E1" />
+                <Text className="text-base text-slate-800 mt-3 mb-1" style={{ fontFamily: 'Poppins-Bold' }}>
+                  No conversations yet
+                </Text>
+                <Text className="text-[13px] text-slate-400 text-center" style={{ fontFamily: 'Poppins-Medium' }}>
+                  Your active chats will appear here.
+                </Text>
               </View>
-            )}
-          </View>
-        </ScrollView>
+            )
+          }
+        />
       )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  headerTitle: {
-    marginTop: 12,
-    fontFamily: 'Poppins-Bold',
-    color: '#fff',
-    fontSize: 28,
-  },
-  stateText: {
-    marginTop: 12,
-    fontFamily: 'Poppins-Medium',
-    color: '#64748B',
-  },
-  errorText: {
-    color: '#B91C1C',
-    fontFamily: 'Poppins-Medium',
-  },
-  sectionTitle: {
-    fontFamily: 'Poppins-Bold',
-    color: colors.textColor,
-    fontSize: 17,
-  },
-  sectionCount: {
-    fontFamily: 'Poppins-SemiBold',
-    color: colors.buttonColor,
-  },
-  cardTitle: {
-    fontFamily: 'Poppins-SemiBold',
-    color: colors.textColor,
-    fontSize: 15,
-  },
-  cardSubtitle: {
-    fontFamily: 'Poppins-Medium',
-    color: '#64748B',
-    marginTop: 3,
-  },
-  avatarText: {
-    fontFamily: 'Poppins-Bold',
-    color: colors.buttonColor,
-    fontSize: 18,
-  },
-  emptyText: {
-    marginTop: 8,
-    fontFamily: 'Poppins-Medium',
-    color: '#64748B',
-  },
-  contactAvatarText: {
-    fontFamily: 'Poppins-Bold',
-    color: '#0284C7',
-    fontSize: 18,
-  },
-  contactName: {
-    fontFamily: 'Poppins-SemiBold',
-    color: colors.textColor,
-    fontSize: 15,
-  },
-  contactMeta: {
-    marginTop: 3,
-    fontFamily: 'Poppins-Medium',
-    color: '#64748B',
-  },
-});

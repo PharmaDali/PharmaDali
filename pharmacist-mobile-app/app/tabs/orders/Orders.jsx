@@ -1,6 +1,6 @@
 import { View, ScrollView, Text } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/-orders-and-ready-components';
+import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
 import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';

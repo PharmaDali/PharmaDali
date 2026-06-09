@@ -5,7 +5,7 @@ import { colors } from '@src/shared/theme/colorPalette'
 import AccountIcon from '@assets/icons/account_icon.svg'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import EditIcon from '@assets/icons/edit_icon.svg'
-import { getPharmacistProfile } from '@shared/services/ProfileService';
+import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
 import { toTitleCase } from '@shared/utils/stringUtils';
 
 const Account = () => {

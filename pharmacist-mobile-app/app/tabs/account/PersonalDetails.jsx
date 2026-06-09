@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useMemo, useState } from 'react'
 import { colors } from '@src/shared/theme/colorPalette'
-import { getPharmacistProfile } from '@shared/services/ProfileService';
+import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
 import { toTitleCase } from '@shared/utils/stringUtils';
 
 const PersonalDetails = () => {

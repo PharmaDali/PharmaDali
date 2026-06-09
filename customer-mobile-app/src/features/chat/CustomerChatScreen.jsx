@@ -89,7 +89,9 @@ export default function CustomerChatScreen() {
     try {
       setError('');
       const result = await getCustomerConversations();
-      setConversations(Array.isArray(result) ? result : []);
+      const validConversations = (Array.isArray(result) ? result : [])
+        .filter(c => c.latest_message !== null);
+      setConversations(validConversations);
     } catch (e) {
       setError(e?.message || 'Failed to load chats.');
       setConversations([]);
