@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Post;
 use App\Models\Pharmacist;
 use App\Models\Branch;
+use App\Models\Conversation;
+use App\Models\ConversationMessage;
 
 /**
  * @property string $role
@@ -58,6 +60,21 @@ class User extends Authenticatable
     public function customer(): HasOne
     {
         return $this->hasOne(Customer::class);
+    }
+
+    public function conversationsAsCustomer(): HasMany
+    {
+        return $this->hasMany(Conversation::class, 'customer_user_id');
+    }
+
+    public function conversationsAsPharmacist(): HasMany
+    {
+        return $this->hasMany(Conversation::class, 'pharmacist_user_id');
+    }
+
+    public function sentMessages(): HasMany
+    {
+        return $this->hasMany(ConversationMessage::class, 'sender_user_id');
     }
 
     /**

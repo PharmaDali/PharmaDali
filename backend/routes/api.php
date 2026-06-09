@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\BranchController;
 use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\BranchProductController;
+use App\Http\Controllers\API\ConversationController;
 use App\Http\Controllers\API\CustomerCartController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\OrderItemPrescription;
@@ -16,6 +17,7 @@ use App\Http\Controllers\API\ForecastSyncController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PosController;
 use App\Http\Controllers\API\InventoryController;
+use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -23,6 +25,8 @@ Route::post('customer/register', [AuthController::class, 'customerRegister']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('pharmacist/login', [AuthController::class, 'pharmacistLogin']);
 Route::post('admin/login', [AuthController::class, 'adminLogin']);
+
+Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
 
 Route::middleware('auth:sanctum')->group(function () {
@@ -58,6 +62,12 @@ Route::middleware('auth:sanctum')->group(function () {
             return response()->json(['message' => 'Customer dashboard access granted']);
         });
 
+        Route::get('customer/messages/pharmacists', [ConversationController::class, 'customerPharmacists']);
+        Route::get('customer/messages/conversations', [ConversationController::class, 'index']);
+        Route::post('customer/messages/conversations', [ConversationController::class, 'store']);
+        Route::get('customer/messages/conversations/{conversation}', [ConversationController::class, 'show']);
+        Route::post('customer/messages/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage']);
+
         Route::get('customer/profile', [CustomerProfileController::class, 'show']);
 
         Route::post('customer/cart/items', [CustomerCartController::class, 'addItem']);
@@ -77,6 +87,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacist/dashboard', function () {
             return response()->json(['message' => 'Pharmacist dashboard access granted']);
         });
+
+        Route::get('pharmacist/messages/customers', [ConversationController::class, 'pharmacistCustomers']);
+        Route::get('pharmacist/messages/conversations', [ConversationController::class, 'index']);
+        Route::post('pharmacist/messages/conversations', [ConversationController::class, 'store']);
+        Route::get('pharmacist/messages/conversations/{conversation}', [ConversationController::class, 'show']);
+        Route::post('pharmacist/messages/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage']);
 
         Route::get('pos/products', [PosController::class, 'getProducts']);
         Route::post('pos/orders', [PosController::class, 'storeOrder']);
