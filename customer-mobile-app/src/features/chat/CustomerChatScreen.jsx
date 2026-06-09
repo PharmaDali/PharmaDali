@@ -90,7 +90,15 @@ export default function CustomerChatScreen() {
       setError('');
       const result = await getCustomerConversations();
       const validConversations = (Array.isArray(result) ? result : [])
-        .filter(c => c.latest_message !== null);
+        .filter(c => {
+          const orderStatus = String(c?.order?.status || '').toLowerCase();
+          const convStatus = String(c?.status || '').toLowerCase();
+          return c.latest_message !== null &&
+                 orderStatus !== 'completed' &&
+                 orderStatus !== 'cancelled' &&
+                 orderStatus !== 'rejected' &&
+                 convStatus !== 'closed';
+        });
       setConversations(validConversations);
     } catch (e) {
       setError(e?.message || 'Failed to load chats.');

@@ -9,6 +9,8 @@ use App\Notifications\OrderCompletedNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
+use App\Services\Messaging\ConversationService;
 
 class PosService
 {
@@ -176,6 +178,20 @@ class PosService
             // Notify customer that order is completed
             if ($order->customer && $order->customer->user) {
                 $order->customer->user->notify(new OrderCompletedNotification($order));
+            }
+
+            try {
+                $conversationService = app(ConversationService::class);
+                $msg = $conversationService->appendSystemMessage($order, 'Order completed', [
+                    'status' => 'completed',
+                ]);
+                $msg->conversation()->update([
+                    'status' => 'closed',
+                    'closed_at' => now(),
+                ]);
+            } catch (\Throwable $e) {
+                // Fail-safe to avoid blocking order completion if chat system fails
+                Log::error('Failed to append system message or close conversation: ' . $e->getMessage());
             }
 
             return $order->load(['customer.user', 'items.branchProduct.product']);

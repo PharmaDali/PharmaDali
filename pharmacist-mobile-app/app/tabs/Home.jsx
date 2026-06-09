@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity } from 'react-native'
-import React, { useEffect, useMemo, useState } from 'react'
+import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, RefreshControl } from 'react-native'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { LineChart } from 'react-native-gifted-charts'
 import StatsIcon from '@assets/icons/pharmacist_home/stats_icon.svg'
 import ForecastIcon from '@assets/icons/pharmacist_home/forecast_icon.svg'
@@ -215,6 +215,7 @@ const Home = () => {
   const [alertItems, setAlertItems] = useState([]);
   const [alertVisibleCount, setAlertVisibleCount] = useState(3);
   const [alertLoading, setAlertLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [alertError, setAlertError] = useState('');
 
   const alertVisibleItems = useMemo(
@@ -224,82 +225,88 @@ const Home = () => {
   const canLoadMoreAlerts = alertVisibleCount < alertItems.length;
   const canLoadLessAlerts = alertVisibleCount > 3 && alertItems.length > 3;
 
-  useEffect(() => {
-    let isMounted = true;
+  const loadQuickStats = useCallback(async () => {
+    try {
+      const data = await getBranchOrders();
+      const orders = Array.isArray(data) ? data : [];
+      const pendingStatuses = new Set(['pending', 'reviewing', 'preparing', 'ready_for_pickup']);
+      const completedStatuses = new Set(['completed']);
 
-    const loadQuickStats = async () => {
-      try {
-        const data = await getBranchOrders();
-        const orders = Array.isArray(data) ? data : [];
-        const pendingStatuses = new Set(['pending', 'reviewing', 'preparing', 'ready_for_pickup']);
-        const completedStatuses = new Set(['completed']);
+      const pending = orders.filter((order) =>
+        pendingStatuses.has(String(order?.status || '').toLowerCase())
+      ).length;
+      const completed = orders.filter((order) =>
+        completedStatuses.has(String(order?.status || '').toLowerCase())
+      ).length;
 
-        const pending = orders.filter((order) =>
-          pendingStatuses.has(String(order?.status || '').toLowerCase())
-        ).length;
-        const completed = orders.filter((order) =>
-          completedStatuses.has(String(order?.status || '').toLowerCase())
-        ).length;
-
-        if (isMounted) {
-          setPendingCount(pending);
-          setCompletedCount(completed);
-        }
-      } catch {
-        if (isMounted) {
-          setPendingCount(0);
-          setCompletedCount(0);
-        }
-      }
-    };
-
-    const loadDemandAlerts = async () => {
-      setAlertLoading(true);
-      setAlertError('');
-
-      try {
-        const data = await getDemandForecasts({ granularity: 'weekly', period: 'current', limit: 10 });
-        const sorted = (Array.isArray(data) ? data : [])
-          .slice()
-          .sort((a, b) => Number(b?.forecast_value ?? 0) - Number(a?.forecast_value ?? 0))
-          .slice(0, 10);
-        const mapped = sorted.map((entry) => {
-          const forecastValue = Number(entry?.forecast_value ?? 0);
-          const name = stripProductName(entry?.unique_id);
-          return {
-            name,
-            generic: `Forecast: ${Number.isFinite(forecastValue) ? forecastValue.toFixed(0) : 'N/A'}`,
-            image: getImageForDemandName(name),
-          };
-        });
-
-        if (isMounted) {
-          setAlertItems(mapped);
-          setAlertVisibleCount(3);
-        }
-      } catch (error) {
-        if (isMounted) {
-          setAlertItems(FALLBACK_TRENDING);
-          setAlertVisibleCount(3);
-          setAlertError(error?.message || 'Unable to load demand alerts.');
-        }
-      } finally {
-        if (isMounted) {
-          setAlertLoading(false);
-        }
-      }
-    };
-
-    loadQuickStats();
-    loadDemandAlerts();
-
-    return () => {
-      isMounted = false;
-    };
+      setPendingCount(pending);
+      setCompletedCount(completed);
+    } catch {
+      setPendingCount(0);
+      setCompletedCount(0);
+    }
   }, []);
 
+  const loadDemandAlerts = useCallback(async (showLoading = true) => {
+    if (showLoading) setAlertLoading(true);
+    setAlertError('');
+
+    try {
+      const data = await getDemandForecasts({ granularity: 'weekly', period: 'current', limit: 10 });
+      const sorted = (Array.isArray(data) ? data : [])
+        .slice()
+        .sort((a, b) => Number(b?.forecast_value ?? 0) - Number(a?.forecast_value ?? 0))
+        .slice(0, 10);
+      const mapped = sorted.map((entry) => {
+        const forecastValue = Number(entry?.forecast_value ?? 0);
+        const name = stripProductName(entry?.unique_id);
+        return {
+          name,
+          generic: `Forecast: ${Number.isFinite(forecastValue) ? forecastValue.toFixed(0) : 'N/A'}`,
+          image: getImageForDemandName(name),
+        };
+      });
+
+      setAlertItems(mapped);
+      setAlertVisibleCount(3);
+    } catch (error) {
+      setAlertItems(FALLBACK_TRENDING);
+      setAlertVisibleCount(3);
+      setAlertError(error?.message || 'Unable to load demand alerts.');
+    } finally {
+      if (showLoading) setAlertLoading(false);
+    }
+  }, []);
+
+  const loadAll = useCallback(async (showLoading = true) => {
+    await Promise.all([
+      loadQuickStats(),
+      loadDemandAlerts(showLoading)
+    ]);
+  }, [loadQuickStats, loadDemandAlerts]);
+
+  useEffect(() => {
+    loadAll(true);
+  }, [loadAll]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadAll(false);
+    setRefreshing(false);
+  }, [loadAll]);
+
   return (
-    <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+    <ScrollView
+      className="flex-1"
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.buttonColor}
+        />
+      }
+    >
       <QuickStats pendingCount={pendingCount} completedCount={completedCount} />
       <DemandForecast />
       <DemandAlert

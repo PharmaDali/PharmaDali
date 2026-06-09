@@ -100,7 +100,16 @@ export default function PharmacistChatScreen() {
       setError('');
       const conversationsResult = await getPharmacistConversations();
       const validConversations = (Array.isArray(conversationsResult) ? conversationsResult : [])
-        .filter(c => c.latest_message !== null && getConversationPartner(c) !== null);
+        .filter(c => {
+          const orderStatus = String(c?.order?.status || '').toLowerCase();
+          const convStatus = String(c?.status || '').toLowerCase();
+          return c.latest_message !== null &&
+                 getConversationPartner(c) !== null &&
+                 orderStatus !== 'completed' &&
+                 orderStatus !== 'cancelled' &&
+                 orderStatus !== 'rejected' &&
+                 convStatus !== 'closed';
+        });
       setConversations(validConversations);
     } catch (e) {
       setError(e?.message || 'Failed to load chat data.');
