@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Services\Notification\FcmService;
 
-class NewOrderPharmacistNotification extends Notification
+class NewOrderPharmacistNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -29,20 +29,6 @@ class NewOrderPharmacistNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        // Send FCM if token exists
-        if ($notifiable->fcm_token) {
-            $fcmService = app(FcmService::class);
-            $fcmService->sendPushNotification(
-                $notifiable,
-                'New Order Received',
-                'New order #' . $this->order->order_number . ' received. Please process it.',
-                [
-                    'order_id' => (string)$this->order->id,
-                    'type' => 'new_order_pharmacist'
-                ]
-            );
-        }
-
         return ['mail', 'database'];
     }
 
@@ -62,19 +48,32 @@ class NewOrderPharmacistNotification extends Notification
     }
 
     /**
-     * Get the array representation of the notification.
+     * Get the array representation of the notification (database channel).
+     * FCM push is sent here so it runs on the queue worker, not the request thread.
      *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
+        if ($notifiable->fcm_token) {
+            app(FcmService::class)->sendPushNotification(
+                $notifiable,
+                'New Order Received',
+                'New order #' . $this->order->order_number . ' received. Please process it.',
+                [
+                    'order_id' => (string) $this->order->id,
+                    'type' => 'new_order_pharmacist',
+                ]
+            );
+        }
+
         return [
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
             'customer_name' => $this->order->customer->user->name ?? 'Guest',
             'total_amount' => $this->order->total_amount,
             'message' => 'New order #' . $this->order->order_number . ' received.',
-            'type' => 'new_order_pharmacist'
+            'type' => 'new_order_pharmacist',
         ];
     }
 }

@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Services\Notification\FcmService;
 
-class OrderCompletedNotification extends Notification
+class OrderCompletedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -29,20 +29,6 @@ class OrderCompletedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        // Send FCM if token exists
-        if ($notifiable->fcm_token) {
-            $fcmService = app(FcmService::class);
-            $fcmService->sendPushNotification(
-                $notifiable,
-                'Order Completed',
-                'Your order #' . $this->order->order_number . ' has been marked as completed. Thank you!',
-                [
-                    'order_id' => (string)$this->order->id,
-                    'type' => 'order_completed'
-                ]
-            );
-        }
-
         return ['mail', 'database'];
     }
 
@@ -61,18 +47,31 @@ class OrderCompletedNotification extends Notification
     }
 
     /**
-     * Get the array representation of the notification.
+     * Get the array representation of the notification (database channel).
+     * FCM push is sent here so it runs on the queue worker, not the request thread.
      *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
+        if ($notifiable->fcm_token) {
+            app(FcmService::class)->sendPushNotification(
+                $notifiable,
+                'Order Completed',
+                'Your order #' . $this->order->order_number . ' has been marked as completed. Thank you!',
+                [
+                    'order_id' => (string) $this->order->id,
+                    'type' => 'order_completed',
+                ]
+            );
+        }
+
         return [
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
             'status' => 'completed',
             'message' => 'Your order #' . $this->order->order_number . ' has been completed. Thank you!',
-            'type' => 'order_completed'
+            'type' => 'order_completed',
         ];
     }
 }
