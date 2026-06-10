@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/css/inventory.css";
 import Modal from "../components/Modal";
-import { fetchInventoryMetrics, fetchInventoryLogs } from "../services/inventoryService";
+import { fetchInventoryLogs } from "../services/inventoryService";
 
 const ACTION_FILTERS = ["All", "Stock In", "Stock Out"];
 
@@ -24,28 +24,20 @@ function InventoryLogs() {
   });
 
   const [logs, setLogs] = useState([]);
-  const [metrics, setMetrics] = useState({
-    total_products: 0,
-    low_stocks: 0,
-    expiring: 0,
-    expired: 0,
-  });
   const [loading, setLoading] = useState(true);
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadData = useCallback(async () => {
+    setCurrentPage(1);
     setLoading(true);
     try {
-      const activeAction = actionFilter;
-      const [logsResult, metricsResult] = await Promise.all([
-        fetchInventoryLogs({
-          search: query,
-          action: activeAction !== "All" ? activeAction : undefined,
-          date_range: dateRange,
-        }),
-        fetchInventoryMetrics(),
-      ]);
+      const logsResult = await fetchInventoryLogs({
+        search: query,
+        action: actionFilter !== "All" ? actionFilter : undefined,
+        date_range: dateRange,
+      });
       setLogs(logsResult);
-      setMetrics(metricsResult);
     } catch (err) {
       console.error("Failed to load inventory logs", err);
     } finally {
@@ -63,10 +55,25 @@ function InventoryLogs() {
 
   const filteredLogs = logs;
 
-  const totalProducts = metrics.total_products || 0;
-  const lowStockCount = metrics.low_stocks || 0;
-  const expiringSoonCount = metrics.expiring || 0;
-  const expiredCount = metrics.expired || 0;
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / itemsPerPage));
+
+  const paginatedLogs = useMemo(
+    () => filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+    [filteredLogs, currentPage],
+  );
+
+  const visiblePageNumbers = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+    const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+    const endPage = Math.min(totalPages, startPage + 4);
+    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
+  }, [currentPage, totalPages]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+  };
 
   const handleRowClick = (log) => {
     setSelectedLog(log);
@@ -130,28 +137,7 @@ function InventoryLogs() {
         <span className="breadcrumb-current">Inventory logs</span>
       </div>
 
-      <header className="admin-page-header">
-        <h4 className="fw-bold mb-1 admin-page-title">Inventory Logs</h4>
-      </header>
 
-      <div className="inventory-metrics">
-        <article className="inventory-metric-card inventory-metric-total">
-          <p className="inventory-metric-label mb-1">Total Products</p>
-          <p className="inventory-metric-value mb-0">{totalProducts}</p>
-        </article>
-        <article className="inventory-metric-card inventory-metric-low">
-          <p className="inventory-metric-label mb-1">Low Stocks</p>
-          <p className="inventory-metric-value mb-0">{lowStockCount}</p>
-        </article>
-        <article className="inventory-metric-card inventory-metric-expiring">
-          <p className="inventory-metric-label mb-1">Expiring</p>
-          <p className="inventory-metric-value mb-0">{expiringSoonCount}</p>
-        </article>
-        <article className="inventory-metric-card inventory-metric-expired">
-          <p className="inventory-metric-label mb-1">Expired</p>
-          <p className="inventory-metric-value mb-0">{expiredCount}</p>
-        </article>
-      </div>
 
       <div className="inventory-filter-bar inventory-logs-filter-bar">
         <div className="inventory-field inventory-search-field">
@@ -232,23 +218,7 @@ function InventoryLogs() {
 
       <article className="inventory-table-card">
         <div className="inventory-table-actions">
-          <div className="inventory-action-group">
-            <button
-              type="button"
-              className="btn inventory-action-btn inventory-action-primary"
-              onClick={() => handleActionChange("Stock In")}
-            >
-              Stock In
-            </button>
-            <button
-              type="button"
-              className="btn inventory-action-btn inventory-action-primary"
-              onClick={() => handleActionChange("Stock Out")}
-            >
-              Stock Out
-            </button>
-          </div>
-
+          <h6 className="inventory-side-title mb-0">Inventory Logs</h6>
         </div>
 
         <div className="inventory-table-scroll">
@@ -256,16 +226,17 @@ function InventoryLogs() {
             <thead>
               <tr>
                 <th>Product Name</th>
-                <th>Action</th>
+                <th>Batch Number</th>
                 <th>Quantity</th>
-                <th>Date & Time</th>
+                <th>Date &amp; Time</th>
+                <th>Status</th>
                 <th>User</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <div className="inventory-empty-state">
                       <div className="spinner-border text-primary mb-2" role="status">
                         <span className="visually-hidden">Loading...</span>
@@ -276,7 +247,7 @@ function InventoryLogs() {
                 </tr>
               ) : filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <div className="inventory-empty-state">
                       <i className="fa-regular fa-folder-open mb-2" aria-hidden="true" />
                       <p className="mb-0">No inventory logs match your filter.</p>
@@ -284,34 +255,131 @@ function InventoryLogs() {
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map((log) => (
-                  <tr
-                    key={log.id}
-                    onClick={() => handleRowClick(log)}
-                    style={{ cursor: "pointer" }}
-                    className={selectedLog?.id === log.id ? "inventory-row-selected" : ""}
-                  >
-                    <td>
-                      <p className="inventory-item-name mb-0">{log.productName}</p>
-                    </td>
-                    <td>
-                      <span
-                        className={`inventory-log-action-chip inventory-log-action-${log.action
-                          .toLowerCase()
-                          .replace(/\s+/g, "-")}`}
-                      >
-                        {log.action}
-                      </span>
-                    </td>
-                    <td>{log.action === "Stock IN" ? `+ ${log.quantity}` : `- ${log.quantity}`}</td>
-                    <td>{log.dateTime}</td>
-                    <td>{log.user}</td>
-                  </tr>
-                ))
+                paginatedLogs.map((log) => {
+                  const isStockIn = log.action?.toLowerCase().replace(/\s+/g, "") === "stockin";
+                  return (
+                    <tr
+                      key={log.id}
+                      onClick={() => handleRowClick(log)}
+                      className={selectedLog?.id === log.id ? "inventory-row-selected" : ""}
+                    >
+                      <td>
+                        <p className="inventory-item-name mb-0">{log.productName}</p>
+                      </td>
+                      <td>{log.batchNumber ?? "—"}</td>
+                      <td>
+                        <span className={isStockIn ? "inventory-qty-in" : "inventory-qty-out"}>
+                          {isStockIn ? `+ ${log.quantity}` : `− ${log.quantity}`}
+                        </span>
+                      </td>
+                      <td>{log.dateTime}</td>
+                      <td>
+                        <span
+                          className={`inventory-log-action-chip inventory-log-action-${log.action
+                            .toLowerCase()
+                            .replace(/\s+/g, "-")}`}
+                        >
+                          {log.action}
+                        </span>
+                      </td>
+                      <td>{log.user}</td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
+
+        {!loading && filteredLogs.length > 0 && (
+          <div className="inventory-pagination-bar">
+            <span className="inventory-pagination-info">
+              Showing {(currentPage - 1) * itemsPerPage + 1}–
+              {Math.min(currentPage * itemsPerPage, filteredLogs.length)} of {filteredLogs.length}
+            </span>
+
+            <nav aria-label="Inventory logs pagination">
+              <ul className="inventory-pagination">
+                <li className={`inventory-page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                  <button
+                    type="button"
+                    className="inventory-page-link inventory-page-nav"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Previous page"
+                  >
+                    <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+                  </button>
+                </li>
+
+                {visiblePageNumbers[0] > 1 && (
+                  <>
+                    <li className="inventory-page-item">
+                      <button
+                        type="button"
+                        className="inventory-page-link"
+                        onClick={() => handlePageChange(1)}
+                      >
+                        1
+                      </button>
+                    </li>
+                    {visiblePageNumbers[0] > 2 && (
+                      <li className="inventory-page-item inventory-page-ellipsis">
+                        <span>…</span>
+                      </li>
+                    )}
+                  </>
+                )}
+
+                {visiblePageNumbers.map((pageNumber) => (
+                  <li
+                    key={pageNumber}
+                    className={`inventory-page-item ${currentPage === pageNumber ? "active" : ""}`}
+                  >
+                    <button
+                      type="button"
+                      className="inventory-page-link"
+                      onClick={() => handlePageChange(pageNumber)}
+                    >
+                      {pageNumber}
+                    </button>
+                  </li>
+                ))}
+
+                {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages && (
+                  <>
+                    {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages - 1 && (
+                      <li className="inventory-page-item inventory-page-ellipsis">
+                        <span>…</span>
+                      </li>
+                    )}
+                    <li className="inventory-page-item">
+                      <button
+                        type="button"
+                        className="inventory-page-link"
+                        onClick={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </button>
+                    </li>
+                  </>
+                )}
+
+                <li className={`inventory-page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                  <button
+                    type="button"
+                    className="inventory-page-link inventory-page-nav"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                  >
+                    <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        )}
       </article>
 
       {selectedLog && (
