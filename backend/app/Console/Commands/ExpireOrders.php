@@ -32,19 +32,29 @@ class ExpireOrders extends Command
                     return; // Branch is still open — skip
                 }
 
-                // Find all non-completed orders for this branch
-                $orders = Order::where('branch_id', $branch->id)
+                // Collect IDs of all orders that need to expire
+                $orderIds = Order::where('branch_id', $branch->id)
                     ->whereIn('status', self::EXPIRABLE_STATUSES)
                     ->whereDate('created_at', $now->toDateString()) // Only today's orders
+                    ->pluck('id');
+
+                if ($orderIds->isEmpty()) {
+                    return;
+                }
+
+                // Bulk update via query builder — no stdClass risk
+                Order::whereIn('id', $orderIds)->update([
+                    'status' => 'overdue',
+                    'cancelled_at' => $now,
+                    'cancellation_reason' => 'Order expired: pharmacy closed before order could be fulfilled.',
+                ]);
+
+                // Reload as Eloquent models with relations for notifications
+                $orders = Order::whereIn('id', $orderIds)
+                    ->with('customer.user')
                     ->get();
 
                 foreach ($orders as $order) {
-                    $order->update([
-                        'status' => 'overdue',
-                        'cancelled_at' => $now,
-                        'cancellation_reason' => 'Order expired: pharmacy closed before order could be fulfilled.',
-                    ]);
-
                     // Notify the customer (runs on queue worker)
                     try {
                         if ($order->customer && $order->customer->user) {
