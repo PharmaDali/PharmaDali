@@ -7,6 +7,19 @@ import { useNotifications } from '@shared/hooks/useNotifications'
 
 const PAGE_SIZE = 10;
 
+const getParsedData = (data) => {
+  if (!data) return {};
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      console.error('Failed to parse notification data:', e);
+      return {};
+    }
+  }
+  return data;
+};
+
 const Notifications = () => {
   const router = useRouter();
   const { notifications, loading, refetch, markAsRead, markAllRead, timeAgo } = useNotifications();
@@ -35,7 +48,23 @@ const Notifications = () => {
       await markAsRead(item.id);
     }
 
-    if (item.type.includes('OrderCompleted')) {
+    const parsedData = getParsedData(item.data);
+    if (parsedData.order_id) {
+      router.push({
+        pathname: '/tabs/orders/ViewOrderDetails',
+        params: {
+          orderId: String(parsedData.order_id),
+          orderNumber: parsedData.order_number,
+        },
+      });
+      return;
+    }
+
+    if (
+      item.type.includes('OrderCompleted') ||
+      item.type.includes('OrderExpired') ||
+      item.type.includes('OrderRejected')
+    ) {
       router.push({
         pathname: '/tabs/orders/Orders',
         params: { tab: 'completed' },
@@ -52,6 +81,8 @@ const Notifications = () => {
     if (type.includes('OrderPlaced')) return 'Order Placed';
     if (type.includes('OrderStatus')) return 'Order Status Updated';
     if (type.includes('OrderCompleted')) return 'Order Completed';
+    if (type.includes('OrderExpired')) return 'Order Expired';
+    if (type.includes('OrderRejected')) return 'Order Rejected';
     return 'Notification';
   };
 
@@ -62,27 +93,30 @@ const Notifications = () => {
     if (hasMore) setPage(prev => prev + 1);
   }, [hasMore]);
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => handleNotificationPress(item)}>
-      <NotificationCard
-        isRead={!!item.read_at}
-        title={getNotificationTitle(item.type)}
-        description={
-          <Text className="text-xs leading-4" style={styles.text}>
-            {item.data.message}
-          </Text>
-        }
-        footer={
-          <View className="flex-row items-center mt-2">
-            <ClockIcon width={14} height={14} />
-            <Text className="text-xs ml-1 text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
-              {timeAgo(item.created_at)}
+  const renderItem = ({ item }) => {
+    const parsedData = getParsedData(item.data);
+    return (
+      <TouchableOpacity onPress={() => handleNotificationPress(item)}>
+        <NotificationCard
+          isRead={!!item.read_at}
+          title={getNotificationTitle(item.type)}
+          description={
+            <Text className="text-xs leading-4" style={styles.text}>
+              {parsedData.message}
             </Text>
-          </View>
-        }
-      />
-    </TouchableOpacity>
-  );
+          }
+          footer={
+            <View className="flex-row items-center mt-2">
+              <ClockIcon width={14} height={14} />
+              <Text className="text-xs ml-1 text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
+                {timeAgo(item.created_at)}
+              </Text>
+            </View>
+          }
+        />
+      </TouchableOpacity>
+    );
+  };
 
   if (loading && !refreshing) {
     return (
