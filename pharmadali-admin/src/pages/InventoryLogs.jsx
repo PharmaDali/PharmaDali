@@ -145,6 +145,7 @@ function InventoryLogs() {
               type="date"
               className="form-control inventory-input"
               value={dateRange}
+              max={`${new Date().getFullYear()}-12-31`}
               onChange={(event) => setDateRange(event.target.value)}
               aria-label="Date range filter"
             />
