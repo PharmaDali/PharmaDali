@@ -38,13 +38,69 @@ class BranchProductController extends Controller
     {
         Gate::authorize('create', Products::class);
 
-        $product = Products::create($request->validated());
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Product created successfully',
-            'data' => $product
-        ], 201);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($request) {
+            $validated = $request->validated();
+            
+            $productData = [
+                'product_type' => $validated['product_type'],
+                'product_name' => $validated['product_name'],
+                'generic_name' => $validated['generic_name'] ?? null,
+                'brand_name' => $validated['brand_name'] ?? null,
+                'description' => $validated['description'] ?? null,
+                'form' => $validated['form'] ?? null,
+                'strength' => $validated['strength'] ?? null,
+                'size' => $validated['size'] ?? null,
+                'is_prescribed' => filter_var($validated['is_prescribed'] ?? false, FILTER_VALIDATE_BOOLEAN),
+            ];
+            
+            $product = Products::create($productData);
+            
+            $user = $request->user();
+            $branchId = $user ? $user->branch_id : null;
+            
+            if ($branchId) {
+                $categoryId = $validated['category_id'] ?? null;
+                if (!$categoryId) {
+                    $categoryName = $validated['category_name'] ?? null;
+                    if (!$categoryName && $validated['product_type'] === 'medicine') {
+                        $categoryName = (!empty($validated['brand_name']) && strtolower($validated['brand_name']) !== strtolower($validated['generic_name'] ?? ''))
+                            ? 'Branded'
+                            : 'Generic';
+                    }
+                    
+                    if ($categoryName) {
+                        $category = \App\Models\Category::firstOrCreate([
+                            'category_name' => $categoryName
+                        ]);
+                        $categoryId = $category->id;
+                    }
+                }
+                
+                if (!$categoryId) {
+                    $category = \App\Models\Category::firstOrCreate([
+                        'category_name' => 'Unclassified'
+                    ]);
+                    $categoryId = $category->id;
+                }
+                
+                BranchProduct::create([
+                    'branch_id' => $branchId,
+                    'product_id' => $product->id,
+                    'category_id' => $categoryId,
+                    'stock' => $validated['stock'] ?? 0,
+                    'selling_price' => $validated['selling_price'] ?? 0.00,
+                    'is_discountable' => filter_var($validated['is_discountable'] ?? false, FILTER_VALIDATE_BOOLEAN),
+                    'is_available' => true,
+                    'expiry_date' => $validated['expiry_date'] ?? null,
+                ]);
+            }
+            
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Product created successfully',
+                'data' => $product
+            ], 201);
+        });
     }
 
     /**

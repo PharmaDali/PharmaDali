@@ -26,3 +26,8 @@ export const fetchInventoryLogs = async (filters = {}) => {
   const response = await apiRequest.get(`/branch/inventory/logs?${params.toString()}`);
   return response.data;
 };
+
+export const createInventoryProduct = async (productData) => {
+  const response = await apiRequest.post("/products", productData);
+  return response.data;
+};
