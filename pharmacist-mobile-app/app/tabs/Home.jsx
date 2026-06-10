@@ -1,29 +1,16 @@
-import { StyleSheet, Text, View, ScrollView, Image, TouchableOpacity, RefreshControl } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
-import { LineChart } from 'react-native-gifted-charts'
 import StatsIcon from '@assets/icons/pharmacist_home/stats_icon.svg'
-import ForecastIcon from '@assets/icons/pharmacist_home/forecast_icon.svg'
 import DemandAlertIcon from '@assets/icons/pharmacist_home/demand_alert_icon.svg'
-import BiogesicImg from '@assets/images/biogesic_img.png'
-import SolmuxImg from '@assets/images/solmux_img.png'
-import BetadineImg from '@assets/images/betadine_img.png'
-import BandaidImg from '@assets/images/bandaid_img.png'
-import RecitImg from '@assets/images/recit_dummy.png'
+
 import { colors } from '@src/shared/theme/colorPalette'
-import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils'
 import { getBranchOrders } from '@shared/services/orderToPharmacistService'
 import { getDemandForecasts } from '@shared/services/forecastService'
 
 const FALLBACK_TRENDING = [
-  { name: 'Biogesic', generic: 'Paracetamol', image: BiogesicImg },
-  { name: 'Solmux', generic: 'Carbocisteine', image: SolmuxImg },
+  { name: 'Biogesic', generic: 'Paracetamol' },
+  { name: 'Solmux', generic: 'Carbocisteine' },
 ]
-
-const DEMAND_IMAGE_MAP = [
-  { key: 'biogesic', image: BiogesicImg },
-  { key: 'solmux', image: SolmuxImg },
-]
-
 
 const stripProductName = (raw) => {
   let text = String(raw || '');
@@ -32,35 +19,6 @@ const stripProductName = (raw) => {
   text = text.replace(/\s+/g, ' ').trim();
   return text || 'Unknown item';
 }
-
-const getImageForDemandName = (name) => {
-  const normalized = String(name || '').toLowerCase();
-  const match = DEMAND_IMAGE_MAP.find((entry) => normalized.includes(entry.key));
-  if (match) {
-    return match.image;
-  }
-
-  return null;
-}
-
-const DemandFallbackImage = ({ name }) => {
-  const initial = String(name || '').trim().charAt(0).toUpperCase() || 'M';
-
-  return (
-    <View className="w-12 h-12 rounded items-center justify-center mr-3" style={styles.fallbackImage}>
-      <Text style={styles.fallbackImageText}>{initial}</Text>
-    </View>
-  );
-}
-
-const CHART_DATA = [
-  { value: 15, label: '9 AM' },
-  { value: 20, label: '12 PM' },
-  { value: 30, label: '3 PM' },
-  { value: 35, label: '6 PM' },
-  { value: 25, label: '6 PM' },
-  { value: 20, label: '' },
-]
 
 const QuickStats = ({ pendingCount, completedCount }) => (
   <View className="m-4 mb-2 bg-white rounded-lg p-4 shadow-lg">
@@ -78,65 +36,6 @@ const QuickStats = ({ pendingCount, completedCount }) => (
       <View className="flex-row bg-[#D7FAE4] p-4 rounded-lg items-center flex-1 min-w-[140px]">
         <Text style={styles.completedCountText}>{completedCount}</Text>
         <Text className="ms-2 flex-1" style={styles.statsLabelText}>Completed Orders</Text>
-      </View>
-    </View>
-  </View>
-)
-
-const DemandForecast = () => (
-  <View className="mx-4 my-2 bg-white rounded-lg p-4 shadow-lg">
-    <View className="flex-row items-center mb-1">
-      <ForecastIcon width={22} height={22} />
-      <Text className="ms-2" style={styles.titleText}>AI Demand Forecast</Text>
-    </View>
-    <Text style={styles.subtitleText}>{formatDateToMMDDYYYY('2026-02-06')} ▾</Text>
-
-    <View className="mt-3 mb-2">
-      <LineChart
-        data={CHART_DATA}
-        width={250}
-        height={120}
-        maxValue={40}
-        noOfSections={3}
-        spacing={44}
-        initialSpacing={10}
-        color="#48AAD9"
-        thickness={2}
-        dataPointsColor="#48AAD9"
-        dataPointsRadius={5}
-        yAxisTextStyle={styles.axisText}
-        xAxisLabelTextStyle={styles.axisText}
-        yAxisColor="transparent"
-        xAxisColor="#eee"
-        rulesColor="#eee"
-        curved
-        areaChart
-        startFillColor="rgba(72, 170, 217, 0.15)"
-        endFillColor="rgba(72, 170, 217, 0.01)"
-        startOpacity={0.3}
-        endOpacity={0}
-        highlightedRange={{
-          from: 25,
-          to: 40,
-          color: 'rgba(253, 216, 53, 0.2)',
-        }}
-      />
-    </View>
-
-    <View className="flex-row justify-between mt-2">
-      <View>
-        <View className="flex-row items-center mb-1">
-          <View className="w-3 h-3 rounded-full bg-[#FDD835] mr-2" />
-          <Text style={styles.legendText}>High Demand</Text>
-        </View>
-        <View className="flex-row items-center">
-          <View className="w-3 h-3 rounded-full bg-[#66BB6A] mr-2" />
-          <Text style={styles.legendText}>Low Demand</Text>
-        </View>
-      </View>
-      <View className="items-end">
-        <Text style={styles.statValueText}>125 orders</Text>
-        <Text style={styles.predictionText}>Today's Prediction: 185 orders</Text>
       </View>
     </View>
   </View>
@@ -162,27 +61,14 @@ const DemandAlert = ({ items, loading, error, onLoadMore, onLoadLess, canLoadMor
       <Text className="text-xs mt-3" style={styles.subtitleText}>No demand alerts available.</Text>
     )}
 
-    {!loading && !error && items.map((med, i) => {
-      const imageSource = typeof med.image === 'string'
-        ? { uri: med.image }
-        : med.image;
-
-      return (
+    {!loading && !error && items.map((med, i) => (
       <View key={`${med.name}-${i}`} className="flex-row items-center bg-[#F5F9FF] rounded-lg p-3 mt-2">
-        {imageSource ? (
-          <View className="w-12 h-12 bg-white rounded items-center justify-center mr-3">
-            <Image source={imageSource} className="w-12 h-12" resizeMode="contain" />
-          </View>
-        ) : (
-          <DemandFallbackImage name={med.name} />
-        )}
         <View>
           <Text style={styles.medNameText}>{med.name}</Text>
           <Text style={styles.medGenericText}>({med.generic})</Text>
         </View>
       </View>
-      );
-    })}
+    ))}
 
     {!loading && !error && (canLoadMore || canLoadLess) && (
       <View className="flex-row justify-center gap-3 mt-3">
@@ -263,7 +149,6 @@ const Home = () => {
         return {
           name,
           generic: `Forecast: ${Number.isFinite(forecastValue) ? forecastValue.toFixed(0) : 'N/A'}`,
-          image: getImageForDemandName(name),
         };
       });
 
@@ -308,7 +193,6 @@ const Home = () => {
       }
     >
       <QuickStats pendingCount={pendingCount} completedCount={completedCount} />
-      <DemandForecast />
       <DemandAlert
         items={alertVisibleItems}
         loading={alertLoading}
@@ -349,26 +233,6 @@ const styles = StyleSheet.create({
   statsLabelText: {
     flexShrink: 1,
   },
-  axisText: {
-    fontFamily: 'Poppins-Medium',
-    fontSize: 10,
-    color: '#aaa',
-  },
-  legendText: {
-    fontFamily: 'Poppins-Medium',
-    fontSize: 12,
-    color: colors.textColor,
-  },
-  statValueText: {
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: 14,
-    color: colors.textColor,
-  },
-  predictionText: {
-    fontFamily: 'Poppins-Medium',
-    fontSize: 11,
-    color: '#888',
-  },
   medNameText: {
     fontFamily: 'Poppins-SemiBold',
     fontSize: 14,
@@ -387,20 +251,9 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-SemiBold',
     color: colors.buttonColor,
   },
-  fallbackImage: {
-    backgroundColor: '#EAF4FB',
-    borderWidth: 1,
-    borderColor: '#CFE6F4',
-  },
-  fallbackImageText: {
-    fontFamily: 'Poppins-SemiBold',
-    color: colors.buttonColor,
-    fontSize: 16,
-  },
   errorText: {
     fontFamily: 'Poppins-Medium',
     fontSize: 12,
     color: '#CC3A3A',
   },
 })
-
