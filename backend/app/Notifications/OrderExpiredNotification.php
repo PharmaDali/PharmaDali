@@ -8,42 +8,30 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Services\Notification\FcmService;
 
-class OrderCompletedNotification extends Notification implements ShouldQueue
+class OrderExpiredNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     protected $order;
 
-    /**
-     * Create a new notification instance.
-     */
     public function __construct($order)
     {
         $this->order = $order;
     }
 
-    /**
-     * Get the notification's delivery channels.
-     *
-     * @return array<int, string>
-     */
     public function via(object $notifiable): array
     {
         return ['mail', 'database'];
     }
 
-    /**
-     * Get the mail representation of the notification.
-     */
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Order Completed - ' . $this->order->order_number)
+            ->subject('Order Expired - ' . $this->order->order_number)
             ->greeting('Hello ' . $notifiable->name . '!')
-            ->line('Great news! Your order #' . $this->order->order_number . ' has been marked as completed.')
-            ->line('We hope you are satisfied with our service.')
-            ->action('View Order Details', url('/orders/' . $this->order->id))
-            ->line('Thank you for choosing PharmaDali!');
+            ->line('Unfortunately, your order #' . $this->order->order_number . ' could not be fulfilled before the pharmacy closed.')
+            ->line('You may place a new order during operating hours.')
+            ->line('We apologize for the inconvenience.');
     }
 
     /**
@@ -57,11 +45,11 @@ class OrderCompletedNotification extends Notification implements ShouldQueue
         if ($notifiable->fcm_token) {
             app(FcmService::class)->sendPushNotification(
                 $notifiable,
-                'Order Completed',
-                'Your order #' . $this->order->order_number . ' has been marked as completed. Thank you!',
+                'Order Expired',
+                'Your order #' . $this->order->order_number . ' could not be fulfilled before the pharmacy closed.',
                 [
                     'order_id' => (string) $this->order->id,
-                    'type' => 'order_completed',
+                    'type' => 'order_expired',
                 ]
             );
         }
@@ -69,9 +57,9 @@ class OrderCompletedNotification extends Notification implements ShouldQueue
         return [
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
-            'status' => 'completed',
-            'message' => 'Your order #' . $this->order->order_number . ' has been completed. Thank you!',
-            'type' => 'order_completed',
+            'status' => 'overdue',
+            'message' => 'Your order #' . $this->order->order_number . ' expired because the pharmacy closed before it could be fulfilled.',
+            'type' => 'order_expired',
         ];
     }
 }

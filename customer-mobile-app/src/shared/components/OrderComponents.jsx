@@ -8,6 +8,7 @@ const statusColors = {
   reviewing: { bg: '#F3E8FF', border: '#C084FC', text: '#6B21A8' },
   preparing: { bg: '#D1ECF1', border: '#48AAD9', text: '#0C5460' },
   approved: { bg: '#D4EDDA', border: '#60B17E', text: '#60B17E' },
+  stand_by: { bg: '#FFF9C4', border: '#F59E0B', text: '#92400E' },
   ready_for_pickup: { bg: '#D4EDDA', border: '#60B17E', text: '#14532D' },
   rejected: { bg: '#333333', border: '#444444', text: '#FFFFFF' },
   cancelled: { bg: '#FEE2E2', border: '#EF4444', text: '#991B1B' },

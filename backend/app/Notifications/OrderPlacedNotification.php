@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Services\Notification\FcmService;
 
-class OrderPlacedNotification extends Notification
+class OrderPlacedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -29,20 +29,6 @@ class OrderPlacedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        // Send FCM if token exists
-        if ($notifiable->fcm_token) {
-            $fcmService = app(FcmService::class);
-            $fcmService->sendPushNotification(
-                $notifiable,
-                'Order Placed Successfully',
-                'Your order #' . $this->order->order_number . ' has been received.',
-                [
-                    'order_id' => (string)$this->order->id,
-                    'type' => 'order_placed'
-                ]
-            );
-        }
-
         return ['mail', 'database'];
     }
 
@@ -62,18 +48,31 @@ class OrderPlacedNotification extends Notification
     }
 
     /**
-     * Get the array representation of the notification.
+     * Get the array representation of the notification (database channel).
+     * FCM push is sent here so it runs on the queue worker, not the request thread.
      *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
+        if ($notifiable->fcm_token) {
+            app(FcmService::class)->sendPushNotification(
+                $notifiable,
+                'Order Placed Successfully',
+                'Your order #' . $this->order->order_number . ' has been received.',
+                [
+                    'order_id' => (string) $this->order->id,
+                    'type' => 'order_placed',
+                ]
+            );
+        }
+
         return [
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
             'total_amount' => $this->order->total_amount,
             'message' => 'Your order #' . $this->order->order_number . ' has been successfully placed.',
-            'type' => 'order_placed'
+            'type' => 'order_placed',
         ];
     }
 }

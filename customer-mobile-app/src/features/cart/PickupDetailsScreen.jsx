@@ -17,23 +17,9 @@ import {
   validateScheduledPickupTime,
 } from '@shared/validation/pickupValidation'
 import {
-  buildDynamicPickupDates,
   formatMinutesToAmPm,
   parseBranchOperatingMinutes,
 } from '@src/utils/pickupScheduleUtils'
-
-function RadioButton({ selected, onPress, label }) {
-  return (
-    <TouchableOpacity className="flex-row items-center py-1.5" onPress={onPress}>
-      <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${
-        selected ? 'border-[#48AAD9]' : 'border-gray-300'
-      }`}>
-        {selected && <View className="w-2.5 h-2.5 rounded-full bg-[#48AAD9]" />}
-      </View>
-      <Text className="text-xs ml-2" style={styles.fontMedium}>{label}</Text>
-    </TouchableOpacity>
-  )
-}
 
 const PickupDetailsScreen = () => {
   const router = useRouter()
@@ -47,21 +33,32 @@ const PickupDetailsScreen = () => {
     ? total
     : items.reduce((sum, item) => sum + (Number(item?.price || 0) * (Number(item?.quantity) || 0)), 0)
 
-  const [selectedDateIndex, setSelectedDateIndex] = useState(0)
+  // Always use today's date
+  const selectedDate = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return today
+  }, [])
+
   const [showTimePicker, setShowTimePicker] = useState(false)
   const [selectedTime, setSelectedTime] = useState(null)
   const [customerNote, setCustomerNote] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  const pickupDates = useMemo(() => buildDynamicPickupDates(2), [])
-  const selectedDate = pickupDates[selectedDateIndex]?.date || pickupDates[0]?.date || new Date()
-  const selectedDateLabel = pickupDates[selectedDateIndex]?.label || pickupDates[0]?.label || 'Selected day'
-
   const operatingMinutes = useMemo(() => parseBranchOperatingMinutes(selectedBranch), [selectedBranch])
   const openingMinutes = operatingMinutes.openingMinutes
   const closingMinutes = operatingMinutes.closingMinutes
   const hasValidOperatingWindow = Number.isFinite(openingMinutes) && Number.isFinite(closingMinutes) && openingMinutes < closingMinutes
+
+  // Check whether the pharmacy is open RIGHT NOW (not just whether a schedule is set).
+  const isPharmacyClosed = useMemo(() => {
+    if (!hasValidOperatingWindow) return false // let other validations handle this
+    const now = new Date()
+    const currentMinutes = now.getHours() * 60 + now.getMinutes()
+    return currentMinutes < openingMinutes || currentMinutes >= closingMinutes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasValidOperatingWindow, openingMinutes, closingMinutes])
 
   const { minimumDateTime, closingDateTime, hasWindowToday } = useMemo(
     () => buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes),
@@ -104,7 +101,7 @@ const PickupDetailsScreen = () => {
     closingDateTime,
   ])
 
-  const isConfirmPickupDisabled = submitting || Boolean(confirmPickupValidationError) || Boolean(submitError)
+  const isConfirmPickupDisabled = submitting || isPharmacyClosed || Boolean(confirmPickupValidationError) || Boolean(submitError)
 
   useEffect(() => {
     if (!hasValidOperatingWindow || !hasWindowToday) {
@@ -159,7 +156,7 @@ const PickupDetailsScreen = () => {
 
     try {
       const normalizedCustomerNote = customerNote.trim()
-      const selectedBranchLabel = selectedBranch?.name || selectedDateLabel
+      const selectedBranchLabel = selectedBranch?.name || ''
       const { orderId } = await submitCheckoutOrder({
         items,
         hasPrescription,
@@ -201,20 +198,7 @@ const PickupDetailsScreen = () => {
         </View>
 
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-4">
-          <Text className="text-sm mb-2" style={styles.fontBold}>Pickup Date</Text>
-          {pickupDates.map((pickupDate, index) => (
-            <RadioButton
-              key={pickupDate.key}
-              selected={selectedDateIndex === index}
-              onPress={() => {
-                setSubmitError('')
-                setSelectedDateIndex(index)
-              }}
-              label={pickupDate.label}
-            />
-          ))}
-
-          <Text className="text-sm mt-4 mb-2" style={styles.fontBold}>Pickup Time</Text>
+          <Text className="text-sm mb-2" style={styles.fontBold}>Pickup Time</Text>
           <TouchableOpacity
             className={`rounded-xl border px-3 py-3 ${hasValidOperatingWindow && hasWindowToday ? 'border-[#48AAD9] bg-[#F8FCFF]' : 'border-gray-300 bg-gray-100'}`}
             disabled={!hasValidOperatingWindow || !hasWindowToday}
@@ -231,7 +215,7 @@ const PickupDetailsScreen = () => {
               {hasValidOperatingWindow && hasWindowToday
                 ? `Available between ${minimumDateTime.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true })} and ${formatMinutesToAmPm(closingMinutes)}`
                 : hasValidOperatingWindow
-                  ? 'No pickup slots left today. Please choose another date.'
+                  ? 'No pickup slots available today.'
                   : 'Operating hours unavailable for this branch'}
             </Text>
             <Text className="text-[10px] text-gray-400 mt-0.5" style={styles.fontMedium}>
@@ -242,7 +226,7 @@ const PickupDetailsScreen = () => {
           {!!selectedTime && (
             <View className="mt-2 rounded-lg bg-[#EEF7FD] border border-[#D4EAF8] px-3 py-2">
               <Text className="text-[10px]" style={styles.fontMedium}>
-                Pickup schedule: <Text style={styles.fontSemiBold}>{selectedDateLabel}, {selectedTimeLabel}</Text>
+                Pickup schedule: <Text style={styles.fontSemiBold}>Today, {selectedTimeLabel}</Text>
               </Text>
             </View>
           )}
@@ -282,30 +266,38 @@ const PickupDetailsScreen = () => {
         </View>
 
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-4">
-          <Text className="text-sm mb-2" style={styles.fontBold}>Payment Method</Text>
-          <View className="flex-row items-center">
-            <View className="w-5 h-5 rounded-full border-2 border-[#48AAD9] items-center justify-center">
-              <View className="w-2.5 h-2.5 rounded-full bg-[#48AAD9]" />
-            </View>
-            <Text className="text-xs ml-2" style={styles.fontMedium}>Pay at Pharmacy (Cash/GCash)</Text>
-          </View>
-
-          <View className="border-b border-gray-200 my-3" />
-
-          <View className="flex-row justify-between items-center">
+          <View className="flex-row justify-between items-center mb-3">
             <Text className="text-xs" style={styles.fontBold}>Total Items: {totalItems}</Text>
             <Text className="text-xs">
               <Text style={styles.fontBold}>Total: </Text>
               <Text style={styles.priceText}>PHP {effectiveTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</Text>
             </Text>
           </View>
+
         </View>
 
-        <View className="flex-row items-center bg-[#E8F4FD] rounded-xl mx-4 mt-3 mb-4 p-3 border border-[#B8DEF0]">
-          <RedInfoIcon width={14} height={14} />
-          <Text className="text-[10px] text-gray-500 ml-2" style={styles.fontMedium}>
-            Final amount may change after pharmacist review.
-          </Text>
+        {isPharmacyClosed && (
+          <View className="flex-row items-start bg-[#FFF7ED] rounded-xl mx-4 mt-3 mb-1 p-3 border border-[#FCD34D]">
+            <RedInfoIcon width={14} height={14} />
+            <View className="flex-1 ml-2">
+              <Text className="text-xs" style={styles.closedWarningTitle}>Pharmacy is currently closed</Text>
+              <Text className="text-[10px] mt-0.5" style={styles.closedWarningBody}>
+                Orders can only be placed during operating hours ({formatMinutesToAmPm(openingMinutes)} – {formatMinutesToAmPm(closingMinutes)}). Please come back during open hours.
+              </Text>
+            </View>
+          </View>
+        )}
+
+        <View className="mx-4 mt-3 mb-4 rounded-xl bg-[#EEF7FD] border border-[#C8E3F5] px-4 py-3">
+          <Text className="text-[10px] mb-1" style={styles.noteHeading}>Things to know</Text>
+          <View className="flex-row items-start mt-1">
+            <Text style={styles.noteBullet}>•</Text>
+            <Text className="text-[10px] ml-1.5 flex-1" style={styles.noteText}>Payment is collected at the pharmacy upon pickup — cash or GCash accepted.</Text>
+          </View>
+          <View className="flex-row items-start mt-1">
+            <Text style={styles.noteBullet}>•</Text>
+            <Text className="text-[10px] ml-1.5 flex-1" style={styles.noteText}>Final amount may change after pharmacist review.</Text>
+          </View>
         </View>
       </ScrollView>
 
@@ -364,5 +356,28 @@ const styles = StyleSheet.create({
     minHeight: 90,
     color: colors.textColor,
   },
+  closedWarningTitle: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#92400E',
+  },
+  closedWarningBody: {
+    fontFamily: 'Poppins-Medium',
+    color: '#78350F',
+  },
+  noteHeading: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 11,
+    color: colors.buttonColor,
+  },
+  noteBullet: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 10,
+    color: '#5A8FAA',
+    lineHeight: 16,
+  },
+  noteText: {
+    fontFamily: 'Poppins-Medium',
+    color: '#4A7A94',
+    lineHeight: 16,
+  },
 })
-

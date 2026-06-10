@@ -8,7 +8,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Services\Notification\FcmService;
 
-class OrderStatusNotification extends Notification
+class OrderStatusNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -29,20 +29,6 @@ class OrderStatusNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        // Send FCM if token exists
-        if ($notifiable->fcm_token) {
-            $fcmService = app(FcmService::class);
-            $fcmService->sendPushNotification(
-                $notifiable,
-                'Order Status Updated',
-                'Your order #' . $this->order->order_number . ' is now ' . str_replace('_', ' ', $this->order->status) . '.',
-                [
-                    'order_id' => (string)$this->order->id,
-                    'type' => 'order_status_change'
-                ]
-            );
-        }
-
         return ['mail', 'database'];
     }
 
@@ -52,7 +38,7 @@ class OrderStatusNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $status = str_replace('_', ' ', $this->order->status);
-        
+
         return (new MailMessage)
             ->subject('Order Status Updated - ' . $this->order->order_number)
             ->greeting('Hello ' . $notifiable->name . '!')
@@ -62,18 +48,31 @@ class OrderStatusNotification extends Notification
     }
 
     /**
-     * Get the array representation of the notification.
+     * Get the array representation of the notification (database channel).
+     * FCM push is sent here so it runs on the queue worker, not the request thread.
      *
      * @return array<string, mixed>
      */
     public function toArray(object $notifiable): array
     {
+        if ($notifiable->fcm_token) {
+            app(FcmService::class)->sendPushNotification(
+                $notifiable,
+                'Order Status Updated',
+                'Your order #' . $this->order->order_number . ' is now ' . str_replace('_', ' ', $this->order->status) . '.',
+                [
+                    'order_id' => (string) $this->order->id,
+                    'type' => 'order_status_change',
+                ]
+            );
+        }
+
         return [
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
             'status' => $this->order->status,
             'message' => 'Your order #' . $this->order->order_number . ' status is now ' . str_replace('_', ' ', $this->order->status) . '.',
-            'type' => 'order_status_change'
+            'type' => 'order_status_change',
         ];
     }
 }

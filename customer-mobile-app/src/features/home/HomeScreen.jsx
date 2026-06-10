@@ -90,7 +90,7 @@ export default function HomeScreen() {
       <ScrollView
         className="flex-1 bg-white"
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 96 }}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) }}
       >
       <View className="flex-row items-center justify-between px-4 pt-6">
         <Text className="text-3xl text-start" style={styles.greetingMedium}>
@@ -138,13 +138,13 @@ export default function HomeScreen() {
         />
         
       </View>
-      <View className="mt-4 mb-4">
+      <View className="mt-4">
         <View className="flex-row items-center justify-between px-4 py-2">
-          <Text className="text-2xl text-gray-600 px-2 py-2 mt-6" style={{ fontFamily: 'Poppins-Bold' }}>
+          <Text className="text-2xl text-gray-600 px-2 py-1" style={{ fontFamily: 'Poppins-Bold' }}>
             Branch Products
           </Text>
           <Text
-            className="text-md text-gray-600 px-2 py-2 mt-6"
+            className="text-md text-gray-600 px-2 py-1"
             style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}
             onPress={() => route.push('/tabs/shop/Shop')}
           >
@@ -156,7 +156,8 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           data={branchProducts}
           keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8 }}
+          style={{ height: 240 }}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}
           renderItem={({ item }) => {
             const branchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null;
 
