@@ -1,11 +1,12 @@
 import BetadineImg from '@assets/images/betadine_img.png'
 
-const COMPLETED_STATUSES = new Set(['completed', 'cancelled'])
+const COMPLETED_STATUSES = new Set(['completed', 'cancelled', 'overdue'])
 
 const STATUS_LABELS = {
   pending: 'Pending',
   reviewing: 'Reviewing',
   preparing: 'Preparing',
+  stand_by: 'On Hold',
   ready_for_pickup: 'Ready for Pickup',
   completed: 'Completed',
   overdue: 'Overdue',
