@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/css/inventory.css";
 import Modal from "../components/Modal";
-import { fetchInventoryMetrics, fetchInventoryLogs } from "../services/inventoryService";
+import { fetchInventoryLogs } from "../services/inventoryService";
 
 const ACTION_FILTERS = ["All", "Stock In", "Stock Out"];
 
@@ -14,38 +14,22 @@ function InventoryLogs() {
 
   const [selectedLog, setSelectedLog] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalData, setModalData] = useState({
-    productName: "",
-    barcode: "",
-    search: "",
-    expiryDate: "",
-    quantityReceived: "",
-    batches: [{ batchNumber: "", expiryDate: "", quantity: "" }],
-  });
 
   const [logs, setLogs] = useState([]);
-  const [metrics, setMetrics] = useState({
-    total_products: 0,
-    low_stocks: 0,
-    expiring: 0,
-    expired: 0,
-  });
   const [loading, setLoading] = useState(true);
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
 
   const loadData = useCallback(async () => {
+    setCurrentPage(1);
     setLoading(true);
     try {
-      const activeAction = actionFilter;
-      const [logsResult, metricsResult] = await Promise.all([
-        fetchInventoryLogs({
-          search: query,
-          action: activeAction !== "All" ? activeAction : undefined,
-          date_range: dateRange,
-        }),
-        fetchInventoryMetrics(),
-      ]);
+      const logsResult = await fetchInventoryLogs({
+        search: query,
+        action: actionFilter !== "All" ? actionFilter : undefined,
+        date_range: dateRange,
+      });
       setLogs(logsResult);
-      setMetrics(metricsResult);
     } catch (err) {
       console.error("Failed to load inventory logs", err);
     } finally {
@@ -63,57 +47,34 @@ function InventoryLogs() {
 
   const filteredLogs = logs;
 
-  const totalProducts = metrics.total_products || 0;
-  const lowStockCount = metrics.low_stocks || 0;
-  const expiringSoonCount = metrics.expiring || 0;
-  const expiredCount = metrics.expired || 0;
+  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / itemsPerPage));
+
+  const paginatedLogs = useMemo(
+    () => filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+    [filteredLogs, currentPage],
+  );
+
+  const visiblePageNumbers = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+    const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+    const endPage = Math.min(totalPages, startPage + 4);
+    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
+  }, [currentPage, totalPages]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+  };
 
   const handleRowClick = (log) => {
     setSelectedLog(log);
-    setModalData({
-      productName: log.productName,
-      barcode: "",
-      search: "",
-      expiryDate: "",
-      quantityReceived: "",
-      batches: [{ batchNumber: "", expiryDate: "", quantity: "" }],
-    });
     setShowModal(true);
   };
 
   const handleModalClose = () => {
     setSelectedLog(null);
     setShowModal(false);
-  };
-
-  const handleAddBatch = () => {
-    setModalData((prev) => ({
-      ...prev,
-      batches: [...prev.batches, { batchNumber: "", expiryDate: "", quantity: "" }],
-    }));
-  };
-
-  const handleRemoveBatch = (index) => {
-    setModalData((prev) => ({
-      ...prev,
-      batches: prev.batches.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleBatchChange = (index, field, value) => {
-    setModalData((prev) => ({
-      ...prev,
-      batches: prev.batches.map((batch, i) =>
-        i === index ? { ...batch, [field]: value } : batch,
-      ),
-    }));
-  };
-
-  const handleModalFieldChange = (field, value) => {
-    setModalData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
   };
 
   return (
@@ -130,28 +91,7 @@ function InventoryLogs() {
         <span className="breadcrumb-current">Inventory logs</span>
       </div>
 
-      <header className="admin-page-header">
-        <h4 className="fw-bold mb-1 admin-page-title">Inventory Logs</h4>
-      </header>
 
-      <div className="inventory-metrics">
-        <article className="inventory-metric-card inventory-metric-total">
-          <p className="inventory-metric-label mb-1">Total Products</p>
-          <p className="inventory-metric-value mb-0">{totalProducts}</p>
-        </article>
-        <article className="inventory-metric-card inventory-metric-low">
-          <p className="inventory-metric-label mb-1">Low Stocks</p>
-          <p className="inventory-metric-value mb-0">{lowStockCount}</p>
-        </article>
-        <article className="inventory-metric-card inventory-metric-expiring">
-          <p className="inventory-metric-label mb-1">Expiring</p>
-          <p className="inventory-metric-value mb-0">{expiringSoonCount}</p>
-        </article>
-        <article className="inventory-metric-card inventory-metric-expired">
-          <p className="inventory-metric-label mb-1">Expired</p>
-          <p className="inventory-metric-value mb-0">{expiredCount}</p>
-        </article>
-      </div>
 
       <div className="inventory-filter-bar inventory-logs-filter-bar">
         <div className="inventory-field inventory-search-field">
@@ -232,23 +172,7 @@ function InventoryLogs() {
 
       <article className="inventory-table-card">
         <div className="inventory-table-actions">
-          <div className="inventory-action-group">
-            <button
-              type="button"
-              className="btn inventory-action-btn inventory-action-primary"
-              onClick={() => handleActionChange("Stock In")}
-            >
-              Stock In
-            </button>
-            <button
-              type="button"
-              className="btn inventory-action-btn inventory-action-primary"
-              onClick={() => handleActionChange("Stock Out")}
-            >
-              Stock Out
-            </button>
-          </div>
-
+          <h6 className="inventory-side-title mb-0">Inventory Logs</h6>
         </div>
 
         <div className="inventory-table-scroll">
@@ -256,16 +180,17 @@ function InventoryLogs() {
             <thead>
               <tr>
                 <th>Product Name</th>
-                <th>Action</th>
+                <th>Batch Number</th>
                 <th>Quantity</th>
-                <th>Date & Time</th>
+                <th>Date &amp; Time</th>
+                <th>Status</th>
                 <th>User</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <div className="inventory-empty-state">
                       <div className="spinner-border text-primary mb-2" role="status">
                         <span className="visually-hidden">Loading...</span>
@@ -276,7 +201,7 @@ function InventoryLogs() {
                 </tr>
               ) : filteredLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={5}>
+                  <td colSpan={6}>
                     <div className="inventory-empty-state">
                       <i className="fa-regular fa-folder-open mb-2" aria-hidden="true" />
                       <p className="mb-0">No inventory logs match your filter.</p>
@@ -284,220 +209,207 @@ function InventoryLogs() {
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map((log) => (
-                  <tr
-                    key={log.id}
-                    onClick={() => handleRowClick(log)}
-                    style={{ cursor: "pointer" }}
-                    className={selectedLog?.id === log.id ? "inventory-row-selected" : ""}
-                  >
-                    <td>
-                      <p className="inventory-item-name mb-0">{log.productName}</p>
-                    </td>
-                    <td>
-                      <span
-                        className={`inventory-log-action-chip inventory-log-action-${log.action
-                          .toLowerCase()
-                          .replace(/\s+/g, "-")}`}
-                      >
-                        {log.action}
-                      </span>
-                    </td>
-                    <td>{log.action === "Stock IN" ? `+ ${log.quantity}` : `- ${log.quantity}`}</td>
-                    <td>{log.dateTime}</td>
-                    <td>{log.user}</td>
-                  </tr>
-                ))
+                paginatedLogs.map((log) => {
+                  const isStockIn = log.action?.toLowerCase().replace(/\s+/g, "") === "stockin";
+                  return (
+                    <tr
+                      key={log.id}
+                      onClick={() => handleRowClick(log)}
+                      className={selectedLog?.id === log.id ? "inventory-row-selected" : ""}
+                    >
+                      <td>
+                        <p className="inventory-item-name mb-0">{log.productName}</p>
+                      </td>
+                      <td>{log.batchNumber ?? "—"}</td>
+                      <td>
+                        <span className={isStockIn ? "inventory-qty-in" : "inventory-qty-out"}>
+                          {isStockIn ? `+ ${log.quantity}` : `− ${log.quantity}`}
+                        </span>
+                      </td>
+                      <td>{log.dateTime}</td>
+                      <td>
+                        <span
+                          className={`inventory-log-action-chip inventory-log-action-${log.action
+                            .toLowerCase()
+                            .replace(/\s+/g, "-")}`}
+                        >
+                          {log.action}
+                        </span>
+                      </td>
+                      <td>{log.user}</td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
+
+        {!loading && filteredLogs.length > 0 && (
+          <div className="inventory-pagination-bar">
+            <span className="inventory-pagination-info">
+              Showing {(currentPage - 1) * itemsPerPage + 1}–
+              {Math.min(currentPage * itemsPerPage, filteredLogs.length)} of {filteredLogs.length}
+            </span>
+
+            <nav aria-label="Inventory logs pagination">
+              <ul className="inventory-pagination">
+                <li className={`inventory-page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                  <button
+                    type="button"
+                    className="inventory-page-link inventory-page-nav"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Previous page"
+                  >
+                    <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+                  </button>
+                </li>
+
+                {visiblePageNumbers[0] > 1 && (
+                  <>
+                    <li className="inventory-page-item">
+                      <button
+                        type="button"
+                        className="inventory-page-link"
+                        onClick={() => handlePageChange(1)}
+                      >
+                        1
+                      </button>
+                    </li>
+                    {visiblePageNumbers[0] > 2 && (
+                      <li className="inventory-page-item inventory-page-ellipsis">
+                        <span>…</span>
+                      </li>
+                    )}
+                  </>
+                )}
+
+                {visiblePageNumbers.map((pageNumber) => (
+                  <li
+                    key={pageNumber}
+                    className={`inventory-page-item ${currentPage === pageNumber ? "active" : ""}`}
+                  >
+                    <button
+                      type="button"
+                      className="inventory-page-link"
+                      onClick={() => handlePageChange(pageNumber)}
+                    >
+                      {pageNumber}
+                    </button>
+                  </li>
+                ))}
+
+                {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages && (
+                  <>
+                    {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages - 1 && (
+                      <li className="inventory-page-item inventory-page-ellipsis">
+                        <span>…</span>
+                      </li>
+                    )}
+                    <li className="inventory-page-item">
+                      <button
+                        type="button"
+                        className="inventory-page-link"
+                        onClick={() => handlePageChange(totalPages)}
+                      >
+                        {totalPages}
+                      </button>
+                    </li>
+                  </>
+                )}
+
+                <li className={`inventory-page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                  <button
+                    type="button"
+                    className="inventory-page-link inventory-page-nav"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                  >
+                    <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        )}
       </article>
 
       {selectedLog && (
         <Modal
           isOpen={showModal}
           onClose={handleModalClose}
-          title={selectedLog.action === "Stock IN" ? "Stock In" : "Stock Out"}
+          title={selectedLog.action?.toLowerCase().replace(/\s+/g, "") === "stockin" ? "Stock In" : "Stock Out"}
           size="md"
           className="inventory-modal"
+          showCloseButton={true}
         >
-          {selectedLog.action === "Stock IN" ? (
-            <div className="inventory-modal-body-content">
-              <p className="inventory-modal-subtitle mb-3">
-                Record newly received medicine stocks into the inventory system.
-              </p>
+          <div className="inventory-modal-body-content">
+            <p className="inventory-modal-subtitle">
+              {selectedLog.action?.toLowerCase().replace(/\s+/g, "") === "stockin"
+                ? "Transaction record for incoming stock."
+                : "Transaction record for outgoing stock."}
+            </p>
 
-              <div className="inventory-modal-search mb-4">
-                <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
-                <input
-                  type="text"
-                  className="form-control inventory-modal-search-input"
-                  placeholder="Search by generic name or product name"
-                  value={modalData.search}
-                  onChange={(e) => handleModalFieldChange("search", e.target.value)}
-                />
-              </div>
-
-              <div className="inventory-modal-grid mb-4">
+            <div className="inventory-modal-section">
+              <h6 className="inventory-modal-section-title">Basic Information</h6>
+              <div className="inventory-modal-grid inventory-modal-grid-3">
                 <div>
-                  <label className="inventory-modal-label">Product Name</label>
-                  <input
-                    type="text"
-                    className="form-control inventory-modal-input"
-                    value={modalData.productName}
-                    disabled
-                  />
+                  <p className="inventory-modal-label">Product Name</p>
+                  <p className="inventory-log-detail-value">{selectedLog.productName ?? "—"}</p>
                 </div>
                 <div>
-                  <label className="inventory-modal-label">Barcode</label>
-                  <input
-                    type="text"
-                    className="form-control inventory-modal-input"
-                    placeholder="899999123123"
-                    value={modalData.barcode}
-                    onChange={(e) => handleModalFieldChange("barcode", e.target.value)}
-                  />
+                  <p className="inventory-modal-label">Batch Number</p>
+                  <p className="inventory-log-detail-value">{selectedLog.batchNumber ?? "—"}</p>
                 </div>
-              </div>
-
-              <div className="inventory-modal-section">
-                <h6 className="inventory-modal-section-title">Batches</h6>
-
-                {modalData.batches.map((batch, index) => (
-                  <div key={index} className="inventory-batch-card">
-                    <div className="inventory-batch-header">
-                      <span>Batch #{index + 1}</span>
-                      {modalData.batches.length > 1 && (
-                        <button
-                          type="button"
-                          className="btn inventory-batch-delete"
-                          onClick={() => handleRemoveBatch(index)}
-                        >
-                          <i className="fa-solid fa-trash" aria-hidden="true" />
-                        </button>
-                      )}
-                    </div>
-                    <div className="inventory-batch-grid">
-                      <div>
-                        <label className="inventory-modal-label">Batch number</label>
-                        <input
-                          type="text"
-                          className="form-control inventory-modal-input"
-                          placeholder="Enter batch number"
-                          value={batch.batchNumber}
-                          onChange={(e) =>
-                            handleBatchChange(index, "batchNumber", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="inventory-modal-label">Expiry Date</label>
-                        <input
-                          type="text"
-                          className="form-control inventory-modal-input"
-                          placeholder="MM/DD/YYYY"
-                          value={batch.expiryDate}
-                          onChange={(e) =>
-                            handleBatchChange(index, "expiryDate", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="inventory-modal-label">Quantity</label>
-                        <input
-                          type="text"
-                          className="form-control inventory-modal-input"
-                          placeholder="Enter quantity"
-                          value={batch.quantity}
-                          onChange={(e) => handleBatchChange(index, "quantity", e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                <button
-                  type="button"
-                  className="btn inventory-add-batch-btn"
-                  onClick={handleAddBatch}
-                >
-                  + Add new batch
-                </button>
-              </div>
-
-              <div className="inventory-modal-footer">
-                <button type="button" className="btn inventory-modal-btn-outline" onClick={handleModalClose}>
-                  Cancel
-                </button>
-                <button type="button" className="btn inventory-modal-btn-primary">
-                  Record stock in
-                </button>
+                <div>
+                  <p className="inventory-modal-label">Expiry Date</p>
+                  <p className="inventory-log-detail-value">{selectedLog.expiryDate ?? "—"}</p>
+                </div>
               </div>
             </div>
-          ) : (
-            <div className="inventory-modal-body-content">
-              <p className="inventory-modal-subtitle mb-3">
-                Remove or pull out products from the inventory system.
-              </p>
 
-              <div className="inventory-modal-search mb-4">
-                <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
-                <input
-                  type="text"
-                  className="form-control inventory-modal-search-input"
-                  placeholder="Search by generic name or product name"
-                  value={modalData.search}
-                  onChange={(e) => handleModalFieldChange("search", e.target.value)}
-                />
-              </div>
-
-              <div className="inventory-modal-grid mb-4">
+            <div className="inventory-modal-section">
+              <h6 className="inventory-modal-section-title">Transaction Details</h6>
+              <div className="inventory-modal-grid inventory-modal-grid-3">
                 <div>
-                  <label className="inventory-modal-label">Barcode</label>
-                  <input
-                    type="text"
-                    className="form-control inventory-modal-input"
-                    placeholder="Tuseran"
-                    value={modalData.barcode}
-                    onChange={(e) => handleModalFieldChange("barcode", e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="inventory-modal-grid mb-4">
-                <div>
-                  <label className="inventory-modal-label">Expiry Date</label>
-                  <input
-                    type="text"
-                    className="form-control inventory-modal-input"
-                    placeholder="Expiry Date"
-                    value={modalData.expiryDate}
-                    onChange={(e) => handleModalFieldChange("expiryDate", e.target.value)}
-                  />
+                  <p className="inventory-modal-label">Quantity</p>
+                  <p className="inventory-log-detail-value">{selectedLog.quantity ?? "—"}</p>
                 </div>
                 <div>
-                  <label className="inventory-modal-label">Quantity Received</label>
-                  <input
-                    type="text"
-                    className="form-control inventory-modal-input"
-                    placeholder="24"
-                    value={modalData.quantityReceived}
-                    onChange={(e) => handleModalFieldChange("quantityReceived", e.target.value)}
-                  />
+                  <p className="inventory-modal-label">Unit Cost</p>
+                  <p className="inventory-log-detail-value">{selectedLog.unitCost ?? "—"}</p>
                 </div>
-              </div>
-
-              <div className="inventory-modal-footer">
-                <button type="button" className="btn inventory-modal-btn-outline" onClick={handleModalClose}>
-                  Cancel
-                </button>
-                <button type="button" className="btn inventory-modal-btn-primary">
-                  Commit stock out
-                </button>
+                <div>
+                  <p className="inventory-modal-label">Selling Price</p>
+                  <p className="inventory-log-detail-value">{selectedLog.sellingPrice ?? "—"}</p>
+                </div>
               </div>
             </div>
-          )}
+
+            <div className="inventory-modal-section">
+              <h6 className="inventory-modal-section-title">
+                {selectedLog.action?.toLowerCase().replace(/\s+/g, "") === "stockin"
+                  ? "System Information"
+                  : "Audit/System Information"}
+              </h6>
+              <div className="inventory-modal-grid inventory-modal-grid-3">
+                <div>
+                  <p className="inventory-modal-label">Barcode</p>
+                  <p className="inventory-log-detail-value">{selectedLog.barcode ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="inventory-modal-label">Date &amp; Time</p>
+                  <p className="inventory-log-detail-value">{selectedLog.dateTime ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="inventory-modal-label">Recorded By</p>
+                  <p className="inventory-log-detail-value">{selectedLog.user ?? "—"}</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </Modal>
       )}
     </section>

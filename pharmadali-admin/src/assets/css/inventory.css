@@ -88,6 +88,20 @@
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
 }
 
+.inventory-logs-filter-bar {
+  grid-template-columns: minmax(200px, 2fr) repeat(3, minmax(140px, 1fr)) auto;
+}
+
+.inventory-qty-in {
+  color: #17663a;
+  font-weight: 600;
+}
+
+.inventory-qty-out {
+  color: #8a1f2b;
+  font-weight: 600;
+}
+
 .inventory-field-label {
   display: block;
   font-size: 12px;
@@ -593,6 +607,17 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.05rem 1.7rem;
+}
+
+.inventory-modal-grid-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.inventory-log-detail-value {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
 }
 
 select.inventory-modal-input {
