@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import calendarIcon from "../assets/icons/sale-and-reports/calendar.svg";
+
 import pdfIcon from "../assets/icons/sale-and-reports/pdf-icon.svg";
 import printIcon from "../assets/icons/sale-and-reports/print.svg";
 
@@ -156,13 +156,21 @@ function SalesReports() {
             <h3 className="report-title">Sales Report</h3>
             <div className="report-tools">
               <div className="report-filters">
-                <div className="report-input">
-                  <input type="text" placeholder="Start Date - Time" />
-                  <img src={calendarIcon} alt="calendar" className="report-input-icon" />
+                <div className="report-input-wrap">
+                  <input
+                    type="date"
+                    className="report-input"
+                    placeholder="Start Date"
+                    max={`${new Date().getFullYear()}-12-31`}
+                  />
                 </div>
-                <div className="report-input">
-                  <input type="text" placeholder="End Date - Time" />
-                  <img src={calendarIcon} alt="calendar" className="report-input-icon" />
+                <div className="report-input-wrap">
+                  <input
+                    type="date"
+                    className="report-input"
+                    placeholder="End Date"
+                    max={`${new Date().getFullYear()}-12-31`}
+                  />
                 </div>
               </div>
               <div className="report-actions">

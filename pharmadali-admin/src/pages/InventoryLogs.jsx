@@ -139,12 +139,13 @@ function InventoryLogs() {
             Date Range
           </label>
           <div className="inventory-input-wrap">
-            <i className="fa-regular fa-calendar" aria-hidden="true" />
             <input
               id="logs-date"
               type="date"
               className="form-control inventory-input"
+              style={{ paddingLeft: "14px" }}
               value={dateRange}
+              max={`${new Date().getFullYear()}-12-31`}
               onChange={(event) => setDateRange(event.target.value)}
               aria-label="Date range filter"
             />

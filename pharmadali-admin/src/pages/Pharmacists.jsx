@@ -353,6 +353,7 @@ function Pharmacists() {
 										className="form-control pharmacists-form-input"
 										name="birthdate"
 										value={formData.birthdate}
+										max={`${new Date().getFullYear()}-12-31`}
 										onChange={handleInputChange}
 										required
 									/>
