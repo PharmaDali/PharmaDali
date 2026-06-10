@@ -6,6 +6,7 @@ import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { getBranchOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
 import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
+import { colors } from '@shared/theme/colorPalette';
 
 const orderTabs = ['For Review', 'Preparing', 'Issues'];
 
