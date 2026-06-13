@@ -37,6 +37,8 @@ class CreateBranchProductRequest extends FormRequest
             'is_discountable' => 'nullable|boolean',
             'expiry_date'  => 'nullable|date',
             'is_prescribed'=> 'nullable|boolean',
+            'batch_number' => 'nullable|string|max:100',
+            'manufactured_date' => 'nullable|date',
         ];
     }
 }
