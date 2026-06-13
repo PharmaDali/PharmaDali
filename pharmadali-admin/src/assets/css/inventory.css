@@ -1115,19 +1115,20 @@ select.inventory-modal-input {
 }
 
 .add-product-btn-cancel {
-  background-color: #96d2ee;
-  border: none;
-  color: #2f80c7;
+  background-color: transparent;
+  border: 1px solid #d1d5db;
+  color: #6b7280;
   font-weight: 600;
   padding: 0.6rem 1.8rem;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: opacity 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .add-product-btn-cancel:hover {
-  opacity: 0.9;
+  background-color: #f3f4f6;
+  color: #4b5563;
 }
 
 .add-product-btn-add {
@@ -1386,4 +1387,18 @@ select.inventory-modal-input {
 
 .inventory-batch-cancel-btn:hover {
   background: #f3f4f6;
+}
+
+/* Custom date/month input styling to overlay invisible native picker indicator over our brand blue icon */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="month"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 40px;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
 }
