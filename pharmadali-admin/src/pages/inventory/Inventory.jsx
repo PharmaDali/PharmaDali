@@ -51,6 +51,7 @@ export function Inventory() {
     setIsModalEditing,
     modalDraft,
     showConfirmSave,
+    productUpdating,
     batches,
     batchLoading,
     batchEditStocks,
@@ -208,10 +209,24 @@ export function Inventory() {
             Changes will be reflected in the inventory after you save.
           </p>
           <div className="pos-confirm-actions">
-            <button type="button" className="pos-confirm-primary" onClick={handleConfirmSave}>
-              Continue
+            <button
+              type="button"
+              className="pos-confirm-primary d-flex align-items-center justify-content-center gap-2"
+              onClick={handleConfirmSave}
+              disabled={productUpdating}
+              style={{ minWidth: "120px" }}
+            >
+              {productUpdating && (
+                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+              )}
+              {productUpdating ? "Saving..." : "Continue"}
             </button>
-            <button type="button" className="pos-confirm-secondary" onClick={handleCancelSave}>
+            <button
+              type="button"
+              className="pos-confirm-secondary"
+              onClick={handleCancelSave}
+              disabled={productUpdating}
+            >
               Cancel
             </button>
           </div>
