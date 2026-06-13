@@ -4,6 +4,7 @@ import {
   fetchInventoryMetrics,
   fetchInventoryProducts,
   createInventoryProduct,
+  updateInventoryProduct,
   addProductBatch,
   updateProductBatch,
   stockOutProduct,
@@ -349,39 +350,62 @@ export function useInventory() {
   };
 
   // Saving product draft changes
-  const handleSaveChanges = () => {
+  const handleConfirmSave = async () => {
     if (!selectedItem || !modalDraft) {
+      setShowConfirmSave(false);
       return;
     }
 
-    const updatedItem = {
-      ...selectedItem,
-      name: modalDraft.name.trim() || selectedItem.name,
-      brand: modalDraft.brand.trim() || selectedItem.brand,
-      category: modalDraft.category.trim() || selectedItem.category,
-      form: modalDraft.form.trim() || selectedItem.form,
-      id: modalDraft.id.trim() || selectedItem.id,
-      sellingPrice: toNumber(modalDraft.sellingPrice, selectedItem.sellingPrice),
-      reorderPoint: toNumber(modalDraft.reorderPoint, selectedItem.reorderPoint),
-      quantity: toNumber(modalDraft.quantity, selectedItem.quantity),
-      expiringInDays: getDaysUntilDate(modalDraft.expiryDate),
-    };
+    setBatchSaving(true);
+    try {
+      const isMedicine = selectedItem.product_type === "medicine" || !!modalDraft.brand || !!modalDraft.name;
+      
+      const payload = {
+        product_type: isMedicine ? "medicine" : "non_medicine",
+        product_name: modalDraft.name.trim() || selectedItem.name,
+        generic_name: isMedicine ? (modalDraft.name.trim() || selectedItem.name) : null,
+        brand_name: isMedicine ? (modalDraft.brand.trim() || selectedItem.brand) : null,
+        form: modalDraft.form.trim() || selectedItem.form,
+        strength: modalDraft.form.trim() || selectedItem.form,
+        selling_price: toNumber(modalDraft.sellingPrice, selectedItem.sellingPrice),
+        is_discountable: selectedItem.is_discountable,
+        category_name: modalDraft.category.trim() || selectedItem.category,
+      };
 
-    setInventoryItems((prev) =>
-      prev.map((item) => (item.id === selectedItem.id ? updatedItem : item))
-    );
-    setSelectedItem(updatedItem);
-    setIsModalEditing(false);
+      await updateInventoryProduct(selectedItem.product_id, payload);
+
+      // Now apply local state changes
+      const updatedItem = {
+        ...selectedItem,
+        name: payload.product_name,
+        brand: payload.brand_name || "",
+        category: payload.category_name,
+        form: payload.form,
+        sellingPrice: payload.selling_price,
+        expiringInDays: getDaysUntilDate(modalDraft.expiryDate),
+        expiryDate: modalDraft.expiryDate,
+      };
+
+      setInventoryItems((prev) =>
+        prev.map((item) => (item.id === selectedItem.id ? updatedItem : item))
+      );
+      setSelectedItem(updatedItem);
+      setIsModalEditing(false);
+      
+      // Reload metrics & lists
+      await loadData();
+    } catch (err) {
+      console.error("Failed to save product details:", err);
+      alert(err.response?.data?.message || "Failed to update product details. Please try again.");
+    } finally {
+      setBatchSaving(false);
+      setShowConfirmSave(false);
+    }
   };
 
   const handleRequestSave = () => {
     if (!isModalEditing) return;
     setShowConfirmSave(true);
-  };
-
-  const handleConfirmSave = () => {
-    handleSaveChanges();
-    setShowConfirmSave(false);
   };
 
   const handleCancelSave = () => {

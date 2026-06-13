@@ -194,9 +194,6 @@ class BranchProductController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateBranchProductsRequest $request, string $id)
     {
         $product = Products::findOrFail($id);
@@ -204,7 +201,43 @@ class BranchProductController extends Controller
 
         $validated = $request->validated();
 
-        $product->update($validated);
+        // Separate Products fields from BranchProduct fields
+        $productFields = array_intersect_key($validated, array_flip([
+            'product_type', 'product_name', 'generic_name', 'brand_name', 'description', 'form', 'strength', 'size'
+        ]));
+
+        $product->update($productFields);
+
+        // Update branch product if the user belongs to a branch
+        $user = $request->user();
+        $branchId = $user ? $user->branch_id : null;
+        if ($branchId) {
+            $branchProduct = BranchProduct::where('branch_id', $branchId)
+                ->where('product_id', $product->id)
+                ->first();
+
+            if ($branchProduct) {
+                $bpFields = [];
+                if (isset($validated['selling_price'])) {
+                    $bpFields['selling_price'] = $validated['selling_price'];
+                }
+                if (isset($validated['is_discountable'])) {
+                    $bpFields['is_discountable'] = filter_var($validated['is_discountable'], FILTER_VALIDATE_BOOLEAN);
+                }
+                
+                // Handle category update
+                if (!empty($validated['category_name'])) {
+                    $category = \App\Models\Category::firstOrCreate([
+                        'category_name' => $validated['category_name']
+                    ]);
+                    $bpFields['category_id'] = $category->id;
+                }
+
+                if (!empty($bpFields)) {
+                    $branchProduct->update($bpFields);
+                }
+            }
+        }
 
         return response()->json([
             'status' => 'success',

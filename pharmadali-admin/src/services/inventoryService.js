@@ -47,6 +47,11 @@ export const updateProductBatch = async (batchId, data) => {
   return response.data;
 };
 
+export const updateInventoryProduct = async (productId, data) => {
+  const response = await apiRequest.put(`/products/${productId}`, data);
+  return response.data;
+};
+
 export const stockOutProduct = async (branchProductId, data) => {
   const response = await apiRequest.post(`/branch/inventory/products/${branchProductId}/stock-out`, data);
   return response.data;
