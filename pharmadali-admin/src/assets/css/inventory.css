@@ -873,6 +873,9 @@ select.inventory-modal-input {
   cursor: not-allowed;
 }
 
+
+
+
 .inventory-table-scroll::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -939,4 +942,448 @@ select.inventory-modal-input {
   .inventory-metrics {
     grid-template-columns: 1fr;
   }
+}
+
+/* Add New Product Modal Styles */
+.add-product-modal .pd-modal {
+  border-radius: 20px;
+  padding: 1.5rem;
+}
+
+.add-product-modal .pd-modal__header {
+  border-bottom: none;
+  padding: 1.25rem 1.5rem 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.add-product-modal .pd-modal__title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: #48aad9;
+}
+
+.add-product-modal .pd-modal__close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: #999;
+  cursor: pointer;
+}
+
+.add-product-modal .pd-modal__close:hover {
+  color: #666;
+}
+
+.add-product-modal-body {
+  font-family: 'Poppins', sans-serif;
+}
+
+.add-product-type-selector {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.add-product-type-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #48aad9;
+  cursor: pointer;
+}
+
+.add-product-type-label input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 2px solid #ccc;
+  border-radius: 50%;
+  outline: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background-color: #fff;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.add-product-type-label input[type="radio"]:checked {
+  border-color: #48aad9;
+}
+
+.add-product-type-label input[type="radio"]:checked::after {
+  content: "";
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background-color: #48aad9;
+  display: block;
+}
+
+.add-product-section {
+  margin-bottom: 1.5rem;
+}
+
+.add-product-section-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #48aad9;
+  margin-bottom: 1rem;
+  border-bottom: 1.5px solid #eef2f7;
+  padding-bottom: 0.25rem;
+}
+
+.add-product-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 1.5rem;
+}
+
+.add-product-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.add-product-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 0.4rem;
+}
+
+.add-product-input,
+.add-product-select,
+.add-product-textarea {
+  background-color: #e9eef4;
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.add-product-input::placeholder,
+.add-product-select::placeholder,
+.add-product-textarea::placeholder {
+  color: #888;
+  opacity: 0.8;
+}
+
+.add-product-input:focus,
+.add-product-select:focus,
+.add-product-textarea:focus {
+  outline: 2px solid #96d2ee;
+  background-color: #fff;
+  box-shadow: 0 0 5px rgba(72, 170, 217, 0.2);
+}
+
+.add-product-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.add-product-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%235aa7e5' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+  padding-right: 2.2rem;
+}
+
+.add-product-full-width {
+  grid-column: span 2;
+}
+
+.add-product-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.add-product-btn-cancel {
+  background-color: #96d2ee;
+  border: none;
+  color: #2f80c7;
+  font-weight: 600;
+  padding: 0.6rem 1.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: opacity 0.2s;
+}
+
+.add-product-btn-cancel:hover {
+  opacity: 0.9;
+}
+
+.add-product-btn-add {
+  background-color: #48aad9;
+  border: none;
+  color: white;
+  font-weight: 600;
+  padding: 0.6rem 1.8rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.2s;
+}
+
+.add-product-btn-add:hover {
+  background-color: #3b93bc;
+}
+
+.add-product-modal input::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  z-index: 2;
+}
+
+.add-product-modal input[type="date"] {
+  position: relative;
+}
+
+.add-product-modal input[type="date"].is-empty::-webkit-datetime-edit {
+  color: transparent !important;
+}
+
+.add-product-modal input[type="date"].is-empty::before {
+  content: attr(placeholder);
+  color: #888;
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.add-product-modal input[type="date"]:focus::-webkit-datetime-edit {
+  color: #333 !important;
+}
+
+.add-product-modal input[type="date"]:focus::before {
+  display: none !important;
+  content: "" !important;
+}
+
+/* ── Batch Section ── */
+.inventory-batch-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.inventory-batch-total {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.inventory-batch-total strong {
+  color: #48aad9;
+  font-weight: 700;
+}
+
+.inventory-batch-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #9ca3af;
+  padding: 0.5rem 0;
+}
+
+.inventory-batch-empty {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  font-style: italic;
+  margin: 0;
+  padding: 0.25rem 0;
+}
+
+.inventory-batch-table {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.inventory-batch-head,
+.inventory-batch-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  align-items: center;
+}
+
+/* When in edit mode, add a 5th column for Save button */
+.inventory-batch-head.has-action,
+.inventory-batch-row.has-action {
+  grid-template-columns: 1.4fr 0.8fr 1fr 1fr 0.7fr;
+}
+
+.inventory-batch-head {
+  background: #f3f8ff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.inventory-batch-row {
+  font-size: 0.82rem;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.inventory-batch-row:last-child {
+  border-bottom: none;
+}
+
+.inventory-batch-num {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.inventory-batch-stock-input {
+  padding: 0.3rem 0.5rem !important;
+  font-size: 0.82rem !important;
+  height: auto !important;
+  min-height: unset !important;
+  border-radius: 5px !important;
+  border: 1px solid #d1d5db !important;
+  width: 80px;
+}
+
+.inventory-batch-save-btn {
+  background: #48aad9;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.28rem 0.65rem;
+  cursor: pointer;
+  transition: background 0.18s ease;
+  white-space: nowrap;
+}
+
+.inventory-batch-save-btn:hover {
+  background: #3c97d6;
+}
+
+.inventory-batch-save-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.inventory-batch-add-area {
+  margin-top: 0.5rem;
+}
+
+.inventory-batch-add-trigger {
+  background: transparent;
+  border: 1.5px dashed #cfe8f8;
+  border-radius: 6px;
+  color: #48aad9;
+  padding: 0.55rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.inventory-batch-add-trigger:hover {
+  border-color: #48aad9;
+  background: #f0f9ff;
+}
+
+.inventory-batch-add-form {
+  background: #f8fbff;
+  border: 1px solid #d6eaf9;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.inventory-batch-add-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #48aad9;
+  margin-bottom: 0.75rem;
+}
+
+.inventory-batch-add-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.inventory-batch-add-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.inventory-batch-confirm-btn {
+  background: #48aad9;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.45rem 1.1rem;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.inventory-batch-confirm-btn:hover {
+  background: #3c97d6;
+}
+
+.inventory-batch-confirm-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.inventory-batch-cancel-btn {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.inventory-batch-cancel-btn:hover {
+  background: #f3f4f6;
 }

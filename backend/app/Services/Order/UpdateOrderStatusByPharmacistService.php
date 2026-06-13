@@ -92,7 +92,11 @@ class UpdateOrderStatusByPharmacistService
         $order = $order->fresh();
 
         // Notify customer about status change
-        $order->customer->user->notify(new OrderStatusNotification($order));
+        if ($action === 'reject') {
+            $order->customer->user->notify(new \App\Notifications\OrderRejectedNotification($order));
+        } else {
+            $order->customer->user->notify(new OrderStatusNotification($order));
+        }
 
         $systemMessage = match ($action) {
             'approve' => 'Prescription approved',

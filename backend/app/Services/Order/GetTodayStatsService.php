@@ -10,7 +10,8 @@ class GetTodayStatsService
     public function handle(): array
     {
         $user = Auth::user();
-        $query = Order::whereDate('created_at', today());
+        $query = Order::whereDate('created_at', today())
+            ->where('payment_status', 'paid');
 
         // For branch admins/pharmacists, scope to their branch
         if ($user && $user->branch_id) {

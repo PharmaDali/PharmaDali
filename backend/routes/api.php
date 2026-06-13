@@ -140,6 +140,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('branch/inventory/metrics', [InventoryController::class, 'getInventoryMetrics']);
         Route::get('branch/inventory/products', [InventoryController::class, 'getInventoryProducts']);
         Route::get('branch/inventory/logs', [InventoryController::class, 'getInventoryLogs']);
+
+        // product batches
+        Route::get('branch/inventory/products/{branchProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'index']);
+        Route::post('branch/inventory/products/{branchProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'store']);
+        Route::patch('branch/inventory/batches/{batchId}', [\App\Http\Controllers\API\ProductBatchController::class, 'update']);
+        Route::post('branch/inventory/products/{branchProductId}/stock-out', [\App\Http\Controllers\API\ProductBatchController::class, 'stockOut']);
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {

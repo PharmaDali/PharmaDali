@@ -26,3 +26,28 @@ export const fetchInventoryLogs = async (filters = {}) => {
   const response = await apiRequest.get(`/branch/inventory/logs?${params.toString()}`);
   return response.data;
 };
+
+export const createInventoryProduct = async (productData) => {
+  const response = await apiRequest.post("/products", productData);
+  return response.data;
+};
+
+export const fetchProductBatches = async (branchProductId) => {
+  const response = await apiRequest.get(`/branch/inventory/products/${branchProductId}/batches`);
+  return response.data;
+};
+
+export const addProductBatch = async (branchProductId, batchData) => {
+  const response = await apiRequest.post(`/branch/inventory/products/${branchProductId}/batches`, batchData);
+  return response.data;
+};
+
+export const updateProductBatch = async (batchId, data) => {
+  const response = await apiRequest.patch(`/branch/inventory/batches/${batchId}`, data);
+  return response.data;
+};
+
+export const stockOutProduct = async (branchProductId, data) => {
+  const response = await apiRequest.post(`/branch/inventory/products/${branchProductId}/stock-out`, data);
+  return response.data;
+};

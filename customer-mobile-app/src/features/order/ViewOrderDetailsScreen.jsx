@@ -86,12 +86,14 @@ export default function ViewOrderDetailsScreen() {
   return (
     <ScrollView className="flex-1 bg-[#F1F4FF]" showsVerticalScrollIndicator={false}>
       <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-4 p-4">
-        <View className="flex-row justify-between items-start">
-          <View>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+          <View style={{ flex: 1, marginRight: 12 }}>
             <Text className="text-sm" style={styles.textBold}>Order #{order.orderNumber}</Text>
             <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>{order.date}</Text>
           </View>
-          <StatusBadge status={order.status} />
+          <View style={{ flexShrink: 0 }}>
+            <StatusBadge status={order.status} />
+          </View>
         </View>
 
         <View className="border-b border-gray-200 my-3" />

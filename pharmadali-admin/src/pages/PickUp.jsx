@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import Modal from "../components/Modal";
 import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg";
 import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
@@ -6,6 +6,7 @@ import errorIcon from "../assets/icons/modal-icons/error.svg";
 import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg";
 import { fetchPickupOrders, completePickupOrder } from "../services/posService";
 import "../assets/css/pospage.css";
+import "../assets/css/inventory.css";
 
 function PickUp() {
   const [orders, setOrders] = useState([]);
@@ -21,6 +22,29 @@ function PickUp() {
   const [gcashReference, setGcashReference] = useState("");
   const [paymentResult, setPaymentResult] = useState("success");
   const [errorMessage, setErrorMessage] = useState("");
+
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.max(1, Math.ceil(orders.length / itemsPerPage));
+  const paginatedOrders = useMemo(
+    () => orders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+    [orders, currentPage]
+  );
+  const visiblePageNumbers = useMemo(() => {
+    if (totalPages <= 5) {
+      return Array.from({ length: totalPages }, (_, index) => index + 1);
+    }
+
+    const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+    const endPage = Math.min(totalPages, startPage + 4);
+
+    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
+  }, [currentPage, totalPages]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+  };
 
   const loadOrders = useCallback(async (showLoading = true) => {
     try {
@@ -41,6 +65,7 @@ function PickUp() {
 
   useEffect(() => {
     loadOrders();
+    setCurrentPage(1);
   }, [loadOrders]);
 
   // Polling for auto-refresh
@@ -171,7 +196,8 @@ function PickUp() {
             {loading ? (
               <div className="p-4 text-center">Loading orders...</div>
             ) : (
-              <table className="pickup-table w-100">
+              <>
+                <table className="pickup-table w-100">
                 <colgroup>
                   <col style={{ width: "16%" }} />
                   <col style={{ width: "26%" }} />
@@ -191,7 +217,7 @@ function PickUp() {
                   </tr>
                 </thead>
                 <tbody>
-                  {orders.map((order) => (
+                  {paginatedOrders.map((order) => (
                     <tr
                       key={order.id}
                       className={activeOrder?.id === order.id ? "pickup-row-selected" : ""}
@@ -227,7 +253,97 @@ function PickUp() {
                   )}
                 </tbody>
               </table>
-            )}
+              {!loading && orders.length > 0 && (
+                <div className="inventory-pagination-bar">
+                  <span className="inventory-pagination-info">
+                    Showing {(currentPage - 1) * itemsPerPage + 1}–
+                    {Math.min(currentPage * itemsPerPage, orders.length)} of {orders.length}
+                  </span>
+
+                  <nav aria-label="Pickup order table pagination">
+                    <ul className="inventory-pagination">
+                      <li className={`inventory-page-item ${currentPage === 1 ? "disabled" : ""}`}>
+                        <button
+                          type="button"
+                          className="inventory-page-link inventory-page-nav"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          aria-label="Previous page"
+                        >
+                          <i className="fa-solid fa-chevron-left" aria-hidden="true" />
+                        </button>
+                      </li>
+
+                      {visiblePageNumbers[0] > 1 && (
+                        <>
+                          <li className="inventory-page-item">
+                            <button
+                              type="button"
+                              className="inventory-page-link"
+                              onClick={() => handlePageChange(1)}
+                            >
+                              1
+                            </button>
+                          </li>
+                          {visiblePageNumbers[0] > 2 && (
+                            <li className="inventory-page-item inventory-page-ellipsis">
+                              <span>…</span>
+                            </li>
+                          )}
+                        </>
+                      )}
+
+                      {visiblePageNumbers.map((pageNumber) => (
+                        <li
+                          key={pageNumber}
+                          className={`inventory-page-item ${currentPage === pageNumber ? "active" : ""}`}
+                        >
+                          <button
+                            type="button"
+                            className="inventory-page-link"
+                            onClick={() => handlePageChange(pageNumber)}
+                          >
+                            {pageNumber}
+                          </button>
+                        </li>
+                      ))}
+
+                      {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages && (
+                        <>
+                          {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages - 1 && (
+                            <li className="inventory-page-item inventory-page-ellipsis">
+                              <span>…</span>
+                            </li>
+                          )}
+                          <li className="inventory-page-item">
+                            <button
+                              type="button"
+                              className="inventory-page-link"
+                              onClick={() => handlePageChange(totalPages)}
+                            >
+                              {totalPages}
+                            </button>
+                          </li>
+                        </>
+                      )}
+
+                      <li className={`inventory-page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+                        <button
+                          type="button"
+                          className="inventory-page-link inventory-page-nav"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          aria-label="Next page"
+                        >
+                          <i className="fa-solid fa-chevron-right" aria-hidden="true" />
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              )}
+            </>
+          )}
           </div>
         </div>
         {activeOrder && (

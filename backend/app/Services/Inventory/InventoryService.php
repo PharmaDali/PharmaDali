@@ -3,11 +3,16 @@
 namespace App\Services\Inventory;
 
 use App\Models\BranchProduct;
+use App\Repositories\ProductBatchRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class InventoryService
 {
+    public function __construct(
+        private readonly ProductBatchRepository $batchRepository,
+    ) {}
+
     public function getInventoryMetrics($branchId)
     {
         $today = Carbon::today()->toDateString();
@@ -40,7 +45,7 @@ class InventoryService
 
     public function getInventoryProducts($branchId, array $filters = [])
     {
-        $query = BranchProduct::with(['product', 'category'])
+        $query = BranchProduct::with(['product', 'category', 'batches'])
             ->where('branch_id', $branchId);
 
         // Filter by search / query
@@ -66,12 +71,12 @@ class InventoryService
             $priceRange = preg_replace('/\s+/', ' ', trim($filters['price_range']));
 
             $priceRangeMap = [
-                'Below 10' => fn ($q) => $q->where('selling_price', '<', 10),
-                '10 - 50' => fn ($q) => $q->whereBetween('selling_price', [10, 50]),
-                '51 - 100' => fn ($q) => $q->whereBetween('selling_price', [51, 100]),
-                '101 - 200' => fn ($q) => $q->whereBetween('selling_price', [101, 200]),
-                '200 - 500' => fn ($q) => $q->whereBetween('selling_price', [200, 500]),
-                '500 and above' => fn ($q) => $q->where('selling_price', '>=', 500),
+                'Below 10'     => fn ($q) => $q->where('selling_price', '<', 10),
+                '10 - 50'      => fn ($q) => $q->whereBetween('selling_price', [10, 50]),
+                '51 - 100'     => fn ($q) => $q->whereBetween('selling_price', [51, 100]),
+                '101 - 200'    => fn ($q) => $q->whereBetween('selling_price', [101, 200]),
+                '200 - 500'    => fn ($q) => $q->whereBetween('selling_price', [200, 500]),
+                '500 and above'=> fn ($q) => $q->where('selling_price', '>=', 500),
             ];
 
             if (array_key_exists($priceRange, $priceRangeMap)) {
@@ -97,7 +102,7 @@ class InventoryService
             }
         }
 
-        $today = Carbon::today();
+        $today         = Carbon::today();
         $expiringLimit = Carbon::today()->addDays(30);
 
         // Filter by status
@@ -123,12 +128,12 @@ class InventoryService
         $branchProducts = $query->get();
 
         return $branchProducts->map(function ($bp) use ($today) {
-            $product = $bp->product;
+            $product  = $bp->product;
             $category = $bp->category;
 
             $expiringInDays = 0;
             if ($bp->expiry_date) {
-                $expiry = Carbon::parse($bp->expiry_date);
+                $expiry         = Carbon::parse($bp->expiry_date);
                 $expiringInDays = (int) $today->diffInDays($expiry, false);
             } else {
                 $expiringInDays = 365; // default if no expiry set
@@ -155,25 +160,53 @@ class InventoryService
             $strengthFormParts = array_filter([$product->strength ?? '', $product->form ?? '', $product->size ?? '']);
             $formLabel = !empty($strengthFormParts) ? implode(' ', $strengthFormParts) : ($product->form ?? 'Medicine');
 
+            // Map batches with per-batch expiry status
+            $batches = $bp->batches->sortBy('expiry_date')->map(function ($batch) use ($today) {
+                $batchExpiringInDays = null;
+                $batchStatus         = 'Normal';
+
+                if ($batch->expiry_date) {
+                    $batchExpiringInDays = (int) $today->diffInDays($batch->expiry_date, false);
+
+                    if ($batchExpiringInDays <= 0) {
+                        $batchStatus = 'Expired';
+                    } elseif ($batchExpiringInDays <= 30) {
+                        $batchStatus = 'Expiring soon';
+                    }
+                }
+
+                return [
+                    'id'                => $batch->id,
+                    'batch_number'      => $batch->batch_number,
+                    'stock'             => $batch->stock,
+                    'expiry_date'       => $batch->expiry_date?->toDateString(),
+                    'manufactured_date' => $batch->manufactured_date?->toDateString(),
+                    'received_at'       => $batch->received_at?->toDateTimeString(),
+                    'expiring_in_days'  => $batchExpiringInDays,
+                    'status'            => $batchStatus,
+                ];
+            })->values();
+
             return [
-                'id' => $bp->id,
-                'name' => $product->product_name ?? 'Unknown',
-                'brand' => $product->brand_name ?? 'Generic',
-                'form' => $formLabel,
-                'raw_form' => $product->form ?? '',
-                'strength' => $product->strength ?? '',
-                'size' => $bp->product->size ?? '',
-                'category' => $category->category_name ?? 'Uncategorized',
-                'quantity' => $bp->stock,
-                'reorderPoint' => 50,
+                'id'             => $bp->id,
+                'name'           => $product->product_name ?? 'Unknown',
+                'brand'          => $product->brand_name ?? 'Generic',
+                'form'           => $formLabel,
+                'raw_form'       => $product->form ?? '',
+                'strength'       => $product->strength ?? '',
+                'size'           => $bp->product->size ?? '',
+                'category'       => $category->category_name ?? 'Uncategorized',
+                'quantity'       => $bp->stock,
+                'reorderPoint'   => 50,
                 'expiringInDays' => $expiringInDays,
-                'expiryDate' => $bp->expiry_date,
-                'velocity' => $velocity,
-                'sellingPrice' => (float) $bp->selling_price,
-                'status' => $status,
-                'is_available' => $bp->is_available,
-                'is_discountable' => $bp->is_discountable,
-                'product_id' => $product->id ?? null,
+                'expiryDate'     => $bp->expiry_date,
+                'velocity'       => $velocity,
+                'sellingPrice'   => (float) $bp->selling_price,
+                'status'         => $status,
+                'is_available'   => $bp->is_available,
+                'is_discountable'=> $bp->is_discountable,
+                'product_id'     => $product->id ?? null,
+                'batches'        => $batches,
             ];
         });
     }
