@@ -47,6 +47,7 @@ export function useInventory() {
   const [isModalEditing, setIsModalEditing] = useState(false);
   const [modalDraft, setModalDraft] = useState(null);
   const [showConfirmSave, setShowConfirmSave] = useState(false);
+  const [productUpdating, setProductUpdating] = useState(false);
 
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -356,7 +357,7 @@ export function useInventory() {
       return;
     }
 
-    setBatchSaving(true);
+    setProductUpdating(true);
     try {
       const isMedicine = selectedItem.product_type === "medicine" || !!modalDraft.brand || !!modalDraft.name;
       
@@ -394,11 +395,14 @@ export function useInventory() {
       
       // Reload metrics & lists
       await loadData();
+
+      // Close the details modal (shrink modal)
+      handleModalClose();
     } catch (err) {
       console.error("Failed to save product details:", err);
       alert(err.response?.data?.message || "Failed to update product details. Please try again.");
     } finally {
-      setBatchSaving(false);
+      setProductUpdating(false);
       setShowConfirmSave(false);
     }
   };
@@ -521,6 +525,7 @@ export function useInventory() {
     setIsModalEditing,
     modalDraft,
     showConfirmSave,
+    productUpdating,
     batches,
     batchLoading,
     batchEditStocks,
