@@ -157,6 +157,14 @@ export function AddProductModal({
             <div className="add-product-field">
               <label className="add-product-label">Expiry Date</label>
               <div style={{ position: "relative" }}>
+                <input
+                  type="date"
+                  className={`add-product-input ${!addForm.expiryDate ? "is-empty" : ""}`}
+                  placeholder="dd/mm/yyyy"
+                  style={{ paddingRight: "2.5rem" }}
+                  value={addForm.expiryDate}
+                  onChange={(e) => setAddForm(prev => ({ ...prev, expiryDate: e.target.value }))}
+                />
                 <i
                   className="fa-regular fa-calendar"
                   style={{
@@ -166,15 +174,8 @@ export function AddProductModal({
                     transform: "translateY(-50%)",
                     color: "#48aad9",
                     pointerEvents: "none",
+                    zIndex: 1,
                   }}
-                />
-                <input
-                  type="date"
-                  className={`add-product-input ${!addForm.expiryDate ? "is-empty" : ""}`}
-                  placeholder="dd/mm/yyyy"
-                  style={{ paddingRight: "2.5rem" }}
-                  value={addForm.expiryDate}
-                  onChange={(e) => setAddForm(prev => ({ ...prev, expiryDate: e.target.value }))}
                 />
               </div>
             </div>
