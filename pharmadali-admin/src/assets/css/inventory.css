@@ -848,6 +848,9 @@ select.inventory-modal-input {
   cursor: not-allowed;
 }
 
+
+
+
 .inventory-table-scroll::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -1157,4 +1160,205 @@ select.inventory-modal-input {
 .add-product-modal input[type="date"]:focus::before {
   display: none !important;
   content: "" !important;
+}
+
+/* ── Batch Section ── */
+.inventory-batch-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.inventory-batch-total {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.inventory-batch-total strong {
+  color: #48aad9;
+  font-weight: 700;
+}
+
+.inventory-batch-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: #9ca3af;
+  padding: 0.5rem 0;
+}
+
+.inventory-batch-empty {
+  font-size: 0.82rem;
+  color: #9ca3af;
+  font-style: italic;
+  margin: 0;
+  padding: 0.25rem 0;
+}
+
+.inventory-batch-table {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.inventory-batch-head,
+.inventory-batch-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.55rem 0.85rem;
+  align-items: center;
+}
+
+/* When in edit mode, add a 5th column for Save button */
+.inventory-batch-head.has-action,
+.inventory-batch-row.has-action {
+  grid-template-columns: 1.4fr 0.8fr 1fr 1fr 0.7fr;
+}
+
+.inventory-batch-head {
+  background: #f3f8ff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.inventory-batch-row {
+  font-size: 0.82rem;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.inventory-batch-row:last-child {
+  border-bottom: none;
+}
+
+.inventory-batch-num {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.inventory-batch-stock-input {
+  padding: 0.3rem 0.5rem !important;
+  font-size: 0.82rem !important;
+  height: auto !important;
+  min-height: unset !important;
+  border-radius: 5px !important;
+  border: 1px solid #d1d5db !important;
+  width: 80px;
+}
+
+.inventory-batch-save-btn {
+  background: #48aad9;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.28rem 0.65rem;
+  cursor: pointer;
+  transition: background 0.18s ease;
+  white-space: nowrap;
+}
+
+.inventory-batch-save-btn:hover {
+  background: #3c97d6;
+}
+
+.inventory-batch-save-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.inventory-batch-add-area {
+  margin-top: 0.5rem;
+}
+
+.inventory-batch-add-trigger {
+  background: transparent;
+  border: 1.5px dashed #cfe8f8;
+  border-radius: 6px;
+  color: #48aad9;
+  padding: 0.55rem 1rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.inventory-batch-add-trigger:hover {
+  border-color: #48aad9;
+  background: #f0f9ff;
+}
+
+.inventory-batch-add-form {
+  background: #f8fbff;
+  border: 1px solid #d6eaf9;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.inventory-batch-add-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #48aad9;
+  margin-bottom: 0.75rem;
+}
+
+.inventory-batch-add-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.inventory-batch-add-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.inventory-batch-confirm-btn {
+  background: #48aad9;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.45rem 1.1rem;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.inventory-batch-confirm-btn:hover {
+  background: #3c97d6;
+}
+
+.inventory-batch-confirm-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.inventory-batch-cancel-btn {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+
+.inventory-batch-cancel-btn:hover {
+  background: #f3f4f6;
 }
