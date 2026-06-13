@@ -1,15 +1,15 @@
 import React from "react";
-import { useInventory } from "./inventory/hooks/useInventory";
-import InventoryMetrics from "./inventory/components/InventoryMetrics";
-import InventoryFilterBar from "./inventory/components/InventoryFilterBar";
-import InventoryTable from "./inventory/components/InventoryTable";
-import InventorySideCards from "./inventory/components/InventorySideCards";
-import ProductDetailsModal from "./inventory/components/ProductDetailsModal";
-import StockOutModal from "./inventory/components/StockOutModal";
-import AddProductModal from "./inventory/components/AddProductModal";
-import Modal from "../components/Modal";
-import infoIcon from "../assets/icons/modal-icons/info.svg";
-import "../assets/css/inventory.css";
+import { useInventory } from "./hooks/useInventory";
+import InventoryMetrics from "./components/InventoryMetrics";
+import InventoryFilterBar from "./components/InventoryFilterBar";
+import InventoryTable from "./components/InventoryTable";
+import InventorySideCards from "./components/InventorySideCards";
+import ProductDetailsModal from "./components/ProductDetailsModal";
+import StockOutModal from "./components/StockOutModal";
+import AddProductModal from "./components/AddProductModal";
+import Modal from "../../components/Modal";
+import infoIcon from "../../assets/icons/modal-icons/info.svg";
+import "../../assets/css/inventory.css";
 
 export function Inventory() {
   const {

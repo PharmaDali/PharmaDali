@@ -9,7 +9,7 @@ import Notifications from "./pages/Notifications";
 import Login from "./pages/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AnalyticsAndForecasting from "./pages/AnalyticsAndForecasting";
-import Inventory from "./pages/Inventory";
+import Inventory from "./pages/inventory/Inventory";
 import InventoryLogs from "./pages/InventoryLogs";
 import Pharmacists from "./pages/Pharmacists";
 import GetTechnicalHelp from "./pages/GetTechnicalHelp";
