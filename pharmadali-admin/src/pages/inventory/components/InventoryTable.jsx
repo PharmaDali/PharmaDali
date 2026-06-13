@@ -52,7 +52,7 @@ export function InventoryTable({
               <tr>
                 <td colSpan={6}>
                   <div className="inventory-empty-state">
-                    <div className="spinner-border text-primary mb-2" role="status">
+                    <div className="spinner-border mb-2" style={{ color: "#1f2937" }} role="status">
                       <span className="visually-hidden">Loading...</span>
                     </div>
                     <p className="mb-0">Loading inventory items...</p>

@@ -23,12 +23,12 @@ export function StockOutModal({
         <form onSubmit={handleStockOutSubmit} className="p-1">
           <p className="h5 fw-bold text-dark mb-1">{selectedItem.name}</p>
           <p className="text-muted small mb-3">
-            Available stock: <strong className="text-primary">{batches.reduce((s, b) => s + (b.stock ?? 0), 0)}</strong> units
+            Available stock: <strong className="" style={{ color: "#4A88D9" }}>{batches.reduce((s, b) => s + (b.stock ?? 0), 0)}</strong> units
           </p>
           <div className="alert alert-warning d-flex align-items-start gap-2 py-2 px-3 small border-0 text-warning-emphasis bg-warning-subtle rounded-3 mb-3" role="alert">
             <i className="fa-solid fa-circle-info mt-1 text-warning" aria-hidden="true" />
             <div>
-              Deductions will follow <strong>FEFO</strong> — soonest-expiring batches are consumed first.
+              This will automatically deduct stock from the soonest-expiring batches first.
             </div>
           </div>
           <div className="mb-3">
@@ -36,6 +36,7 @@ export function StockOutModal({
             <input
               type="number"
               className="form-control form-control-sm"
+              style={{ color: "#1f2937" }}
               placeholder="e.g. 10"
               min="1"
               required

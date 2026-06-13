@@ -189,7 +189,7 @@ export function ProductDetailsModal({
 
             {batchLoading ? (
               <div className="inventory-batch-loading">
-                <div className="spinner-border spinner-border-sm text-primary" role="status" />
+                <div className="spinner-border spinner-border-sm" style={{ color: "#1f2937" }} role="status" />
                 <span>Loading batches...</span>
               </div>
             ) : batches.length === 0 ? (
