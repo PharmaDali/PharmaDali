@@ -1,6 +1,7 @@
 import React from "react";
 import Modal from "../../../components/Modal";
 import { CATEGORY_FILTERS } from "../inventoryConstants";
+import FormattedDateInput from "./FormattedDateInput";
 
 export function ProductDetailsModal({
   selectedItem,
@@ -146,11 +147,10 @@ export function ProductDetailsModal({
               </div>
               <div>
                 <p className="inventory-modal-label">Expiry Date</p>
-                <input
-                  type="month"
+                <FormattedDateInput
                   className="form-control inventory-modal-input"
-                  value={modalDraft.expiryMonth}
-                  onChange={(event) => handleDraftChange("expiryMonth", event.target.value)}
+                  value={modalDraft.expiryDate}
+                  onChange={(val) => handleDraftChange("expiryDate", val)}
                   disabled={!isModalEditing}
                 />
               </div>
@@ -224,9 +224,9 @@ export function ProductDetailsModal({
                     <span>
                       {batch.expiry_date
                         ? new Date(batch.expiry_date).toLocaleDateString("en-PH", {
-                            month: "2-digit",
-                            year: "numeric",
-                          })
+                          month: "2-digit",
+                          year: "numeric",
+                        })
                         : "N/A"}
                     </span>
                     <span>
@@ -299,23 +299,21 @@ export function ProductDetailsModal({
                       </div>
                       <div>
                         <label className="inventory-modal-label">Expiry Date</label>
-                        <input
-                          type="date"
+                        <FormattedDateInput
                           className="form-control inventory-modal-input"
                           value={newBatch.expiry_date}
-                          onChange={(e) =>
-                            setNewBatch((p) => ({ ...p, expiry_date: e.target.value }))
+                          onChange={(val) =>
+                            setNewBatch((p) => ({ ...p, expiry_date: val }))
                           }
                         />
                       </div>
                       <div>
                         <label className="inventory-modal-label">Manufactured Date</label>
-                        <input
-                          type="date"
+                        <FormattedDateInput
                           className="form-control inventory-modal-input"
                           value={newBatch.manufactured_date}
-                          onChange={(e) =>
-                            setNewBatch((p) => ({ ...p, manufactured_date: e.target.value }))
+                          onChange={(val) =>
+                            setNewBatch((p) => ({ ...p, manufactured_date: val }))
                           }
                         />
                       </div>

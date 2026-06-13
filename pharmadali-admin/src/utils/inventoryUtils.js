@@ -55,3 +55,15 @@ export const getWeeksLeft = (item) => {
 
   return `${weeksLeft}`;
 };
+
+/**
+ * Get remaining days until a given date (YYYY-MM-DD).
+ */
+export const getDaysUntilDate = (value) => {
+  if (!value) return 0;
+  const targetDate = new Date(value);
+  const today = new Date();
+  const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffMs = targetDate.getTime() - todayDate.getTime();
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+};

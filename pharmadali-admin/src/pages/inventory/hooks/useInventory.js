@@ -17,6 +17,7 @@ import {
 import {
   formatExpiryMonthValue,
   getDaysUntilMonth,
+  getDaysUntilDate,
   toNumber,
 } from "../../../utils/inventoryUtils";
 
@@ -206,7 +207,7 @@ export function useInventory() {
       sellingPrice: item.sellingPrice,
       reorderPoint: item.reorderPoint,
       quantity: item.quantity,
-      expiryMonth: formatExpiryMonthValue(item.expiringInDays),
+      expiryDate: item.expiryDate || "",
       needsPrescription: false,
     });
     
@@ -363,7 +364,7 @@ export function useInventory() {
       sellingPrice: toNumber(modalDraft.sellingPrice, selectedItem.sellingPrice),
       reorderPoint: toNumber(modalDraft.reorderPoint, selectedItem.reorderPoint),
       quantity: toNumber(modalDraft.quantity, selectedItem.quantity),
-      expiringInDays: getDaysUntilMonth(modalDraft.expiryMonth),
+      expiringInDays: getDaysUntilDate(modalDraft.expiryDate),
     };
 
     setInventoryItems((prev) =>

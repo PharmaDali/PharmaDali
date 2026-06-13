@@ -1,6 +1,7 @@
 import React from "react";
 import Modal from "../../../components/Modal";
 import { CATEGORY_FILTERS } from "../inventoryConstants";
+import FormattedDateInput from "./FormattedDateInput";
 
 export function AddProductModal({
   isOpen,
@@ -156,28 +157,11 @@ export function AddProductModal({
             </div>
             <div className="add-product-field">
               <label className="add-product-label">Expiry Date</label>
-              <div style={{ position: "relative" }}>
-                <input
-                  type="date"
-                  className={`add-product-input ${!addForm.expiryDate ? "is-empty" : ""}`}
-                  placeholder="dd/mm/yyyy"
-                  style={{ paddingRight: "2.5rem" }}
-                  value={addForm.expiryDate}
-                  onChange={(e) => setAddForm(prev => ({ ...prev, expiryDate: e.target.value }))}
-                />
-                <i
-                  className="fa-regular fa-calendar"
-                  style={{
-                    position: "absolute",
-                    right: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "#48aad9",
-                    pointerEvents: "none",
-                    zIndex: 1,
-                  }}
-                />
-              </div>
+              <FormattedDateInput
+                className={`add-product-input ${!addForm.expiryDate ? "is-empty" : ""}`}
+                value={addForm.expiryDate}
+                onChange={(val) => setAddForm(prev => ({ ...prev, expiryDate: val }))}
+              />
             </div>
             {addProductType === "medicine" && (
               <div className="add-product-field">
