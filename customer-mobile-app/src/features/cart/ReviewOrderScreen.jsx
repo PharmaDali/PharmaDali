@@ -51,7 +51,7 @@ function OrderItemRow({ item }) {
           </Text>
           <View className="items-end">
             <Text className="text-[10px] text-gray-500" style={styles.fontMedium}>{item.quantity}x</Text>
-            <Text className="text-[10px] text-gray-500" style={styles.fontMedium}>Size: {item.size}</Text>
+            <Text className="text-[10px] text-gray-500" style={styles.fontMedium}>{item.sizeLabel || 'Size'}: {item.size}</Text>
           </View>
         </View>
       </View>

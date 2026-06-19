@@ -73,6 +73,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
           description,
           price: Number(item?.unit_price_snapshot ?? 0).toFixed(2),
           quantity: item?.quantity ?? 0,
+          sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
           size: product?.size || product?.strength || product?.form || '-',
           prescriptionRequired,
           prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,

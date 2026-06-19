@@ -83,7 +83,7 @@ function CartItem({ item, onToggle, onIncrement, onDecrement }) {
           </View>
         )}
         <Text className="text-[10px] text-gray-500 mt-1" style={styles.fontMedium}>
-          Size: {item.size}
+          {item.sizeLabel || 'Size'}: {item.size}
         </Text>
         <View className="flex-row justify-between items-center mt-1">
           <Text className="text-sm" style={styles.priceText}>
