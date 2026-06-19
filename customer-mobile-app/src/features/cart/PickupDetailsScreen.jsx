@@ -18,13 +18,13 @@ import {
 } from '@shared/validation/pickupValidation'
 import {
   formatMinutesToAmPm,
-  parseBranchOperatingMinutes,
+  parsePharmacyOperatingMinutes,
 } from '@src/utils/pickupScheduleUtils'
 
 const PickupDetailsScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const { selectedBranch } = useSelectionPhase()
+  const { selectedPharmacy } = useSelectionPhase()
   const { items, total, prescriptionImage } = getCheckoutDraft()
 
   const hasPrescription = items.some((item) => item.prescriptionRequired)
@@ -46,7 +46,7 @@ const PickupDetailsScreen = () => {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  const operatingMinutes = useMemo(() => parseBranchOperatingMinutes(selectedBranch), [selectedBranch])
+  const operatingMinutes = useMemo(() => parsePharmacyOperatingMinutes(selectedPharmacy), [selectedPharmacy])
   const openingMinutes = operatingMinutes.openingMinutes
   const closingMinutes = operatingMinutes.closingMinutes
   const hasValidOperatingWindow = Number.isFinite(openingMinutes) && Number.isFinite(closingMinutes) && openingMinutes < closingMinutes
@@ -156,12 +156,12 @@ const PickupDetailsScreen = () => {
 
     try {
       const normalizedCustomerNote = customerNote.trim()
-      const selectedBranchLabel = selectedBranch?.name || ''
+      const selectedPharmacyLabel = selectedPharmacy?.name || ''
       const { orderId } = await submitCheckoutOrder({
         items,
         hasPrescription,
         prescriptionImage,
-        selectedBranchLabel,
+        selectedPharmacyLabel,
         scheduledPickupAt,
         customerNote: normalizedCustomerNote,
       })
@@ -192,7 +192,7 @@ const PickupDetailsScreen = () => {
           <View className="flex-row items-center">
             <RedLocationIcon width={18} height={18} />
             <Text className="text-xs ml-2" style={styles.fontSemiBold}>
-              Pickup at {selectedBranch?.name || 'Selected branch'}
+              Pickup at {selectedPharmacy?.name || 'Selected pharmacy'}
             </Text>
           </View>
         </View>
@@ -216,7 +216,7 @@ const PickupDetailsScreen = () => {
                 ? `Available between ${minimumDateTime.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true })} and ${formatMinutesToAmPm(closingMinutes)}`
                 : hasValidOperatingWindow
                   ? 'No pickup slots available today.'
-                  : 'Operating hours unavailable for this branch'}
+                  : 'Operating hours unavailable for this pharmacy'}
             </Text>
             <Text className="text-[10px] text-gray-400 mt-0.5" style={styles.fontMedium}>
               {selectedTime ? 'Tap to change time' : 'Tap to pick a time'}

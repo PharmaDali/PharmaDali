@@ -1,14 +1,14 @@
 <?php
 
-use App\Http\Controllers\API\BranchController;
+use App\Http\Controllers\API\PharmacyController;
 use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\BranchProductController;
+use App\Http\Controllers\API\PharmacyProductController;
 use App\Http\Controllers\API\ConversationController;
 use App\Http\Controllers\API\CustomerCartController;
 use App\Http\Controllers\API\OrderController;
 use App\Http\Controllers\API\OrderItemPrescription;
 use App\Http\Controllers\API\PharmacistProfileController;
-use App\Http\Controllers\API\BranchPharmacistController;
+use App\Http\Controllers\API\PharmacyPharmacistController;
 use App\Http\Controllers\API\CustomerProfileController;
 use App\Http\Controllers\API\FcmTokenController;
 use App\Http\Controllers\API\ForecastController;
@@ -44,17 +44,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('fcm-token', [FcmTokenController::class, 'update']);
     Route::delete('fcm-token', [FcmTokenController::class, 'remove']);
 
-    Route::get('branches', [BranchController::class, 'index']);
-    Route::get('branches/{id}', [BranchController::class, 'show']);
+    Route::get('pharmacies', [PharmacyController::class, 'index']);
+    Route::get('pharmacies/{id}', [PharmacyController::class, 'show']);
 
-    Route::get('products', [BranchProductController::class, 'index']);
-    Route::get('products/{id}', [BranchProductController::class, 'show']);
-    Route::get('branches/{branchId}/products', [BranchProductController::class, 'showBranchProducts']);
-    Route::get('branches/{branchId}/products/{branchProductId}', [BranchProductController::class, 'showSingleBranchProduct']);
-    Route::get('branches/{branchId}/categories', [BranchProductController::class, 'showBranchCategories']);
+    Route::get('products', [PharmacyProductController::class, 'index']);
+    Route::get('products/{id}', [PharmacyProductController::class, 'show']);
+    Route::get('pharmacies/{pharmacyId}/products', [PharmacyProductController::class, 'showPharmacyProducts']);
+    Route::get('pharmacies/{pharmacyId}/products/{pharmacyProductId}', [PharmacyProductController::class, 'showSinglePharmacyProduct']);
+    Route::get('pharmacies/{pharmacyId}/categories', [PharmacyProductController::class, 'showPharmacyCategories']);
 
-    Route::middleware('ability:pharmacist,branch_admin')->group(function () {
-        Route::get('branch/forecasts', [ForecastController::class, 'index']);
+    Route::middleware('ability:pharmacist,pharmacy_admin')->group(function () {
+        Route::get('pharmacy/forecasts', [ForecastController::class, 'index']);
     });
 
     Route::middleware('ability:customer')->group(function () {
@@ -105,11 +105,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
 
-    Route::middleware(['ability:branch_admin'])->group(function () {
+    Route::middleware(['ability:pharmacy_admin'])->group(function () {
         Route::get(
-            'branch/dashboard',
+            'pharmacy/dashboard',
             fn() =>
-            response()->json(['message' => 'Branch Admin dashboard'])
+            response()->json(['message' => 'Pharmacy Admin dashboard'])
         );
 
         Route::get('pos/products', [PosController::class, 'getProducts']);
@@ -118,34 +118,34 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('pos/pickup-orders/{order}/complete', [PosController::class, 'completePickupOrder']);
 
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
-        Route::get('pharmacists', [BranchPharmacistController::class, 'index']);
-        Route::put('pharmacists/{pharmacist}', [BranchPharmacistController::class, 'update']);
-        Route::delete('pharmacists/{pharmacist}', [BranchPharmacistController::class, 'destroy']);
+        Route::get('pharmacists', [PharmacyPharmacistController::class, 'index']);
+        Route::put('pharmacists/{pharmacist}', [PharmacyPharmacistController::class, 'update']);
+        Route::delete('pharmacists/{pharmacist}', [PharmacyPharmacistController::class, 'destroy']);
 
-        Route::post('branch/forecasts/sync', [ForecastSyncController::class, 'sync']);
-        Route::get('branch/forecast-insights', [ForecastInsightController::class, 'show']);
+        Route::post('pharmacy/forecasts/sync', [ForecastSyncController::class, 'sync']);
+        Route::get('pharmacy/forecast-insights', [ForecastInsightController::class, 'show']);
 
-        Route::post('products', [BranchProductController::class, 'store']);
-        Route::post('products/import', [BranchProductController::class, 'importBranchProducts']);
-        Route::put('products/{id}', [BranchProductController::class, 'update']);
-        Route::delete('products/{id}', [BranchProductController::class, 'destroy']);
+        Route::post('products', [PharmacyProductController::class, 'store']);
+        Route::post('products/import', [PharmacyProductController::class, 'importPharmacyProducts']);
+        Route::put('products/{id}', [PharmacyProductController::class, 'update']);
+        Route::delete('products/{id}', [PharmacyProductController::class, 'destroy']);
 
-        Route::get('branch/orders/count', [OrderController::class, 'countTotalOrders']);
-        Route::get('branch/orders/stats', [OrderController::class, 'getTodayStats']);
-        Route::get('branch/orders', [OrderController::class, 'index']);
-        Route::get('branch/orders/{order}', [OrderController::class, 'show']);
+        Route::get('pharmacy/orders/count', [OrderController::class, 'countTotalOrders']);
+        Route::get('pharmacy/orders/stats', [OrderController::class, 'getTodayStats']);
+        Route::get('pharmacy/orders', [OrderController::class, 'index']);
+        Route::get('pharmacy/orders/{order}', [OrderController::class, 'show']);
 
         // inventory
-        Route::get('branch/inventory/total-products', [InventoryController::class, 'getTotalProductCount']);
-        Route::get('branch/inventory/metrics', [InventoryController::class, 'getInventoryMetrics']);
-        Route::get('branch/inventory/products', [InventoryController::class, 'getInventoryProducts']);
-        Route::get('branch/inventory/logs', [InventoryController::class, 'getInventoryLogs']);
+        Route::get('pharmacy/inventory/total-products', [InventoryController::class, 'getTotalProductCount']);
+        Route::get('pharmacy/inventory/metrics', [InventoryController::class, 'getInventoryMetrics']);
+        Route::get('pharmacy/inventory/products', [InventoryController::class, 'getInventoryProducts']);
+        Route::get('pharmacy/inventory/logs', [InventoryController::class, 'getInventoryLogs']);
 
         // product batches
-        Route::get('branch/inventory/products/{branchProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'index']);
-        Route::post('branch/inventory/products/{branchProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'store']);
-        Route::patch('branch/inventory/batches/{batchId}', [\App\Http\Controllers\API\ProductBatchController::class, 'update']);
-        Route::post('branch/inventory/products/{branchProductId}/stock-out', [\App\Http\Controllers\API\ProductBatchController::class, 'stockOut']);
+        Route::get('pharmacy/inventory/products/{pharmacyProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'index']);
+        Route::post('pharmacy/inventory/products/{pharmacyProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'store']);
+        Route::patch('pharmacy/inventory/batches/{batchId}', [\App\Http\Controllers\API\ProductBatchController::class, 'update']);
+        Route::post('pharmacy/inventory/products/{pharmacyProductId}/stock-out', [\App\Http\Controllers\API\ProductBatchController::class, 'stockOut']);
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {
@@ -157,6 +157,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('admin/register', [AuthController::class, 'adminRegister']);
 
-        Route::apiResource('branches', BranchController::class)->except(['index', 'show']);
+        Route::apiResource('pharmacies', PharmacyController::class)->except(['index', 'show']);
     });
 });

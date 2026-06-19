@@ -12,7 +12,7 @@ export async function submitCheckoutOrder({
   items,
   hasPrescription,
   prescriptionImage,
-  selectedBranchLabel,
+  selectedPharmacyLabel,
   scheduledPickupAt,
   customerNote,
 }) {
@@ -21,7 +21,7 @@ export async function submitCheckoutOrder({
   const orderPayload = await placeCustomerOrder({
     paymentMethod: 'cash',
     scheduledPickupAt: scheduledPickupAt.toISOString(),
-    pickedUpAt: selectedBranchLabel,
+    pickedUpAt: selectedPharmacyLabel,
     note: customerNote || null,
     cartItemIds: selectedCartItemIds,
   })
@@ -42,7 +42,7 @@ export async function submitCheckoutOrder({
   }
 }
 
-// Order item matching uses branch_product_id because cart/order item ids are different entities.
+// Order item matching uses pharmacy_product_id because cart/order item ids are different entities.
 async function uploadPrescriptionItemsIfNeeded({
   hasPrescription,
   items,
@@ -57,7 +57,7 @@ async function uploadPrescriptionItemsIfNeeded({
 
   for (const item of prescriptionItems) {
     const matchedOrderItem = orderItems.find(
-      (orderItem) => Number(orderItem?.branch_product_id) === Number(item?.branchProductId),
+      (orderItem) => Number(orderItem?.pharmacy_product_id) === Number(item?.pharmacyProductId),
     )
 
     const orderItemId = Number(matchedOrderItem?.id || 0)

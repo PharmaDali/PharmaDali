@@ -8,8 +8,8 @@ import ProductCard from '@src/shared/components/ProductCard'
 import SortOverlay from '@src/shared/components/SortOverlay'
 import FilterOverlay from '@src/shared/components/FilterOverlay'
 import { useSelectionPhase } from '@src/shared/SelectionPhaseContext'
-import { getBranchCategories, getProducts } from '@src/shared/services/productService'
-import { addBranchProductToCart } from '@shared/utils/cartUtils'
+import { getPharmacyCategories, getProducts } from '@src/shared/services/productService'
+import { addPharmacyProductToCart } from '@shared/utils/cartUtils'
 import { useToast } from '@shared/hooks/useToast'
 import ToastMessage from '@shared/components/ToastMessage'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -38,8 +38,8 @@ function formatPrice(value) {
 const Categories = () => {
   const { category: initialCategoryLabel, categoryId: initialCategoryId } = useLocalSearchParams()
   const insets = useSafeAreaInsets()
-  const { selectedBranch } = useSelectionPhase()
-  const selectedBranchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null
+  const { selectedPharmacy } = useSelectionPhase()
+  const selectedPharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null
   const { toast, showError } = useToast()
 
   const [categories, setCategories] = useState([])
@@ -64,24 +64,24 @@ const Categories = () => {
 
   // Fetch Categories once
   useEffect(() => {
-    if (!selectedBranchId) return
+    if (!selectedPharmacyId) return
     
-    getBranchCategories(selectedBranchId).then(payload => {
+    getPharmacyCategories(selectedPharmacyId).then(payload => {
       setCategories(normalizeApiList(payload))
     }).catch(() => {
       setCategories([])
     })
-  }, [selectedBranchId])
+  }, [selectedPharmacyId])
 
   // Initial products load and reload on filter/category change
   const loadInitialProducts = useCallback(async (refresh = false) => {
-    if (!selectedBranchId) return
+    if (!selectedPharmacyId) return
 
     if (refresh) setIsRefreshing(true)
     else setIsLoading(true)
 
     try {
-      const payload = await getProducts(selectedBranchId, selectedCategoryId, {
+      const payload = await getProducts(selectedPharmacyId, selectedCategoryId, {
         perPage: PRODUCTS_PER_PAGE,
         ...filters,
         sort: selectedSort
@@ -98,14 +98,14 @@ const Categories = () => {
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }, [selectedBranchId, selectedCategoryId, filters, selectedSort])
+  }, [selectedPharmacyId, selectedCategoryId, filters, selectedSort])
 
   useEffect(() => {
     loadInitialProducts()
   }, [loadInitialProducts])
 
   const loadMoreProducts = async () => {
-    if (isFetchingMoreRef.current || !hasMore || !nextCursor || !selectedBranchId) {
+    if (isFetchingMoreRef.current || !hasMore || !nextCursor || !selectedPharmacyId) {
       return
     }
 
@@ -113,7 +113,7 @@ const Categories = () => {
     setIsFetchingMore(true)
 
     try {
-      const payload = await getProducts(selectedBranchId, selectedCategoryId, {
+      const payload = await getProducts(selectedPharmacyId, selectedCategoryId, {
         cursor: nextCursor,
         perPage: PRODUCTS_PER_PAGE,
         ...filters,
@@ -132,14 +132,14 @@ const Categories = () => {
     }
   }
 
-  const handleAddToCart = ({ branchProductId, quantity = 1 }) => {
-    return addBranchProductToCart({
-      branchId: selectedBranchId,
-      branchProductId,
+  const handleAddToCart = ({ pharmacyProductId, quantity = 1 }) => {
+    return addPharmacyProductToCart({
+      pharmacyId: selectedPharmacyId,
+      pharmacyProductId,
       quantity,
       validationMessages: {
-        missingBranch: 'Please select a branch and try again.',
-        missingProduct: 'Please select a branch and try again.',
+        missingPharmacy: 'Please select a pharmacy and try again.',
+        missingProduct: 'Please select a pharmacy and try again.',
       },
     }).then((result) => {
       if (!result.ok) {
@@ -153,8 +153,8 @@ const Categories = () => {
     <View className="w-1/2 px-1 mb-4">
       <ProductCard
         productId={String(item?.product_id ?? '')}
-        branchProductId={item?.id}
-        branchId={selectedBranchId}
+        pharmacyProductId={item?.id}
+        pharmacyId={selectedPharmacyId}
         img={item?.product?.image_url}
         product={item?.product}
         categoryName={item?.category?.category_name}
@@ -219,6 +219,11 @@ const Categories = () => {
                 >
                   <Text style={selectedCategoryId === null ? styles.dropdownActive : styles.dropdownInactive}>All</Text>
                 </TouchableOpacity>
+                {!isLoading && selectedPharmacyId && categories.length === 0 && (
+                  <Text className="px-1" style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
+                    No categories found for this pharmacy.
+                  </Text>
+                )}
                 {categories.map((cat) => {
                   const label = toTitleCase(cat?.category_name)
                   const isActive = String(cat.id) === String(selectedCategoryId)

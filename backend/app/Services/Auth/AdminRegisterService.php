@@ -23,12 +23,12 @@ class AdminRegisterService
                 'date_of_birth' => $data['date_of_birth'] ?? null,
                 'address'       => $data['address'] ?? null,
                 'role'          => $role,
-                'branch_id'     => $data['branch_id'] ?? null,
+                'pharmacy_id'     => $data['pharmacy_id'] ?? null,
                 'is_active'     => $data['is_active'] ?? true,
             ]);
         });
 
-        $user->load('branch');
+        $user->load('pharmacy');
 
         $token = $user->createToken('API Token', [$role], now()->addHours(8))->plainTextToken;
 

@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class BranchRequest extends FormRequest
+class PharmacyRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,7 +22,7 @@ class BranchRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'branch_name' => 'required|string|max:255',
+            'pharmacy_name' => 'required|string|max:255',
             'location' => 'required|string|max:255',
             'contact_number' => 'required|string|max:20',
             'is_active' => 'boolean',

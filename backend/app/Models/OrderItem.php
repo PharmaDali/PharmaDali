@@ -12,7 +12,7 @@ class OrderItem extends Model
 
     protected $fillable = [
         'order_id',
-        'branch_product_id',
+        'pharmacy_product_id',
         'quantity',
         'unit_price_snapshot',
         'line_total',
@@ -29,9 +29,9 @@ class OrderItem extends Model
         return $this->belongsTo(Order::class);
     }
 
-    public function branchProduct()
+    public function pharmacyProduct()
     {
-        return $this->belongsTo(BranchProduct::class);
+        return $this->belongsTo(PharmacyProduct::class);
     }
 
     public function orderItemPrescription(): HasOne

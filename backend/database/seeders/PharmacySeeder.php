@@ -3,17 +3,17 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Branch;
+use App\Models\Pharmacy;
 
-class BranchSeeder extends Seeder
+class PharmacySeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        Branch::updateOrCreate(
-            ['branch_name' => 'Main Branch'],
+        Pharmacy::updateOrCreate(
+            ['pharmacy_name' => 'Main Pharmacy'],
             [
                 'location' => '123 Tinurik, Tanauan City, Batangas',
                 'contact_number' => '09987654321',

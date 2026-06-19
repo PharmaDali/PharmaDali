@@ -5,12 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Branch extends Model
+class Pharmacy extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'pharmacies';
+
     protected $fillable = [
-        'branch_name',
+        'pharmacy_name',
         'location',
         'contact_number',
         'is_active',
@@ -18,27 +20,27 @@ class Branch extends Model
 
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class, 'pharmacy_id');
     }
 
     public function admins()
     {
-        return $this->hasMany(User::class)->where('role', 'branch_admin');
+        return $this->hasMany(User::class, 'pharmacy_id')->where('role', 'pharmacy_admin');
     }
 
     public function pharmacists()
     {
-        return $this->hasMany(User::class)->where('role', 'pharmacist');    
+        return $this->hasMany(User::class, 'pharmacy_id')->where('role', 'pharmacist');
     }
 
-    public function branchProducts()
+    public function pharmacyProducts()
     {
-        return $this->hasMany(BranchProduct::class);
+        return $this->hasMany(PharmacyProduct::class, 'pharmacy_id');
     }
 
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'branch_products')
+        return $this->belongsToMany(Category::class, 'pharmacy_products', 'pharmacy_id', 'category_id')
             ->withPivot(['product_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
             ->withTimestamps();
     }

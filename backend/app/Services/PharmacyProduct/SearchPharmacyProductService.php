@@ -1,36 +1,36 @@
 <?php
 
-namespace App\Services\BranchProduct;
+namespace App\Services\PharmacyProduct;
 
-use App\Models\BranchProduct;
+use App\Models\PharmacyProduct;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Support\Facades\Cache;
 
-class SearchBranchProductService
+class SearchPharmacyProductService
 {
     private const DEFAULT_PER_PAGE = 20;
     private const CACHE_TTL = 300; // 5 minutes
 
     /**
-     * Search branch products with caching.
+     * Search pharmacy products with caching.
      */
     public function handle(
-        int $branchId,
+        int $pharmacyId,
         string $query,
         int $perPage = self::DEFAULT_PER_PAGE,
         ?string $cursor = null,
     ): CursorPaginator {
         $perPage = min($perPage, 50);
         
-        $cacheKey = "search_products_{$branchId}_" . md5($query) . "_{$perPage}_{$cursor}";
+        $cacheKey = "search_products_{$pharmacyId}_" . md5($query) . "_{$perPage}_{$cursor}";
         
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($branchId, $query, $perPage, $cursor) {
-            return BranchProduct::query()
+        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($pharmacyId, $query, $perPage, $cursor) {
+            return PharmacyProduct::query()
                 ->with([
                     'product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
                     'category:id,category_name,description',
                 ])
-                ->where('branch_id', $branchId)
+                ->where('pharmacy_id', $pharmacyId)
                 ->whereHas('product', function ($q) use ($query) {
                     $q->where('product_name', 'like', "%{$query}%")
                       ->orWhere('generic_name', 'like', "%{$query}%")

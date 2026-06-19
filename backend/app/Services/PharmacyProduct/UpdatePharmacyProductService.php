@@ -1,35 +1,35 @@
 <?php
 
-namespace App\Services\BranchProduct;
+namespace App\Services\PharmacyProduct;
 
 use App\Repositories\ProductRepository;
-use App\Repositories\BranchProductRepository;
+use App\Repositories\PharmacyProductRepository;
 use App\Models\Products;
 use App\Models\Category;
 
-class UpdateBranchProductService
+class UpdatePharmacyProductService
 {
     public function __construct(
         private readonly ProductRepository $productRepository,
-        private readonly BranchProductRepository $branchProductRepository,
+        private readonly PharmacyProductRepository $pharmacyProductRepository,
     ) {}
 
-    public function handle(int $productId, array $validated, ?int $branchId): Products
+    public function handle(int $productId, array $validated, ?int $pharmacyId): Products
     {
         $product = $this->productRepository->find($productId);
 
-        // Separate Products fields from BranchProduct fields
+        // Separate Products fields from PharmacyProduct fields
         $productFields = array_intersect_key($validated, array_flip([
             'product_type', 'product_name', 'generic_name', 'brand_name', 'description', 'form', 'strength', 'size'
         ]));
 
         $this->productRepository->update($product, $productFields);
 
-        // Update branch product if the user belongs to a branch
-        if ($branchId) {
-            $branchProduct = $this->branchProductRepository->findByBranchAndProduct($branchId, $product->id);
+        // Update pharmacy product if the user belongs to a pharmacy
+        if ($pharmacyId) {
+            $pharmacyProduct = $this->pharmacyProductRepository->findByPharmacyAndProduct($pharmacyId, $product->id);
 
-            if ($branchProduct) {
+            if ($pharmacyProduct) {
                 $bpFields = [];
                 if (isset($validated['selling_price'])) {
                     $bpFields['selling_price'] = $validated['selling_price'];
@@ -47,7 +47,7 @@ class UpdateBranchProductService
                 }
 
                 if (!empty($bpFields)) {
-                    $this->branchProductRepository->update($branchProduct, $bpFields);
+                    $this->pharmacyProductRepository->update($pharmacyProduct, $bpFields);
                 }
             }
         }

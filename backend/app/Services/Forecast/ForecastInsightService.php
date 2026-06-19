@@ -30,10 +30,10 @@ class ForecastInsightService
 
     public function generate(User $user, string $demandGranularity, string $salesGranularity): array
     {
-        if (!$user->branch_id) {
+        if (!$user->pharmacy_id) {
             return [
-                'demand' => 'No branch data available yet.',
-                'sales' => 'No branch data available yet.',
+                'demand' => 'No pharmacy data available yet.',
+                'sales' => 'No pharmacy data available yet.',
             ];
         }
 
@@ -44,14 +44,14 @@ class ForecastInsightService
             ];
         }
 
-        $demand = $this->loadDemandData($user->branch_id, $demandGranularity);
-        $sales = $this->loadSalesData($user->branch_id, $salesGranularity);
+        $demand = $this->loadDemandData($user->pharmacy_id, $demandGranularity);
+        $sales = $this->loadSalesData($user->pharmacy_id, $salesGranularity);
         $weekStart = Carbon::now()->startOfWeek(CarbonInterface::MONDAY)->toDateString();
         $sourceHash = $this->buildSourceHash($demand, $sales, $demandGranularity, $salesGranularity);
 
         // Return cached DB record if data hasn't changed
         $existing = ForecastInsight::query()
-            ->where('tenant_id', $user->branch_id)
+            ->where('tenant_id', $user->pharmacy_id)
             ->where('week_start', $weekStart)
             ->where('demand_granularity', $demandGranularity)
             ->where('sales_granularity', $salesGranularity)
@@ -67,7 +67,7 @@ class ForecastInsightService
 
         // Return in-memory cache if available
         $cacheKey = $this->getCacheKey(
-            $user->branch_id,
+            $user->pharmacy_id,
             $weekStart,
             $demandGranularity,
             $salesGranularity,
@@ -93,7 +93,7 @@ class ForecastInsightService
 
         ForecastInsight::updateOrCreate(
             [
-                'tenant_id' => $user->branch_id,
+                'tenant_id' => $user->pharmacy_id,
                 'week_start' => $weekStart,
                 'demand_granularity' => $demandGranularity,
                 'sales_granularity' => $salesGranularity,

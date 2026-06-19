@@ -1,19 +1,19 @@
 import { addCartItem, getCartItems } from '@shared/services/cartService';
 import { notifyCartCountUpdated } from '@shared/services/cartCountEvents';
 
-let cartBranchProductIds = null;
+let cartPharmacyProductIds = null;
 
 export async function initializeCartProductIdsCache() {
   try {
     const { items } = await getCartItems();
-    cartBranchProductIds = new Set(items.map((item) => Number(item.branchProductId)));
+    cartPharmacyProductIds = new Set(items.map((item) => Number(item.pharmacyProductId)));
   } catch {
-    cartBranchProductIds = new Set();
+    cartPharmacyProductIds = new Set();
   }
 }
 
 export function resetCartProductIdsCache() {
-  cartBranchProductIds = null;
+  cartPharmacyProductIds = null;
 }
 
 function parsePositiveInteger(value) {
@@ -26,40 +26,40 @@ function parsePositiveInteger(value) {
   return Math.floor(parsed);
 }
 
-export async function addBranchProductToCart({
-  branchId,
-  branchProductId,
+export async function addPharmacyProductToCart({
+  pharmacyId,
+  pharmacyProductId,
   quantity = 1,
   validationMessages = {},
 }) {
-  const normalizedBranchId = parsePositiveInteger(branchId);
-  const normalizedBranchProductId = parsePositiveInteger(branchProductId);
+  const normalizedPharmacyId = parsePositiveInteger(pharmacyId);
+  const normalizedPharmacyProductId = parsePositiveInteger(pharmacyProductId);
 
-  if (!normalizedBranchProductId) {
+  if (!normalizedPharmacyProductId) {
     return {
       ok: false,
       errorMessage: validationMessages.missingProduct || 'Please select a product and try again.',
     };
   }
 
-  if (!normalizedBranchId) {
+  if (!normalizedPharmacyId) {
     return {
       ok: false,
-      errorMessage: validationMessages.missingBranch || 'Please select a branch first.',
+      errorMessage: validationMessages.missingPharmacy || 'Please select a pharmacy first.',
     };
   }
 
   // Check if the product is already in the cart using the cache. If the cache is not initialized, fetch from server.
   let isAlreadyInCart = false;
-  if (cartBranchProductIds !== null) {
-    isAlreadyInCart = cartBranchProductIds.has(normalizedBranchProductId);
+  if (cartPharmacyProductIds !== null) {
+    isAlreadyInCart = cartPharmacyProductIds.has(normalizedPharmacyProductId);
   } else {
     try {
       const { items } = await getCartItems();
-      cartBranchProductIds = new Set(items.map((item) => Number(item.branchProductId)));
-      isAlreadyInCart = cartBranchProductIds.has(normalizedBranchProductId);
+      cartPharmacyProductIds = new Set(items.map((item) => Number(item.pharmacyProductId)));
+      isAlreadyInCart = cartPharmacyProductIds.has(normalizedPharmacyProductId);
     } catch {
-      cartBranchProductIds = new Set();
+      cartPharmacyProductIds = new Set();
     }
   }
 
@@ -70,13 +70,13 @@ export async function addBranchProductToCart({
 
   try {
     const result = await addCartItem({
-      branchId: normalizedBranchId,
-      branchProductId: normalizedBranchProductId,
+      pharmacyId: normalizedPharmacyId,
+      pharmacyProductId: normalizedPharmacyProductId,
       quantity,
     });
 
-    if (cartBranchProductIds !== null) {
-      cartBranchProductIds.add(normalizedBranchProductId);
+    if (cartPharmacyProductIds !== null) {
+      cartPharmacyProductIds.add(normalizedPharmacyProductId);
     }
 
     // Re-sync with exact server count on success

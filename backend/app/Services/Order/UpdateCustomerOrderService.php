@@ -55,8 +55,8 @@ class UpdateCustomerOrderService
             'status' => 'success',
             'message' => 'Order updated successfully.',
             'data' => $order->fresh()->load([
-                'branch:id,branch_name,location',
-                'items:id,order_id,branch_product_id,quantity,unit_price_snapshot,line_total,product_name',
+                'pharmacy:id,pharmacy_name,location',
+                'items:id,order_id,pharmacy_product_id,quantity,unit_price_snapshot,line_total,product_name',
             ]),
         ]);
     }

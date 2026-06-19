@@ -22,16 +22,16 @@ class AdminRegisterRequest extends FormRequest
             'mobile_number' => ['required', 'string', 'max:20'],
             'date_of_birth' => ['nullable', 'date'],
             'address'       => ['nullable', 'string', 'max:255'],
-            'role'          => ['required', Rule::in(['branch_admin', 'super_admin'])],
-            'branch_id'     => ['nullable', 'exists:branches,id'],
+            'role'          => ['required', Rule::in(['pharmacy_admin', 'super_admin'])],
+            'pharmacy_id'     => ['nullable', 'exists:pharmacies,id'],
             'is_active'     => ['sometimes', 'boolean'],
         ];
     }
 
     public function withValidator($validator): void
     {
-        $validator->sometimes('branch_id', ['required'], function ($input) {
-            return ($input->role ?? null) === 'branch_admin';
+        $validator->sometimes('pharmacy_id', ['required'], function ($input) {
+            return ($input->role ?? null) === 'pharmacy_admin';
         });
     }
 
@@ -47,9 +47,9 @@ class AdminRegisterRequest extends FormRequest
             'password.confirmed'     => 'Password confirmation does not match.',
             'mobile_number.required' => 'Mobile number is required.',
             'role.required'          => 'Admin role is required.',
-            'role.in'                => 'Role must be either branch_admin or super_admin.',
-            'branch_id.required'     => 'Branch is required for branch admin accounts.',
-            'branch_id.exists'       => 'Selected branch does not exist.',
+            'role.in'                => 'Role must be either pharmacy_admin or super_admin.',
+            'pharmacy_id.required'     => 'Pharmacy is required for pharmacy admin accounts.',
+            'pharmacy_id.exists'       => 'Selected pharmacy does not exist.',
         ];
     }
 }

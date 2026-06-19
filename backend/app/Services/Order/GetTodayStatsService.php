@@ -13,9 +13,9 @@ class GetTodayStatsService
         $query = Order::whereDate('created_at', today())
             ->where('payment_status', 'paid');
 
-        // For branch admins/pharmacists, scope to their branch
-        if ($user && $user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
+        // For pharmacy admins/pharmacists, scope to their pharmacy
+        if ($user && $user->pharmacy_id) {
+            $query->where('pharmacy_id', $user->pharmacy_id);
         }
 
         $totalOrders = (clone $query)->count();

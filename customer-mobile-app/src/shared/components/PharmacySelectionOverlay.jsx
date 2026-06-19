@@ -3,9 +3,9 @@ import { View, Text, Modal, Pressable, ScrollView, StyleSheet } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@shared/theme/colorPalette';
 import RedStoreIcon from '@assets/icons/red_store_icon.svg';
-import { getBranchDataInSelectionPhase } from '@shared/services/selectionPhaseService';
+import { getPharmacyDataInSelectionPhase } from '@shared/services/selectionPhaseService';
 
-const fallbackBranches = [];
+const fallbackPharmacies = [];
 
 function parseTimeToMinutes(timeValue) {
   if (!timeValue || typeof timeValue !== 'string') {
@@ -42,7 +42,7 @@ function formatTimeToAmPm(timeValue) {
   return `${hours12}:${String(mins).padStart(2, '0')} ${period}`;
 }
 
-function isBranchOpenNow(openingHour, closingHour, now = new Date()) {
+function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
   const openingMinutes = parseTimeToMinutes(openingHour);
   const closingMinutes = parseTimeToMinutes(closingHour);
 
@@ -66,23 +66,23 @@ function isBranchOpenNow(openingHour, closingHour, now = new Date()) {
   return currentMinutes >= openingMinutes || currentMinutes < closingMinutes;
 }
 
-function BranchCard({ branch, onSelect }) {
+function PharmacyCard({ pharmacy, onSelect }) {
   return (
     <View className="flex-row items-center border border-gray-300 rounded-xl px-3 py-3 mb-3" style={{ backgroundColor: '#F7FBFE' }}>
       <View className="mr-3">
         <RedStoreIcon width={32} height={32} />
       </View>
       <View className="flex-1">
-        <Text style={styles.branchName}>{branch.name}</Text>
-        <Text style={styles.branchDetail}>{branch.address}</Text>
+        <Text style={styles.pharmacyName}>{pharmacy.name}</Text>
+        <Text style={styles.pharmacyDetail}>{pharmacy.address}</Text>
         <View className="flex-row items-center mt-1">
-          <Text style={styles.branchDetail}>{branch.hours}</Text>
-          {branch.isOpen && (
+          <Text style={styles.pharmacyDetail}>{pharmacy.hours}</Text>
+          {pharmacy.isOpen && (
             <View className="bg-green-500 rounded-full px-2 py-0.5 ml-2">
               <Text style={styles.openBadge}>Open now</Text>
             </View>
           )}
-          {!branch.isOpen && (
+          {!pharmacy.isOpen && (
             <View className="bg-red-500 rounded-full px-2 py-0.5 ml-2">
               <Text style={styles.closedBadge}>Closed</Text>
             </View>
@@ -92,7 +92,7 @@ function BranchCard({ branch, onSelect }) {
       <Pressable
         className="rounded-full px-4 py-1.5 ml-2"
         style={{ backgroundColor: colors.buttonColor }}
-        onPress={() => onSelect(branch)}
+        onPress={() => onSelect(pharmacy)}
       >
         <Text style={styles.selectText}>Select</Text>
       </Pressable>
@@ -100,9 +100,9 @@ function BranchCard({ branch, onSelect }) {
   );
 }
 
-export default function BranchSelectionOverlay({ visible, onSelect }) {
+export default function PharmacySelectionOverlay({ visible, onSelect }) {
   const insets = useSafeAreaInsets();
-  const [remoteBranches, setRemoteBranches] = useState([]);
+  const [remotePharmacies, setRemotePharmacies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -111,12 +111,12 @@ export default function BranchSelectionOverlay({ visible, onSelect }) {
 
     let isMounted = true;
 
-    async function fetchBranchData() {
+    async function fetchPharmacyData() {
       setIsLoading(true);
       setErrorMessage('');
 
       try {
-        const data = await getBranchDataInSelectionPhase();
+        const data = await getPharmacyDataInSelectionPhase();
         const normalized = Array.isArray(data)
           ? data
           : Array.isArray(data?.data)
@@ -130,25 +130,25 @@ export default function BranchSelectionOverlay({ visible, onSelect }) {
           return {
             formattedOpeningHour,
             formattedClosingHour,
-            id: item.id ?? item.branch_id,
-            name: item.branch_name,
+            id: item.id ?? item.pharmacy_id,
+            name: item.pharmacy_name,
             address: item.location,
             hours:
               formattedOpeningHour && formattedClosingHour
                 ? `${formattedOpeningHour} - ${formattedClosingHour}`
                 : 'Store hours unavailable',
-            isOpen: isBranchOpenNow(item.opening_hour, item.closing_hour),
+            isOpen: isPharmacyOpenNow(item.opening_hour, item.closing_hour),
             isOperating: typeof item.is_active === 'boolean' ? item.is_active : true,
           };
         });
 
         if (isMounted) {
-          setRemoteBranches(mapped);
+          setRemotePharmacies(mapped);
         }
       } catch (error) {
         if (isMounted) {
-          setErrorMessage(error?.message || 'Failed to load branches.');
-          setRemoteBranches([]);
+          setErrorMessage(error?.message || 'Failed to load pharmacies.');
+          setRemotePharmacies([]);
         }
       } finally {
         if (isMounted) {
@@ -157,40 +157,40 @@ export default function BranchSelectionOverlay({ visible, onSelect }) {
       }
     }
 
-    fetchBranchData();
+    fetchPharmacyData();
 
     return () => {
       isMounted = false;
     };
   }, [visible]);
 
-  const displayedBranches = useMemo(() => {
-    if (remoteBranches.length > 0) {
-      return remoteBranches;
+  const displayedPharmacies = useMemo(() => {
+    if (remotePharmacies.length > 0) {
+      return remotePharmacies;
     }
 
-    return fallbackBranches;
-  }, [remoteBranches]);
+    return fallbackPharmacies;
+  }, [remotePharmacies]);
 
   return (
     <Modal visible={visible} transparent animationType="slide" statusBarTranslucent>
       <View style={styles.backdrop}>
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-          <Text style={styles.title}>Select Your Pharmacy Branch</Text>
-          <Text style={styles.subtitle}>Select Your Pharmacy Branch</Text>
+          <Text style={styles.title}>Select a Pharmacy</Text>
+          <Text style={styles.subtitle}>Select a Pharmacy</Text>
           <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
-            {isLoading && <Text style={styles.stateText}>Loading branches...</Text>}
+            {isLoading && <Text style={styles.stateText}>Loading pharmacies...</Text>}
 
             {!isLoading && errorMessage ? (
               <Text style={styles.errorText}>{errorMessage}</Text>
             ) : null}
 
-            {!isLoading && displayedBranches.length === 0 ? (
-              <Text style={styles.stateText}>No branches available.</Text>
+            {!isLoading && displayedPharmacies.length === 0 ? (
+              <Text style={styles.stateText}>No pharmacies available.</Text>
             ) : null}
 
-            {displayedBranches.map((branch) => (
-              <BranchCard key={branch.id} branch={branch} onSelect={onSelect} />
+            {displayedPharmacies.map((pharmacy) => (
+              <PharmacyCard key={pharmacy.id} pharmacy={pharmacy} onSelect={onSelect} />
             ))}
           </ScrollView>
         </View>
@@ -213,12 +213,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 2,
   },
-  branchName: {
+  pharmacyName: {
     fontFamily: 'Poppins-SemiBold',
     fontSize: 12,
     color: colors.textColor,
   },
-  branchDetail: {
+  pharmacyDetail: {
     fontFamily: 'Poppins-Medium',
     fontSize: 10,
     color: '#888',

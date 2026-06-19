@@ -16,7 +16,7 @@ import { useSearch } from '@shared/hooks/useSearch';
 import ProductCard from '@shared/components/ProductCard';
 import { formatProductPrice } from '@shared/hooks/useHomeTab';
 import { useSelectionPhase } from '@shared/SelectionPhaseContext';
-import { addBranchProductToCart } from '@shared/utils/cartUtils';
+import { addPharmacyProductToCart } from '@shared/utils/cartUtils';
 import { useToast } from '@shared/hooks/useToast';
 import ToastMessage from '@shared/components/ToastMessage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,8 +24,8 @@ import { useSearchContext } from '@shared/SearchContext';
 
 export default function SearchTab() {
   const insets = useSafeAreaInsets();
-  const { selectedBranch } = useSelectionPhase();
-  const branchId = selectedBranch?.id ?? selectedBranch?.branch_id;
+  const { selectedPharmacy } = useSelectionPhase();
+  const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id;
   const { toast, showError } = useToast();
   const { searchQuery, setSearchQuery } = useSearchContext();
   
@@ -41,7 +41,7 @@ export default function SearchTab() {
     performSearch,
     loadRecentSearches,
     clearRecentSearches,
-  } = useSearch(branchId);
+  } = useSearch(pharmacyId);
 
   useEffect(() => {
     loadRecentSearches();
@@ -71,14 +71,14 @@ export default function SearchTab() {
     Keyboard.dismiss();
   };
 
-  const handleAddToCart = useCallback(({ branchProductId, quantity = 1 }) => {
-    return addBranchProductToCart({
-      branchId,
-      branchProductId,
+  const handleAddToCart = useCallback(({ pharmacyProductId, quantity = 1 }) => {
+    return addPharmacyProductToCart({
+      pharmacyId,
+      pharmacyProductId,
       quantity,
       validationMessages: {
-        missingBranch: 'Please select a branch and try again.',
-        missingProduct: 'Please select a branch and try again.',
+        missingPharmacy: 'Please select a pharmacy and try again.',
+        missingProduct: 'Please select a pharmacy and try again.',
       },
     }).then((result) => {
       if (!result.ok) {
@@ -86,14 +86,14 @@ export default function SearchTab() {
       }
       return result;
     });
-  }, [branchId, showError]);
+  }, [pharmacyId, showError]);
 
   const renderProduct = useCallback(({ item }) => (
     <View style={styles.productWrapper}>
       <ProductCard
         productId={item.product?.id}
-        branchProductId={item.id}
-        branchId={branchId}
+        pharmacyProductId={item.id}
+        pharmacyId={pharmacyId}
         img={item.product?.image_url ? { uri: item.product.image_url } : null}
         product={item.product}
         categoryName={item.category?.category_name}
@@ -104,7 +104,7 @@ export default function SearchTab() {
         isPrescribed={Boolean(item.product?.is_prescribed)}
       />
     </View>
-  ), [branchId, handleAddToCart]);
+  ), [pharmacyId, handleAddToCart]);
 
   return (
     <View style={styles.container}>

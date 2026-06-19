@@ -2,10 +2,10 @@
 
 namespace App\Policies;
 
-use App\Models\Branch;
+use App\Models\Pharmacy;
 use App\Models\User;
 
-class BranchPolicy
+class PharmacyPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -18,7 +18,7 @@ class BranchPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Branch $branch): bool
+    public function view(User $user, Pharmacy $pharmacy): bool
     {
         return false;
     }
@@ -34,7 +34,7 @@ class BranchPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Branch $branch): bool
+    public function update(User $user, Pharmacy $pharmacy): bool
     {
         return false;
     }
@@ -42,7 +42,7 @@ class BranchPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Branch $branch): bool
+    public function delete(User $user, Pharmacy $pharmacy): bool
     {
         return $user->hasRole('super_admin');
     }
@@ -50,7 +50,7 @@ class BranchPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Branch $branch): bool
+    public function restore(User $user, Pharmacy $pharmacy): bool
     {
         return false;
     }
@@ -58,7 +58,7 @@ class BranchPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Branch $branch): bool
+    public function forceDelete(User $user, Pharmacy $pharmacy): bool
     {
         return false;
     }

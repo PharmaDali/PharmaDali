@@ -8,12 +8,12 @@ import StoreIcon from '@assets/icons/store_icon.svg';
 import HomeCarousel from '@assets/icons/home_carousel.svg';
 import ProductCard from '@shared/components/ProductCard';
 import SkeletonHome from '@shared/components/SkeletonHome';
-import BranchSelectionOverlay from '@shared/components/BranchSelectionOverlay';
+import PharmacySelectionOverlay from '@shared/components/PharmacySelectionOverlay';
 import SearchOverlay from '@shared/components/SearchOverlay';
 import { useSelectionPhase } from '@shared/SelectionPhaseContext';
 import { formatProductPrice, useHomeTab } from '@shared/hooks/useHomeTab';
 import { useProfile } from '@shared/hooks/useProfile';
-import { addBranchProductToCart } from '@shared/utils/cartUtils';
+import { addPharmacyProductToCart } from '@shared/utils/cartUtils';
 import ToastMessage from '@shared/components/ToastMessage';
 import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -23,32 +23,32 @@ export default function HomeScreen() {
   const route = useRouter();
   const insets = useSafeAreaInsets();
   const { profile } = useProfile();
-  const { setSelectionPhase, selectedBranch, setSelectedBranch } = useSelectionPhase();
-  const { loading, categories, branchProducts, normalizeSelectedBranch } = useHomeTab(selectedBranch);
+  const { setSelectionPhase, selectedPharmacy, setSelectedPharmacy } = useSelectionPhase();
+  const { loading, categories, pharmacyProducts, normalizeSelectedPharmacy } = useHomeTab(selectedPharmacy);
   const { toast, showSuccess, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [hasUnreadMessage, setHasUnreadMessage] = useState(true);
 
-  const branchStatusLabel = selectedBranch?.isOpen
-    ? (selectedBranch?.formattedClosingHour ? `Open til ${selectedBranch.formattedClosingHour}` : 'Open now')
-    : (selectedBranch?.formattedOpeningHour ? `Closed | Opens ${selectedBranch.formattedOpeningHour}` : 'Closed');
-  const isBranchOpen = !!selectedBranch?.isOpen;
+  const pharmacyStatusLabel = selectedPharmacy?.isOpen
+    ? (selectedPharmacy?.formattedClosingHour ? `Open til ${selectedPharmacy.formattedClosingHour}` : 'Open now')
+    : (selectedPharmacy?.formattedOpeningHour ? `Closed | Opens ${selectedPharmacy.formattedOpeningHour}` : 'Closed');
+  const isPharmacyOpen = !!selectedPharmacy?.isOpen;
 
-  const handleBranchSelect = (branch) => {
-    setSelectedBranch(normalizeSelectedBranch(branch));
+  const handlePharmacySelect = (pharmacy) => {
+    setSelectedPharmacy(normalizeSelectedPharmacy(pharmacy));
     setSelectionPhase(false);
   };
 
-  const handleAddToCart = useCallback(({ branchProductId, quantity = 1 }) => {
-    const branchId = selectedBranch?.id ?? selectedBranch?.branch_id;
+  const handleAddToCart = useCallback(({ pharmacyProductId, quantity = 1 }) => {
+    const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id;
 
-    return addBranchProductToCart({
-      branchId,
-      branchProductId,
+    return addPharmacyProductToCart({
+      pharmacyId,
+      pharmacyProductId,
       quantity,
       validationMessages: {
-        missingBranch: 'Please select a branch and try again.',
-        missingProduct: 'Please select a branch and try again.',
+        missingPharmacy: 'Please select a pharmacy and try again.',
+        missingProduct: 'Please select a pharmacy and try again.',
       },
     }).then((result) => {
       if (!result.ok) {
@@ -56,15 +56,15 @@ export default function HomeScreen() {
       }
       return result;
     });
-  }, [selectedBranch, showError]);
+  }, [selectedPharmacy, showError]);
 
   if (loading) return <SkeletonHome />;
 
-  if (!selectedBranch) {
+  if (!selectedPharmacy) {
     return (
       <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
         <SkeletonHome />
-        <BranchSelectionOverlay visible={true} onSelect={handleBranchSelect} />
+        <PharmacySelectionOverlay visible={true} onSelect={handlePharmacySelect} />
       </View>
     );
   }
@@ -82,7 +82,7 @@ export default function HomeScreen() {
         <SearchOverlay
           visible={isSearchVisible}
           onClose={() => setIsSearchVisible(false)}
-          branchId={selectedBranch?.id ?? selectedBranch?.branch_id}
+          pharmacyId={selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id}
           onAddToCart={handleAddToCart}
         />
       )}
@@ -99,13 +99,13 @@ export default function HomeScreen() {
       </View>
 
       <View className="px-4 mt-2">
-        <View className={`flex-row items-center rounded-full px-4 py-2 self-end shadow-sm border ${isBranchOpen ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'}`}>
-          <View className={`w-6 h-6 rounded-full mr-2 items-center justify-center ${isBranchOpen ? 'bg-green-600' : 'bg-red-600'}`}>
+        <View className={`flex-row items-center rounded-full px-4 py-2 self-end shadow-sm border ${isPharmacyOpen ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'}`}>
+          <View className={`w-6 h-6 rounded-full mr-2 items-center justify-center ${isPharmacyOpen ? 'bg-green-600' : 'bg-red-600'}`}>
             <StoreIcon width={24} height={24} />
           </View>
           <Text className="text-sm text-gray-700" style={{ fontFamily: 'Poppins-Medium' }}>
-            <Text style={{ fontFamily: 'Poppins-Bold' }}>{branchStatusLabel} </Text>
-            <Text className={isBranchOpen ? 'text-green-600' : 'text-red-600'}>|</Text> {selectedBranch?.name || 'Selected branch'}
+            <Text style={{ fontFamily: 'Poppins-Bold' }}>{pharmacyStatusLabel} </Text>
+            <Text className={isPharmacyOpen ? 'text-green-600' : 'text-red-600'}>|</Text> {selectedPharmacy?.name || 'Selected pharmacy'}
           </Text>
         </View>
       </View>
@@ -141,7 +141,7 @@ export default function HomeScreen() {
       <View className="mt-4">
         <View className="flex-row items-center justify-between px-4 py-2">
           <Text className="text-2xl text-gray-600 px-2 py-1" style={{ fontFamily: 'Poppins-Bold' }}>
-            Branch Products
+            Pharmacy Products
           </Text>
           <Text
             className="text-md text-gray-600 px-2 py-1"
@@ -154,19 +154,19 @@ export default function HomeScreen() {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={branchProducts}
+          data={pharmacyProducts}
           keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
           style={{ height: 240 }}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}
           renderItem={({ item }) => {
-            const branchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null;
+            const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
 
             return (
               <View>
                 <ProductCard
                   productId={String(item?.product_id ?? '')}
-                  branchProductId={item?.id}
-                  branchId={branchId}
+                  pharmacyProductId={item?.id}
+                  pharmacyId={pharmacyId}
                   img={item?.product?.image_url}
                   product={item?.product}
                   categoryName={item?.category?.category_name}

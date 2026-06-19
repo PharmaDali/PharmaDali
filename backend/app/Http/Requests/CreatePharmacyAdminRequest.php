@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class CreateBranchAdminRequest extends FormRequest
+class CreatePharmacyAdminRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,7 +27,7 @@ class CreateBranchAdminRequest extends FormRequest
             'email'         => ['required', 'email', 'unique:users,email'],
             'password'      => ['required', 'string', 'min:8', 'confirmed'],
             'mobile_number' => ['required', 'string', 'max:20'],
-            'branch_id'     => ['required', 'exists:branches,id'],
+            'pharmacy_id'     => ['required', 'exists:pharmacies,id'],
         ];
     }
 }

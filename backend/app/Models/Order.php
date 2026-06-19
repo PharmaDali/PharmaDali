@@ -13,7 +13,7 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'customer_id',
-        'branch_id',
+        'pharmacy_id',
         'status',
         'verified_by',
         'verified_at',
@@ -51,9 +51,9 @@ class Order extends Model
         return $this->belongsTo(Customer::class);
     }
 
-    public function branch()
+    public function pharmacy()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Pharmacy::class, 'pharmacy_id');
     }
 
     public function items()

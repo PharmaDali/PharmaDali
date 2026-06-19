@@ -62,9 +62,9 @@ function toStatusLabel(rawStatus) {
 }
 
 function mapOrderProduct(item) {
-  const branchProduct = item?.branchProduct || item?.branch_product || null
-  const product = branchProduct?.product || null
-  const categoryName = branchProduct?.category?.category_name || ''
+  const pharmacyProduct = item?.pharmacyProduct || item?.pharmacy_product || null
+  const product = pharmacyProduct?.product || null
+  const categoryName = pharmacyProduct?.category?.category_name || ''
 
   const description =
     item?.product_name ||

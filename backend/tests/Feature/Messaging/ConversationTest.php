@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Messaging;
 
-use App\Models\Branch;
+use App\Models\Pharmacy;
 use App\Models\Conversation;
 use App\Models\Customer;
 use App\Models\Order;
@@ -14,12 +14,12 @@ use Tests\TestCase;
 
 class ConversationTest extends TestCase
 {
-    public function test_customer_can_start_a_branch_scoped_conversation_and_reuse_it(): void
+    public function test_customer_can_start_a_pharmacy_scoped_conversation_and_reuse_it(): void
     {
         $this->prepareSchema();
 
-        $branch = Branch::create([
-            'branch_name' => 'Main Branch',
+        $pharmacy = Pharmacy::create([
+            'pharmacy_name' => 'Main Pharmacy',
             'location' => '123 Test Street',
             'contact_number' => '09123456789',
             'is_active' => true,
@@ -32,19 +32,19 @@ class ConversationTest extends TestCase
             'password' => 'password',
             'role' => 'customer',
             'mobile_number' => '09000000001',
-            'branch_id' => null,
+            'pharmacy_id' => null,
             'is_active' => true,
         ]);
 
         $customer = Customer::create([
             'user_id' => $customerUser->id,
-            'branch_id' => null,
+            'pharmacy_id' => null,
         ]);
 
         $order = Order::create([
             'order_number' => 'ORD-0001',
             'customer_id' => $customer->id,
-            'branch_id' => $branch->id,
+            'pharmacy_id' => $pharmacy->id,
             'status' => 'pending',
             'payment_method' => 'cod',
             'payment_status' => 'unpaid',
@@ -64,7 +64,7 @@ class ConversationTest extends TestCase
         $this->assertDatabaseHas('conversations', [
             'order_id' => $order->id,
             'customer_user_id' => $customerUser->id,
-            'pharmacy_id' => $branch->id,
+            'pharmacy_id' => $pharmacy->id,
             'status' => 'open',
         ]);
 
@@ -80,15 +80,15 @@ class ConversationTest extends TestCase
     {
         $this->prepareSchema();
 
-        $branchA = Branch::create([
-            'branch_name' => 'Branch A',
+        $pharmacyA = Pharmacy::create([
+            'pharmacy_name' => 'Pharmacy A',
             'location' => 'A Street',
             'contact_number' => '09111111111',
             'is_active' => true,
         ]);
 
-        $branchB = Branch::create([
-            'branch_name' => 'Branch B',
+        $pharmacyB = Pharmacy::create([
+            'pharmacy_name' => 'Pharmacy B',
             'location' => 'B Street',
             'contact_number' => '09222222222',
             'is_active' => true,
@@ -101,13 +101,13 @@ class ConversationTest extends TestCase
             'password' => 'password',
             'role' => 'customer',
             'mobile_number' => '09000000003',
-            'branch_id' => $branchA->id,
+            'pharmacy_id' => $pharmacyA->id,
             'is_active' => true,
         ]);
 
         Customer::create([
             'user_id' => $customerUser->id,
-            'branch_id' => $branchA->id,
+            'pharmacy_id' => $pharmacyA->id,
         ]);
 
         $otherCustomerUser = User::create([
@@ -117,19 +117,19 @@ class ConversationTest extends TestCase
             'password' => 'password',
             'role' => 'customer',
             'mobile_number' => '09000000004',
-            'branch_id' => $branchB->id,
+            'pharmacy_id' => $pharmacyB->id,
             'is_active' => true,
         ]);
 
         $otherCustomer = Customer::create([
             'user_id' => $otherCustomerUser->id,
-            'branch_id' => $branchB->id,
+            'pharmacy_id' => $pharmacyB->id,
         ]);
 
         $order = Order::create([
             'order_number' => 'ORD-0002',
             'customer_id' => $otherCustomer->id,
-            'branch_id' => $branchB->id,
+            'pharmacy_id' => $pharmacyB->id,
             'status' => 'pending',
             'payment_method' => 'cod',
             'payment_status' => 'unpaid',
@@ -163,17 +163,17 @@ class ConversationTest extends TestCase
         Schema::dropIfExists('pharmacists');
         Schema::dropIfExists('customers');
         Schema::dropIfExists('users');
-        Schema::dropIfExists('branches');
+        Schema::dropIfExists('pharmacies');
 
         parent::tearDown();
     }
 
     private function prepareSchema(): void
     {
-        if (!Schema::hasTable('branches')) {
-            Schema::create('branches', function (Blueprint $table) {
+        if (!Schema::hasTable('pharmacies')) {
+            Schema::create('pharmacies', function (Blueprint $table) {
                 $table->id();
-                $table->string('branch_name');
+                $table->string('pharmacy_name');
                 $table->string('location');
                 $table->string('contact_number');
                 $table->boolean('is_active')->default(true);
@@ -190,7 +190,7 @@ class ConversationTest extends TestCase
                 $table->string('email')->unique();
                 $table->string('password');
                 $table->string('role');
-                $table->unsignedBigInteger('branch_id')->nullable();
+                $table->unsignedBigInteger('pharmacy_id')->nullable();
                 $table->boolean('is_active')->default(true);
                 $table->string('mobile_number');
                 $table->date('date_of_birth')->nullable();
@@ -204,7 +204,7 @@ class ConversationTest extends TestCase
             Schema::create('customers', function (Blueprint $table) {
                 $table->id();
                 $table->unsignedBigInteger('user_id');
-                $table->unsignedBigInteger('branch_id')->nullable();
+                $table->unsignedBigInteger('pharmacy_id')->nullable();
                 $table->timestamps();
             });
         }
@@ -224,7 +224,7 @@ class ConversationTest extends TestCase
                 $table->id();
                 $table->string('order_number')->unique();
                 $table->unsignedBigInteger('customer_id');
-                $table->unsignedBigInteger('branch_id');
+                $table->unsignedBigInteger('pharmacy_id');
                 $table->string('status');
                 $table->string('payment_method');
                 $table->string('payment_status');

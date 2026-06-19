@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\BranchProduct>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\PharmacyProduct>
  */
-class BranchProductFactory extends Factory
+class PharmacyProductFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,7 +17,7 @@ class BranchProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'branch_id' => \App\Models\Branch::inRandomOrder()->first()->id,
+            'pharmacy_id' => \App\Models\Pharmacy::inRandomOrder()->first()->id,
             'product_id' => \App\Models\Products::inRandomOrder()->first()->id,
             'category_id' => \App\Models\Category::inRandomOrder()->first()->id,
             'stock' => $this->faker->numberBetween(0, 100),

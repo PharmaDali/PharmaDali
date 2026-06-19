@@ -17,8 +17,8 @@ class DisplayCustomerProfile
         }
 
         $customer->load([
-            'user:id,first_name,last_name,email,role,branch_id,mobile_number,address,date_of_birth',
-            'user.branch:id,branch_name,location',
+            'user:id,first_name,last_name,email,role,pharmacy_id,mobile_number,address,date_of_birth',
+            'user.pharmacy:id,pharmacy_name,location',
         ]);
 
         return response()->json([

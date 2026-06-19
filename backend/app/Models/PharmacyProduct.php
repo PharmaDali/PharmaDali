@@ -5,12 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class BranchProduct extends Model
+class PharmacyProduct extends Model
 {
     use HasFactory;
-    
+
+    protected $table = 'pharmacy_products';
+
     protected $fillable = [
-        'branch_id',
+        'pharmacy_id',
         'product_id',
         'category_id',
         'stock',
@@ -20,9 +22,9 @@ class BranchProduct extends Model
         'expiry_date',
     ];
 
-    public function branch()
+    public function pharmacy()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Pharmacy::class, 'pharmacy_id');
     }
 
     public function product()
@@ -37,6 +39,6 @@ class BranchProduct extends Model
 
     public function batches()
     {
-        return $this->hasMany(ProductBatch::class);
+        return $this->hasMany(ProductBatch::class, 'pharmacy_product_id');
     }
 }

@@ -8,6 +8,6 @@ export const getDemandForecasts = async ({ granularity = 'weekly', period = 'cur
     limit: String(limit),
   }).toString();
 
-  const response = await apiRequest(`/branch/forecasts?${query}`);
+  const response = await apiRequest(`/pharmacy/forecasts?${query}`);
   return response.data || [];
 };

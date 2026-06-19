@@ -28,11 +28,11 @@ class ViewCustomerCart
 
 		$cartItems = CartItem::query()
 			->with([
-				'cart:id,customer_id,branch_id,status',
-				'cart.branch:id,branch_name,location',
-				'branchProduct:id,branch_id,product_id,category_id,stock,selling_price,is_available,expiry_date',
-				'branchProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
-				'branchProduct.category:id,category_name,description',
+				'cart:id,customer_id,pharmacy_id,status',
+				'cart.pharmacy:id,pharmacy_name,location',
+				'pharmacyProduct:id,pharmacy_id,product_id,category_id,stock,selling_price,is_available,expiry_date',
+				'pharmacyProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
+				'pharmacyProduct.category:id,category_name,description',
 			])
 			->whereHas('cart', function ($query) use ($customerId) {
 				$query->where('customer_id', $customerId)
@@ -44,43 +44,43 @@ class ViewCustomerCart
 		$items = $cartItems->map(function (CartItem $item) {
 			$quantity = (int) $item->quantity;
 			$unitPrice = (float) $item->price_snapshot;
-			$prescriptionRequired = (bool) ($item->branchProduct?->product?->is_prescribed ?? false);
+			$prescriptionRequired = (bool) ($item->pharmacyProduct?->product?->is_prescribed ?? false);
 
 			return [
 				'id' => $item->id,
 				'cart_id' => $item->cart_id,
-				'branch_product_id' => $item->product_id,
+				'pharmacy_product_id' => $item->pharmacy_product_id,
 				'quantity' => $quantity,
 				'unit_price' => $unitPrice,
 				'line_total' => round($quantity * $unitPrice, 2),
-				'branch' => [
-					'id' => $item->cart?->branch?->id,
-					'branch_name' => $item->cart?->branch?->branch_name,
-					'location' => $item->cart?->branch?->location,
+				'pharmacy' => [
+					'id' => $item->cart?->pharmacy?->id,
+					'pharmacy_name' => $item->cart?->pharmacy?->pharmacy_name,
+					'location' => $item->cart?->pharmacy?->location,
 				],
 				'product' => [
-					'id' => $item->branchProduct?->product?->id,
-					'product_type' => $item->branchProduct?->product?->product_type,
-					'product_name' => $item->branchProduct?->product?->product_name,
-					'generic_name' => $item->branchProduct?->product?->generic_name,
-					'brand_name' => $item->branchProduct?->product?->brand_name,
-					'description' => $item->branchProduct?->product?->description,
-					'form' => $item->branchProduct?->product?->form,
-					'strength' => $item->branchProduct?->product?->strength,
-					'size' => $item->branchProduct?->product?->size,
+					'id' => $item->pharmacyProduct?->product?->id,
+					'product_type' => $item->pharmacyProduct?->product?->product_type,
+					'product_name' => $item->pharmacyProduct?->product?->product_name,
+					'generic_name' => $item->pharmacyProduct?->product?->generic_name,
+					'brand_name' => $item->pharmacyProduct?->product?->brand_name,
+					'description' => $item->pharmacyProduct?->product?->description,
+					'form' => $item->pharmacyProduct?->product?->form,
+					'strength' => $item->pharmacyProduct?->product?->strength,
+					'size' => $item->pharmacyProduct?->product?->size,
 					'is_prescribed' => $prescriptionRequired,
 				],
 				'prescription_required' => $prescriptionRequired,
 				'category' => [
-					'id' => $item->branchProduct?->category?->id,
-					'category_name' => $item->branchProduct?->category?->category_name,
-					'description' => $item->branchProduct?->category?->description,
+					'id' => $item->pharmacyProduct?->category?->id,
+					'category_name' => $item->pharmacyProduct?->category?->category_name,
+					'description' => $item->pharmacyProduct?->category?->description,
 				],
 				'availability' => [
-					'is_available' => (bool) ($item->branchProduct?->is_available ?? false),
-					'stock' => (int) ($item->branchProduct?->stock ?? 0),
-					'current_selling_price' => (float) ($item->branchProduct?->selling_price ?? 0),
-					'expiry_date' => $item->branchProduct?->expiry_date,
+					'is_available' => (bool) ($item->pharmacyProduct?->is_available ?? false),
+					'stock' => (int) ($item->pharmacyProduct?->stock ?? 0),
+					'current_selling_price' => (float) ($item->pharmacyProduct?->selling_price ?? 0),
+					'expiry_date' => $item->pharmacyProduct?->expiry_date,
 				],
 				'created_at' => $item->created_at,
 				'updated_at' => $item->updated_at,

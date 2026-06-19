@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Models\Post;
 use App\Models\Pharmacist;
-use App\Models\Branch;
+use App\Models\Pharmacy;
 use App\Models\Conversation;
 use App\Models\ConversationMessage;
 use App\Models\ConversationParticipant;
@@ -37,7 +37,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'branch_id',
+        'pharmacy_id',
         'is_active',
         'date_of_birth',
         'mobile_number',
@@ -49,9 +49,9 @@ class User extends Authenticatable
         return $this->hasOne(Pharmacist::class);
     }
 
-    public function branch()
+    public function pharmacy()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Pharmacy::class);
     }
 
     public function hasRole(string $role): bool

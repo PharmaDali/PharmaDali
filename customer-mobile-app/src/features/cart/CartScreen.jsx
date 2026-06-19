@@ -114,7 +114,7 @@ export default function CartScreen() {
     clearAll,
     toggleAll,
     viewState,
-    branchLabel,
+    pharmacyLabel,
   } = useCartTab();
 
   const allSelected = viewState.allSelected;
@@ -130,7 +130,7 @@ export default function CartScreen() {
 
     setCheckoutDraft({
       items: selectedItems,
-      branchLabel,
+      pharmacyLabel,
       total,
     });
 
@@ -156,9 +156,9 @@ export default function CartScreen() {
       <View className="flex-row items-start bg-[#E8F4FD] rounded-xl mx-4 mt-4 p-3 border border-[#B8DEF0]">
         <LocationIcon width={17} height={17} />
         <View className="flex-1">
-          <Text className="text-xs" style={styles.fontSemiBold}>Pickup at {branchLabel}</Text>
+          <Text className="text-xs" style={styles.fontSemiBold}>Pickup at {pharmacyLabel}</Text>
           <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
-            Cart is grouped by your branch selections.
+            Cart is grouped by your pharmacy selections.
           </Text>
         </View>
       </View>
@@ -184,7 +184,7 @@ export default function CartScreen() {
           <View className="mx-4 bg-white border border-gray-200 rounded-2xl p-5 items-center">
             <Text className="text-sm text-gray-600" style={styles.fontSemiBold}>Your cart is empty</Text>
             <Text className="text-xs text-gray-500 mt-1 text-center" style={styles.fontMedium}>
-              Add products from a branch to see them here.
+              Add products from a pharmacy to see them here.
             </Text>
           </View>
         )}

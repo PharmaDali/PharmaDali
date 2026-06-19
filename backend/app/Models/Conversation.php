@@ -34,12 +34,7 @@ class Conversation extends Model
 
     public function pharmacy(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
-    }
-
-    public function branch(): BelongsTo
-    {
-        return $this->pharmacy();
+        return $this->belongsTo(Pharmacy::class);
     }
 
     public function customer(): BelongsTo
@@ -85,8 +80,8 @@ class Conversation extends Model
                 return;
             }
 
-            if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
-                $builder->where('pharmacy_id', $user->branch_id)
+            if (in_array($user->role, ['pharmacist', 'branch_admin', 'pharmacy_admin'], true)) {
+                $builder->where('pharmacy_id', $user->pharmacy_id)
                     ->orWhere('assigned_pharmacist_user_id', $user->id);
             }
         });

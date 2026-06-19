@@ -19,10 +19,10 @@ class ConversationService
         $conversations = Conversation::query()
             ->forUser($user)
             ->with([
-                'order:id,order_number,customer_id,branch_id,status,placed_at,completed_at,cancelled_at',
-                'pharmacy:id,branch_name,location',
-                'customer:id,first_name,last_name,email,branch_id',
-                'assignedPharmacist:id,first_name,last_name,email,branch_id',
+                'order:id,order_number,customer_id,pharmacy_id,status,placed_at,completed_at,cancelled_at',
+                'pharmacy:id,pharmacy_name,location',
+                'customer:id,first_name,last_name,email,pharmacy_id',
+                'assignedPharmacist:id,first_name,last_name,email,pharmacy_id',
                 'latestMessage.sender:id,first_name,last_name,role',
             ])
             ->orderByDesc('last_message_at')
@@ -42,7 +42,7 @@ class ConversationService
 
     public function startConversation(User $user, int $orderId): JsonResponse
     {
-        $order = Order::query()->with(['customer.user', 'branch'])->find($orderId);
+        $order = Order::query()->with(['customer.user', 'pharmacy'])->find($orderId);
 
         if (!$order) {
             return response()->json([
@@ -145,7 +145,7 @@ class ConversationService
         }
 
         $message = DB::transaction(function () use ($conversation, $user, $body, $image) {
-            if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
+            if (in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)) {
                 $this->claimConversationForPharmacist($conversation, $user);
             }
 
@@ -190,14 +190,14 @@ class ConversationService
             $conversation = Conversation::query()->firstOrCreate(
                 ['order_id' => $order->id],
                 [
-                    'pharmacy_id' => $order->branch_id,
+                    'pharmacy_id' => $order->pharmacy_id,
                     'customer_user_id' => $order->customer?->user_id,
                     'status' => 'open',
                 ]
             );
 
             $conversation->forceFill([
-                'pharmacy_id' => $conversation->pharmacy_id ?? $order->branch_id,
+                'pharmacy_id' => $conversation->pharmacy_id ?? $order->pharmacy_id,
                 'customer_user_id' => $conversation->customer_user_id ?? $order->customer?->user_id,
             ])->save();
 
@@ -215,12 +215,12 @@ class ConversationService
             return $user->role === 'customer';
         }
 
-        if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
+        if (in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)) {
             if ($conversation->assigned_pharmacist_user_id && (int) $conversation->assigned_pharmacist_user_id === (int) $user->id) {
                 return true;
             }
 
-            return $user->branch_id !== null && (int) $user->branch_id === (int) $conversation->pharmacy_id;
+            return $user->pharmacy_id !== null && (int) $user->pharmacy_id === (int) $conversation->pharmacy_id;
         }
 
         return false;
@@ -257,10 +257,10 @@ class ConversationService
     private function conversationRelations(): array
     {
         return [
-            'order:id,order_number,customer_id,branch_id,status,placed_at,completed_at,cancelled_at',
-            'pharmacy:id,branch_name,location',
-            'customer:id,first_name,last_name,email,branch_id',
-            'assignedPharmacist:id,first_name,last_name,email,branch_id',
+            'order:id,order_number,customer_id,pharmacy_id,status,placed_at,completed_at,cancelled_at',
+            'pharmacy:id,pharmacy_name,location',
+            'customer:id,first_name,last_name,email,pharmacy_id',
+            'assignedPharmacist:id,first_name,last_name,email,pharmacy_id',
             'latestMessage.sender:id,first_name,last_name,role',
         ];
     }
@@ -279,8 +279,8 @@ class ConversationService
             return $user->customer && (int) $user->customer->id === (int) $order->customer_id;
         }
 
-        if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
-            return $user->branch_id !== null && (int) $user->branch_id === (int) $order->branch_id;
+        if (in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)) {
+            return $user->pharmacy_id !== null && (int) $user->pharmacy_id === (int) $order->pharmacy_id;
         }
 
         return false;
@@ -288,7 +288,7 @@ class ConversationService
 
     private function claimConversationForPharmacist(Conversation $conversation, User $user): void
     {
-        if (!in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
+        if (!in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)) {
             return;
         }
 

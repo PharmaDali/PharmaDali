@@ -8,7 +8,7 @@ class CartItem extends Model
 {
     protected $fillable = [
         'cart_id',
-        'product_id',
+        'pharmacy_product_id',
         'quantity',
         'price_snapshot',
     ];
@@ -18,8 +18,8 @@ class CartItem extends Model
         return $this->belongsTo(Cart::class);
     }
 
-    public function branchProduct()
+    public function pharmacyProduct()
     {
-        return $this->belongsTo(BranchProduct::class, 'product_id');
+        return $this->belongsTo(PharmacyProduct::class, 'pharmacy_product_id');
     }
 }

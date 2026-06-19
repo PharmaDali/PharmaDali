@@ -4,8 +4,8 @@ import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ProductCard from '@src/shared/components/ProductCard'
 import { useSelectionPhase } from '@src/shared/SelectionPhaseContext'
-import { getBranchCategories, getProducts } from '@src/shared/services/productService'
-import { addBranchProductToCart } from '@shared/utils/cartUtils'
+import { getPharmacyCategories, getProducts } from '@src/shared/services/productService'
+import { addPharmacyProductToCart } from '@shared/utils/cartUtils'
 import ToastMessage from '@shared/components/ToastMessage'
 import { useToast } from '@shared/hooks/useToast'
 import { CATEGORY_ICONS } from '@src/utils/categoryUtils'
@@ -45,8 +45,8 @@ function formatPrice(value) {
 const Shop = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const { selectedBranch } = useSelectionPhase()
-  const selectedBranchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null
+  const { selectedPharmacy } = useSelectionPhase()
+  const selectedPharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -59,7 +59,7 @@ const Shop = () => {
   const [isFetchingMore, setIsFetchingMore] = useState(false)
 
   useEffect(() => {
-    if (!selectedBranchId) {
+    if (!selectedPharmacyId) {
       setCategories([])
       setProducts([])
       setNextCursor(null)
@@ -77,8 +77,8 @@ const Shop = () => {
 
       try {
         const [categoriesPayload, productsPayload] = await Promise.all([
-          getBranchCategories(selectedBranchId),
-          getProducts(selectedBranchId, null, { perPage: PRODUCTS_PER_PAGE }),
+          getPharmacyCategories(selectedPharmacyId),
+          getProducts(selectedPharmacyId, null, { perPage: PRODUCTS_PER_PAGE }),
         ])
 
         if (!mounted) {
@@ -108,10 +108,10 @@ const Shop = () => {
     return () => {
       mounted = false
     }
-  }, [selectedBranchId])
+  }, [selectedPharmacyId])
 
   const loadMoreProducts = useCallback(async () => {
-    if (isFetchingMoreRef.current || !hasMore || !nextCursor || !selectedBranchId) {
+    if (isFetchingMoreRef.current || !hasMore || !nextCursor || !selectedPharmacyId) {
       return
     }
 
@@ -119,7 +119,7 @@ const Shop = () => {
     setIsFetchingMore(true)
 
     try {
-      const productsPayload = await getProducts(selectedBranchId, null, {
+      const productsPayload = await getProducts(selectedPharmacyId, null, {
         cursor: nextCursor,
         perPage: PRODUCTS_PER_PAGE,
       })
@@ -134,7 +134,7 @@ const Shop = () => {
       isFetchingMoreRef.current = false
       setIsFetchingMore(false)
     }
-  }, [hasMore, nextCursor, selectedBranchId])
+  }, [hasMore, nextCursor, selectedPharmacyId])
 
   const navigateToCategory = (item) => {
     const rawLabel = item?.category_name || 'Category'
@@ -148,14 +148,14 @@ const Shop = () => {
     })
   }
 
-  const handleAddToCart = ({ branchProductId, quantity = 1 }) => {
-    return addBranchProductToCart({
-      branchId: selectedBranchId,
-      branchProductId,
+  const handleAddToCart = ({ pharmacyProductId, quantity = 1 }) => {
+    return addPharmacyProductToCart({
+      pharmacyId: selectedPharmacyId,
+      pharmacyProductId,
       quantity,
       validationMessages: {
-        missingBranch: 'Please select a branch and try again.',
-        missingProduct: 'Please select a branch and try again.',
+        missingPharmacy: 'Please select a pharmacy and try again.',
+        missingProduct: 'Please select a pharmacy and try again.',
       },
     }).then((result) => {
       if (!result.ok) {
@@ -169,8 +169,8 @@ const Shop = () => {
     <View className="w-1/2 px-1 mb-4">
       <ProductCard
         productId={String(item?.product_id ?? '')}
-        branchProductId={item?.id}
-        branchId={selectedBranchId}
+        pharmacyProductId={item?.id}
+        pharmacyId={selectedPharmacyId}
         img={item?.product?.image_url}
         product={item?.product}
         categoryName={item?.category?.category_name}
@@ -189,7 +189,7 @@ const Shop = () => {
         style={{ width: 160 }}
       />
     </View>
-  ), [selectedBranchId, handleAddToCart])
+  ), [selectedPharmacyId, handleAddToCart])
 
   const ListHeader = useCallback(() => (
     <View>
@@ -221,9 +221,9 @@ const Shop = () => {
             )
           })}
 
-          {!isLoading && selectedBranchId && categories.length === 0 && (
+          {!isLoading && selectedPharmacyId && categories.length === 0 && (
             <Text className="px-1" style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
-              No categories found for this branch.
+              No categories found for this pharmacy.
             </Text>
           )}
         </View>
@@ -245,7 +245,7 @@ const Shop = () => {
         </View>
       )}
     </View>
-  ), [isLoading, categories, selectedBranchId])
+  ), [isLoading, categories, selectedPharmacyId])
 
   const ListFooter = useCallback(() => {
     if (!isFetchingMore) return null
@@ -263,16 +263,16 @@ const Shop = () => {
   const ListEmpty = useCallback(() => {
     if (isLoading) return null
 
-    if (!selectedBranchId) return null
+    if (!selectedPharmacyId) return null
 
     return (
       <View className="px-5">
         <Text style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
-          No products found for this branch.
+          No products found for this pharmacy.
         </Text>
       </View>
     )
-  }, [isLoading, selectedBranchId])
+  }, [isLoading, selectedPharmacyId])
 
   return (
     <View className="flex-1 bg-white">

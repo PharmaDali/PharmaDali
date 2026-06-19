@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ImportBranchProductsRequest extends FormRequest
+class ImportPharmacyProductsRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,7 +15,7 @@ class ImportBranchProductsRequest extends FormRequest
     {
         return [
             'file' => ['required', 'file', 'mimes:xlsx,csv,txt'],
-            'branch_id' => ['nullable', 'integer', 'exists:branches,id'],
+            'pharmacy_id' => ['nullable', 'integer', 'exists:pharmacies,id'],
         ];
     }
 }

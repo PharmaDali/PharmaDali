@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getBranchCategories, getProducts } from '@shared/services/productService';
+import { getPharmacyCategories, getProducts } from '@shared/services/productService';
 
 function normalizeApiList(payload) {
   if (Array.isArray(payload)) {
@@ -24,39 +24,39 @@ export function formatProductPrice(value) {
 
 const HOME_PREVIEW_LIMIT = 10;
 
-export function useHomeTab(selectedBranch) {
-  const selectedBranchId = selectedBranch?.id ?? selectedBranch?.branch_id ?? null;
+export function useHomeTab(selectedPharmacy) {
+  const selectedPharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
 
-  const [loading, setLoading] = useState(!selectedBranch);
+  const [loading, setLoading] = useState(!selectedPharmacy);
   const [categories, setCategories] = useState([]);
-  const [branchProducts, setBranchProducts] = useState([]);
-  const previousBranchIdRef = useRef(null);
+  const [pharmacyProducts, setPharmacyProducts] = useState([]);
+  const previousPharmacyIdRef = useRef(null);
 
   useEffect(() => {
-    if (selectedBranch) return;
+    if (selectedPharmacy) return;
 
     const timer = setTimeout(() => {
       setLoading(false);
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [selectedBranch]);
+  }, [selectedPharmacy]);
 
   useEffect(() => {
-    if (!selectedBranchId) {
+    if (!selectedPharmacyId) {
       return;
     }
 
     let mounted = true;
-    previousBranchIdRef.current = selectedBranchId;
+    previousPharmacyIdRef.current = selectedPharmacyId;
 
-    async function loadBranchData() {
+    async function loadPharmacyData() {
       setLoading(true);
 
       try {
         const [categoriesPayload, productsPayload] = await Promise.all([
-          getBranchCategories(selectedBranchId),
-          getProducts(selectedBranchId, null, { perPage: HOME_PREVIEW_LIMIT }),
+          getPharmacyCategories(selectedPharmacyId),
+          getProducts(selectedPharmacyId, null, { perPage: HOME_PREVIEW_LIMIT }),
         ]);
 
         if (!mounted) {
@@ -64,11 +64,11 @@ export function useHomeTab(selectedBranch) {
         }
 
         setCategories(normalizeApiList(categoriesPayload));
-        setBranchProducts(normalizeApiList(productsPayload));
+        setPharmacyProducts(normalizeApiList(productsPayload));
       } catch {
         if (mounted) {
           setCategories([]);
-          setBranchProducts([]);
+          setPharmacyProducts([]);
         }
       } finally {
         if (mounted) {
@@ -77,22 +77,22 @@ export function useHomeTab(selectedBranch) {
       }
     }
 
-    loadBranchData();
+    loadPharmacyData();
 
     return () => {
       mounted = false;
     };
-  }, [selectedBranchId]);
+  }, [selectedPharmacyId]);
 
-  const normalizeSelectedBranch = useCallback((branch) => ({
-    ...branch,
-    id: branch?.id ?? branch?.branch_id ?? null,
+  const normalizeSelectedPharmacy = useCallback((pharmacy) => ({
+    ...pharmacy,
+    id: pharmacy?.id ?? pharmacy?.pharmacy_id ?? null,
   }), []);
 
   return {
     loading,
     categories,
-    branchProducts,
-    normalizeSelectedBranch,
+    pharmacyProducts,
+    normalizeSelectedPharmacy,
   };
 }

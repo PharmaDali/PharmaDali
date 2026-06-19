@@ -15,22 +15,22 @@ class Category extends Model
         'description',
     ];
 
-    public function branchProducts()
+    public function pharmacyProducts()
     {
-        return $this->hasMany(BranchProduct::class);
+        return $this->hasMany(PharmacyProduct::class);
     }
 
-    public function branches()
+    public function pharmacies()
     {
-        return $this->belongsToMany(Branch::class, 'branch_products')
+        return $this->belongsToMany(Pharmacy::class, 'pharmacy_products', 'category_id', 'pharmacy_id')
             ->withPivot(['product_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
             ->withTimestamps();
     }
 
     public function products()
     {
-        return $this->belongsToMany(Products::class, 'branch_products')
-            ->withPivot(['branch_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
+        return $this->belongsToMany(Products::class, 'pharmacy_products', 'category_id', 'product_id')
+            ->withPivot(['pharmacy_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
             ->withTimestamps();
     }
 }

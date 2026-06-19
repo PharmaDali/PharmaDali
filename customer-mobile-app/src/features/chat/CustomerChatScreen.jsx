@@ -123,7 +123,7 @@ export default function CustomerChatScreen() {
     const order = item?.order;
     const orderNumber = order?.order_number || order?.id || item?.order_id || '—';
     const shortOrderNum = String(orderNumber).split('-').pop();
-    const branchName = item?.pharmacy?.branch_name || 'Pharmacy';
+    const pharmacyName = item?.pharmacy?.pharmacy_name || 'Pharmacy';
     const latest = item?.latest_message?.body || '';
     const relTime = formatRelativeTime(item?.latest_message?.created_at || item?.updated_at);
     const orderStatus = order?.status ?? null;
@@ -144,7 +144,7 @@ export default function CustomerChatScreen() {
         {/* Avatar */}
         <View className="h-[52px] w-[52px] rounded-full bg-sky-100 items-center justify-center mr-3 relative">
           <Text className="text-[17px]" style={{ fontFamily: 'Poppins-Bold', color: colors.buttonColor }}>
-            {getInitials(branchName)}
+            {getInitials(pharmacyName)}
           </Text>
           <View
             className="absolute bottom-0.5 right-0.5 h-3 w-3 rounded-full border-2 border-white"
@@ -160,7 +160,7 @@ export default function CustomerChatScreen() {
               style={{ fontFamily: hasUnread ? 'Poppins-Bold' : 'Poppins-SemiBold' }}
               numberOfLines={1}
             >
-              {branchName}
+              {pharmacyName}
             </Text>
             <Text className="text-xs text-slate-400" style={{ fontFamily: 'Poppins-Medium' }}>
               {relTime}

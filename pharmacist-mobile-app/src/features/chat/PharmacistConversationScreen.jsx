@@ -320,7 +320,7 @@ export default function PharmacistConversationScreen() {
             <View style={styles.headerSubRow}>
               <View style={styles.onlineDot} />
               <Text style={styles.headerSub} numberOfLines={1}>
-                {conversation?.branch?.branch_name || conversation?.pharmacy?.branch_name || 'Pharmacy'}
+                {conversation?.pharmacy?.pharmacy_name || 'Pharmacy'}
               </Text>
             </View>
           </View>

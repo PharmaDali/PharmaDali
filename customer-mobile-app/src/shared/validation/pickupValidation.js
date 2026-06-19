@@ -37,7 +37,7 @@ export function validateScheduledPickupTime({
   closingDateTime,
 }) {
   if (!hasValidOperatingWindow) {
-    return 'Pharmacy operating hours are unavailable. Please reselect your branch.'
+    return 'Pharmacy operating hours are unavailable. Please reselect your pharmacy.'
   }
 
   if (!scheduledDateTime) {
