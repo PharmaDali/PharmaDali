@@ -85,7 +85,7 @@ function mapOrderProduct(item) {
     description,
     price: formatCurrency(item?.unit_price_snapshot),
     quantity: Number(item?.quantity || 0),
-    size: product?.strength || product?.form || 'N/A',
+    size: product?.size || product?.strength || product?.form || 'N/A',
     prescriptionRequired,
     rxDescription,
   }

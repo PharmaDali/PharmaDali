@@ -56,7 +56,7 @@ function mapCartApiItem(item) {
     cartId: Number(item?.cart_id ?? 0),
     pharmacyProductId: Number(item?.pharmacy_product_id ?? 0),
     description,
-    size: item?.product?.strength || item?.product?.form || item?.product?.size || 'N/A',
+    size: item?.product?.size || item?.product?.strength || item?.product?.form || 'N/A',
     price: safeUnitPrice,
     quantity: safeQuantity,
     selected: false,
