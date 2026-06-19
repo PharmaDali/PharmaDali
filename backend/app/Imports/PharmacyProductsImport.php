@@ -2,7 +2,7 @@
 
 namespace App\Imports;
 
-use App\Models\BranchProduct;
+use App\Models\PharmacyProduct;
 use App\Models\Category;
 use App\Models\Products;
 use Illuminate\Support\Collection;
@@ -10,16 +10,16 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Illuminate\Support\Facades\DB;
 
-class BranchProductsImport implements ToCollection, WithHeadingRow
+class PharmacyProductsImport implements ToCollection, WithHeadingRow
 {
-    private int $branchId;
+    private int $pharmacyId;
     private int $createdProducts = 0;
-    private int $createdBranchProducts = 0;
-    private int $updatedBranchProducts = 0;
+    private int $createdPharmacyProducts = 0;
+    private int $updatedPharmacyProducts = 0;
 
-    public function __construct(int $branchId)
+    public function __construct(int $pharmacyId)
     {
-        $this->branchId = $branchId;
+        $this->pharmacyId = $pharmacyId;
     }
 
     public function collection(Collection $rows)
@@ -97,9 +97,9 @@ class BranchProductsImport implements ToCollection, WithHeadingRow
                     $this->createdProducts++;
                 }
 
-                $branchProduct = BranchProduct::updateOrCreate(
+                $pharmacyProduct = PharmacyProduct::updateOrCreate(
                     [
-                        'branch_id' => $this->branchId,
+                        'pharmacy_id' => $this->pharmacyId,
                         'product_id' => $product->id,
                     ],
                     [
@@ -110,10 +110,10 @@ class BranchProductsImport implements ToCollection, WithHeadingRow
                     ]
                 );
 
-                if ($branchProduct->wasRecentlyCreated) {
-                    $this->createdBranchProducts++;
+                if ($pharmacyProduct->wasRecentlyCreated) {
+                    $this->createdPharmacyProducts++;
                 } else {
-                    $this->updatedBranchProducts++;
+                    $this->updatedPharmacyProducts++;
                 }
             }
         });
@@ -123,8 +123,8 @@ class BranchProductsImport implements ToCollection, WithHeadingRow
     {
         return [
             'created_products' => $this->createdProducts,
-            'created_branch_products' => $this->createdBranchProducts,
-            'updated_branch_products' => $this->updatedBranchProducts,
+            'created_pharmacy_products' => $this->createdPharmacyProducts,
+            'updated_pharmacy_products' => $this->updatedPharmacyProducts,
         ];
     }
 

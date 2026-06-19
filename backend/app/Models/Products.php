@@ -21,21 +21,21 @@ class Products extends Model
         'is_prescribed',
     ];
 
-    public function branchProducts()
+    public function pharmacyProducts()
     {
-        return $this->hasMany(BranchProduct::class, 'product_id');
+        return $this->hasMany(PharmacyProduct::class, 'product_id');
     }
 
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'branch_products', 'product_id', 'category_id')
-            ->withPivot(['branch_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
+        return $this->belongsToMany(Category::class, 'pharmacy_products', 'product_id', 'category_id')
+            ->withPivot(['pharmacy_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
             ->withTimestamps();
     }
 
-    public function branches()
+    public function pharmacies()
     {
-        return $this->belongsToMany(Branch::class, 'branch_products', 'product_id', 'branch_id')
+        return $this->belongsToMany(Pharmacy::class, 'pharmacy_products', 'product_id', 'pharmacy_id')
             ->withPivot(['category_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
             ->withTimestamps();
     }

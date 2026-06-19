@@ -9,7 +9,7 @@ class Customer extends Model
 {
     protected $fillable = [
         'user_id',
-        'branch_id',
+        'pharmacy_id',
     ];
     
     public function user()
@@ -17,9 +17,9 @@ class Customer extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function branch(): BelongsTo
+    public function pharmacy(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Pharmacy::class);
     }
 
     public function carts()
