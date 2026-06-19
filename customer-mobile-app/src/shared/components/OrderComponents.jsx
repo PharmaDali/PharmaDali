@@ -59,7 +59,7 @@ export function ProductRow({ product }) {
           <Text className="text-sm" style={styles.priceBold}>{product.price}</Text>
           <View className="items-end">
             {product.quantity > 0 && <Text className="text-xs text-gray-500" style={{ fontFamily: 'Poppins-Medium' }}>{product.quantity}x</Text>}
-            <Text className="text-xs text-gray-500" style={{ fontFamily: 'Poppins-Medium' }}>Size: {product.size}</Text>
+            <Text className="text-xs text-gray-500" style={{ fontFamily: 'Poppins-Medium' }}>{product.sizeLabel || 'Size'}: {product.size}</Text>
           </View>
         </View>
       </View>

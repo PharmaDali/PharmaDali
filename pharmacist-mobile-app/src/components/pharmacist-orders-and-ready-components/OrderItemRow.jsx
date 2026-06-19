@@ -31,7 +31,7 @@ export default function OrderItemRow({ item }) {
             PHP {item.price}
           </Text>
           <Text className="text-xs text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
-            Size: {item.size}
+            {item.sizeLabel || 'Size'}: {item.size}
           </Text>
         </View>
       </View>
