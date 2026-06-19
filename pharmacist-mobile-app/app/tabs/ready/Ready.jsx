@@ -7,7 +7,7 @@ import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import FemaleIcon from '@assets/icons/person-icons/female_icon.svg';
 import RecitImg from '@assets/images/recit_dummy.png';
 import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
-import { getBranchOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
+import { getPharmacyOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
 
 const readyTabs = ['For Pickup', 'Completed', 'Expired'];
 
@@ -36,8 +36,8 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
       items: (order?.items || []).map((item) => {
-        const product = item?.branch_product?.product;
-        const categoryName = item?.branch_product?.category?.category_name || '';
+        const product = item?.pharmacy_product?.product;
+        const categoryName = item?.pharmacy_product?.category?.category_name || '';
         const prescription = item?.order_item_prescription;
         const prescriptionRequired = Boolean(product?.is_prescribed);
         const hasPrescriptionImage = Boolean(prescription?.prescription_image_path);
@@ -76,7 +76,7 @@ const Ready = () => {
     if (showLoading) setLoading(true);
     setError('');
     try {
-      const data = await getBranchOrders();
+      const data = await getPharmacyOrders();
       setOrders(mapApiOrdersToUiOrders(data));
     } catch (e) {
       setError(e?.message || 'Failed to load orders.');

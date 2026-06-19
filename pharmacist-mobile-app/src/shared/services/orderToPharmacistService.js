@@ -14,7 +14,7 @@ export const updateOrderStatusByPharmacist = async (orderId, action, reason) => 
   }
 };
 
-export const getBranchOrders = async (status) => {
+export const getPharmacyOrders = async (status) => {
   try {
     const query = status ? `?status=${encodeURIComponent(status)}` : '';
     const response = await apiRequest(`/pharmacist/orders${query}`);

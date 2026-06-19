@@ -4,7 +4,7 @@ import StatsIcon from '@assets/icons/pharmacist_home/stats_icon.svg'
 import DemandAlertIcon from '@assets/icons/pharmacist_home/demand_alert_icon.svg'
 
 import { colors } from '@src/shared/theme/colorPalette'
-import { getBranchOrders } from '@shared/services/orderToPharmacistService'
+import { getPharmacyOrders } from '@shared/services/orderToPharmacistService'
 import { getDemandForecasts } from '@shared/services/forecastService'
 
 const FALLBACK_TRENDING = [
@@ -113,7 +113,7 @@ const Home = () => {
 
   const loadQuickStats = useCallback(async () => {
     try {
-      const data = await getBranchOrders();
+      const data = await getPharmacyOrders();
       const orders = Array.isArray(data) ? data : [];
       const pendingStatuses = new Set(['pending', 'reviewing', 'preparing', 'ready_for_pickup']);
       const completedStatuses = new Set(['completed']);

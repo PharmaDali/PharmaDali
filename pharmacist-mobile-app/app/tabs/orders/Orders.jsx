@@ -4,7 +4,7 @@ import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@comp
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
 import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
-import { getBranchOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
+import { getPharmacyOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
 import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
 import { colors } from '@shared/theme/colorPalette';
 
@@ -43,9 +43,9 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       apiStatus: String(order?.status || '').toLowerCase(),
       cancellationReason: order?.cancellation_reason || '',
       items: (order?.items || []).map((item) => {
-        const product = item?.branch_product?.product;
+        const product = item?.pharmacy_product?.product;
         const prescription = item?.order_item_prescription;
-        const categoryName = item?.branch_product?.category?.category_name
+        const categoryName = item?.pharmacy_product?.category?.category_name
           || product?.category?.category_name
           || product?.category_name
           || '';
@@ -101,7 +101,7 @@ export default function Orders() {
     setError('');
 
     try {
-      const data = await getBranchOrders();
+      const data = await getPharmacyOrders();
       const mappedOrders = mapApiOrdersToUiOrders(data);
       setOrders(mappedOrders);
     } catch (e) {
