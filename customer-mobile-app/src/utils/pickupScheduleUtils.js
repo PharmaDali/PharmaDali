@@ -80,10 +80,10 @@ export function buildDynamicPickupDates(count = 7) {
   });
 }
 
-// Resolves opening/closing minutes from selected branch metadata, with a safe fallback window.
-export function parseBranchOperatingMinutes(selectedBranch) {
-  const openingFromFields = parseAmPmToMinutes(selectedBranch?.formattedOpeningHour);
-  const closingFromFields = parseAmPmToMinutes(selectedBranch?.formattedClosingHour);
+// Resolves opening/closing minutes from selected pharmacy metadata, with a safe fallback window.
+export function parsePharmacyOperatingMinutes(selectedPharmacy) {
+  const openingFromFields = parseAmPmToMinutes(selectedPharmacy?.formattedOpeningHour);
+  const closingFromFields = parseAmPmToMinutes(selectedPharmacy?.formattedClosingHour);
 
   if (openingFromFields !== null && closingFromFields !== null) {
     return {
@@ -92,8 +92,8 @@ export function parseBranchOperatingMinutes(selectedBranch) {
     };
   }
 
-  if (typeof selectedBranch?.hours === 'string' && selectedBranch.hours.includes('-')) {
-    const [openLabel, closeLabel] = selectedBranch.hours.split('-').map((value) => value.trim());
+  if (typeof selectedPharmacy?.hours === 'string' && selectedPharmacy.hours.includes('-')) {
+    const [openLabel, closeLabel] = selectedPharmacy.hours.split('-').map((value) => value.trim());
     const openingMinutes = parseAmPmToMinutes(openLabel);
     const closingMinutes = parseAmPmToMinutes(closeLabel);
 

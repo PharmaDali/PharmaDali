@@ -8,8 +8,8 @@ import ProductImage from '@src/shared/components/ProductImage';
 import ProductCard from '@src/shared/components/ProductCard';
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg';
 import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg';
-import { addBranchProductToCart } from '@shared/utils/cartUtils';
-import { getBranchProduct, getProducts } from '@shared/services/productService';
+import { addPharmacyProductToCart } from '@shared/utils/cartUtils';
+import { getPharmacyProduct, getProducts } from '@shared/services/productService';
 import ToastMessage from '@shared/components/ToastMessage';
 import SkeletonProductView from '@src/shared/components/SkeletonProductView';
 import { useToast } from '@shared/hooks/useToast';
@@ -18,7 +18,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 const ProductView = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { productId, branchProductId, branchId } = useLocalSearchParams();
+  const { productId, pharmacyProductId, pharmacyId } = useLocalSearchParams();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const { toast, showSuccess, showError } = useToast();
   const [isQuantityModalOpen, setIsQuantityModalOpen] = useState(false);
@@ -34,7 +34,7 @@ const ProductView = () => {
 
     const fetchProductData = async () => {
       try {
-        const result = await getBranchProduct(branchId, branchProductId);
+        const result = await getPharmacyProduct(pharmacyId, pharmacyProductId);
         if (!isMounted) return;
 
         if (result.status === 'success') {
@@ -43,13 +43,13 @@ const ProductView = () => {
 
           // Fetch similar products in the same category
           if (productInfo.category_id) {
-            const similarResult = await getProducts(branchId, productInfo.category_id, {
+            const similarResult = await getProducts(pharmacyId, productInfo.category_id, {
               perPage: 6,
             });
             if (isMounted && similarResult.status === 'success') {
               // Filter out the current product
               const filtered = similarResult.data.filter(
-                (p) => String(p.id) !== String(branchProductId)
+                (p) => String(p.id) !== String(pharmacyProductId)
               );
               setSimilarProducts(filtered);
             }
@@ -67,7 +67,7 @@ const ProductView = () => {
       }
     };
 
-    if (branchId && branchProductId) {
+    if (pharmacyId && pharmacyProductId) {
       setLoading(true);
       fetchProductData();
     }
@@ -75,7 +75,7 @@ const ProductView = () => {
     return () => {
       isMounted = false;
     };
-  }, [branchId, branchProductId]);
+  }, [pharmacyId, pharmacyProductId]);
 
   const handleAddToCartPress = () => {
     setQuantity(1);
@@ -84,13 +84,13 @@ const ProductView = () => {
 
   const handleConfirmAddToCart = () => {
     setIsQuantityModalOpen(false);
-    addBranchProductToCart({
-      branchId,
-      branchProductId,
+    addPharmacyProductToCart({
+      pharmacyId,
+      pharmacyProductId,
       quantity,
       validationMessages: {
         missingProduct: 'Please add this item from the Shop list.',
-        missingBranch: 'Please select a branch first.',
+        missingPharmacy: 'Please select a pharmacy first.',
       },
     }).then((result) => {
       if (result && result.ok) {
@@ -210,8 +210,8 @@ const ProductView = () => {
                   category={item.category?.category_name}
                   price={`PHP ${Number(item.selling_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`}
                   productId={String(item.product_id)}
-                  branchProductId={String(item.id)}
-                  branchId={branchId}
+                  pharmacyProductId={String(item.id)}
+                  pharmacyId={pharmacyId}
                   isPrescribed={Boolean(item.product?.is_prescribed)}
                   isAvailable={item.is_available}
                   style={{ width: 150, marginRight: 12 }}

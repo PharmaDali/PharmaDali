@@ -16,8 +16,8 @@ const ProductCard = ({
   price,
   style,
   productId,
-  branchProductId,
-  branchId,
+  pharmacyProductId,
+  pharmacyId,
   onAddToCart,
   isPrescribed = false,
   isAvailable = true,
@@ -32,8 +32,8 @@ const ProductCard = ({
       pathname: '/tabs/shop/ProductView',
       params: {
         productId: productId || '1',
-        branchProductId: branchProductId ? String(branchProductId) : '',
-        branchId: branchId ? String(branchId) : '',
+        pharmacyProductId: pharmacyProductId ? String(pharmacyProductId) : '',
+        pharmacyId: pharmacyId ? String(pharmacyId) : '',
       },
     });
   };
@@ -54,8 +54,8 @@ const ProductCard = ({
     if (typeof onAddToCart === 'function') {
       const promise = onAddToCart({
         productId,
-        branchProductId,
-        branchId,
+        pharmacyProductId,
+        pharmacyId,
         quantity,
       });
 

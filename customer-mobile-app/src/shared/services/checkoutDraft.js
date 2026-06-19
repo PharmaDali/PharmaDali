@@ -1,6 +1,6 @@
 let checkoutDraft = {
   items: [],
-  branchLabel: '',
+  pharmacyLabel: '',
   total: 0,
   orderId: null,
   prescriptionImage: null,
@@ -10,7 +10,7 @@ let checkoutDraft = {
 export function setCheckoutDraft(payload) {
   checkoutDraft = {
     items: Array.isArray(payload?.items) ? payload.items : [],
-    branchLabel: payload?.branchLabel || '',
+    pharmacyLabel: payload?.pharmacyLabel || '',
     total: Number(payload?.total ?? 0),
     orderId: payload?.orderId ? Number(payload.orderId) : null,
     prescriptionImage: payload?.prescriptionImage || null,
@@ -25,7 +25,7 @@ export function getCheckoutDraft() {
 export function clearCheckoutDraft() {
   checkoutDraft = {
     items: [],
-    branchLabel: '',
+    pharmacyLabel: '',
     total: 0,
     orderId: null,
     prescriptionImage: null,

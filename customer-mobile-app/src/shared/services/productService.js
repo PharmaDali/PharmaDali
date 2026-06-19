@@ -1,6 +1,6 @@
 import { apiRequest } from '@shared/api/client';
 
-export async function getProducts(branchId, categoryId = null, { cursor = null, perPage = null, priceMin, priceMax, brands, availability, prescriptionType, sort } = {}) {
+export async function getProducts(pharmacyId, categoryId = null, { cursor = null, perPage = null, priceMin, priceMax, brands, availability, prescriptionType, sort } = {}) {
   const searchParams = new URLSearchParams();
 
   if (categoryId !== null && categoryId !== undefined) {
@@ -23,14 +23,14 @@ export async function getProducts(branchId, categoryId = null, { cursor = null, 
   if (sort) searchParams.append('sort', sort);
 
   const query = searchParams.toString();
-  const endpoint = `/branches/${branchId}/products${query ? `?${query}` : ''}`;
+  const endpoint = `/pharmacies/${pharmacyId}/products${query ? `?${query}` : ''}`;
 
   return apiRequest(endpoint, {
     method: 'GET',
   });
 }
 
-export async function searchProducts(branchId, query, { cursor = null, perPage = null } = {}) {
+export async function searchProducts(pharmacyId, query, { cursor = null, perPage = null } = {}) {
   const searchParams = new URLSearchParams();
 
   if (query) {
@@ -46,21 +46,21 @@ export async function searchProducts(branchId, query, { cursor = null, perPage =
   }
 
   const queryString = searchParams.toString();
-  const endpoint = `/branches/${branchId}/products${queryString ? `?${queryString}` : ''}`;
+  const endpoint = `/pharmacies/${pharmacyId}/products${queryString ? `?${queryString}` : ''}`;
 
   return apiRequest(endpoint, {
     method: 'GET',
   });
 }
 
-export async function getBranchProduct(branchId, branchProductId) {
-  const endpoint = `/branches/${branchId}/products/${branchProductId}`;
+export async function getPharmacyProduct(pharmacyId, pharmacyProductId) {
+  const endpoint = `/pharmacies/${pharmacyId}/products/${pharmacyProductId}`;
   return apiRequest(endpoint, {
     method: 'GET',
   });
 }
 
-export async function getBranchCategories(branchId, forceRefresh = false) {
+export async function getPharmacyCategories(pharmacyId, forceRefresh = false) {
   const searchParams = new URLSearchParams();
 
   if (forceRefresh) {
@@ -68,7 +68,7 @@ export async function getBranchCategories(branchId, forceRefresh = false) {
   }
 
   const query = searchParams.toString();
-  const endpoint = `/branches/${branchId}/categories${query ? `?${query}` : ''}`;
+  const endpoint = `/pharmacies/${pharmacyId}/categories${query ? `?${query}` : ''}`;
 
   return apiRequest(endpoint, {
     method: 'GET',

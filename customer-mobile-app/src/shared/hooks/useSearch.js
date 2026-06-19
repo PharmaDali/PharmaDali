@@ -5,7 +5,7 @@ import { searchProducts } from '@shared/services/productService';
 const RECENT_SEARCHES_KEY = '@recent_searches';
 const MAX_RECENT_SEARCHES = 10;
 
-export function useSearch(branchId) {
+export function useSearch(pharmacyId) {
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
@@ -63,7 +63,7 @@ export function useSearch(branchId) {
 
     setIsLoading(true);
     try {
-      const response = await searchProducts(branchId, query, { cursor });
+      const response = await searchProducts(pharmacyId, query, { cursor });
       if (response && response.status === 'success') {
         if (cursor) {
           setResults(prev => [...prev, ...response.data]);
@@ -80,7 +80,7 @@ export function useSearch(branchId) {
     } finally {
       setIsLoading(false);
     }
-  }, [branchId, saveSearchQuery]);
+  }, [pharmacyId, saveSearchQuery]);
 
   return {
     results,

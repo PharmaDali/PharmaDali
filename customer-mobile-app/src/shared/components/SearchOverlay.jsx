@@ -18,7 +18,7 @@ import { colors } from '@shared/theme/colorPalette';
 
 const { height } = Dimensions.get('window');
 
-export default function SearchOverlay({ visible, onClose, branchId, onAddToCart }) {
+export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCart }) {
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const {
@@ -30,7 +30,7 @@ export default function SearchOverlay({ visible, onClose, branchId, onAddToCart 
     performSearch,
     loadRecentSearches,
     clearRecentSearches,
-  } = useSearch(branchId);
+  } = useSearch(pharmacyId);
 
   const searchTimeout = useRef(null);
 
@@ -68,8 +68,8 @@ export default function SearchOverlay({ visible, onClose, branchId, onAddToCart 
     <View className="flex-1 p-1.5 items-center" style={{ maxWidth: '50%' }}>
       <ProductCard
         productId={item.product?.id}
-        branchProductId={item.id}
-        branchId={branchId}
+        pharmacyProductId={item.id}
+        pharmacyId={pharmacyId}
         img={item.product?.image_url ? { uri: item.product.image_url } : null}
         product={item.product}
         categoryName={item.category?.category_name}
@@ -80,7 +80,7 @@ export default function SearchOverlay({ visible, onClose, branchId, onAddToCart 
         isPrescribed={Boolean(item.product?.is_prescribed)}
       />
     </View>
-  ), [branchId, onAddToCart]);
+  ), [pharmacyId, onAddToCart]);
 
   if (!visible) return null;
 

@@ -54,7 +54,7 @@ function mapCartApiItem(item) {
   return {
     id: Number(item?.id ?? 0),
     cartId: Number(item?.cart_id ?? 0),
-    branchProductId: Number(item?.branch_product_id ?? 0),
+    pharmacyProductId: Number(item?.pharmacy_product_id ?? 0),
     description,
     size: item?.product?.strength || item?.product?.form || item?.product?.size || 'N/A',
     price: safeUnitPrice,
@@ -66,10 +66,10 @@ function mapCartApiItem(item) {
       hasRxMarker(categoryName) ||
       hasRxMarker(description) ||
       hasRxMarker(item?.product?.description),
-    branch: {
-      id: item?.branch?.id ?? null,
-      branchName: item?.branch?.branch_name || 'Unknown branch',
-      location: item?.branch?.location || '',
+    pharmacy: {
+      id: item?.pharmacy?.id ?? null,
+      pharmacyName: item?.pharmacy?.pharmacy_name || 'Unknown pharmacy',
+      location: item?.pharmacy?.location || '',
     },
     product: item?.product || {},
     category: item?.category || {},
@@ -94,12 +94,12 @@ export async function getCartItems() {
   };
 }
 
-export async function addCartItem({ branchId, branchProductId, quantity = 1 }) {
+export async function addCartItem({ pharmacyId, pharmacyProductId, quantity = 1 }) {
   const payload = await apiRequest('/customer/cart/items', {
     method: 'POST',
     body: {
-      branch_id: toPositiveInteger(branchId, 0),
-      branch_product_id: toPositiveInteger(branchProductId, 0),
+      pharmacy_id: toPositiveInteger(pharmacyId, 0),
+      pharmacy_product_id: toPositiveInteger(pharmacyProductId, 0),
       quantity: toPositiveInteger(quantity, 1),
     },
   });
@@ -145,10 +145,10 @@ export function buildCartViewState(items) {
   const hasPrescription = items.some((item) => item.prescriptionRequired);
   const allSelected = items.length > 0 && items.every((item) => item.selected);
 
-  const branchNames = Array.from(
+  const pharmacyNames = Array.from(
     new Set(
       items
-        .map((item) => item?.branch?.branchName)
+        .map((item) => item?.pharmacy?.pharmacyName)
         .filter(Boolean),
     ),
   );
@@ -158,7 +158,7 @@ export function buildCartViewState(items) {
     hasPrescription,
     total,
     selectedCount: selectedItems.length,
-    branchNames,
+    pharmacyNames,
   };
 }
 

@@ -53,13 +53,13 @@ export function useCartTab() {
     setCartItems((prev) => toggleAllCartItems(prev, !viewState.allSelected));
   }, [viewState.allSelected]);
 
-  const branchLabel = useMemo(() => {
-    if (viewState.branchNames.length > 1) {
-      return `${viewState.branchNames.length} branches selected`;
+  const pharmacyLabel = useMemo(() => {
+    if (viewState.pharmacyNames.length > 1) {
+      return `${viewState.pharmacyNames.length} pharmacies selected`;
     }
 
-    return viewState.branchNames[0] || 'No branch selected';
-  }, [viewState.branchNames]);
+    return viewState.pharmacyNames[0] || 'No pharmacy selected';
+  }, [viewState.pharmacyNames]);
 
   return {
     cartItems,
@@ -72,6 +72,6 @@ export function useCartTab() {
     clearAll,
     toggleAll,
     viewState,
-    branchLabel,
+    pharmacyLabel,
   };
 }
