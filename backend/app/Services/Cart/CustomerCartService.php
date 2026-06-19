@@ -2,7 +2,7 @@
 
 namespace App\Services\Cart;
 
-use App\Models\BranchProduct;
+use App\Models\PharmacyProduct;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\User;
@@ -45,7 +45,7 @@ class CustomerCartService
     }
 
     /**
-     * Add a branch product to the authenticated customer's active cart.
+     * Add a pharmacy product to the authenticated customer's active cart.
      */
     public function addItem(?User $user, array $payload): JsonResponse
     {
@@ -65,30 +65,30 @@ class CustomerCartService
             ], 403);
         }
 
-        $branchId = (int) $payload['branch_id'];
-        $branchProductId = (int) $payload['branch_product_id'];
+        $pharmacyId = (int) $payload['pharmacy_id'];
+        $pharmacyProductId = (int) $payload['pharmacy_product_id'];
         $quantityToAdd = (int) ($payload['quantity'] ?? 1);
 
         try {
-            $result = DB::transaction(function () use ($customerId, $branchId, $branchProductId, $quantityToAdd) {
-                $branchProduct = BranchProduct::query()
+            $result = DB::transaction(function () use ($customerId, $pharmacyId, $pharmacyProductId, $quantityToAdd) {
+                $pharmacyProduct = PharmacyProduct::query()
                     ->with('product:id,is_prescribed')
                     ->lockForUpdate()
-                    ->findOrFail($branchProductId);
+                    ->findOrFail($pharmacyProductId);
 
-                if ($branchProduct->branch_id !== $branchId) {
+                if ($pharmacyProduct->pharmacy_id !== $pharmacyId) {
                     throw ValidationException::withMessages([
-                        'branch_product_id' => ['Selected product does not belong to the selected branch.'],
+                        'pharmacy_product_id' => ['Selected product does not belong to the selected pharmacy.'],
                     ]);
                 }
 
-                if (!$branchProduct->is_available) {
+                if (!$pharmacyProduct->is_available) {
                     throw ValidationException::withMessages([
-                        'branch_product_id' => ['This product is currently unavailable.'],
+                        'pharmacy_product_id' => ['This product is currently unavailable.'],
                     ]);
                 }
 
-                if ($branchProduct->stock < $quantityToAdd) {
+                if ($pharmacyProduct->stock < $quantityToAdd) {
                     throw ValidationException::withMessages([
                         'quantity' => ['Requested quantity exceeds available stock.'],
                     ]);
@@ -96,13 +96,13 @@ class CustomerCartService
 
                 $cart = Cart::query()->firstOrCreate([
                     'customer_id' => $customerId,
-                    'branch_id' => $branchId,
+                    'pharmacy_id' => $pharmacyId,
                     'status' => 'active',
                 ]);
 
                 $cartItem = CartItem::query()
                     ->where('cart_id', $cart->id)
-                    ->where('product_id', $branchProduct->id)
+                    ->where('pharmacy_product_id', $pharmacyProduct->id)
                     ->lockForUpdate()
                     ->first();
 
@@ -111,7 +111,7 @@ class CustomerCartService
                 if ($cartItem) {
                     $newQuantity = $cartItem->quantity + $quantityToAdd;
 
-                    if ($branchProduct->stock < $newQuantity) {
+                    if ($pharmacyProduct->stock < $newQuantity) {
                         throw ValidationException::withMessages([
                             'quantity' => ['Total quantity in cart exceeds available stock.'],
                         ]);
@@ -119,14 +119,14 @@ class CustomerCartService
 
                     $cartItem->update([
                         'quantity' => $newQuantity,
-                        'price_snapshot' => $branchProduct->selling_price,
+                        'price_snapshot' => $pharmacyProduct->selling_price,
                     ]);
                 } else {
                     $cartItem = CartItem::query()->create([
                         'cart_id' => $cart->id,
-                        'product_id' => $branchProduct->id,
+                        'pharmacy_product_id' => $pharmacyProduct->id,
                         'quantity' => $quantityToAdd,
-                        'price_snapshot' => $branchProduct->selling_price,
+                        'price_snapshot' => $pharmacyProduct->selling_price,
                     ]);
                     $wasCreated = true;
                 }
@@ -134,7 +134,7 @@ class CustomerCartService
                 return [
                     'cart' => $cart,
                     'cart_item' => $cartItem,
-                    'prescription_required' => (bool) ($branchProduct->product?->is_prescribed ?? false),
+                    'prescription_required' => (bool) ($pharmacyProduct->product?->is_prescribed ?? false),
                     'was_created' => $wasCreated,
                 ];
             });

@@ -2,7 +2,7 @@
 
 namespace App\Services\Inventory;
 
-use App\Models\BranchProduct;
+use App\Models\PharmacyProduct;
 use App\Repositories\ProductBatchRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -13,24 +13,24 @@ class InventoryService
         private readonly ProductBatchRepository $batchRepository,
     ) {}
 
-    public function getInventoryMetrics($branchId)
+    public function getInventoryMetrics($pharmacyId)
     {
         $today = Carbon::today()->toDateString();
         $expiringLimit = Carbon::today()->addDays(30)->toDateString();
 
-        $totalProducts = BranchProduct::where('branch_id', $branchId)->count();
+        $totalProducts = PharmacyProduct::where('pharmacy_id', $pharmacyId)->count();
 
-        $lowStocks = BranchProduct::where('branch_id', $branchId)
+        $lowStocks = PharmacyProduct::where('pharmacy_id', $pharmacyId)
             ->where('stock', '<=', 50)
             ->count();
 
-        $expiring = BranchProduct::where('branch_id', $branchId)
+        $expiring = PharmacyProduct::where('pharmacy_id', $pharmacyId)
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '>', $today)
             ->where('expiry_date', '<=', $expiringLimit)
             ->count();
 
-        $expired = BranchProduct::where('branch_id', $branchId)
+        $expired = PharmacyProduct::where('pharmacy_id', $pharmacyId)
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '<=', $today)
             ->count();
@@ -43,10 +43,10 @@ class InventoryService
         ];
     }
 
-    public function getInventoryProducts($branchId, array $filters = [])
+    public function getInventoryProducts($pharmacyId, array $filters = [])
     {
-        $query = BranchProduct::with(['product', 'category', 'batches'])
-            ->where('branch_id', $branchId);
+        $query = PharmacyProduct::with(['product', 'category', 'batches'])
+            ->where('pharmacy_id', $pharmacyId);
 
         // Filter by search / query
         if (!empty($filters['search'])) {
@@ -125,9 +125,9 @@ class InventoryService
             }
         }
 
-        $branchProducts = $query->get();
+        $pharmacyProducts = $query->get();
 
-        return $branchProducts->map(function ($bp) use ($today) {
+        return $pharmacyProducts->map(function ($bp) use ($today) {
             $product  = $bp->product;
             $category = $bp->category;
 
@@ -211,7 +211,7 @@ class InventoryService
         });
     }
 
-    public function getInventoryLogs($branchId, array $filters = [])
+    public function getInventoryLogs($pharmacyId, array $filters = [])
     {
         $search = strtolower($filters['search'] ?? '');
         $action = $filters['action'] ?? 'All';
@@ -220,8 +220,8 @@ class InventoryService
         $logs = collect();
 
         // 1. Stock OUT logs from orders
-        $ordersQuery = \App\Models\Order::with(['items.branchProduct.product', 'user'])
-            ->where('branch_id', $branchId)
+        $ordersQuery = \App\Models\Order::with(['items.pharmacyProduct.product', 'user'])
+            ->where('pharmacy_id', $pharmacyId)
             ->where('status', 'completed');
 
         if ($dateRange) {
@@ -232,7 +232,7 @@ class InventoryService
 
         foreach ($orders as $order) {
             foreach ($order->items as $item) {
-                $productName = $item->branchProduct->product->product_name ?? $item->product_name ?? 'Product';
+                $productName = $item->pharmacyProduct->product->product_name ?? $item->product_name ?? 'Product';
                 
                 // apply search criteria
                 if ($search && strpos(strtolower($productName), $search) === false) {
@@ -254,8 +254,8 @@ class InventoryService
             }
         }
 
-        // 2. Generate stock IN simulated/historical logs for any branch products
-        $bpQuery = BranchProduct::with('product')->where('branch_id', $branchId);
+        // 2. Generate stock IN simulated/historical logs for any pharmacy products
+        $bpQuery = PharmacyProduct::with('product')->where('pharmacy_id', $pharmacyId);
         $bps = $bpQuery->get();
 
         foreach ($bps as $bp) {

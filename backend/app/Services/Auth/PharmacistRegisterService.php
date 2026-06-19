@@ -19,9 +19,9 @@ class PharmacistRegisterService
             ], 401);
         }
 
-        if (is_null($createdBy->branch_id)) {
+        if (is_null($createdBy->pharmacy_id)) {
             return response()->json([
-                'message' => 'Branch admin must be assigned to a branch before registering pharmacists.',
+                'message' => 'Pharmacy admin must be assigned to a pharmacy before registering pharmacists.',
             ], 422);
         }
 
@@ -37,10 +37,10 @@ class PharmacistRegisterService
                 'date_of_birth' => $data['date_of_birth'] ?? null,
                 'address'       => $data['address'] ?? null,
                 'role'          => 'pharmacist',
-                'branch_id'     => $createdBy->branch_id,
+                'pharmacy_id'     => $createdBy->pharmacy_id,
             ]);
 
-            $employeeNumber = 'PHAR-' . $user->id . '-' . $createdBy->branch_id;
+            $employeeNumber = 'PHAR-' . $user->id . '-' . $createdBy->pharmacy_id;
 
             $user->pharmacist()->create([
                 'employee_number' => $employeeNumber,
@@ -50,7 +50,7 @@ class PharmacistRegisterService
             return $user;
         });
 
-        $user->load(['pharmacist', 'branch']);
+        $user->load(['pharmacist', 'pharmacy']);
 
         $user->notify(new PharmacistWelcomeNotification(
             employeeNumber: $user->pharmacist->employee_number,

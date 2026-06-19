@@ -24,8 +24,8 @@ class ShowOrderService
                     'message' => 'You are not allowed to view this order.',
                 ], 403);
             }
-        } elseif (in_array($user->role, ['branch_admin', 'pharmacist'], true)) {
-            if (!is_null($user->branch_id) && $order->branch_id !== $user->branch_id) {
+        } elseif (in_array($user->role, ['pharmacy_admin', 'pharmacist'], true)) {
+            if (!is_null($user->pharmacy_id) && $order->pharmacy_id !== $user->pharmacy_id) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'You are not allowed to view this order.',
@@ -35,7 +35,7 @@ class ShowOrderService
             return response()->json([
                 'status' => 'error',
                 'message' => 'You are not allowed to view this order.',
-            ], 403);
+                ], 403);
         }
 
         return response()->json([
@@ -43,13 +43,13 @@ class ShowOrderService
             'data' => $order->load([
                 'customer:id,user_id',
                 'customer.user:id,first_name,last_name,email',
-                'branch:id,branch_name,location',
-                'verifier:id,first_name,last_name,email,branch_id,role',
-                'items:id,order_id,branch_product_id,quantity,unit_price_snapshot,line_total,product_name',
-                'items.branchProduct:id,branch_id,product_id,selling_price',
-                'items.branchProduct.product:id,product_name,generic_name,brand_name,description,form,strength,is_prescribed',
+                'pharmacy:id,pharmacy_name,location',
+                'verifier:id,first_name,last_name,email,pharmacy_id,role',
+                'items:id,order_id,pharmacy_product_id,quantity,unit_price_snapshot,line_total,product_name',
+                'items.pharmacyProduct:id,pharmacy_id,product_id,selling_price',
+                'items.pharmacyProduct.product:id,product_name,generic_name,brand_name,description,form,strength,is_prescribed',
                 'items.orderItemPrescription:id,order_item_id,prescription_image_path,status,verified_by,verified_at,rejection_reason',
-                'items.orderItemPrescription.verifier:id,first_name,last_name,email,branch_id,role',
+                'items.orderItemPrescription.verifier:id,first_name,last_name,email,pharmacy_id,role',
             ]),
         ]);
     }

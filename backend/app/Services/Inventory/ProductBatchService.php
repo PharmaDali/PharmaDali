@@ -2,7 +2,7 @@
 
 namespace App\Services\Inventory;
 
-use App\Models\BranchProduct;
+use App\Models\PharmacyProduct;
 use App\Models\ProductBatch;
 use App\Repositories\ProductBatchRepository;
 use Carbon\Carbon;
@@ -15,22 +15,22 @@ class ProductBatchService
     ) {}
 
     /**
-     * Get all batches for a branch product with computed status fields.
+     * Get all batches for a pharmacy product with computed status fields.
      */
-    public function getBatchesForBranchProduct(int $branchProductId): Collection
+    public function getBatchesForPharmacyProduct(int $pharmacyProductId): Collection
     {
         $today   = Carbon::today();
-        $batches = $this->batchRepository->getBatchesForBranchProduct($branchProductId);
+        $batches = $this->batchRepository->getBatchesForPharmacyProduct($pharmacyProductId);
 
         return $batches->map(fn ($batch) => $this->formatBatch($batch, $today));
     }
 
     /**
-     * Add a new batch to a branch product.
+     * Add a new batch to a pharmacy product.
      */
-    public function addBatch(BranchProduct $branchProduct, array $data): array
+    public function addBatch(PharmacyProduct $pharmacyProduct, array $data): array
     {
-        $batch = $this->batchRepository->createBatch($branchProduct->id, $data);
+        $batch = $this->batchRepository->createBatch($pharmacyProduct->id, $data);
 
         return $this->formatBatch($batch, Carbon::today());
     }
@@ -38,7 +38,7 @@ class ProductBatchService
     /**
      * Update a batch's stock directly (mid-level approach).
      */
-    public function updateBatchStock(BranchProduct $branchProduct, ProductBatch $batch, int $newStock): array
+    public function updateBatchStock(PharmacyProduct $pharmacyProduct, ProductBatch $batch, int $newStock): array
     {
         $updated = $this->batchRepository->updateBatchStock($batch, $newStock);
 
@@ -55,20 +55,20 @@ class ProductBatchService
      * }
      * @throws \InvalidArgumentException if quantity exceeds available stock.
      */
-    public function stockOut(BranchProduct $branchProduct, int $quantity): array
+    public function stockOut(PharmacyProduct $pharmacyProduct, int $quantity): array
     {
-        $deductions = $this->batchRepository->stockOutFefo($branchProduct->id, $quantity);
+        $deductions = $this->batchRepository->stockOutFefo($pharmacyProduct->id, $quantity);
 
         $today          = Carbon::today();
         $updatedBatches = $this->batchRepository
-            ->getBatchesForBranchProduct($branchProduct->id)
+            ->getBatchesForPharmacyProduct($pharmacyProduct->id)
             ->map(fn ($b) => $this->formatBatch($b, $today));
 
-        $branchProduct->refresh();
+        $pharmacyProduct->refresh();
 
         return [
             'deductions'      => $deductions,
-            'remaining_stock' => $branchProduct->stock,
+            'remaining_stock' => $pharmacyProduct->stock,
             'batches'         => $updatedBatches,
         ];
     }

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Services\BranchProduct;
+namespace App\Services\PharmacyProduct;
 
 use App\Repositories\ProductRepository;
 
-class DestroyBranchProductService
+class DestroyPharmacyProductService
 {
     public function __construct(
         private readonly ProductRepository $productRepository,

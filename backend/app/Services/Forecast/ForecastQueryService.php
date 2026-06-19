@@ -7,13 +7,13 @@ use App\Models\User;
 
 class ForecastQueryService
 {
-    public function listForBranch(User $user, array $filters): array
+    public function listForPharmacy(User $user, array $filters): array
     {
-        if (!$user->branch_id) {
+        if (!$user->pharmacy_id) {
             return [];
         }
 
-        $query = Forecast::query()->where('tenant_id', $user->branch_id);
+        $query = Forecast::query()->where('tenant_id', $user->pharmacy_id);
 
         if (!empty($filters['kind'])) {
             $query->where('kind', $filters['kind']);

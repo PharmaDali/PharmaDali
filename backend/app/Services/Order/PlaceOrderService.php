@@ -6,7 +6,7 @@ use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
-use App\Models\Branch;
+use App\Models\Pharmacy;
 use App\Services\Messaging\ConversationService;
 use App\Notifications\OrderPlacedNotification;
 use App\Notifications\NewOrderPharmacistNotification;
@@ -50,12 +50,12 @@ class PlaceOrderService
             ], 422);
         }
 
-        $branch = Branch::find($activeCart->branch_id);
+        $pharmacy = Pharmacy::find($activeCart->pharmacy_id);
 
-        if (!$branch || !$this->isBranchOpen($branch)) {
+        if (!$pharmacy || !$this->isPharmacyOpen($pharmacy)) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'The pharmacy branch is currently closed. Orders cannot be placed at this time.',
+                'message' => 'The pharmacy is currently closed. Orders cannot be placed at this time.',
             ], 422);
         }
 
@@ -85,7 +85,7 @@ class PlaceOrderService
         }
 
         try {
-            $order = DB::transaction(function () use ($activeCart, $cartItems, $payload, $customer, $selectedCartItemIds, $user, $branch) {
+            $order = DB::transaction(function () use ($activeCart, $cartItems, $payload, $customer, $selectedCartItemIds, $user, $pharmacy) {
                 $order = $this->createOrderFromCart(
                     activeCart: $activeCart,
                     cartItems: $cartItems,
@@ -97,8 +97,8 @@ class PlaceOrderService
                 // Send Notification to Customer
                 $user->notify(new OrderPlacedNotification($order));
 
-                // Send Notification to Pharmacists in the branch
-                $pharmacists = $branch->pharmacists;
+                // Send Notification to Pharmacists in the pharmacy
+                $pharmacists = $pharmacy->pharmacists;
                 Notification::send($pharmacists, new NewOrderPharmacistNotification($order));
 
                 $this->conversationService->appendSystemMessage($order, 'Order received', [
@@ -148,7 +148,7 @@ class PlaceOrderService
     {
         return $activeCart->items()
             ->whereIn('id', $selectedCartItemIds)
-            ->with(['branchProduct.product:id,product_name'])
+            ->with(['pharmacyProduct.product:id,product_name'])
             ->get();
     }
 
@@ -164,7 +164,7 @@ class PlaceOrderService
         $order = Order::query()->create([
             'order_number' => $this->generateOrderNumber(),
             'customer_id' => $customerId,
-            'branch_id' => $activeCart->branch_id,
+            'pharmacy_id' => $activeCart->pharmacy_id,
             'status' => 'pending',
             'payment_method' => $payload['payment_method'],
             'payment_status' => 'unpaid',
@@ -193,8 +193,8 @@ class PlaceOrderService
         return $order->load([
             'customer:id,user_id',
             'customer.user:id,first_name,last_name,email',
-            'branch:id,branch_name,location',
-            'items:id,order_id,branch_product_id,quantity,unit_price_snapshot,line_total,product_name',
+            'pharmacy:id,pharmacy_name,location',
+            'items:id,order_id,pharmacy_product_id,quantity,unit_price_snapshot,line_total,product_name',
         ]);
     }
 
@@ -209,11 +209,11 @@ class PlaceOrderService
             $lineTotal = round($quantity * $unitPrice, 2);
             $subtotal += $lineTotal;
 
-            $productName = $cartItem->branchProduct?->product?->product_name ?? 'Unknown Product';
+            $productName = $cartItem->pharmacyProduct?->product?->product_name ?? 'Unknown Product';
 
             $orderItemRows[] = [
                 'order_id' => $orderId,
-                'branch_product_id' => $cartItem->product_id,
+                'pharmacy_product_id' => $cartItem->pharmacy_product_id,
                 'quantity' => $quantity,
                 'unit_price_snapshot' => $unitPrice,
                 'line_total' => $lineTotal,
@@ -239,21 +239,21 @@ class PlaceOrderService
         }
     }
 
-    private function isBranchOpen(Branch $branch): bool
+    private function isPharmacyOpen(Pharmacy $pharmacy): bool
     {
-        if (!$branch->is_active) {
+        if (!$pharmacy->is_active) {
             return false;
         }
 
-        if (!$branch->opening_hour || !$branch->closing_hour) {
+        if (!$pharmacy->opening_hour || !$pharmacy->closing_hour) {
             return false;
         }
 
         $now = now();
         $currentMinutes = ($now->hour * 60) + $now->minute;
 
-        $openingMinutes = $this->timeToMinutes($branch->opening_hour);
-        $closingMinutes = $this->timeToMinutes($branch->closing_hour);
+        $openingMinutes = $this->timeToMinutes($pharmacy->opening_hour);
+        $closingMinutes = $this->timeToMinutes($pharmacy->closing_hour);
 
         if ($openingMinutes === $closingMinutes) {
             return false;

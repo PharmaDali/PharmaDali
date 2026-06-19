@@ -1,29 +1,29 @@
 <?php
 
-namespace App\Services\BranchProduct;
+namespace App\Services\PharmacyProduct;
 
-use App\Models\BranchProduct;
+use App\Models\PharmacyProduct;
 use Illuminate\Contracts\Pagination\CursorPaginator;
 
-class ShowBranchProductService
+class ShowPharmacyProductService
 {
     private const DEFAULT_PER_PAGE = 20;
 
     /**
-     * Return a cursor-paginated set of branch products.
+     * Return a cursor-paginated set of pharmacy products.
      */
     public function handle(
-        int $branchId,
+        int $pharmacyId,
         ?int $categoryId = null,
         int $perPage = self::DEFAULT_PER_PAGE,
         ?string $cursor = null,
     ): CursorPaginator {
-        $query = BranchProduct::query()
+        $query = PharmacyProduct::query()
             ->with([
                 'product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
                 'category:id,category_name,description',
             ])
-            ->where('branch_id', $branchId)
+            ->where('pharmacy_id', $pharmacyId)
             ->orderBy('id');
 
         if ($categoryId !== null) {

@@ -45,7 +45,7 @@ class UpdateOrderStatusByPharmacistService
             ], 403);
         }
 
-        if (!is_null($user->branch_id) && $order->branch_id !== $user->branch_id) {
+        if (!is_null($user->pharmacy_id) && $order->pharmacy_id !== $user->pharmacy_id) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'You are not allowed to update this order.',

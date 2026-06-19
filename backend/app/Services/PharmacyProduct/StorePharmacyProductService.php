@@ -1,25 +1,25 @@
 <?php
 
-namespace App\Services\BranchProduct;
+namespace App\Services\PharmacyProduct;
 
 use App\Repositories\ProductRepository;
-use App\Repositories\BranchProductRepository;
+use App\Repositories\PharmacyProductRepository;
 use App\Repositories\ProductBatchRepository;
 use App\Models\Products;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 
-class StoreBranchProductService
+class StorePharmacyProductService
 {
     public function __construct(
         private readonly ProductRepository $productRepository,
-        private readonly BranchProductRepository $branchProductRepository,
+        private readonly PharmacyProductRepository $pharmacyProductRepository,
         private readonly ProductBatchRepository $batchRepository,
     ) {}
 
-    public function handle(array $validated, ?int $branchId): Products
+    public function handle(array $validated, ?int $pharmacyId): Products
     {
-        return DB::transaction(function () use ($validated, $branchId) {
+        return DB::transaction(function () use ($validated, $pharmacyId) {
             $productData = [
                 'product_type' => $validated['product_type'],
                 'product_name' => $validated['product_name'],
@@ -34,7 +34,7 @@ class StoreBranchProductService
 
             $product = $this->productRepository->create($productData);
 
-            if ($branchId) {
+            if ($pharmacyId) {
                 $categoryId = $validated['category_id'] ?? null;
                 if (!$categoryId) {
                     $categoryName = $validated['category_name'] ?? null;
@@ -62,8 +62,8 @@ class StoreBranchProductService
                 $stock = $validated['stock'] ?? 0;
                 $expiryDate = $validated['expiry_date'] ?? null;
 
-                $this->branchProductRepository->create([
-                    'branch_id'      => $branchId,
+                $this->pharmacyProductRepository->create([
+                    'pharmacy_id'    => $pharmacyId,
                     'product_id'     => $product->id,
                     'category_id'    => $categoryId,
                     'stock'          => $stock,
@@ -75,9 +75,9 @@ class StoreBranchProductService
 
                 // Create an initial product batch if stock or expiry info was provided
                 if ($stock > 0 || $expiryDate || !empty($validated['batch_number'])) {
-                    $branchProduct = $this->branchProductRepository->findByBranchAndProduct($branchId, $product->id);
-                    if ($branchProduct) {
-                        $this->batchRepository->createBatch($branchProduct->id, [
+                    $pharmacyProduct = $this->pharmacyProductRepository->findByPharmacyAndProduct($pharmacyId, $product->id);
+                    if ($pharmacyProduct) {
+                        $this->batchRepository->createBatch($pharmacyProduct->id, [
                             'batch_number'      => $validated['batch_number'] ?? null,
                             'stock'             => $stock,
                             'expiry_date'       => $expiryDate,

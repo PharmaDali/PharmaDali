@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Models\BranchProduct;
+use App\Models\PharmacyProduct;
 use App\Models\ProductBatch;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -10,23 +10,23 @@ use Illuminate\Support\Collection;
 class ProductBatchRepository
 {
     /**
-     * Get all batches for a given branch_product, ordered by nearest expiry first.
+     * Get all batches for a given pharmacy_product, ordered by nearest expiry first.
      */
-    public function getBatchesForBranchProduct(int $branchProductId): Collection
+    public function getBatchesForPharmacyProduct(int $pharmacyProductId): Collection
     {
-        return ProductBatch::where('branch_product_id', $branchProductId)
+        return ProductBatch::where('pharmacy_product_id', $pharmacyProductId)
             ->orderByRaw('CASE WHEN expiry_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('expiry_date')
             ->get();
     }
 
     /**
-     * Create a new batch for a branch_product and sync the branch_product stock total.
+     * Create a new batch for a pharmacy_product and sync the pharmacy_product stock total.
      */
-    public function createBatch(int $branchProductId, array $data): ProductBatch
+    public function createBatch(int $pharmacyProductId, array $data): ProductBatch
     {
         $batch = ProductBatch::create([
-            'branch_product_id' => $branchProductId,
+            'pharmacy_product_id' => $pharmacyProductId,
             'batch_number'      => $data['batch_number'] ?? null,
             'stock'             => $data['stock'] ?? 0,
             'expiry_date'       => $data['expiry_date'] ?? null,
@@ -34,7 +34,7 @@ class ProductBatchRepository
             'received_at'       => $data['received_at'] ?? now(),
         ]);
 
-        $this->syncBranchProductStock($branchProductId);
+        $this->syncPharmacyProductStock($pharmacyProductId);
 
         return $batch->fresh();
     }
@@ -45,18 +45,18 @@ class ProductBatchRepository
     public function updateBatchStock(ProductBatch $batch, int $newStock): ProductBatch
     {
         $batch->update(['stock' => max(0, $newStock)]);
-        $this->syncBranchProductStock($batch->branch_product_id);
+        $this->syncPharmacyProductStock($batch->pharmacy_product_id);
 
         return $batch->fresh();
     }
 
     /**
-     * Recalculate and update branch_products.stock as the SUM of all batch stocks.
-     * Also updates branch_products.expiry_date to the nearest upcoming batch expiry.
+     * Recalculate and update pharmacy_products.stock as the SUM of all batch stocks.
+     * Also updates pharmacy_products.expiry_date to the nearest upcoming batch expiry.
      */
-    public function syncBranchProductStock(int $branchProductId): void
+    public function syncPharmacyProductStock(int $pharmacyProductId): void
     {
-        $batches = ProductBatch::where('branch_product_id', $branchProductId)->get();
+        $batches = ProductBatch::where('pharmacy_product_id', $pharmacyProductId)->get();
 
         $totalStock = $batches->sum('stock');
 
@@ -66,7 +66,7 @@ class ProductBatchRepository
             ->sortBy('expiry_date')
             ->first()?->expiry_date;
 
-        BranchProduct::where('id', $branchProductId)->update([
+        PharmacyProduct::where('id', $pharmacyProductId)->update([
             'stock'       => $totalStock,
             'expiry_date' => $nearestExpiry instanceof Carbon ? $nearestExpiry->toDateString() : null,
         ]);
@@ -79,9 +79,9 @@ class ProductBatchRepository
      * @return array<int, array{batch_id: int, batch_number: string|null, deducted: int}> Log of deductions per batch.
      * @throws \InvalidArgumentException if requested quantity exceeds available stock.
      */
-    public function stockOutFefo(int $branchProductId, int $quantity): array
+    public function stockOutFefo(int $pharmacyProductId, int $quantity): array
     {
-        $batches = $this->getBatchesForBranchProduct($branchProductId);
+        $batches = $this->getBatchesForPharmacyProduct($pharmacyProductId);
 
         $totalAvailable = $batches->sum('stock');
         if ($quantity > $totalAvailable) {
@@ -109,7 +109,7 @@ class ProductBatchRepository
             ];
         }
 
-        $this->syncBranchProductStock($branchProductId);
+        $this->syncPharmacyProductStock($pharmacyProductId);
 
         return $log;
     }

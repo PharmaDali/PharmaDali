@@ -17,8 +17,8 @@ class DisplayPharmacistProfile
 		}
 
 		$pharmacist->load([
-			'user:id,first_name,last_name,email,role,branch_id,mobile_number,address,date_of_birth',
-			'user.branch:id,branch_name,location',
+			'user:id,first_name,last_name,email,role,pharmacy_id,mobile_number,address,date_of_birth',
+			'user.pharmacy:id,pharmacy_name,location',
 		]);
 
 		if (($pharmacist->user?->role ?? null) !== 'pharmacist') {
@@ -44,10 +44,10 @@ class DisplayPharmacistProfile
 					'address' => $pharmacist->user?->address,
 					'date_of_birth' => $pharmacist->user?->date_of_birth,
 				],
-				'branch' => [
-					'id' => $pharmacist->user?->branch?->id,
-					'branch_name' => $pharmacist->user?->branch?->branch_name,
-					'location' => $pharmacist->user?->branch?->location,
+				'pharmacy' => [
+					'id' => $pharmacist->user?->pharmacy?->id,
+					'pharmacy_name' => $pharmacist->user?->pharmacy?->pharmacy_name,
+					'location' => $pharmacist->user?->pharmacy?->location,
 				],
 			],
 		]);

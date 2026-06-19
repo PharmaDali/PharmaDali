@@ -2,7 +2,7 @@
 
 namespace App\Services\Pos;
 
-use App\Models\BranchProduct;
+use App\Models\PharmacyProduct;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Notifications\OrderCompletedNotification;
@@ -22,7 +22,7 @@ class PosService
         $search = $filters['search'] ?? null;
         $perPage = $filters['per_page'] ?? 20;
 
-        $query = BranchProduct::with(['product', 'category'])
+        $query = PharmacyProduct::with(['product', 'category'])
             ->where('is_available', true);
 
         if ($search) {
@@ -51,19 +51,19 @@ class PosService
 
             // Calculate total and validate stock
             foreach ($items as $item) {
-                $branchProduct = BranchProduct::findOrFail($item['id']);
+                $pharmacyProduct = PharmacyProduct::findOrFail($item['id']);
                 
-                if ($branchProduct->stock < $item['qty']) {
-                    throw new \Exception("Insufficient stock for product: " . ($branchProduct->product->product_name ?? 'Item'));
+                if ($pharmacyProduct->stock < $item['qty']) {
+                    throw new \Exception("Insufficient stock for product: " . ($pharmacyProduct->product->product_name ?? 'Item'));
                 }
 
-                $orderTotal += $item['qty'] * $branchProduct->selling_price;
+                $orderTotal += $item['qty'] * $pharmacyProduct->selling_price;
             }
 
             // Create the order
             $order = Order::create([
                 'order_number' => 'POS-' . strtoupper(Str::random(10)),
-                'branch_id' => $user->branch_id ?? 1, // Defaulting to 1 for now if no branch associated
+                'pharmacy_id' => $user->pharmacy_id ?? 1, // Defaulting to 1 for now if no pharmacy associated
                 'status' => 'completed',
                 'verified_by' => $user->id,
                 'verified_at' => now(),
@@ -80,19 +80,19 @@ class PosService
 
             // Create order items and update stock
             foreach ($items as $item) {
-                $branchProduct = BranchProduct::with('product')->findOrFail($item['id']);
+                $pharmacyProduct = PharmacyProduct::with('product')->findOrFail($item['id']);
                 
                 OrderItem::create([
                     'order_id' => $order->id,
-                    'branch_product_id' => $branchProduct->id,
+                    'pharmacy_product_id' => $pharmacyProduct->id,
                     'quantity' => $item['qty'],
-                    'unit_price_snapshot' => $branchProduct->selling_price,
-                    'line_total' => $item['qty'] * $branchProduct->selling_price,
-                    'product_name' => $branchProduct->product->product_name ?? 'Unknown Product',
+                    'unit_price_snapshot' => $pharmacyProduct->selling_price,
+                    'line_total' => $item['qty'] * $pharmacyProduct->selling_price,
+                    'product_name' => $pharmacyProduct->product->product_name ?? 'Unknown Product',
                 ]);
 
                 // Update stock
-                $branchProduct->decrement('stock', $item['qty']);
+                $pharmacyProduct->decrement('stock', $item['qty']);
             }
 
             return $order;
@@ -100,7 +100,7 @@ class PosService
     }
 
     /**
-     * Get pickup orders for the branch with search and filtering.
+     * Get pickup orders for the pharmacy with search and filtering.
      */
     public function getPickupOrders(array $filters, $user)
     {
@@ -108,19 +108,19 @@ class PosService
             throw new \Exception("Unauthorized");
         }
 
-        $branchId = $user->branch_id;
+        $pharmacyId = $user->pharmacy_id;
         $search = $filters['search'] ?? null;
         $status = $filters['status'] ?? 'all'; // all, ready, completed
 
         $query = Order::with([
             'customer.user:id,first_name,last_name',
-            'items.branchProduct.product:id,product_name,generic_name',
-            'items.branchProduct.category:id,category_name'
+            'items.pharmacyProduct.product:id,product_name,generic_name',
+            'items.pharmacyProduct.category:id,category_name'
         ])
         ->whereNotNull('customer_id'); // Pickup orders always have a customer
 
-        if ($branchId) {
-            $query->where('branch_id', $branchId);
+        if ($pharmacyId) {
+            $query->where('pharmacy_id', $pharmacyId);
         }
 
         // Status Filtering
@@ -152,8 +152,8 @@ class PosService
      */
     public function completePickupOrder(Order $order, string $paymentMethod, $user, $amountReceived = null, $changeAmount = null)
     {
-        if ($order->branch_id !== $user->branch_id) {
-            throw new \Exception("Unauthorized: Order does not belong to your branch.");
+        if ($order->pharmacy_id !== $user->pharmacy_id) {
+            throw new \Exception("Unauthorized: Order does not belong to your pharmacy.");
         }
 
         if ($order->status === 'completed') {
@@ -194,7 +194,7 @@ class PosService
                 Log::error('Failed to append system message or close conversation: ' . $e->getMessage());
             }
 
-            return $order->load(['customer.user', 'items.branchProduct.product']);
+            return $order->load(['customer.user', 'items.pharmacyProduct.product']);
         });
     }
 }

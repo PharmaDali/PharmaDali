@@ -21,14 +21,14 @@ class ListOrdersService
             ->with([
                 'customer:id,user_id',
                 'customer.user:id,first_name,last_name,email',
-                'branch:id,branch_name,location',
-                'verifier:id,first_name,last_name,email,branch_id,role',
-                'items:id,order_id,branch_product_id,quantity,unit_price_snapshot,line_total,product_name',
-                'items.branchProduct:id,branch_id,product_id,category_id,selling_price',
-                'items.branchProduct.category:id,category_name',
-                'items.branchProduct.product:id,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
+                'pharmacy:id,pharmacy_name,location',
+                'verifier:id,first_name,last_name,email,pharmacy_id,role',
+                'items:id,order_id,pharmacy_product_id,quantity,unit_price_snapshot,line_total,product_name',
+                'items.pharmacyProduct:id,pharmacy_id,product_id,category_id,selling_price',
+                'items.pharmacyProduct.category:id,category_name',
+                'items.pharmacyProduct.product:id,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
                 'items.orderItemPrescription:id,order_item_id,prescription_image_path,status,verified_by,verified_at,rejection_reason',
-                'items.orderItemPrescription.verifier:id,first_name,last_name,email,branch_id,role',
+                'items.orderItemPrescription.verifier:id,first_name,last_name,email,pharmacy_id,role',
             ])
             ->latest('id');
 
@@ -41,9 +41,9 @@ class ListOrdersService
             }
 
             $query->where('customer_id', $user->customer->id);
-        } elseif (in_array($user->role, ['branch_admin', 'pharmacist'], true)) {
-            if (!is_null($user->branch_id)) {
-                $query->where('branch_id', $user->branch_id);
+        } elseif (in_array($user->role, ['pharmacy_admin', 'pharmacist'], true)) {
+            if (!is_null($user->pharmacy_id)) {
+                $query->where('pharmacy_id', $user->pharmacy_id);
             }
         } else {
             return response()->json([
