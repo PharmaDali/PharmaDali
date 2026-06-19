@@ -4,15 +4,15 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use App\Models\BranchProduct;
+use App\Models\PharmacyProduct;
 
-class BranchProductSeeder extends Seeder
+class PharmacyProductSeeder extends Seeder
 {
     /**
      * Run the database seeds.
      */
     public function run(): void
     {
-        BranchProduct::factory()->count(150)->create();
+        PharmacyProduct::factory()->count(150)->create();
     }
 }

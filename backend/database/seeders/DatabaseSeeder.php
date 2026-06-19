@@ -17,12 +17,12 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
-            BranchSeeder::class,
+            PharmacySeeder::class,
             SuperAdminSeeder::class,
-            BranchAdminSeeder::class,
+            PharmacyAdminSeeder::class,
             CategorySeeder::class,
             ProductsSeeder::class,
-            BranchProductSeeder::class,
+            PharmacyProductSeeder::class,
         ]);
     }
 }

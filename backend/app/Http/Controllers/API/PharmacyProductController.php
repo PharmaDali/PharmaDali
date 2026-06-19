@@ -3,33 +3,33 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ImportBranchProductsRequest;
-use App\Imports\BranchProductsImport;
+use App\Http\Requests\ImportPharmacyProductsRequest;
+use App\Imports\PharmacyProductsImport;
 use App\Models\Products;
-use App\Models\BranchProduct;
-use App\Http\Requests\CreateBranchProductRequest;
+use App\Models\PharmacyProduct;
+use App\Http\Requests\CreatePharmacyProductRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use App\Http\Requests\UpdateBranchProductsRequest;
-use App\Http\Requests\ShowBranchProductRequest;
-use App\Services\BranchProduct\ShowBranchProductService;
-use App\Services\BranchProduct\ShowBranchCategoriesService;
-use App\Services\BranchProduct\SearchBranchProductService;
-use App\Services\BranchProduct\StoreBranchProductService;
-use App\Services\BranchProduct\UpdateBranchProductService;
-use App\Services\BranchProduct\DestroyBranchProductService;
+use App\Http\Requests\UpdatePharmacyProductsRequest;
+use App\Http\Requests\ShowPharmacyProductRequest;
+use App\Services\PharmacyProduct\ShowPharmacyProductService;
+use App\Services\PharmacyProduct\ShowPharmacyCategoriesService;
+use App\Services\PharmacyProduct\SearchPharmacyProductService;
+use App\Services\PharmacyProduct\StorePharmacyProductService;
+use App\Services\PharmacyProduct\UpdatePharmacyProductService;
+use App\Services\PharmacyProduct\DestroyPharmacyProductService;
 use App\Repositories\ProductRepository;
-use App\Repositories\BranchProductRepository;
+use App\Repositories\PharmacyProductRepository;
 use Maatwebsite\Excel\Facades\Excel;
 
-class BranchProductController extends Controller
+class PharmacyProductController extends Controller
 {
     public function __construct(
         private readonly ProductRepository $productRepository,
-        private readonly BranchProductRepository $branchProductRepository,
-        private readonly StoreBranchProductService $storeService,
-        private readonly UpdateBranchProductService $updateService,
-        private readonly DestroyBranchProductService $destroyService,
+        private readonly PharmacyProductRepository $pharmacyProductRepository,
+        private readonly StorePharmacyProductService $storeService,
+        private readonly UpdatePharmacyProductService $updateService,
+        private readonly DestroyPharmacyProductService $destroyService,
     ) {}
 
     /**
@@ -47,14 +47,14 @@ class BranchProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateBranchProductRequest $request)
+    public function store(CreatePharmacyProductRequest $request)
     {
         Gate::authorize('create', Products::class);
 
         $user = $request->user();
-        $branchId = $user ? $user->branch_id : null;
+        $pharmacyId = $user ? $user->pharmacy_id : null;
 
-        $product = $this->storeService->handle($request->validated(), $branchId);
+        $product = $this->storeService->handle($request->validated(), $pharmacyId);
 
         return response()->json([
             'status'  => 'success',
@@ -76,38 +76,38 @@ class BranchProductController extends Controller
     }
 
     /**
-     * Display a specific branch product.
+     * Display a specific pharmacy product.
      */
-    public function showSingleBranchProduct(int $branchId, int $branchProductId)
+    public function showSinglePharmacyProduct(int $pharmacyId, int $pharmacyProductId)
     {
-        $branchProduct = $this->branchProductRepository->getSingleBranchProduct($branchId, $branchProductId);
+        $pharmacyProduct = $this->pharmacyProductRepository->getSinglePharmacyProduct($pharmacyId, $pharmacyProductId);
 
         return response()->json([
             'status' => 'success',
-            'data' => $branchProduct
+            'data' => $pharmacyProduct
         ]);
     }
 
     /**
-     * Display branch-specific products for customer purchasing flow.
+     * Display pharmacy-specific products for customer purchasing flow.
      */
-    public function showBranchProducts(
-        ShowBranchProductRequest $request,
-        ShowBranchProductService $showBranchProductService,
-        SearchBranchProductService $searchBranchProductService
+    public function showPharmacyProducts(
+        ShowPharmacyProductRequest $request,
+        ShowPharmacyProductService $showPharmacyProductService,
+        SearchPharmacyProductService $searchPharmacyProductService
     ) {
         $validated = $request->validated();
 
         if ($request->has('query') && !empty($validated['query'])) {
-            $paginator = $searchBranchProductService->handle(
-                branchId: (int) $validated['branch_id'],
+            $paginator = $searchPharmacyProductService->handle(
+                pharmacyId: (int) $validated['pharmacy_id'],
                 query: $validated['query'],
                 perPage: (int) ($validated['per_page'] ?? 20),
                 cursor: $validated['cursor'] ?? null,
             );
         } else {
-            $paginator = $showBranchProductService->handle(
-                branchId: (int) $validated['branch_id'],
+            $paginator = $showPharmacyProductService->handle(
+                pharmacyId: (int) $validated['pharmacy_id'],
                 categoryId: isset($validated['category_id']) ? (int) $validated['category_id'] : null,
                 perPage: (int) ($validated['per_page'] ?? 20),
                 cursor: $validated['cursor'] ?? null,
@@ -123,15 +123,15 @@ class BranchProductController extends Controller
     }
 
     /**
-     * Display branch-specific categories available for purchasing flow.
+     * Display pharmacy-specific categories available for purchasing flow.
      */
-    public function showBranchCategories(
-        ShowBranchProductRequest $request,
-        ShowBranchCategoriesService $showBranchCategoriesService
+    public function showPharmacyCategories(
+        ShowPharmacyProductRequest $request,
+        ShowPharmacyCategoriesService $showPharmacyCategoriesService
     ) {
         $validated = $request->validated();
         $forceRefresh = $request->boolean('force_refresh');
-        $categories = $showBranchCategoriesService->handle((int) $validated['branch_id'], $forceRefresh);
+        $categories = $showPharmacyCategoriesService->handle((int) $validated['pharmacy_id'], $forceRefresh);
 
         return response()->json([
             'status' => 'success',
@@ -142,15 +142,15 @@ class BranchProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateBranchProductsRequest $request, string $id)
+    public function update(UpdatePharmacyProductsRequest $request, string $id)
     {
         $user = $request->user();
-        $branchId = $user ? $user->branch_id : null;
+        $pharmacyId = $user ? $user->pharmacy_id : null;
 
         $product = $this->productRepository->find((int) $id);
         Gate::authorize('update', $product);
 
-        $updatedProduct = $this->updateService->handle((int) $id, $request->validated(), $branchId);
+        $updatedProduct = $this->updateService->handle((int) $id, $request->validated(), $pharmacyId);
 
         return response()->json([
             'status' => 'success',
@@ -176,27 +176,27 @@ class BranchProductController extends Controller
     }
 
     /**
-     * Import branch products from an uploaded XLSX/CSV file.
+     * Import pharmacy products from an uploaded XLSX/CSV file.
      */
-    public function importBranchProducts(ImportBranchProductsRequest $request)
+    public function importPharmacyProducts(ImportPharmacyProductsRequest $request)
     {
         Gate::authorize('create', Products::class);
 
-        $branchId = $request->input('branch_id') ?? $request->user()?->branch_id;
+        $pharmacyId = $request->input('pharmacy_id') ?? $request->user()?->pharmacy_id;
 
-        if (!$branchId) {
+        if (!$pharmacyId) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'branch_id is required when the user has no branch assigned.'
+                'message' => 'pharmacy_id is required when the user has no pharmacy assigned.'
             ], 422);
         }
 
-        $import = new BranchProductsImport((int) $branchId);
+        $import = new PharmacyProductsImport((int) $pharmacyId);
         Excel::import($import, $request->file('file'));
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Branch products imported successfully',
+            'message' => 'Pharmacy products imported successfully',
             'summary' => $import->summary(),
         ]);
     }

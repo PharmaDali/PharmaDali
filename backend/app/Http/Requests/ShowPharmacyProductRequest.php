@@ -5,13 +5,13 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class ShowBranchProductRequest extends FormRequest
+class ShowPharmacyProductRequest extends FormRequest
 {
     protected function prepareForValidation(): void
     {
-        if ($this->route('branchId')) {
+        if ($this->route('pharmacyId')) {
             $this->merge([
-                'branch_id' => $this->route('branchId'),
+                'pharmacy_id' => $this->route('pharmacyId'),
             ]);
         }
     }
@@ -32,13 +32,13 @@ class ShowBranchProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'branch_id' => ['required', 'integer', 'exists:branches,id'],
+            'pharmacy_id' => ['required', 'integer', 'exists:pharmacies,id'],
             'force_refresh' => ['sometimes', 'boolean'],
             'category_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('branch_products', 'category_id')->where(function ($query) {
-                    return $query->where('branch_id', $this->input('branch_id'));
+                Rule::exists('pharmacy_products', 'category_id')->where(function ($query) {
+                    return $query->where('pharmacy_id', $this->input('pharmacy_id'));
                 }),
             ],
             'cursor' => ['nullable', 'string'],

@@ -23,8 +23,8 @@ class AddToCartRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'branch_id' => ['required', 'integer', 'exists:branches,id'],
-            'branch_product_id' => ['required', 'integer', 'exists:branch_products,id'],
+            'pharmacy_id' => ['required', 'integer', 'exists:pharmacies,id'],
+            'pharmacy_product_id' => ['required', 'integer', 'exists:pharmacy_products,id'],
             'quantity' => ['sometimes', 'integer', 'min:1'],
         ];
     }

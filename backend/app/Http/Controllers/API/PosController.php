@@ -37,7 +37,7 @@ class PosController extends Controller
     {
         $request->validate([
             'items' => 'required|array|min:1',
-            'items.*.id' => 'required|exists:branch_products,id',
+            'items.*.id' => 'required|exists:pharmacy_products,id',
             'items.*.qty' => 'required|integer|min:1',
             'payment_method' => 'required|string',
             'amount_received' => 'nullable|numeric|min:0',
@@ -62,7 +62,7 @@ class PosController extends Controller
     }
 
     /**
-     * Get pickup orders for the branch with search and status filtering.
+     * Get pickup orders for the pharmacy with search and status filtering.
      */
     public function getPickupOrders(Request $request)
     {

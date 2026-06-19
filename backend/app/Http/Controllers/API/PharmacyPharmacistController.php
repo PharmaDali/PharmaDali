@@ -7,14 +7,14 @@ use App\Http\Requests\UpdatePharmacistRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 
-class BranchPharmacistController extends Controller
+class PharmacyPharmacistController extends Controller
 {
     public function index(): JsonResponse
     {
         /** @var User $admin */
         $admin = request()->user();
 
-        $pharmacists = User::where('branch_id', $admin->branch_id)
+        $pharmacists = User::where('pharmacy_id', $admin->pharmacy_id)
             ->where('role', 'pharmacist')
             ->with('pharmacist')
             ->get();
@@ -28,7 +28,7 @@ class BranchPharmacistController extends Controller
         $admin = $request->user();
 
         $user = User::where('id', $pharmacist)
-            ->where('branch_id', $admin->branch_id)
+            ->where('pharmacy_id', $admin->pharmacy_id)
             ->where('role', 'pharmacist')
             ->firstOrFail();
 
@@ -61,7 +61,7 @@ class BranchPharmacistController extends Controller
         $admin = request()->user();
 
         $user = User::where('id', $pharmacist)
-            ->where('branch_id', $admin->branch_id)
+            ->where('pharmacy_id', $admin->pharmacy_id)
             ->where('role', 'pharmacist')
             ->firstOrFail();
 
