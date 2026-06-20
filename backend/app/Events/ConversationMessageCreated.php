@@ -5,11 +5,12 @@ namespace App\Events;
 use App\Models\ConversationMessage;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use Spatie\Multitenancy\Jobs\NotTenantAware;
 
-class ConversationMessageCreated implements ShouldBroadcastNow
+class ConversationMessageCreated implements ShouldBroadcast, NotTenantAware
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
