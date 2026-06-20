@@ -36,7 +36,9 @@ apiClient.interceptors.response.use(
       localStorage.removeItem("userRole");
       localStorage.removeItem("tokenExpiry");
       // Use window.location as we are outside of React components/hooks
-      window.location.href = "/login";
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }
