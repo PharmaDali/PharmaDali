@@ -19,6 +19,7 @@ use App\Http\Controllers\API\PosController;
 use App\Http\Controllers\API\InventoryController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+use Spatie\Multitenancy\Http\Middleware\NeedsTenant;
 
 // Public routes
 Route::post('customer/register', [AuthController::class, 'customerRegister']);
@@ -53,7 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('pharmacies/{pharmacyId}/products/{pharmacyProductId}', [PharmacyProductController::class, 'showSinglePharmacyProduct']);
     Route::get('pharmacies/{pharmacyId}/categories', [PharmacyProductController::class, 'showPharmacyCategories']);
 
-    Route::middleware('ability:pharmacist,pharmacy_admin')->group(function () {
+    Route::middleware(['ability:pharmacist,pharmacy_admin', NeedsTenant::class])->group(function () {
         Route::get('pharmacy/forecasts', [ForecastController::class, 'index']);
     });
 
@@ -83,7 +84,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('customer/order-items/{orderItem}/prescription', [OrderItemPrescription::class, 'upload']);
     });
 
-    Route::middleware('ability:pharmacist,branch_admin')->group(function () {
+    Route::middleware(['ability:pharmacist,pharmacy_admin', NeedsTenant::class])->group(function () {
         Route::get('pharmacist/dashboard', function () {
             return response()->json(['message' => 'Pharmacist dashboard access granted']);
         });
@@ -105,7 +106,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
 
-    Route::middleware(['ability:pharmacy_admin'])->group(function () {
+    Route::middleware(['ability:pharmacy_admin', NeedsTenant::class])->group(function () {
         Route::get(
             'pharmacy/dashboard',
             fn() =>
