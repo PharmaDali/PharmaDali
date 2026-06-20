@@ -95,3 +95,7 @@ serve-lan.bat
 ```
 
 LAN mode runs on `http://<your-local-ip>:3000`
+
+## IDE Setup
+For instructions on setting up your IDE (VS Code / PHP Tools / Intelephense) and resolving false-positive linter warnings, see the [IDE Setup Guide](IDE_SETUP.md).
+

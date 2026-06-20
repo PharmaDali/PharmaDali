@@ -43,6 +43,11 @@ class InventoryService
         ];
     }
 
+    public function getTotalProductCount($pharmacyId)
+    {
+        return PharmacyProduct::where('pharmacy_id', $pharmacyId)->count();
+    }
+
     public function getInventoryProducts($pharmacyId, array $filters = [])
     {
         $query = PharmacyProduct::with(['product', 'category', 'batches'])

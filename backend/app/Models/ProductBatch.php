@@ -10,7 +10,7 @@ class ProductBatch extends Model
     use HasFactory;
 
     protected $fillable = [
-        'branch_product_id',
+        'pharmacy_product_id',
         'batch_number',
         'stock',
         'expiry_date',
@@ -25,8 +25,8 @@ class ProductBatch extends Model
         'stock'            => 'integer',
     ];
 
-    public function branchProduct()
+    public function pharmacyProduct()
     {
-        return $this->belongsTo(BranchProduct::class);
+        return $this->belongsTo(PharmacyProduct::class);
     }
 }

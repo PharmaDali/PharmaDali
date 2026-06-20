@@ -16,3 +16,10 @@ indent_size = 2
 
 [compose.yaml]
 indent_size = 4
+
+[*.php]
+php_diagnostic_php0415 = false
+php_diagnostic_php0416 = false
+php_diagnostic_php0417 = false
+php_diagnostic_php0418 = false
+

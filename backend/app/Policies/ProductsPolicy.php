@@ -29,7 +29,7 @@ class ProductsPolicy
      */
     public function create(User $user): bool
     {
-        return $user->tokenCan('branch_admin') || $user->tokenCan('super_admin');
+        return $user->tokenCan('pharmacy_admin') || $user->tokenCan('super_admin');
     }
 
     /**
@@ -37,7 +37,7 @@ class ProductsPolicy
      */
     public function update(User $user, Products $products): bool
     {
-        return $user->tokenCan('branch_admin') || $user->tokenCan('super_admin');
+        return $user->tokenCan('pharmacy_admin') || $user->tokenCan('super_admin');
     }
 
     /**
@@ -45,7 +45,7 @@ class ProductsPolicy
      */
     public function delete(User $user, Products $products): bool
     {
-        return $user->tokenCan('branch_admin') || $user->tokenCan('super_admin');
+        return $user->tokenCan('pharmacy_admin') || $user->tokenCan('super_admin');
     }
 
     /**

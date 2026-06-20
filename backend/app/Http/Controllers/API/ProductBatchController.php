@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Models\BranchProduct;
+use App\Models\PharmacyProduct;
 use App\Models\ProductBatch;
 use App\Services\Inventory\ProductBatchService;
 use Illuminate\Http\Request;
@@ -15,15 +15,15 @@ class ProductBatchController extends Controller
     ) {}
 
     /**
-     * List all batches for a given branch_product.
-     * GET /branch/inventory/products/{branchProductId}/batches
+     * List all batches for a given pharmacy_product.
+     * GET /pharmacy/inventory/products/{pharmacyProductId}/batches
      */
-    public function index(Request $request, int $branchProductId)
+    public function index(Request $request, int $pharmacyProductId)
     {
-        $branchProduct = BranchProduct::where('branch_id', $request->user()->branch_id)
-            ->findOrFail($branchProductId);
+        $pharmacyProduct = PharmacyProduct::where('pharmacy_id', $request->user()->pharmacy_id)
+            ->findOrFail($pharmacyProductId);
 
-        $batches = $this->batchService->getBatchesForBranchProduct($branchProduct->id);
+        $batches = $this->batchService->getBatchesForPharmacyProduct($pharmacyProduct->id);
 
         return response()->json([
             'status' => 'success',
@@ -32,13 +32,13 @@ class ProductBatchController extends Controller
     }
 
     /**
-     * Add a new batch to an existing branch_product.
-     * POST /branch/inventory/products/{branchProductId}/batches
+     * Add a new batch to an existing pharmacy_product.
+     * POST /pharmacy/inventory/products/{pharmacyProductId}/batches
      */
-    public function store(Request $request, int $branchProductId)
+    public function store(Request $request, int $pharmacyProductId)
     {
-        $branchProduct = BranchProduct::where('branch_id', $request->user()->branch_id)
-            ->findOrFail($branchProductId);
+        $pharmacyProduct = PharmacyProduct::where('pharmacy_id', $request->user()->pharmacy_id)
+            ->findOrFail($pharmacyProductId);
 
         $validated = $request->validate([
             'batch_number'      => 'nullable|string|max:100',
@@ -47,7 +47,7 @@ class ProductBatchController extends Controller
             'manufactured_date' => 'nullable|date',
         ]);
 
-        $batch = $this->batchService->addBatch($branchProduct, $validated);
+        $batch = $this->batchService->addBatch($pharmacyProduct, $validated);
 
         return response()->json([
             'status'  => 'success',
@@ -58,20 +58,20 @@ class ProductBatchController extends Controller
 
     /**
      * Update a batch's stock directly (mid-level edit).
-     * PATCH /branch/inventory/batches/{batchId}
+     * PATCH /pharmacy/inventory/batches/{batchId}
      */
     public function update(Request $request, int $batchId)
     {
         $batch = ProductBatch::findOrFail($batchId);
 
-        $branchProduct = BranchProduct::where('branch_id', $request->user()->branch_id)
-            ->findOrFail($batch->branch_product_id);
+        $pharmacyProduct = PharmacyProduct::where('pharmacy_id', $request->user()->pharmacy_id)
+            ->findOrFail($batch->pharmacy_product_id);
 
         $validated = $request->validate([
             'stock' => 'required|integer|min:0',
         ]);
 
-        $updated = $this->batchService->updateBatchStock($branchProduct, $batch, $validated['stock']);
+        $updated = $this->batchService->updateBatchStock($pharmacyProduct, $batch, $validated['stock']);
 
         return response()->json([
             'status'  => 'success',
@@ -82,19 +82,19 @@ class ProductBatchController extends Controller
 
     /**
      * Perform a FEFO stock-out deduction across batches.
-     * POST /branch/inventory/products/{branchProductId}/stock-out
+     * POST /pharmacy/inventory/products/{pharmacyProductId}/stock-out
      */
-    public function stockOut(Request $request, int $branchProductId)
+    public function stockOut(Request $request, int $pharmacyProductId)
     {
-        $branchProduct = BranchProduct::where('branch_id', $request->user()->branch_id)
-            ->findOrFail($branchProductId);
+        $pharmacyProduct = PharmacyProduct::where('pharmacy_id', $request->user()->pharmacy_id)
+            ->findOrFail($pharmacyProductId);
 
         $validated = $request->validate([
             'quantity' => 'required|integer|min:1',
         ]);
 
         try {
-            $result = $this->batchService->stockOut($branchProduct, $validated['quantity']);
+            $result = $this->batchService->stockOut($pharmacyProduct, $validated['quantity']);
         } catch (\InvalidArgumentException $e) {
             return response()->json([
                 'status'  => 'error',

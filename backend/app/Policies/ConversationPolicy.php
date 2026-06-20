@@ -14,9 +14,9 @@ class ConversationPolicy
             return (int) $conversation->customer_user_id === (int) $user->id;
         }
 
-        if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
+        if (in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)) {
             return $conversation->pharmacy_id !== null
-                && (int) $conversation->pharmacy_id === (int) $user->branch_id;
+                && (int) $conversation->pharmacy_id === (int) $user->pharmacy_id;
         }
 
         return false;
@@ -28,8 +28,8 @@ class ConversationPolicy
             return $user->customer && (int) $user->customer->id === (int) $order->customer_id;
         }
 
-        if (in_array($user->role, ['pharmacist', 'branch_admin'], true)) {
-            return $user->branch_id !== null && (int) $user->branch_id === (int) $order->branch_id;
+        if (in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)) {
+            return $user->pharmacy_id !== null && (int) $user->pharmacy_id === (int) $order->pharmacy_id;
         }
 
         return false;
@@ -42,13 +42,13 @@ class ConversationPolicy
 
     public function addInternalNote(User $user, Conversation $conversation): bool
     {
-        return in_array($user->role, ['pharmacist', 'branch_admin'], true)
+        return in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)
             && $this->view($user, $conversation);
     }
 
     public function assign(User $user, Conversation $conversation): bool
     {
-        return in_array($user->role, ['pharmacist', 'branch_admin'], true)
+        return in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)
             && $this->view($user, $conversation);
     }
 }
