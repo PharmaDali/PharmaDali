@@ -42,6 +42,22 @@ const getStoredToken = async () => {
   }
 };
 
+const getStoredPharmacyId = async () => {
+  const raw = await SecureStore.getItemAsync('pharmacist_token');
+
+  if (!raw) return null;
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed?.user?.pharmacy_id) {
+      return String(parsed.user.pharmacy_id);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 export async function apiRequest(path, options = {}) {
   const baseUrl = getBaseUrl();
 
@@ -58,9 +74,13 @@ export async function apiRequest(path, options = {}) {
     ? { Authorization: `Bearer ${authToken}` }
     : {};
 
+  const pharmacyId = await getStoredPharmacyId();
+  const pharmacyHeader = pharmacyId ? { 'X-Pharmacy-ID': pharmacyId } : {};
+
   const baseHeaders = {
     Accept: 'application/json',
     ...authHeader,
+    ...pharmacyHeader,
     ...headers,
   };
 
