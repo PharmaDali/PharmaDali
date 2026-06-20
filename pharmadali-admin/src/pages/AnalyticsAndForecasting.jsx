@@ -449,7 +449,7 @@ function AnalyticsAndForecasting() {
             const period = TABLE_RANGE_PERIOD[tableRange] || "current";
 
             try {
-                const response = await apiRequest.get("/branch/forecasts", {
+                const response = await apiRequest.get("/pharmacy/forecasts", {
                     params: {
                         kind: "demand",
                         granularity,
@@ -541,7 +541,7 @@ function AnalyticsAndForecasting() {
 
         const fetchSalesSeries = async () => {
             try {
-                const response = await apiRequest.get("/branch/forecasts", {
+                const response = await apiRequest.get("/pharmacy/forecasts", {
                     params: {
                         kind: "sales",
                         granularity: salesGranularity,
@@ -583,7 +583,7 @@ function AnalyticsAndForecasting() {
                 if (isMounted) {
                     setInsightsLoading(true);
                 }
-                const response = await apiRequest.get("/branch/forecast-insights", {
+                const response = await apiRequest.get("/pharmacy/forecast-insights", {
                     params: {
                         demand_granularity: demandGranularity,
                         sales_granularity: salesGranularity,

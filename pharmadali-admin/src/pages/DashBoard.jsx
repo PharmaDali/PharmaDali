@@ -144,7 +144,7 @@ function SalesTrend() {
 
     const fetchSalesSeries = async () => {
       try {
-        const response = await apiRequest.get("/branch/forecasts", {
+        const response = await apiRequest.get("/pharmacy/forecasts", {
           params: {
             kind: "sales",
             granularity: salesGranularity,
@@ -491,7 +491,7 @@ function DashBoard() {
           setQuickInsightsLoading(true);
         }
         const [topSellingResponse, salesResponse] = await Promise.all([
-          apiRequest.get("/branch/forecasts", {
+          apiRequest.get("/pharmacy/forecasts", {
             params: {
               kind: "demand",
               granularity: "weekly",
@@ -499,7 +499,7 @@ function DashBoard() {
               limit: 200,
             },
           }),
-          apiRequest.get("/branch/forecasts", {
+          apiRequest.get("/pharmacy/forecasts", {
             params: {
               kind: "sales",
               granularity: "weekly",
@@ -554,7 +554,7 @@ function DashBoard() {
           setForecastLoading(true);
         }
         const [currentResponse, nextResponse] = await Promise.all([
-          apiRequest.get("/branch/forecasts", {
+          apiRequest.get("/pharmacy/forecasts", {
             params: {
               kind: "demand",
               granularity: "weekly",
@@ -562,7 +562,7 @@ function DashBoard() {
               limit: 200,
             },
           }),
-          apiRequest.get("/branch/forecasts", {
+          apiRequest.get("/pharmacy/forecasts", {
             params: {
               kind: "demand",
               granularity: "weekly",
