@@ -51,7 +51,6 @@ class ForecastInsightService
 
         // Return cached DB record if data hasn't changed
         $existing = ForecastInsight::query()
-            ->where('tenant_id', $user->pharmacy_id)
             ->where('week_start', $weekStart)
             ->where('demand_granularity', $demandGranularity)
             ->where('sales_granularity', $salesGranularity)
@@ -93,15 +92,15 @@ class ForecastInsightService
 
         ForecastInsight::updateOrCreate(
             [
-                'tenant_id' => $user->pharmacy_id,
-                'week_start' => $weekStart,
-                'demand_granularity' => $demandGranularity,
-                'sales_granularity' => $salesGranularity,
-                'model' => $this->model,
+                'pharmacy_id'         => $user->pharmacy_id,
+                'week_start'          => $weekStart,
+                'demand_granularity'  => $demandGranularity,
+                'sales_granularity'   => $salesGranularity,
+                'model'               => $this->model,
             ],
             [
-                'demand' => $insights['demand'],
-                'sales' => $insights['sales'],
+                'demand'      => $insights['demand'],
+                'sales'       => $insights['sales'],
                 'source_hash' => $sourceHash,
             ]
         );
@@ -171,10 +170,9 @@ class ForecastInsightService
         PROMPT;
     }
 
-    private function loadDemandData(int $tenantId, string $granularity): array
+    private function loadDemandData(int $pharmacyId, string $granularity): array
     {
         $baseQuery = Forecast::query()
-            ->where('tenant_id', $tenantId)
             ->where('kind', 'demand')
             ->where('granularity', $granularity);
 
@@ -198,10 +196,9 @@ class ForecastInsightService
         ];
     }
 
-    private function loadSalesData(int $tenantId, string $granularity): array
+    private function loadSalesData(int $pharmacyId, string $granularity): array
     {
         $baseQuery = Forecast::query()
-            ->where('tenant_id', $tenantId)
             ->where('kind', 'sales')
             ->where('granularity', $granularity);
 

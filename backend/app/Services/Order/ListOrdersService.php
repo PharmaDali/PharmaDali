@@ -42,9 +42,8 @@ class ListOrdersService
 
             $query->where('customer_id', $user->customer->id);
         } elseif (in_array($user->role, ['pharmacy_admin', 'pharmacist'], true)) {
-            if (!is_null($user->pharmacy_id)) {
-                $query->where('pharmacy_id', $user->pharmacy_id);
-            }
+            // Auto-scoped by BelongsToTenant
+
         } else {
             return response()->json([
                 'status' => 'error',

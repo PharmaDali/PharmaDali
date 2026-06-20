@@ -13,25 +13,22 @@ class InventoryService
         private readonly ProductBatchRepository $batchRepository,
     ) {}
 
-    public function getInventoryMetrics($pharmacyId)
+    public function getInventoryMetrics()
     {
         $today = Carbon::today()->toDateString();
         $expiringLimit = Carbon::today()->addDays(30)->toDateString();
 
-        $totalProducts = PharmacyProduct::where('pharmacy_id', $pharmacyId)->count();
+        $totalProducts = PharmacyProduct::count();
 
-        $lowStocks = PharmacyProduct::where('pharmacy_id', $pharmacyId)
-            ->where('stock', '<=', 50)
+        $lowStocks = PharmacyProduct::where('stock', '<=', 50)
             ->count();
 
-        $expiring = PharmacyProduct::where('pharmacy_id', $pharmacyId)
-            ->whereNotNull('expiry_date')
+        $expiring = PharmacyProduct::whereNotNull('expiry_date')
             ->where('expiry_date', '>', $today)
             ->where('expiry_date', '<=', $expiringLimit)
             ->count();
 
-        $expired = PharmacyProduct::where('pharmacy_id', $pharmacyId)
-            ->whereNotNull('expiry_date')
+        $expired = PharmacyProduct::whereNotNull('expiry_date')
             ->where('expiry_date', '<=', $today)
             ->count();
 
@@ -43,15 +40,14 @@ class InventoryService
         ];
     }
 
-    public function getTotalProductCount($pharmacyId)
+    public function getTotalProductCount()
     {
-        return PharmacyProduct::where('pharmacy_id', $pharmacyId)->count();
+        return PharmacyProduct::count();
     }
 
-    public function getInventoryProducts($pharmacyId, array $filters = [])
+    public function getInventoryProducts(array $filters = [])
     {
-        $query = PharmacyProduct::with(['product', 'category', 'batches'])
-            ->where('pharmacy_id', $pharmacyId);
+        $query = PharmacyProduct::with(['product', 'category', 'batches']);
 
         // Filter by search / query
         if (!empty($filters['search'])) {
@@ -216,7 +212,7 @@ class InventoryService
         });
     }
 
-    public function getInventoryLogs($pharmacyId, array $filters = [])
+    public function getInventoryLogs(array $filters = [])
     {
         $search = strtolower($filters['search'] ?? '');
         $action = $filters['action'] ?? 'All';
@@ -226,7 +222,6 @@ class InventoryService
 
         // 1. Stock OUT logs from orders
         $ordersQuery = \App\Models\Order::with(['items.pharmacyProduct.product', 'user'])
-            ->where('pharmacy_id', $pharmacyId)
             ->where('status', 'completed');
 
         if ($dateRange) {
@@ -260,7 +255,7 @@ class InventoryService
         }
 
         // 2. Generate stock IN simulated/historical logs for any pharmacy products
-        $bpQuery = PharmacyProduct::with('product')->where('pharmacy_id', $pharmacyId);
+        $bpQuery = PharmacyProduct::with('product');
         $bps = $bpQuery->get();
 
         foreach ($bps as $bp) {
