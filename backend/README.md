@@ -96,6 +96,22 @@ serve-lan.bat
 
 LAN mode runs on `http://<your-local-ip>:3000`
 
+## 7) Run Background & Real-Time Services
+
+For real-time features (like chat messages, push notifications, and live order updates) to work properly, you need to run two additional services in separate terminal windows:
+
+### A. Queue Worker
+Processes background tasks like broadcasting events and sending push notifications:
+```bash
+php artisan queue:work
+```
+
+### B. Reverb WebSocket Server
+Powers the real-time websocket connections for the frontends:
+```bash
+php artisan reverb:start
+```
+
 ## IDE Setup
 For instructions on setting up your IDE (VS Code / PHP Tools / Intelephense) and resolving false-positive linter warnings, see the [IDE Setup Guide](IDE_SETUP.md).
 

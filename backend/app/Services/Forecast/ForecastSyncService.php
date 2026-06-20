@@ -148,7 +148,7 @@ class ForecastSyncService
                 'period_start' => $periodStart,
                 'period_end' => $periodEnd,
                 'ds' => Carbon::parse($row['ds'])->toDateString(),
-                'tenant_id' => $tenantId,
+                'pharmacy_id' => $tenantId,
                 'unique_id' => (string) $row['unique_id'],
                 'model_name' => $modelName,
                 'forecast_value' => $forecastValue,
@@ -207,7 +207,7 @@ class ForecastSyncService
     private function extractModelName(array $row): ?string
     {
         foreach ($row as $key => $value) {
-            if (in_array($key, ['unique_id', 'tenant_id', 'ds'], true)) {
+            if (in_array($key, ['unique_id', 'tenant_id', 'pharmacy_id', 'ds'], true)) {
                 continue;
             }
             return $key;

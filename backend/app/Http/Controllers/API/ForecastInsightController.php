@@ -24,7 +24,7 @@ class ForecastInsightController extends Controller
 
         // Return whatever is already stored
         $existing = ForecastInsight::query()
-            ->where('tenant_id', $user->pharmacy_id)
+            ->where('pharmacy_id', $user->pharmacy_id)
             ->where('demand_granularity', $demandGranularity)
             ->where('sales_granularity', $salesGranularity)
             ->latest('week_start')

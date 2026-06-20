@@ -24,7 +24,7 @@ class ForecastController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'data' => $this->forecastQueryService->listForBranch($request->user(), $filters),
+            'data' => $this->forecastQueryService->listForPharmacy($request->user(), $filters),
         ]);
     }
 }
