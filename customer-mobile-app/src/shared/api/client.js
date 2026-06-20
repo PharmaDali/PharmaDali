@@ -58,9 +58,13 @@ export async function apiRequest(path, options = {}) {
     ? { Authorization: `Bearer ${authToken}` }
     : {};
 
+  const pharmacyId = await SecureStore.getItemAsync('customer_selected_pharmacy_id');
+  const pharmacyHeader = pharmacyId ? { 'X-Pharmacy-ID': pharmacyId } : {};
+
   const baseHeaders = {
     Accept: 'application/json',
     ...authHeader,
+    ...pharmacyHeader,
     ...headers,
   };
 

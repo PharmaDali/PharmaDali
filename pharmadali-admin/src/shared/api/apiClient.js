@@ -14,9 +14,14 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
+  const pharmacyId = localStorage.getItem("pharmacy_id");
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (pharmacyId) {
+    config.headers["X-Pharmacy-ID"] = pharmacyId;
   }
 
   return config;

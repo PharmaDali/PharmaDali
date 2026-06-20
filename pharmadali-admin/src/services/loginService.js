@@ -13,6 +13,9 @@ export const login = async (credentials) => {
 	const token = data?.token || data?.access_token;
 	if (token) {
 		setAuthToken(token);
+		if (data?.user?.pharmacy_id) {
+			localStorage.setItem("pharmacy_id", data.user.pharmacy_id);
+		}
 	}
 
 	return data;
@@ -27,5 +30,6 @@ export const logout = async () => {
 		setAuthToken(null);
 		localStorage.removeItem(AUTH_TOKEN_KEY);
 		localStorage.removeItem("tokenExpiry");
+		localStorage.removeItem("pharmacy_id");
 	}
 };
