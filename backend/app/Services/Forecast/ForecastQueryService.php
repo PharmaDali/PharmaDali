@@ -13,7 +13,7 @@ class ForecastQueryService
             return [];
         }
 
-        $query = Forecast::query()->where('tenant_id', $user->pharmacy_id);
+        $query = Forecast::query();
 
         if (!empty($filters['kind'])) {
             $query->where('kind', $filters['kind']);

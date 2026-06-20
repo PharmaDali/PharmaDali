@@ -13,10 +13,7 @@ class GetTodayStatsService
         $query = Order::whereDate('created_at', today())
             ->where('payment_status', 'paid');
 
-        // For pharmacy admins/pharmacists, scope to their pharmacy
-        if ($user && $user->pharmacy_id) {
-            $query->where('pharmacy_id', $user->pharmacy_id);
-        }
+        // Auto-scoped by BelongsToTenant for pharmacy admins/pharmacists
 
         $totalOrders = (clone $query)->count();
         

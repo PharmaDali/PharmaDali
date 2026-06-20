@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\BelongsToTenant;
 
 class ForecastInsight extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
-        'tenant_id',
+        'pharmacy_id',
         'week_start',
         'demand_granularity',
         'sales_granularity',
@@ -18,7 +21,7 @@ class ForecastInsight extends Model
     ];
 
     protected $casts = [
-        'tenant_id' => 'integer',
+        'pharmacy_id' => 'integer',
         'week_start' => 'date',
     ];
 }

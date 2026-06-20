@@ -14,8 +14,7 @@ class InventoryController extends Controller
 
     public function getInventoryMetrics(Request $request)
     {
-        $pharmacyId = $request->user()->pharmacy_id;
-        $metrics = $this->inventoryService->getInventoryMetrics($pharmacyId);
+        $metrics = $this->inventoryService->getInventoryMetrics();
 
         return response()->json([
             'status' => 'success',
@@ -25,8 +24,7 @@ class InventoryController extends Controller
 
     public function getTotalProductCount(Request $request)
     {
-        $pharmacyId = $request->user()->pharmacy_id;
-        $count = $this->inventoryService->getTotalProductCount($pharmacyId);
+        $count = $this->inventoryService->getTotalProductCount();
 
         return response()->json([
             'status' => 'success',
@@ -38,9 +36,8 @@ class InventoryController extends Controller
 
     public function getInventoryProducts(Request $request)
     {
-        $pharmacyId = $request->user()->pharmacy_id;
         $filters = $request->only(['search', 'category', 'price_range', 'stock_range', 'status']);
-        $products = $this->inventoryService->getInventoryProducts($pharmacyId, $filters);
+        $products = $this->inventoryService->getInventoryProducts($filters);
 
         return response()->json([
             'status' => 'success',
@@ -50,9 +47,8 @@ class InventoryController extends Controller
 
     public function getInventoryLogs(Request $request)
     {
-        $pharmacyId = $request->user()->pharmacy_id;
         $filters = $request->only(['search', 'action', 'date_range']);
-        $logs = $this->inventoryService->getInventoryLogs($pharmacyId, $filters);
+        $logs = $this->inventoryService->getInventoryLogs($filters);
 
         return response()->json([
             'status' => 'success',

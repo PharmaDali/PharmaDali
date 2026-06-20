@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\BelongsToTenant;
 
 class Forecast extends Model
 {
+    use BelongsToTenant;
+
     protected $fillable = [
         'kind',
         'granularity',
@@ -13,7 +16,7 @@ class Forecast extends Model
         'period_start',
         'period_end',
         'ds',
-        'tenant_id',
+        'pharmacy_id',
         'unique_id',
         'model_name',
         'forecast_value',
@@ -23,7 +26,7 @@ class Forecast extends Model
         'period_start' => 'date',
         'period_end' => 'date',
         'ds' => 'date',
-        'tenant_id' => 'integer',
+        'pharmacy_id' => 'integer',
         'forecast_value' => 'decimal:4',
     ];
 }
