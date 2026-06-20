@@ -26,7 +26,7 @@ class AdminLoginService
         $user = Auth::user();
 
         // Block non-admin roles from using this endpoint
-        if (!in_array($user->role, ['branch_admin', 'super_admin'])) {
+        if (!in_array($user->role, ['pharmacy_admin', 'super_admin'])) {
             Auth::logout();
             RateLimiter::hit('admin-login:' . $ip);
             return response()->json(['message' => 'Invalid credentials'], 401);
@@ -59,7 +59,7 @@ class AdminLoginService
             'token'      => $token,
             'token_type' => 'Bearer',
             'role'       => $user->role,
-            'user'       => $user->load('branch'),
+            'user'       => $user->load('pharmacy'),
         ]);
     }
 

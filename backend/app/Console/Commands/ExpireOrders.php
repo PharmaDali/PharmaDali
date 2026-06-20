@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Branch;
+use App\Models\Pharmacy;
 use App\Models\Order;
 use App\Notifications\OrderExpiredNotification;
 use Illuminate\Console\Command;
@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 class ExpireOrders extends Command
 {
     protected $signature = 'orders:expire';
-    protected $description = 'Mark orders as overdue when the branch closing hour has passed and the order is still incomplete.';
+    protected $description = 'Mark orders as overdue when the pharmacy closing hour has passed and the order is still incomplete.';
 
     /**
      * Statuses that indicate an order is still open / in-progress.
@@ -24,16 +24,16 @@ class ExpireOrders extends Command
         $now = now(); // Respects app timezone (Asia/Manila)
         $expired = 0;
 
-        Branch::where('is_active', true)
+        Pharmacy::where(['is_active' => true])
             ->whereNotNull('closing_hour')
             ->get()
-            ->each(function (Branch $branch) use ($now, &$expired) {
-                if (!$this->isBranchCurrentlyClosed($branch, $now)) {
-                    return; // Branch is still open — skip
+            ->each(function (Pharmacy $pharmacy) use ($now, &$expired) {
+                if (!$this->isPharmacyCurrentlyClosed($pharmacy, $now)) {
+                    return; // Pharmacy is still open — skip
                 }
 
                 // Collect IDs of all orders that need to expire
-                $orderIds = Order::where('branch_id', $branch->id)
+                $orderIds = Order::where(['pharmacy_id' => $pharmacy->id])
                     ->whereIn('status', self::EXPIRABLE_STATUSES)
                     ->whereDate('created_at', $now->toDateString()) // Only today's orders
                     ->pluck('id');
@@ -74,12 +74,12 @@ class ExpireOrders extends Command
     }
 
     /**
-     * Returns true if the branch closing time has passed for today
-     * and the branch is therefore currently closed.
+     * Returns true if the pharmacy closing time has passed for today
+     * and the pharmacy is therefore currently closed.
      */
-    private function isBranchCurrentlyClosed(Branch $branch, $now): bool
+    private function isPharmacyCurrentlyClosed(Pharmacy $pharmacy, $now): bool
     {
-        $closing = $branch->closing_hour; // e.g. "21:00:00"
+        $closing = $pharmacy->closing_hour; // e.g. "21:00:00"
 
         if (!$closing) {
             return false;
@@ -91,8 +91,8 @@ class ExpireOrders extends Command
         $currentMinutes = ($now->hour * 60) + $now->minute;
 
         $openingMinutes = null;
-        if ($branch->opening_hour) {
-            [$openH, $openM] = array_map('intval', explode(':', $branch->opening_hour));
+        if ($pharmacy->opening_hour) {
+            [$openH, $openM] = array_map('intval', explode(':', $pharmacy->opening_hour));
             $openingMinutes = ($openH * 60) + $openM;
         }
 
