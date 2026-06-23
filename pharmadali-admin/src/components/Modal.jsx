@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 
+let openModalsCount = 0;
+
 const SIZE_CLASS_MAP = {
   sm: "pd-modal--sm",
   md: "pd-modal--md",
@@ -39,11 +41,14 @@ function Modal({
       return undefined;
     }
 
-    const previousOverflow = document.body.style.overflow;
+    openModalsCount++;
     document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      openModalsCount--;
+      if (openModalsCount === 0) {
+        document.body.style.overflow = "";
+      }
     };
   }, [isOpen]);
 

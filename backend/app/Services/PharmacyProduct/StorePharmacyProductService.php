@@ -21,6 +21,7 @@ class StorePharmacyProductService
     {
         return DB::transaction(function () use ($validated, $pharmacyId) {
             $productData = [
+                'pharmacy_id'  => $pharmacyId,
                 'product_type' => $validated['product_type'],
                 'product_name' => $validated['product_name'],
                 'generic_name' => $validated['generic_name'] ?? null,

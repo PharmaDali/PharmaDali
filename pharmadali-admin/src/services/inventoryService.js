@@ -1,7 +1,7 @@
 import { apiRequest } from "../shared/api/apiClient";
 
 export const fetchInventoryMetrics = async () => {
-  const response = await apiRequest.get("/branch/inventory/metrics");
+  const response = await apiRequest.get("/pharmacy/inventory/metrics");
   return response.data;
 };
 
@@ -13,7 +13,7 @@ export const fetchInventoryProducts = async (filters = {}) => {
   if (filters.stock_range) params.append("stock_range", filters.stock_range);
   if (filters.status) params.append("status", filters.status);
 
-  const response = await apiRequest.get(`/branch/inventory/products?${params.toString()}`);
+  const response = await apiRequest.get(`/pharmacy/inventory/products?${params.toString()}`);
   return response.data;
 };
 
@@ -23,7 +23,7 @@ export const fetchInventoryLogs = async (filters = {}) => {
   if (filters.action) params.append("action", filters.action);
   if (filters.date_range) params.append("date_range", filters.date_range);
 
-  const response = await apiRequest.get(`/branch/inventory/logs?${params.toString()}`);
+  const response = await apiRequest.get(`/pharmacy/inventory/logs?${params.toString()}`);
   return response.data;
 };
 
@@ -32,18 +32,18 @@ export const createInventoryProduct = async (productData) => {
   return response.data;
 };
 
-export const fetchProductBatches = async (branchProductId) => {
-  const response = await apiRequest.get(`/branch/inventory/products/${branchProductId}/batches`);
+export const fetchProductBatches = async (pharmacyProductId) => {
+  const response = await apiRequest.get(`/pharmacy/inventory/products/${pharmacyProductId}/batches`);
   return response.data;
 };
 
-export const addProductBatch = async (branchProductId, batchData) => {
-  const response = await apiRequest.post(`/branch/inventory/products/${branchProductId}/batches`, batchData);
+export const addProductBatch = async (pharmacyProductId, batchData) => {
+  const response = await apiRequest.post(`/pharmacy/inventory/products/${pharmacyProductId}/batches`, batchData);
   return response.data;
 };
 
 export const updateProductBatch = async (batchId, data) => {
-  const response = await apiRequest.patch(`/branch/inventory/batches/${batchId}`, data);
+  const response = await apiRequest.patch(`/pharmacy/inventory/batches/${batchId}`, data);
   return response.data;
 };
 
@@ -52,7 +52,7 @@ export const updateInventoryProduct = async (productId, data) => {
   return response.data;
 };
 
-export const stockOutProduct = async (branchProductId, data) => {
-  const response = await apiRequest.post(`/branch/inventory/products/${branchProductId}/stock-out`, data);
-  return response.data;
+export const stockOutProduct = async (pharmacyProductId, data) => {
+  const response = await apiRequest.post(`/pharmacy/inventory/products/${pharmacyProductId}/stock-out`, data);
+  return response;
 };

@@ -6,6 +6,7 @@ export const CATEGORY_FILTERS = [
   "Milk",
   "Diapers",
   "Vitamins",
+  "Drinks",
   "Supplies",
   "Eyes Med",
   "Hygiene",

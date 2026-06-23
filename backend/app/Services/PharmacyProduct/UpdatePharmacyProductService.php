@@ -22,6 +22,13 @@ class UpdatePharmacyProductService
         $productFields = array_intersect_key($validated, array_flip([
             'product_type', 'product_name', 'generic_name', 'brand_name', 'description', 'form', 'strength', 'size'
         ]));
+        
+        file_put_contents(storage_path('logs/debug_update.txt'), json_encode([
+            'validated' => $validated,
+            'productFields' => $productFields,
+            'productId' => $productId,
+            'pharmacyId' => $pharmacyId
+        ]) . PHP_EOL, FILE_APPEND);
 
         $this->productRepository->update($product, $productFields);
 

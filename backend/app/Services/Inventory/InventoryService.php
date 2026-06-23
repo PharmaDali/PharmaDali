@@ -110,18 +110,26 @@ class InventoryService
         if (!empty($filters['status']) && $filters['status'] !== 'All') {
             $status = $filters['status'];
             if ($status === 'Expired') {
-                $query->whereNotNull('expiry_date')->where('expiry_date', '<=', $today->toDateString());
+                $query->whereHas('batches', function ($q) use ($today) {
+                    $q->whereNotNull('expiry_date')
+                      ->where('stock', '>', 0)
+                      ->where('expiry_date', '<=', $today->toDateString());
+                });
             } elseif ($status === 'Expiring soon') {
-                $query->whereNotNull('expiry_date')
-                    ->where('expiry_date', '>', $today->toDateString())
-                    ->where('expiry_date', '<=', $expiringLimit->toDateString());
+                $query->whereHas('batches', function ($q) use ($today, $expiringLimit) {
+                    $q->whereNotNull('expiry_date')
+                      ->where('stock', '>', 0)
+                      ->where('expiry_date', '>', $today->toDateString())
+                      ->where('expiry_date', '<=', $expiringLimit->toDateString());
+                });
             } elseif ($status === 'Low Stocks') {
                 $query->where('stock', '<=', 50);
             } elseif ($status === 'Normal') {
                 $query->where('stock', '>', 50)
-                    ->where(function ($q) use ($today, $expiringLimit) {
-                        $q->whereNull('expiry_date')
-                          ->orWhere('expiry_date', '>', $expiringLimit->toDateString());
+                    ->whereDoesntHave('batches', function ($q) use ($expiringLimit) {
+                        $q->whereNotNull('expiry_date')
+                          ->where('stock', '>', 0)
+                          ->where('expiry_date', '<=', $expiringLimit->toDateString());
                     });
             }
         }
@@ -132,19 +140,26 @@ class InventoryService
             $product  = $bp->product;
             $category = $bp->category;
 
-            $expiringInDays = 0;
-            if ($bp->expiry_date) {
-                $expiry         = Carbon::parse($bp->expiry_date);
-                $expiringInDays = (int) $today->diffInDays($expiry, false);
-            } else {
-                $expiringInDays = 365; // default if no expiry set
+            // Determine the earliest active expiration date from batches
+            $earliestBatch = $bp->batches
+                ->whereNotNull('expiry_date')
+                ->where('stock', '>', 0)
+                ->sortBy('expiry_date')
+                ->first();
+                
+            $earliestExpiryDate = $earliestBatch ? Carbon::parse($earliestBatch->expiry_date) : null;
+            $earliestManufacturedDate = $earliestBatch ? Carbon::parse($earliestBatch->manufactured_date) : null;
+
+            $expiringInDays = 365; // default if no expiry set
+            if ($earliestExpiryDate) {
+                $expiringInDays = (int) $today->diffInDays($earliestExpiryDate, false);
             }
 
             // Determine status
             $status = 'Normal';
-            if ($bp->expiry_date && $expiringInDays <= 0) {
+            if ($earliestExpiryDate && $expiringInDays <= 0) {
                 $status = 'Expired';
-            } elseif ($bp->expiry_date && $expiringInDays <= 30) {
+            } elseif ($earliestExpiryDate && $expiringInDays <= 30) {
                 $status = 'Expiring soon';
             } elseif ($bp->stock <= 50) {
                 $status = 'Low Stocks';
@@ -200,13 +215,15 @@ class InventoryService
                 'quantity'       => $bp->stock,
                 'reorderPoint'   => 50,
                 'expiringInDays' => $expiringInDays,
-                'expiryDate'     => $bp->expiry_date,
+                'expiryDate'     => $earliestExpiryDate?->toDateString(),
+                'manufacturedDate' => $earliestManufacturedDate?->toDateString(),
                 'velocity'       => $velocity,
                 'sellingPrice'   => (float) $bp->selling_price,
                 'status'         => $status,
                 'is_available'   => $bp->is_available,
                 'is_discountable'=> $bp->is_discountable,
                 'product_id'     => $product->id ?? null,
+                'product_type'   => $product->product_type ?? 'medicine',
                 'batches'        => $batches,
             ];
         });

@@ -10,6 +10,7 @@ export function StockOutModal({
   setStockOutForm,
   stockOutSaving,
   handleStockOutSubmit,
+  inputErrors = {},
 }) {
   return (
     <Modal
@@ -35,7 +36,7 @@ export function StockOutModal({
             <label className="form-label fw-semibold text-secondary small mb-1">Quantity to Deduct *</label>
             <input
               type="number"
-              className="form-control form-control-sm"
+              className={`form-control form-control-sm ${inputErrors.stockOutQuantity ? 'is-invalid' : ''}`}
               style={{ color: "#1f2937" }}
               placeholder="e.g. 10"
               min="1"
@@ -43,6 +44,7 @@ export function StockOutModal({
               value={stockOutForm.quantity}
               onChange={(e) => setStockOutForm((p) => ({ ...p, quantity: e.target.value }))}
             />
+            {inputErrors.stockOutQuantity && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.stockOutQuantity}</span>}
           </div>
           <div className="d-flex gap-2 justify-content-end mt-4">
             <button
