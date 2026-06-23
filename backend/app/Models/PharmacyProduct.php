@@ -4,11 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\BelongsToPharmacy;
 
 class PharmacyProduct extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use HasFactory, BelongsToPharmacy;
 
     protected $table = 'pharmacy_products';
 

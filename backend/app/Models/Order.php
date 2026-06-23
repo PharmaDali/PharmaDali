@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\BelongsToPharmacy;
 
 class Order extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use HasFactory, BelongsToPharmacy;
 
     protected $fillable = [
         'order_number',
