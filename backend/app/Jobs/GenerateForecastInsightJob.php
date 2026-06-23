@@ -10,9 +10,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Spatie\Multitenancy\Jobs\TenantAware;
 
-class GenerateForecastInsightJob implements ShouldQueue, TenantAware
+
+class GenerateForecastInsightJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -27,6 +27,7 @@ class GenerateForecastInsightJob implements ShouldQueue, TenantAware
 
     public function handle(ForecastInsightService $service): void
     {
+        \App\Models\Concerns\BelongsToPharmacy::setPharmacyContext($this->user->pharmacy_id);
         $service->generate($this->user, $this->demandGranularity, $this->salesGranularity);
     }
 }

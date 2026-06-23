@@ -7,9 +7,9 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use App\Services\Notification\FcmService;
-use Spatie\Multitenancy\Jobs\NotTenantAware;
 
-class OrderPlacedNotification extends Notification implements ShouldQueue, NotTenantAware
+
+class OrderPlacedNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
