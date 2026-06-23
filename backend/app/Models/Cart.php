@@ -3,11 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\BelongsToPharmacy;
 
 class Cart extends Model
 {
-    use BelongsToTenant;
+    use BelongsToPharmacy;
     protected $fillable = [
         'customer_id',
         'pharmacy_id',

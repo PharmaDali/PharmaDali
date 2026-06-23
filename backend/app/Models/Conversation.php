@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use App\Models\Concerns\BelongsToTenant;
+use App\Models\Concerns\BelongsToPharmacy;
 
 class Conversation extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use HasFactory, BelongsToPharmacy;
 
     protected $fillable = [
         'order_id',
@@ -82,7 +82,7 @@ class Conversation extends Model
             }
 
             if (in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)) {
-                // Auto-scoped by BelongsToTenant middleware
+                // Auto-scoped by BelongsToPharmacy middleware
             }
         });
     }
