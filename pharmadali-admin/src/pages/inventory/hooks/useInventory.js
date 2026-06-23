@@ -15,12 +15,7 @@ import {
   DUMMY_EXPIRING_SOON,
   ITEMS_PER_PAGE,
 } from "../inventoryConstants";
-import {
-  formatExpiryMonthValue,
-  getDaysUntilMonth,
-  getDaysUntilDate,
-  toNumber,
-} from "../../../utils/inventoryUtils";
+import { toNumber } from "../../../utils/inventoryUtils";
 
 export function useInventory() {
   const navigate = useNavigate();
@@ -55,7 +50,9 @@ export function useInventory() {
   // Batch Management States
   const [batches, setBatches] = useState([]);
   const [batchLoading, setBatchLoading] = useState(false);
+  const [batchSaving, setBatchSaving] = useState(false);
   const [batchEditStocks, setBatchEditStocks] = useState({});
+  const [batchEditDates, setBatchEditDates] = useState({});
   const [showAddBatch, setShowAddBatch] = useState(false);
   const [newBatch, setNewBatch] = useState({
     batch_number: "",
@@ -63,7 +60,23 @@ export function useInventory() {
     expiry_date: "",
     manufactured_date: "",
   });
-  const [batchSaving, setBatchSaving] = useState(false);
+
+  // Success Modal State
+  const [successModal, setSuccessModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+
+  // Error Modal State
+  const [errorModal, setErrorModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+  });
+
+  // Input Field Errors
+  const [inputErrors, setInputErrors] = useState({});
 
   // Stock-out Modal States
   const [showStockOutModal, setShowStockOutModal] = useState(false);
@@ -76,6 +89,7 @@ export function useInventory() {
   const [addForm, setAddForm] = useState({
     genericName: "",
     brandName: "",
+    form: "",
     dosage: "",
     size: "",
     batchNumber: "",
@@ -200,16 +214,20 @@ export function useInventory() {
       manufactured_date: "",
     });
     setBatchEditStocks({});
+    setBatchEditDates({});
     setModalDraft({
       name: item.name,
       brand: item.brand,
       category: item.category,
-      form: item.form,
+      form: item.raw_form,
+      dosage: item.strength,
+      size: item.size,
       id: item.id,
       sellingPrice: item.sellingPrice,
       reorderPoint: item.reorderPoint,
       quantity: item.quantity,
       expiryDate: item.expiryDate || "",
+      manufacturedDate: item.manufacturedDate || "",
       needsPrescription: false,
     });
     
@@ -229,6 +247,7 @@ export function useInventory() {
     setShowConfirmSave(false);
     setBatches([]);
     setBatchEditStocks({});
+    setBatchEditDates({});
     setShowAddBatch(false);
     setNewBatch({
       batch_number: "",
@@ -236,6 +255,7 @@ export function useInventory() {
       expiry_date: "",
       manufactured_date: "",
     });
+    setInputErrors({});
   };
 
   // Inline batch adjustments
@@ -243,27 +263,99 @@ export function useInventory() {
     setBatchEditStocks((prev) => ({ ...prev, [batchId]: value }));
   };
 
-  const handleSaveBatchStock = async (batch) => {
-    const newStock = parseInt(batchEditStocks[batch.id], 10);
-    if (isNaN(newStock) || newStock < 0) return;
+  const handleBatchDateChange = (batchId, field, value) => {
+    setBatchEditDates((prev) => ({
+      ...prev,
+      [batchId]: {
+        ...(prev[batchId] || {}),
+        [field]: value
+      }
+    }));
+  };
+
+  const hasBatchChanges = useMemo(() => {
+    return batches.some((b) => {
+      if (b.isDraft) return false;
+      const editedVal = batchEditStocks[b.id];
+      const parsedEdited = editedVal !== undefined && editedVal !== "" ? parseInt(editedVal, 10) : parseInt(b.stock, 10);
+      const parsedOrig = parseInt(b.stock, 10);
+      
+      const stockChanged = !isNaN(parsedEdited) && parsedEdited !== parsedOrig && parsedEdited >= 0;
+      
+      const editedDates = batchEditDates[b.id] || {};
+      const expChanged = editedDates.expiry_date !== undefined && editedDates.expiry_date !== b.expiry_date;
+      const mfgChanged = editedDates.manufactured_date !== undefined && editedDates.manufactured_date !== b.manufactured_date;
+      
+      return stockChanged || expChanged || mfgChanged;
+    });
+  }, [batches, batchEditStocks, batchEditDates]);
+
+  const handleSaveAllBatches = async () => {
+    const draftBatches = batches.filter(b => b.isDraft);
+    const changedBatches = batches.filter((b) => {
+      if (b.isDraft) return false;
+      const editedVal = batchEditStocks[b.id];
+      const parsedEdited = editedVal !== undefined && editedVal !== "" ? parseInt(editedVal, 10) : parseInt(b.stock, 10);
+      const stockChanged = !isNaN(parsedEdited) && parsedEdited !== parseInt(b.stock, 10) && parsedEdited >= 0;
+      
+      const editedDates = batchEditDates[b.id] || {};
+      const expChanged = editedDates.expiry_date !== undefined && editedDates.expiry_date !== b.expiry_date;
+      const mfgChanged = editedDates.manufactured_date !== undefined && editedDates.manufactured_date !== b.manufactured_date;
+      
+      return stockChanged || expChanged || mfgChanged;
+    });
+
+    if (changedBatches.length === 0 && draftBatches.length === 0) return;
+
     setBatchSaving(true);
     try {
-      await updateProductBatch(batch.id, { stock: newStock });
-      setBatches((prev) =>
-        prev.map((b) => (b.id === batch.id ? { ...b, stock: newStock } : b))
+      // 1. Save draft batches
+      for (const draftBatch of draftBatches) {
+        const finalStock = parseInt(batchEditStocks[draftBatch.id] ?? draftBatch.stock, 10);
+        if (!isNaN(finalStock) && finalStock >= 0) {
+          await addProductBatch(selectedItem.id, {
+            batch_number: draftBatch.batch_number || null,
+            stock: finalStock,
+            expiry_date: draftBatch.expiry_date || null,
+            manufactured_date: draftBatch.manufactured_date || null,
+          });
+        }
+      }
+
+      // 2. Update existing batches
+      await Promise.all(
+        changedBatches.map(async (batch) => {
+          const editedVal = batchEditStocks[batch.id];
+          const newStock = editedVal !== undefined && editedVal !== "" ? parseInt(editedVal, 10) : parseInt(batch.stock, 10);
+          
+          const payload = { stock: newStock };
+          
+          const editedDates = batchEditDates[batch.id] || {};
+          if (editedDates.expiry_date !== undefined) {
+            payload.expiry_date = editedDates.expiry_date;
+          }
+          if (editedDates.manufactured_date !== undefined) {
+            payload.manufactured_date = editedDates.manufactured_date;
+          }
+          
+          await updateProductBatch(batch.id, payload);
+        })
       );
-      const total = batches.reduce(
-        (sum, b) => sum + (b.id === batch.id ? newStock : b.stock),
-        0
-      );
-      setInventoryItems((prev) =>
-        prev.map((item) =>
-          item.id === selectedItem.id ? { ...item, quantity: total } : item
-        )
-      );
+
+      await loadData();
+      
+      setSuccessModal({
+        isOpen: true,
+        title: "Batches Updated",
+        message: "Stock changes have been saved successfully.",
+      });
     } catch (err) {
-      console.error("Failed to update batch stock:", err);
-      alert("Failed to update batch stock. Please try again.");
+      console.error("Failed to update batch stocks:", err);
+      setErrorModal({
+        isOpen: true,
+        title: "Update Failed",
+        message: "Failed to update batch stocks. Please try again."
+      });
     } finally {
       setBatchSaving(false);
     }
@@ -271,37 +363,60 @@ export function useInventory() {
 
   const handleAddBatchSubmit = async (e) => {
     e.preventDefault();
+    setInputErrors({});
     if (!selectedItem) return;
     const stock = parseInt(newBatch.stock, 10);
     if (isNaN(stock) || stock < 0) {
-      alert("Please enter a valid stock quantity.");
+      setInputErrors({ newBatchStock: "Please enter a valid stock quantity." });
       return;
     }
-    setBatchSaving(true);
-    try {
-      const result = await addProductBatch(selectedItem.id, {
-        batch_number: newBatch.batch_number || null,
-        stock,
-        expiry_date: newBatch.expiry_date || null,
-        manufactured_date: newBatch.manufactured_date || null,
-      });
-      const created = result.data;
-      setBatches((prev) => [...prev, created]);
-      setBatchEditStocks((prev) => ({ ...prev, [created.id]: created.stock }));
-      setNewBatch({
-        batch_number: "",
-        stock: "",
-        expiry_date: "",
-        manufactured_date: "",
-      });
-      setShowAddBatch(false);
-      loadData();
-    } catch (err) {
-      console.error("Failed to add batch:", err);
-      alert(err.response?.data?.message || "Failed to add batch.");
-    } finally {
-      setBatchSaving(false);
+    
+    let errors = {};
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    
+    if (newBatch.manufactured_date) {
+      const mDate = new Date(newBatch.manufactured_date);
+      mDate.setHours(0,0,0,0);
+      if (mDate > today) {
+        errors.newBatchManufacturedDate = "Manufactured date cannot be in the future.";
+      }
     }
+    
+    if (newBatch.expiry_date) {
+      const eDate = new Date(newBatch.expiry_date);
+      eDate.setHours(0,0,0,0);
+      if (eDate < today) {
+        errors.newBatchExpiryDate = "Expiry date cannot be in the past.";
+      }
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setInputErrors(errors);
+      return;
+    }
+    
+    const draftId = `draft-${Date.now()}`;
+    const created = {
+      id: draftId,
+      batch_number: newBatch.batch_number || "",
+      stock,
+      expiry_date: newBatch.expiry_date || null,
+      manufactured_date: newBatch.manufactured_date || null,
+      status: "Draft",
+      isDraft: true,
+    };
+    
+    setBatches((prev) => [...prev, created]);
+    setBatchEditStocks((prev) => ({ ...prev, [draftId]: stock }));
+    
+    setNewBatch({
+      batch_number: "",
+      stock: "",
+      expiry_date: "",
+      manufactured_date: "",
+    });
+    setShowAddBatch(false);
   };
 
   // Draft edits
@@ -315,10 +430,11 @@ export function useInventory() {
   // Stock out deduction handler
   const handleStockOutSubmit = async (e) => {
     e.preventDefault();
+    setInputErrors({});
     if (!selectedItem) return;
     const qty = parseInt(stockOutForm.quantity, 10);
     if (isNaN(qty) || qty <= 0) {
-      alert("Please enter a valid quantity to deduct.");
+      setInputErrors({ stockOutQuantity: "Please enter a valid quantity to deduct." });
       return;
     }
     setStockOutSaving(true);
@@ -342,9 +458,19 @@ export function useInventory() {
       );
       setStockOutForm({ quantity: "" });
       setShowStockOutModal(false);
+      
+      setSuccessModal({
+        isOpen: true,
+        title: "Stock Out Successful",
+        message: `Successfully deducted ${qty} unit(s) from inventory.`,
+      });
     } catch (err) {
       console.error("Stock-out failed:", err);
-      alert(err.response?.data?.message || "Stock out failed. Please try again.");
+      setErrorModal({
+        isOpen: true,
+        title: "Stock Out Failed",
+        message: err.response?.data?.message || "Stock out failed. Please try again."
+      });
     } finally {
       setStockOutSaving(false);
     }
@@ -356,18 +482,28 @@ export function useInventory() {
       setShowConfirmSave(false);
       return;
     }
+    
+    setInputErrors({});
+    let errors = {};
+    
+    if (Object.keys(errors).length > 0) {
+      setInputErrors(errors);
+      setShowConfirmSave(false);
+      return;
+    }
 
     setProductUpdating(true);
     try {
-      const isMedicine = selectedItem.product_type === "medicine" || !!modalDraft.brand || !!modalDraft.name;
+      const isMedicine = selectedItem.product_type === "medicine";
       
       const payload = {
-        product_type: isMedicine ? "medicine" : "non_medicine",
+        product_type: selectedItem.product_type,
         product_name: modalDraft.name.trim() || selectedItem.name,
         generic_name: isMedicine ? (modalDraft.name.trim() || selectedItem.name) : null,
-        brand_name: isMedicine ? (modalDraft.brand.trim() || selectedItem.brand) : null,
-        form: modalDraft.form.trim() || selectedItem.form,
-        strength: modalDraft.form.trim() || selectedItem.form,
+        brand_name: isMedicine ? (modalDraft.brand?.trim() || selectedItem.brand) : null,
+        form: isMedicine ? (modalDraft.form?.trim() || selectedItem.raw_form) : null,
+        strength: isMedicine ? (modalDraft.dosage?.trim() || selectedItem.strength) : null,
+        size: modalDraft.size?.trim() || selectedItem.size,
         selling_price: toNumber(modalDraft.sellingPrice, selectedItem.sellingPrice),
         is_discountable: selectedItem.is_discountable,
         category_name: modalDraft.category.trim() || selectedItem.category,
@@ -382,9 +518,10 @@ export function useInventory() {
         brand: payload.brand_name || "",
         category: payload.category_name,
         form: payload.form,
+        raw_form: payload.form,
+        size: payload.size,
+        strength: payload.strength,
         sellingPrice: payload.selling_price,
-        expiringInDays: getDaysUntilDate(modalDraft.expiryDate),
-        expiryDate: modalDraft.expiryDate,
       };
 
       setInventoryItems((prev) =>
@@ -395,12 +532,33 @@ export function useInventory() {
       
       // Reload metrics & lists
       await loadData();
+      
+      // Save batches if there are changes
+      const hasBatchChanges =
+        batches.some((b) => b.isDraft) ||
+        Object.keys(batchEditStocks).some(
+          (id) => batchEditStocks[id] !== undefined && batchEditStocks[id] !== batches.find((b) => b.id === id)?.stock
+        );
+        
+      if (hasBatchChanges) {
+        await handleSaveAllBatches();
+      } else {
+        setSuccessModal({
+          isOpen: true,
+          title: "Product Updated",
+          message: "The product details were successfully updated.",
+        });
+      }
 
       // Close the details modal (shrink modal)
       handleModalClose();
     } catch (err) {
       console.error("Failed to save product details:", err);
-      alert(err.response?.data?.message || "Failed to update product details. Please try again.");
+      setErrorModal({
+        isOpen: true,
+        title: "Update Failed",
+        message: err.response?.data?.message || "Failed to update product details. Please try again."
+      });
     } finally {
       setProductUpdating(false);
       setShowConfirmSave(false);
@@ -421,12 +579,12 @@ export function useInventory() {
     e.preventDefault();
     const isMedicine = addProductType === "medicine";
 
-    let payload = {
+    const payload = {
       product_type: addProductType,
       generic_name: isMedicine ? addForm.genericName : null,
       brand_name: isMedicine ? addForm.brandName : null,
       product_name: isMedicine ? addForm.genericName : addForm.productName,
-      form: isMedicine ? addForm.dosage : null,
+      form: isMedicine ? addForm.form : null,
       strength: isMedicine ? addForm.dosage : null,
       size: addForm.size || null,
       description: addForm.description || null,
@@ -438,13 +596,12 @@ export function useInventory() {
       category_name: addForm.categoryName || null,
     };
 
+    let errors = {};
     if (isMedicine && !addForm.genericName) {
-      alert("Generic Name is required for medicine.");
-      return;
+      errors.genericName = "Generic Name is required for medicine.";
     }
     if (!isMedicine && !addForm.productName) {
-      alert("Product Name is required.");
-      return;
+      errors.productName = "Product Name is required.";
     }
     if (
       !isMedicine &&
@@ -452,7 +609,11 @@ export function useInventory() {
         addForm.categoryName === "All" ||
         addForm.categoryName === "category")
     ) {
-      alert("Please select a valid Category.");
+      errors.categoryName = "Please select a valid Category.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setInputErrors(errors);
       return;
     }
 
@@ -461,6 +622,7 @@ export function useInventory() {
       setAddForm({
         genericName: "",
         brandName: "",
+        form: "",
         dosage: "",
         size: "",
         batchNumber: "",
@@ -476,13 +638,30 @@ export function useInventory() {
         needsPrescription: "False",
       });
       setIsAddModalOpen(false);
+      setSuccessModal({
+        isOpen: true,
+        title: "Product Added",
+        message: "The new product was successfully added to inventory."
+      });
       loadData();
     } catch (err) {
       console.error("Failed to create product:", err);
-      alert(
-        err.response?.data?.message ||
-          "Failed to create product. Please check your inputs."
-      );
+      if (err.response?.status === 422 && err.response?.data?.errors) {
+        // Assume backend returns field errors mapped by field name
+        const backendErrors = err.response.data.errors;
+        let formattedErrors = {};
+        for (const key in backendErrors) {
+          // just taking the first error message for each field
+          formattedErrors[key] = backendErrors[key][0];
+        }
+        setInputErrors(formattedErrors);
+      } else {
+        setErrorModal({
+          isOpen: true,
+          title: "Creation Failed",
+          message: err.response?.data?.message || "Failed to create product. Please check your inputs."
+        });
+      }
     }
   };
 
@@ -529,17 +708,18 @@ export function useInventory() {
     batches,
     batchLoading,
     batchEditStocks,
+    handleBatchStockChange,
+    handleSaveAllBatches,
+    hasBatchChanges,
+    batchSaving,
     showAddBatch,
     setShowAddBatch,
     newBatch,
     setNewBatch,
-    batchSaving,
 
     // Actions & Selection Handlers
     handleSelectItem,
     handleModalClose,
-    handleBatchStockChange,
-    handleSaveBatchStock,
     handleAddBatchSubmit,
     handleDraftChange,
     handleRequestSave,
@@ -562,6 +742,13 @@ export function useInventory() {
     addForm,
     setAddForm,
     handleAddProductSubmit,
+
+    successModal,
+    setSuccessModal,
+    errorModal,
+    setErrorModal,
+    inputErrors,
+    setInputErrors,
 
     navigate,
     loadData,

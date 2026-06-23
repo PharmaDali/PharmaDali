@@ -15,7 +15,10 @@ export function ProductDetailsModal({
   batchLoading,
   batchEditStocks,
   handleBatchStockChange,
-  handleSaveBatchStock,
+  batchEditDates,
+  handleBatchDateChange,
+  handleSaveAllBatches,
+  hasBatchChanges,
   batchSaving,
   showAddBatch,
   setShowAddBatch,
@@ -24,7 +27,10 @@ export function ProductDetailsModal({
   handleAddBatchSubmit,
   setShowStockOutModal,
   setStockOutForm,
+  inputErrors = {},
 }) {
+  const isMedicine = selectedItem?.product_type === "medicine";
+
   return (
     <Modal
       isOpen={!!selectedItem}
@@ -70,50 +76,130 @@ export function ProductDetailsModal({
           <div className="inventory-modal-section">
             <h6 className="inventory-modal-section-title">Basic Information</h6>
             <div className="inventory-modal-grid">
+              {isMedicine ? (
+                <>
+                  <div>
+                    <p className="inventory-modal-label">Generic Name</p>
+                    <input
+                      type="text"
+                      className={`form-control inventory-modal-input ${inputErrors.name ? 'is-invalid' : ''}`}
+                      value={modalDraft.name || ""}
+                      onChange={(event) => handleDraftChange("name", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
+                    {inputErrors.name && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.name}</span>}
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Brand Name</p>
+                    <input
+                      type="text"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.brand || ""}
+                      onChange={(event) => handleDraftChange("brand", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Category</p>
+                    <select
+                      className={`form-select inventory-modal-input ${inputErrors.category ? 'is-invalid' : ''}`}
+                      value={modalDraft.category || ""}
+                      onChange={(event) => handleDraftChange("category", event.target.value)}
+                      disabled={!isModalEditing}
+                    >
+                      {CATEGORY_FILTERS.filter((category) => category !== "All").map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                    {inputErrors.category && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.category}</span>}
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Form</p>
+                    <input
+                      type="text"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.form || ""}
+                      onChange={(event) => handleDraftChange("form", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Dosage</p>
+                    <input
+                      type="text"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.dosage || ""}
+                      onChange={(event) => handleDraftChange("dosage", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Size</p>
+                    <input
+                      type="text"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.size || ""}
+                      onChange={(event) => handleDraftChange("size", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="inventory-modal-full-width">
+                    <p className="inventory-modal-label">Product Name</p>
+                    <input
+                      type="text"
+                      className={`form-control inventory-modal-input ${inputErrors.name ? 'is-invalid' : ''}`}
+                      value={modalDraft.name || ""}
+                      onChange={(event) => handleDraftChange("name", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
+                    {inputErrors.name && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.name}</span>}
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Category</p>
+                    <select
+                      className={`form-select inventory-modal-input ${inputErrors.category ? 'is-invalid' : ''}`}
+                      value={modalDraft.category || ""}
+                      onChange={(event) => handleDraftChange("category", event.target.value)}
+                      disabled={!isModalEditing}
+                    >
+                      {CATEGORY_FILTERS.filter((category) => category !== "All" && category !== "Generic" && category !== "Branded" && category !== "Unclassified").map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
+                      ))}
+                    </select>
+                    {inputErrors.category && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.category}</span>}
+                  </div>
+                  <div>
+                    <p className="inventory-modal-label">Size</p>
+                    <input
+                      type="text"
+                      className="form-control inventory-modal-input"
+                      value={modalDraft.size || ""}
+                      onChange={(event) => handleDraftChange("size", event.target.value)}
+                      disabled={!isModalEditing}
+                    />
+                  </div>
+                </>
+              )}
               <div>
-                <p className="inventory-modal-label">Generic Name</p>
-                <input
-                  type="text"
-                  className="form-control inventory-modal-input"
-                  value={modalDraft.name}
-                  onChange={(event) => handleDraftChange("name", event.target.value)}
-                  disabled={!isModalEditing}
-                />
-              </div>
-              <div>
-                <p className="inventory-modal-label">Brand Name</p>
-                <input
-                  type="text"
-                  className="form-control inventory-modal-input"
-                  value={modalDraft.brand}
-                  onChange={(event) => handleDraftChange("brand", event.target.value)}
-                  disabled={!isModalEditing}
-                />
-              </div>
-              <div>
-                <p className="inventory-modal-label">Category</p>
+                <p className="inventory-modal-label">Needs Prescription</p>
                 <select
                   className="form-select inventory-modal-input"
-                  value={modalDraft.category}
-                  onChange={(event) => handleDraftChange("category", event.target.value)}
+                  value={modalDraft.needsPrescription ? "true" : "false"}
+                  onChange={(event) =>
+                    handleDraftChange("needsPrescription", event.target.value === "true")
+                  }
                   disabled={!isModalEditing}
                 >
-                  {CATEGORY_FILTERS.filter((category) => category !== "All").map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
+                  <option value="false">False</option>
+                  <option value="true">True</option>
                 </select>
-              </div>
-              <div>
-                <p className="inventory-modal-label">Form</p>
-                <input
-                  type="text"
-                  className="form-control inventory-modal-input"
-                  value={modalDraft.form}
-                  onChange={(event) => handleDraftChange("form", event.target.value)}
-                  disabled={!isModalEditing}
-                />
               </div>
             </div>
           </div>
@@ -132,29 +218,6 @@ export function ProductDetailsModal({
                 />
               </div>
               <div>
-                <p className="inventory-modal-label">Needs Prescription</p>
-                <select
-                  className="form-select inventory-modal-input"
-                  value={modalDraft.needsPrescription ? "true" : "false"}
-                  onChange={(event) =>
-                    handleDraftChange("needsPrescription", event.target.value === "true")
-                  }
-                  disabled={!isModalEditing}
-                >
-                  <option value="false">False</option>
-                  <option value="true">True</option>
-                </select>
-              </div>
-              <div>
-                <p className="inventory-modal-label">Expiry Date</p>
-                <FormattedDateInput
-                  className="form-control inventory-modal-input"
-                  value={modalDraft.expiryDate}
-                  onChange={(val) => handleDraftChange("expiryDate", val)}
-                  disabled={!isModalEditing}
-                />
-              </div>
-              <div>
                 <p className="inventory-modal-label">Selling Cost</p>
                 <input
                   type="number"
@@ -163,16 +226,6 @@ export function ProductDetailsModal({
                   onChange={(event) => handleDraftChange("sellingPrice", event.target.value)}
                   step="0.01"
                   min="0"
-                  disabled={!isModalEditing}
-                />
-              </div>
-              <div>
-                <p className="inventory-modal-label">Dosage/Size</p>
-                <input
-                  type="text"
-                  className="form-control inventory-modal-input"
-                  value={modalDraft.form}
-                  onChange={(event) => handleDraftChange("form", event.target.value)}
                   disabled={!isModalEditing}
                 />
               </div>
@@ -199,9 +252,9 @@ export function ProductDetailsModal({
                 <div className="inventory-batch-head">
                   <span>Batch No.</span>
                   <span>Stock</span>
+                  <span>Manufactured</span>
                   <span>Expiry Date</span>
                   <span>Status</span>
-                  {isModalEditing && <span></span>}
                 </div>
                 {batches.map((batch) => (
                   <div key={batch.id} className="inventory-batch-row">
@@ -222,12 +275,36 @@ export function ProductDetailsModal({
                       )}
                     </span>
                     <span>
-                      {batch.expiry_date
-                        ? new Date(batch.expiry_date).toLocaleDateString("en-PH", {
-                          month: "2-digit",
-                          year: "numeric",
-                        })
-                        : "N/A"}
+                      {isModalEditing ? (
+                        <FormattedDateInput
+                          className="form-control inventory-batch-stock-input"
+                          value={batchEditDates?.[batch.id]?.manufactured_date !== undefined ? batchEditDates[batch.id].manufactured_date : batch.manufactured_date}
+                          onChange={(val) => handleBatchDateChange(batch.id, 'manufactured_date', val)}
+                        />
+                      ) : (
+                        batch.manufactured_date
+                          ? new Date(batch.manufactured_date).toLocaleDateString("en-PH", {
+                            month: "2-digit",
+                            year: "numeric",
+                          })
+                          : "N/A"
+                      )}
+                    </span>
+                    <span>
+                      {isModalEditing ? (
+                        <FormattedDateInput
+                          className="form-control inventory-batch-stock-input"
+                          value={batchEditDates?.[batch.id]?.expiry_date !== undefined ? batchEditDates[batch.id].expiry_date : batch.expiry_date}
+                          onChange={(val) => handleBatchDateChange(batch.id, 'expiry_date', val)}
+                        />
+                      ) : (
+                        batch.expiry_date
+                          ? new Date(batch.expiry_date).toLocaleDateString("en-PH", {
+                            month: "2-digit",
+                            year: "numeric",
+                          })
+                          : "N/A"
+                      )}
                     </span>
                     <span>
                       <span
@@ -240,26 +317,13 @@ export function ProductDetailsModal({
                         {batch.status ?? "Normal"}
                       </span>
                     </span>
-                    {isModalEditing && (
-                      <span>
-                        <button
-                          type="button"
-                          className="inventory-batch-save-btn"
-                          disabled={batchSaving}
-                          onClick={() => handleSaveBatchStock(batch)}
-                        >
-                          Save
-                        </button>
-                      </span>
-                    )}
                   </div>
                 ))}
               </div>
             )}
 
             {isModalEditing && (
-              <div className="inventory-batch-add-area">
-                {!showAddBatch ? (
+              <div className="inventory-batch-add-area">                {!showAddBatch ? (
                   <button
                     type="button"
                     className="inventory-batch-add-trigger"
@@ -287,7 +351,7 @@ export function ProductDetailsModal({
                         <label className="inventory-modal-label">Stock *</label>
                         <input
                           type="number"
-                          className="form-control inventory-modal-input"
+                          className={`form-control inventory-modal-input ${inputErrors.newBatchStock ? 'is-invalid' : ''}`}
                           placeholder="Quantity"
                           min="0"
                           required
@@ -296,26 +360,29 @@ export function ProductDetailsModal({
                             setNewBatch((p) => ({ ...p, stock: e.target.value }))
                           }
                         />
+                        {inputErrors.newBatchStock && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.newBatchStock}</span>}
                       </div>
                       <div>
                         <label className="inventory-modal-label">Expiry Date</label>
                         <FormattedDateInput
-                          className="form-control inventory-modal-input"
+                          className={`form-control inventory-modal-input ${inputErrors.newBatchExpiryDate ? 'is-invalid' : ''}`}
                           value={newBatch.expiry_date}
                           onChange={(val) =>
                             setNewBatch((p) => ({ ...p, expiry_date: val }))
                           }
                         />
+                        {inputErrors.newBatchExpiryDate && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.newBatchExpiryDate}</span>}
                       </div>
                       <div>
                         <label className="inventory-modal-label">Manufactured Date</label>
                         <FormattedDateInput
-                          className="form-control inventory-modal-input"
+                          className={`form-control inventory-modal-input ${inputErrors.newBatchManufacturedDate ? 'is-invalid' : ''}`}
                           value={newBatch.manufactured_date}
                           onChange={(val) =>
                             setNewBatch((p) => ({ ...p, manufactured_date: val }))
                           }
                         />
+                        {inputErrors.newBatchManufacturedDate && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.newBatchManufacturedDate}</span>}
                       </div>
                     </div>
                     <div className="inventory-batch-add-actions">

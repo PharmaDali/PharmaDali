@@ -9,6 +9,8 @@ import StockOutModal from "./components/StockOutModal";
 import AddProductModal from "./components/AddProductModal";
 import Modal from "../../components/Modal";
 import infoIcon from "../../assets/icons/modal-icons/info.svg";
+import successfulIcon from "../../assets/icons/modal-icons/successful-task.svg";
+import errorIcon from "../../assets/icons/modal-icons/error.svg";
 import "../../assets/css/inventory.css";
 
 export function Inventory() {
@@ -65,7 +67,8 @@ export function Inventory() {
     handleSelectItem,
     handleModalClose,
     handleBatchStockChange,
-    handleSaveBatchStock,
+    handleSaveAllBatches,
+    hasBatchChanges,
     handleAddBatchSubmit,
     handleDraftChange,
     handleRequestSave,
@@ -88,6 +91,13 @@ export function Inventory() {
     addForm,
     setAddForm,
     handleAddProductSubmit,
+
+    successModal,
+    setSuccessModal,
+    errorModal,
+    setErrorModal,
+    inputErrors,
+    setInputErrors,
 
     navigate,
     loadData,
@@ -161,7 +171,8 @@ export function Inventory() {
         batchLoading={batchLoading}
         batchEditStocks={batchEditStocks}
         handleBatchStockChange={handleBatchStockChange}
-        handleSaveBatchStock={handleSaveBatchStock}
+        handleSaveAllBatches={handleSaveAllBatches}
+        hasBatchChanges={hasBatchChanges}
         batchSaving={batchSaving}
         showAddBatch={showAddBatch}
         setShowAddBatch={setShowAddBatch}
@@ -170,6 +181,7 @@ export function Inventory() {
         handleAddBatchSubmit={handleAddBatchSubmit}
         setShowStockOutModal={setShowStockOutModal}
         setStockOutForm={setStockOutForm}
+        inputErrors={inputErrors}
       />
 
       <StockOutModal
@@ -181,6 +193,7 @@ export function Inventory() {
         setStockOutForm={setStockOutForm}
         stockOutSaving={stockOutSaving}
         handleStockOutSubmit={handleStockOutSubmit}
+        inputErrors={inputErrors}
       />
 
       <AddProductModal
@@ -191,6 +204,7 @@ export function Inventory() {
         addProductType={addProductType}
         setAddProductType={setAddProductType}
         handleAddProductSubmit={handleAddProductSubmit}
+        inputErrors={inputErrors}
       />
 
       {/* Save Confirmation Modal */}
@@ -230,6 +244,66 @@ export function Inventory() {
               Cancel
             </button>
           </div>
+        </div>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+        size="sm"
+        showCloseButton={false}
+        className="pos-confirm-modal"
+      >
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
+          <img
+            src={successfulIcon}
+            alt="Success"
+            style={{ width: "64px", height: "64px", marginBottom: "16px" }}
+          />
+          <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "12px", color: "#1f2937" }}>
+            {successModal.title}
+          </h2>
+          <p style={{ fontSize: "14px", color: "#666", lineHeight: "1.5", marginBottom: "24px" }}>
+            {successModal.message}
+          </p>
+          <button
+            onClick={() => setSuccessModal({ ...successModal, isOpen: false })}
+            className="btn inventory-modal-btn inventory-modal-btn-primary w-100"
+            style={{ padding: "10px" }}
+          >
+            DONE
+          </button>
+        </div>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ ...errorModal, isOpen: false })}
+        size="sm"
+        showCloseButton={false}
+        className="pos-confirm-modal"
+      >
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
+          <img
+            src={errorIcon}
+            alt="Error"
+            style={{ width: "64px", height: "64px", marginBottom: "16px" }}
+          />
+          <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "12px", color: "#1f2937" }}>
+            {errorModal.title}
+          </h2>
+          <p style={{ fontSize: "14px", color: "#666", lineHeight: "1.5", marginBottom: "24px" }}>
+            {errorModal.message}
+          </p>
+          <button
+            onClick={() => setErrorModal({ ...errorModal, isOpen: false })}
+            className="btn inventory-modal-btn inventory-modal-btn-primary w-100"
+            style={{ padding: "10px", backgroundColor: "#dc3545", borderColor: "#dc3545", color: "white" }}
+          >
+            DISMISS
+          </button>
         </div>
       </Modal>
     </section>
