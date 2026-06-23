@@ -22,7 +22,7 @@ class UpdatePharmacyProductsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_type'   => 'sometimes|string|in:medicine,non_medicine',
+            'product_type'   => 'sometimes|string|in:medicine,non_medicine,non-medicine',
             'product_name'   => 'sometimes|string|max:255',
             'generic_name'   => 'sometimes|nullable|required_if:product_type,medicine|string|max:255',
             'brand_name'     => 'sometimes|nullable|string|max:255',
@@ -33,6 +33,8 @@ class UpdatePharmacyProductsRequest extends FormRequest
             'selling_price'  => 'sometimes|numeric|min:0',
             'is_discountable'=> 'sometimes|boolean',
             'category_name'  => 'sometimes|string|max:255',
+            'expiry_date'    => 'sometimes|nullable|date',
+            'manufactured_date' => 'sometimes|nullable|date',
         ];
     }
 }

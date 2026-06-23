@@ -11,6 +11,7 @@ export function AddProductModal({
   addProductType,
   setAddProductType,
   handleAddProductSubmit,
+  inputErrors = {},
 }) {
   return (
     <Modal
@@ -56,12 +57,13 @@ export function AddProductModal({
                   <label className="add-product-label">Generic Name</label>
                   <input
                     type="text"
-                    className="add-product-input"
+                    className={`add-product-input ${inputErrors.genericName ? 'is-invalid' : ''}`}
                     placeholder="Generic Name"
                     value={addForm.genericName}
                     onChange={(e) => setAddForm(prev => ({ ...prev, genericName: e.target.value }))}
                     required
                   />
+                  {inputErrors.genericName && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.genericName}</span>}
                 </div>
                 <div className="add-product-field">
                   <label className="add-product-label">Brand Name</label>
@@ -76,7 +78,7 @@ export function AddProductModal({
                 <div className="add-product-field">
                   <label className="add-product-label">Category</label>
                   <select
-                    className="add-product-select"
+                    className={`add-product-select ${inputErrors.categoryName ? 'is-invalid' : ''}`}
                     value={addForm.categoryName}
                     onChange={(e) => setAddForm(prev => ({ ...prev, categoryName: e.target.value }))}
                   >
@@ -84,6 +86,17 @@ export function AddProductModal({
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
+                  {inputErrors.categoryName && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.categoryName}</span>}
+                </div>
+                <div className="add-product-field">
+                  <label className="add-product-label">Form</label>
+                  <input
+                    type="text"
+                    className="add-product-input"
+                    placeholder="e.g. Capsule, Syrup"
+                    value={addForm.form}
+                    onChange={(e) => setAddForm(prev => ({ ...prev, form: e.target.value }))}
+                  />
                 </div>
                 <div className="add-product-field">
                   <label className="add-product-label">Dosage</label>
@@ -112,17 +125,18 @@ export function AddProductModal({
                   <label className="add-product-label">Product Name</label>
                   <input
                     type="text"
-                    className="add-product-input"
+                    className={`add-product-input ${inputErrors.productName ? 'is-invalid' : ''}`}
                     placeholder="Product Name"
                     value={addForm.productName}
                     onChange={(e) => setAddForm(prev => ({ ...prev, productName: e.target.value }))}
                     required
                   />
+                  {inputErrors.productName && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.productName}</span>}
                 </div>
                 <div className="add-product-field">
                   <label className="add-product-label">Category</label>
                   <select
-                    className="add-product-select"
+                    className={`add-product-select ${inputErrors.categoryName ? 'is-invalid' : ''}`}
                     value={addForm.categoryName}
                     onChange={(e) => setAddForm(prev => ({ ...prev, categoryName: e.target.value }))}
                     required
@@ -131,6 +145,7 @@ export function AddProductModal({
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
+                  {inputErrors.categoryName && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.categoryName}</span>}
                 </div>
                 <div className="add-product-field">
                   <label className="add-product-label">Size</label>

@@ -22,7 +22,7 @@ class CreatePharmacyProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_type'  => 'required|string|in:medicine,non_medicine',
+            'product_type'  => 'required|string|in:medicine,non_medicine,non-medicine',
             'product_name' => 'required|string|max:255',
             'generic_name' => 'nullable|required_if:product_type,medicine|string|max:255',
             'brand_name'   => 'nullable|string|max:255',
