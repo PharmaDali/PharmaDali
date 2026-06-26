@@ -42,7 +42,7 @@ export async function registerForPushNotificationsAsync() {
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'PharmaDali',
+      name: 'PharmaDali Pharmacist',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#48AAD9',
@@ -79,4 +79,3 @@ export async function removeFcmTokenFromBackend() {
     console.error('[Push] Failed to remove token:', err);
   }
 }
-

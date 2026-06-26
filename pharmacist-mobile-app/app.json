@@ -28,7 +28,14 @@
       "favicon": "./assets/app_icon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/app_icon.png",
+          "color": "#48AAD9"
+        }
+      ]
     ],
     "extra": {
       "router": {},

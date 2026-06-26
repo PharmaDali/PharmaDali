@@ -1,7 +1,6 @@
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native'
+import { Text, View, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native'
 import React, { useState, useCallback } from 'react'
 import { useRouter } from 'expo-router'
-import { colors } from '@src/shared/theme/colorPalette'
 import ClockIcon from '@assets/icons/clock_icon.svg'
 import { useNotifications } from '@shared/hooks/useNotifications'
 
@@ -101,14 +100,20 @@ const Notifications = () => {
           isRead={!!item.read_at}
           title={getNotificationTitle(item.type)}
           description={
-            <Text className="text-xs leading-4" style={styles.text}>
+            <Text
+              className="text-xs leading-4 text-slate-600"
+              style={{ fontFamily: 'Poppins-Medium' }}
+            >
               {parsedData.message}
             </Text>
           }
           footer={
             <View className="flex-row items-center mt-2">
               <ClockIcon width={14} height={14} />
-              <Text className="text-xs ml-1 text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
+              <Text
+                className="text-xs ml-1 text-gray-400"
+                style={{ fontFamily: 'Poppins-Medium' }}
+              >
                 {timeAgo(item.created_at)}
               </Text>
             </View>
@@ -120,42 +125,50 @@ const Notifications = () => {
 
   if (loading && !refreshing) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color={colors.buttonColor} />
+      <View className="flex-1 justify-center items-center bg-[#F1F4FF]">
+        <ActivityIndicator size="large" color="#48AAD9" />
       </View>
     );
   }
 
   return (
     <FlatList
-      style={styles.container}
+      className="flex-1 bg-[#F1F4FF]"
       showsVerticalScrollIndicator={false}
       data={displayedNotifications}
       keyExtractor={(item) => String(item.id)}
       renderItem={renderItem}
-      contentContainerStyle={styles.listContent}
+      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
       onEndReached={loadMore}
       onEndReachedThreshold={0.4}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#48AAD9" />
       }
       ListHeaderComponent={
         <>
-          <View className="px-4 pt-6 pb-2">
-            <Text className="text-2xl" style={styles.titleText}>Notifications</Text>
+          <View className="px-0 pt-6 pb-2">
+            <Text
+              className="text-2xl text-slate-800"
+              style={{ fontFamily: 'Poppins-Bold' }}
+            >
+              Notifications
+            </Text>
           </View>
-          <View className="h-px bg-gray-200 mx-4 mb-2" />
+          <View className="h-px bg-gray-200 mb-2" />
         </>
       }
       ListEmptyComponent={<EmptyState message="No notifications available" />}
       ListFooterComponent={
         hasMore ? (
           <View className="py-4 items-center">
-            <ActivityIndicator size="small" color={colors.buttonColor} />
+            <ActivityIndicator size="small" color="#48AAD9" />
           </View>
         ) : notifications.length > PAGE_SIZE ? (
           <View className="py-4 items-center">
-            <Text className="text-xs text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
+            <Text
+              className="text-xs text-gray-400"
+              style={{ fontFamily: 'Poppins-Medium' }}
+            >
               No more notifications
             </Text>
           </View>
@@ -170,7 +183,10 @@ const Notifications = () => {
 function EmptyState({ message }) {
   return (
     <View className="items-center justify-center py-20">
-      <Text className="text-sm text-gray-400" style={{ fontFamily: 'Poppins-Medium' }}>
+      <Text
+        className="text-sm text-gray-400"
+        style={{ fontFamily: 'Poppins-Medium' }}
+      >
         {message}
       </Text>
     </View>
@@ -179,15 +195,22 @@ function EmptyState({ message }) {
 
 function NotificationCard({ title, description, footer, trailing, isRead }) {
   return (
-    <View 
-      className={`flex-row rounded-2xl p-4 mt-2 border items-center ${isRead ? 'bg-gray-50 border-gray-100' : 'bg-white border-blue-100 shadow-sm'}`}
+    <View
+      className={`rounded-2xl p-4 mt-2 border ${
+        isRead
+          ? 'bg-gray-50 border-gray-100'
+          : 'bg-white border-sky-100 shadow-sm'
+      }`}
     >
       <View className="flex-1">
         <View className="flex-row items-center mb-1">
           {!isRead && (
-            <View className="w-2 h-2 rounded-full bg-blue-500 mr-2" />
+            <View className="w-2 h-2 rounded-full bg-sky-400 mr-2" />
           )}
-          <Text className="text-sm" style={{ fontFamily: 'Poppins-Bold', color: colors.textColor }}>
+          <Text
+            className={`text-sm ${isRead ? 'text-slate-400' : 'text-slate-800'}`}
+            style={{ fontFamily: 'Poppins-Bold' }}
+          >
             {title}
           </Text>
         </View>
@@ -204,26 +227,3 @@ function NotificationCard({ title, description, footer, trailing, isRead }) {
 }
 
 export default Notifications
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F1F4FF',
-  },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-  },
-  text: {
-    fontFamily: 'Poppins-Medium',
-    color: colors.textColor,
-  },
-  titleText: {
-    fontFamily: 'Poppins-Bold',
-    color: colors.textColor,
-  },
-  semiBoldText: {
-    fontFamily: 'Poppins-SemiBold',
-    color: colors.buttonColor,
-  },
-})
