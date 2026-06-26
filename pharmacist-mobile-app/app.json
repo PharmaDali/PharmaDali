@@ -2,7 +2,7 @@
   "expo": {
     "scheme": "pharmadalimobileapp",
     "name": "PharmaDali for Pharmacists",
-    "slug": "mobile",
+    "slug": "pharmadali-pharmacist",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/app_icon.png",
@@ -33,9 +33,10 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "9dc21ec8-6add-4b56-a96a-85d7d3fddfa3"
+        "projectId": "1ad22870-7bcf-4456-a816-86c9f5b8d186"
       },
       "appType": "pharmacist"
-    }
+    },
+    "owner": "gitofjames"
   }
 }
