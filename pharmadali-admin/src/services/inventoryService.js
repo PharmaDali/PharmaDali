@@ -5,6 +5,11 @@ export const fetchInventoryMetrics = async () => {
   return response.data;
 };
 
+export const fetchPriorityRestocks = async () => {
+  const response = await apiRequest.get("/pharmacy/inventory/priority-restocks");
+  return response.data ?? [];
+};
+
 export const fetchInventoryProducts = async (filters = {}) => {
   const params = new URLSearchParams();
   if (filters.search) params.append("search", filters.search);

@@ -76,7 +76,7 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = null, readyPicku
   const pickupBadge = formatUnreadBadge(readyPickupOrdersCount);
 
   const displayName = user ? `${user.first_name}` : "Admin";
-  const pharmacyName = user?.branch?.branch_name || "PharmaDali Branch";
+  const pharmacyName = user?.pharmacy?.pharmacy_name || "PharmaDali Pharmacy";
   const avatarUrl = user 
     ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.first_name)}+${encodeURIComponent(user.last_name)}&background=4A90E2&color=fff&size=45`
     : "https://ui-avatars.com/api/?name=Admin&background=4A90E2&color=fff&size=45";

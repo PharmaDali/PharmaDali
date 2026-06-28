@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   fetchInventoryMetrics,
   fetchInventoryProducts,
+  fetchPriorityRestocks,
   createInventoryProduct,
   updateInventoryProduct,
   addProductBatch,
@@ -35,6 +36,7 @@ export function useInventory() {
     expiring: 0,
     expired: 0,
   });
+  const [priorityRestocks, setPriorityRestocks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Selection & Details Modal States
@@ -110,7 +112,7 @@ export function useInventory() {
     setCurrentPage(1);
     setLoading(true);
     try {
-      const [products, metricsResult] = await Promise.all([
+      const [products, metricsResult, restocksResult] = await Promise.all([
         fetchInventoryProducts({
           search: query,
           category: categoryFilter,
@@ -119,9 +121,11 @@ export function useInventory() {
           status: statusFilter,
         }),
         fetchInventoryMetrics(),
+        fetchPriorityRestocks(),
       ]);
       setInventoryItems(products);
       setMetrics(metricsResult);
+      setPriorityRestocks(restocksResult ?? []);
     } catch (err) {
       console.error("Failed to load inventory data", err);
     } finally {
@@ -186,13 +190,11 @@ export function useInventory() {
   const expiringSoonCount = metrics.expiring;
   const expiredCount = metrics.expired;
 
+  // Priority restocks: driven by the backend RestockPredictor algorithm.
+  // Falls back to dummy data only when no real data is available.
   const lowStockItems = useMemo(() => {
-    const items = decoratedItems
-      .filter((item) => item.quantity <= item.reorderPoint)
-      .sort((a, b) => a.quantity - b.quantity)
-      .slice(0, 3);
-    return items.length > 0 ? items : DUMMY_PRIORITY_RESTOCKS;
-  }, [decoratedItems]);
+    return priorityRestocks.length > 0 ? priorityRestocks : DUMMY_PRIORITY_RESTOCKS;
+  }, [priorityRestocks]);
 
   const expiringItems = useMemo(() => {
     const items = decoratedItems

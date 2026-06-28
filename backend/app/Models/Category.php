@@ -23,14 +23,14 @@ class Category extends Model
     public function pharmacies()
     {
         return $this->belongsToMany(Pharmacy::class, 'pharmacy_products', 'category_id', 'pharmacy_id')
-            ->withPivot(['product_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
+            ->withPivot(['product_id', 'stock', 'selling_price', 'is_available'])
             ->withTimestamps();
     }
 
     public function products()
     {
         return $this->belongsToMany(Products::class, 'pharmacy_products', 'category_id', 'product_id')
-            ->withPivot(['pharmacy_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
+            ->withPivot(['pharmacy_id', 'stock', 'selling_price', 'is_available'])
             ->withTimestamps();
     }
 }

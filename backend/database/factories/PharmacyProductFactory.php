@@ -22,8 +22,7 @@ class PharmacyProductFactory extends Factory
             'category_id' => \App\Models\Category::inRandomOrder()->first()->id,
             'stock' => $this->faker->numberBetween(0, 100),
             'selling_price' => $this->faker->randomFloat(2, 10, 100),
-            'is_available' => $this->faker->boolean(80), 
-            'expiry_date' => $this->faker->dateTimeBetween('now', '+1 year')->format('Y-m-d'),
+            'is_available' => $this->faker->boolean(80),
         ];
     }
 }

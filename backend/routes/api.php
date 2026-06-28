@@ -139,6 +139,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // inventory
         Route::get('pharmacy/inventory/total-products', [InventoryController::class, 'getTotalProductCount']);
         Route::get('pharmacy/inventory/metrics', [InventoryController::class, 'getInventoryMetrics']);
+        Route::get('pharmacy/inventory/priority-restocks', [InventoryController::class, 'getPriorityRestocks']);
         Route::get('pharmacy/inventory/products', [InventoryController::class, 'getInventoryProducts']);
         Route::get('pharmacy/inventory/logs', [InventoryController::class, 'getInventoryLogs']);
 

@@ -71,7 +71,6 @@ class StorePharmacyProductService
                     'selling_price'  => $validated['selling_price'] ?? 0.00,
                     'is_discountable'=> filter_var($validated['is_discountable'] ?? false, FILTER_VALIDATE_BOOLEAN),
                     'is_available'   => true,
-                    'expiry_date'    => $expiryDate,
                 ]);
 
                 // Create an initial product batch if stock or expiry info was provided
