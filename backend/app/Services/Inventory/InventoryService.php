@@ -23,14 +23,18 @@ class InventoryService
         $lowStocks = PharmacyProduct::where('stock', '<=', 50)
             ->count();
 
-        $expiring = PharmacyProduct::whereNotNull('expiry_date')
-            ->where('expiry_date', '>', $today)
-            ->where('expiry_date', '<=', $expiringLimit)
-            ->count();
+        $expiring = PharmacyProduct::whereHas('batches', function ($q) use ($today, $expiringLimit) {
+            $q->whereNotNull('expiry_date')
+              ->where('stock', '>', 0)
+              ->where('expiry_date', '>', $today)
+              ->where('expiry_date', '<=', $expiringLimit);
+        })->count();
 
-        $expired = PharmacyProduct::whereNotNull('expiry_date')
-            ->where('expiry_date', '<=', $today)
-            ->count();
+        $expired = PharmacyProduct::whereHas('batches', function ($q) use ($today) {
+            $q->whereNotNull('expiry_date')
+              ->where('stock', '>', 0)
+              ->where('expiry_date', '<=', $today);
+        })->count();
 
         return [
             'total_products' => $totalProducts,
@@ -103,7 +107,7 @@ class InventoryService
             }
         }
 
-        $today         = Carbon::today();
+        $today = Carbon::today();
         $expiringLimit = Carbon::today()->addDays(30);
 
         // Filter by status

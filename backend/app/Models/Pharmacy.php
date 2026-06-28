@@ -41,7 +41,7 @@ class Pharmacy extends Model
     public function categories()
     {
         return $this->belongsToMany(Category::class, 'pharmacy_products', 'pharmacy_id', 'category_id')
-            ->withPivot(['product_id', 'stock', 'selling_price', 'is_available', 'expiry_date'])
+            ->withPivot(['product_id', 'stock', 'selling_price', 'is_available'])
             ->withTimestamps();
     }
 

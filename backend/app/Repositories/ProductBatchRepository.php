@@ -68,7 +68,6 @@ class ProductBatchRepository
 
         PharmacyProduct::where('id', $pharmacyProductId)->update([
             'stock'       => $totalStock,
-            'expiry_date' => $nearestExpiry instanceof Carbon ? $nearestExpiry->toDateString() : null,
         ]);
     }
 

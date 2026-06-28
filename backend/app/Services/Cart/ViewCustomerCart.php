@@ -30,7 +30,8 @@ class ViewCustomerCart
 			->with([
 				'cart:id,customer_id,pharmacy_id,status',
 				'cart.pharmacy:id,pharmacy_name,location',
-				'pharmacyProduct:id,pharmacy_id,product_id,category_id,stock,selling_price,is_available,expiry_date',
+				'pharmacyProduct:id,pharmacy_id,product_id,category_id,stock,selling_price,is_available',
+				'pharmacyProduct.batches:id,pharmacy_product_id,stock,expiry_date',
 				'pharmacyProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
 				'pharmacyProduct.category:id,category_name,description',
 			])
@@ -80,7 +81,11 @@ class ViewCustomerCart
 					'is_available' => (bool) ($item->pharmacyProduct?->is_available ?? false),
 					'stock' => (int) ($item->pharmacyProduct?->stock ?? 0),
 					'current_selling_price' => (float) ($item->pharmacyProduct?->selling_price ?? 0),
-					'expiry_date' => $item->pharmacyProduct?->expiry_date,
+					'expiry_date' => $item->pharmacyProduct?->batches
+						?->whereNotNull('expiry_date')
+						?->where('stock', '>', 0)
+						?->sortBy('expiry_date')
+						?->first()?->expiry_date?->toDateString(),
 				],
 				'created_at' => $item->created_at,
 				'updated_at' => $item->updated_at,
