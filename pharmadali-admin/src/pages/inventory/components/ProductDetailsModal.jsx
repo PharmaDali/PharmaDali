@@ -60,14 +60,16 @@ export function ProductDetailsModal({
           >
             Edit
           </button>
-          <button
-            type="button"
-            className="btn inventory-modal-btn inventory-modal-btn-primary"
-            onClick={handleRequestSave}
-            disabled={!isModalEditing || Object.keys(inputErrors).length > 0}
-          >
-            Save Changes
-          </button>
+          {isModalEditing && (
+            <button
+              type="button"
+              className="btn inventory-modal-btn inventory-modal-btn-primary"
+              onClick={handleRequestSave}
+              disabled={Object.keys(inputErrors).length > 0}
+            >
+              Save Changes
+            </button>
+          )}
         </div>
       }
     >

@@ -37,7 +37,7 @@ export function useInventoryLogs() {
 
   useEffect(() => {
     loadData();
-  }, [actionFilter, dateRange]);
+  }, []);
 
   const filteredLogs = logs;
 
