@@ -1,81 +1,32 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import "../assets/css/inventory.css";
 import Modal from "../components/Modal";
-import { fetchInventoryLogs } from "../services/inventoryService";
+import { useInventoryLogs } from "./inventory/hooks/useInventoryLogs";
 
-const ACTION_FILTERS = ["All", "Stock In", "Stock Out"];
+const ACTION_FILTERS = ["All", "Stock In", "Stock Out", "Adjustment", "Waste"];
 
 function InventoryLogs() {
   const navigate = useNavigate();
-  const [query, setQuery] = useState("");
-  const [actionFilter, setActionFilter] = useState("All");
-  const [dateRange, setDateRange] = useState("");
-
-  const [selectedLog, setSelectedLog] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const itemsPerPage = 10;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const loadData = useCallback(async () => {
-    setCurrentPage(1);
-    setLoading(true);
-    try {
-      const logsResult = await fetchInventoryLogs({
-        search: query,
-        action: actionFilter !== "All" ? actionFilter : undefined,
-        date_range: dateRange,
-      });
-      setLogs(logsResult);
-    } catch (err) {
-      console.error("Failed to load inventory logs", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [query, actionFilter, dateRange]);
-
-  const handleActionChange = useCallback((val) => {
-    setActionFilter(val);
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [actionFilter, dateRange]);
-
-  const filteredLogs = logs;
-
-  const totalPages = Math.max(1, Math.ceil(filteredLogs.length / itemsPerPage));
-
-  const paginatedLogs = useMemo(
-    () => filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
-    [filteredLogs, currentPage],
-  );
-
-  const visiblePageNumbers = useMemo(() => {
-    if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-    const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
-    const endPage = Math.min(totalPages, startPage + 4);
-    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
-  }, [currentPage, totalPages]);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
-  };
-
-  const handleRowClick = (log) => {
-    setSelectedLog(log);
-    setShowModal(true);
-  };
-
-  const handleModalClose = () => {
-    setSelectedLog(null);
-    setShowModal(false);
-  };
+  const {
+    query,
+    setQuery,
+    actionFilter,
+    handleActionChange,
+    dateRange,
+    setDateRange,
+    selectedLog,
+    showModal,
+    logs,
+    loading,
+    currentPage,
+    totalPages,
+    paginatedLogs,
+    visiblePageNumbers,
+    loadData,
+    handlePageChange,
+    handleRowClick,
+    handleModalClose,
+  } = useInventoryLogs();
 
   return (
     <section className="inventory-page">
@@ -200,7 +151,7 @@ function InventoryLogs() {
                     </div>
                   </td>
                 </tr>
-              ) : filteredLogs.length === 0 ? (
+              ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan={6}>
                     <div className="inventory-empty-state">
@@ -211,7 +162,7 @@ function InventoryLogs() {
                 </tr>
               ) : (
                 paginatedLogs.map((log) => {
-                  const isStockIn = log.action?.toLowerCase().replace(/\s+/g, "") === "stockin";
+                  const isPositive = log.action === "Stock In" || log.action === "Adjustment";
                   return (
                     <tr
                       key={log.id}
@@ -223,8 +174,8 @@ function InventoryLogs() {
                       </td>
                       <td>{log.batchNumber ?? "—"}</td>
                       <td>
-                        <span className={isStockIn ? "inventory-qty-in" : "inventory-qty-out"}>
-                          {isStockIn ? `+ ${log.quantity}` : `− ${log.quantity}`}
+                        <span className={isPositive ? "inventory-qty-in" : "inventory-qty-out"}>
+                          {isPositive ? `+ ${log.quantity}` : `− ${log.quantity}`}
                         </span>
                       </td>
                       <td>{log.dateTime}</td>
@@ -246,11 +197,11 @@ function InventoryLogs() {
           </table>
         </div>
 
-        {!loading && filteredLogs.length > 0 && (
+        {!loading && logs.length > 0 && (
           <div className="inventory-pagination-bar">
             <span className="inventory-pagination-info">
-              Showing {(currentPage - 1) * itemsPerPage + 1}–
-              {Math.min(currentPage * itemsPerPage, filteredLogs.length)} of {filteredLogs.length}
+              Showing {(currentPage - 1) * 10 + 1}–
+              {Math.min(currentPage * 10, logs.length)} of {logs.length}
             </span>
 
             <nav aria-label="Inventory logs pagination">
@@ -341,16 +292,16 @@ function InventoryLogs() {
         <Modal
           isOpen={showModal}
           onClose={handleModalClose}
-          title={selectedLog.action?.toLowerCase().replace(/\s+/g, "") === "stockin" ? "Stock In" : "Stock Out"}
+          title={selectedLog.action}
           size="md"
           className="inventory-modal"
           showCloseButton={true}
         >
           <div className="inventory-modal-body-content">
             <p className="inventory-modal-subtitle">
-              {selectedLog.action?.toLowerCase().replace(/\s+/g, "") === "stockin"
-                ? "Transaction record for incoming stock."
-                : "Transaction record for outgoing stock."}
+              {(selectedLog.action === "Stock In" || selectedLog.action === "Adjustment")
+                ? "Transaction record for incoming/added stock."
+                : "Transaction record for outgoing/reduced stock."}
             </p>
 
             <div className="inventory-modal-section">
@@ -384,14 +335,27 @@ function InventoryLogs() {
                 </div>
                 <div>
                   <p className="inventory-modal-label">Selling Price</p>
-                  <p className="inventory-log-detail-value">{selectedLog.sellingPrice ?? "—"}</p>
+                  <p className="inventory-log-detail-value">
+                    {selectedLog.sellingPrice ? `₱${selectedLog.sellingPrice.toFixed(2)}` : "—"}
+                  </p>
                 </div>
               </div>
             </div>
 
+            {selectedLog.reason && (
+              <div className="inventory-modal-section">
+                <h6 className="inventory-modal-section-title">Reason / Context</h6>
+                <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "6px", borderLeft: "4px solid #cbd5e1" }}>
+                  <p className="inventory-log-detail-value mb-0" style={{ fontStyle: "italic", color: "#475569" }}>
+                    {selectedLog.reason}
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="inventory-modal-section">
               <h6 className="inventory-modal-section-title">
-                {selectedLog.action?.toLowerCase().replace(/\s+/g, "") === "stockin"
+                {(selectedLog.action === "Stock In" || selectedLog.action === "Adjustment")
                   ? "System Information"
                   : "Audit/System Information"}
               </h6>
