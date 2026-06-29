@@ -12,8 +12,6 @@ import {
 } from "../../../services/inventoryService";
 import {
   CATEGORY_FILTERS,
-  DUMMY_PRIORITY_RESTOCKS,
-  DUMMY_EXPIRING_SOON,
   ITEMS_PER_PAGE,
 } from "../inventoryConstants";
 import { toNumber } from "../../../utils/inventoryUtils";
@@ -191,17 +189,20 @@ export function useInventory() {
   const expiredCount = metrics.expired;
 
   // Priority restocks: driven by the backend RestockPredictor algorithm.
-  // Falls back to dummy data only when no real data is available.
   const lowStockItems = useMemo(() => {
-    return priorityRestocks.length > 0 ? priorityRestocks : DUMMY_PRIORITY_RESTOCKS;
+    return priorityRestocks;
   }, [priorityRestocks]);
 
   const expiringItems = useMemo(() => {
-    const items = decoratedItems
+    return decoratedItems
       .filter((item) => item.expiringInDays > 0 && item.expiringInDays <= 30)
-      .sort((a, b) => a.expiringInDays - b.expiringInDays)
-      .slice(0, 3);
-    return items.length > 0 ? items : DUMMY_EXPIRING_SOON;
+      .sort((a, b) => a.expiringInDays - b.expiringInDays);
+  }, [decoratedItems]);
+
+  const expiredItems = useMemo(() => {
+    return decoratedItems
+      .filter((item) => item.expiringInDays <= 0 && item.expiryDate)
+      .sort((a, b) => a.expiringInDays - b.expiringInDays);
   }, [decoratedItems]);
 
   // Selection handlers
@@ -699,6 +700,7 @@ export function useInventory() {
     expiredCount,
     lowStockItems,
     expiringItems,
+    expiredItems,
 
     // Details Modal State & Adjustments
     selectedItem,

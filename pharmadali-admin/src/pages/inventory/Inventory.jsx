@@ -46,6 +46,7 @@ export function Inventory() {
     expiredCount,
     lowStockItems,
     expiringItems,
+    expiredItems,
 
     // Details Modal State & Adjustments
     selectedItem,
@@ -155,6 +156,7 @@ export function Inventory() {
           <InventorySideCards
             lowStockItems={lowStockItems}
             expiringItems={expiringItems}
+            expiredItems={expiredItems}
           />
         </div>
       </div>

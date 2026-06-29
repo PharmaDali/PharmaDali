@@ -475,6 +475,16 @@
   color: #8a1f2b;
 }
 
+.inventory-log-action-adjustment {
+  background: #d0e7ff;
+  color: #0b5ed7;
+}
+
+.inventory-log-action-waste {
+  background: #ffe6d5;
+  color: #b93c00;
+}
+
 .inventory-empty-state {
   min-height: 190px;
   display: flex;
@@ -489,17 +499,7 @@
   font-size: 1.35rem;
 }
 
-.inventory-side-stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
 
-.inventory-side-card {
-  display: flex;
-  flex-direction: column;
-  padding: 1rem;
-}
 
 .inventory-side-title {
   font-size: 15px;
@@ -511,6 +511,8 @@
 .inventory-side-table {
   display: grid;
   gap: 0.6rem;
+  overflow-x: hidden;
+  align-content: start;
 }
 
 .inventory-side-head {
