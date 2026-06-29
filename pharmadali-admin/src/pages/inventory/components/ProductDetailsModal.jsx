@@ -64,7 +64,7 @@ export function ProductDetailsModal({
             type="button"
             className="btn inventory-modal-btn inventory-modal-btn-primary"
             onClick={handleRequestSave}
-            disabled={!isModalEditing}
+            disabled={!isModalEditing || Object.keys(inputErrors).length > 0}
           >
             Save Changes
           </button>
@@ -389,7 +389,7 @@ export function ProductDetailsModal({
                       <button
                         type="submit"
                         className="inventory-batch-confirm-btn"
-                        disabled={batchSaving}
+                        disabled={batchSaving || Object.keys(inputErrors).length > 0}
                       >
                         {batchSaving ? "Adding..." : "Add Batch"}
                       </button>

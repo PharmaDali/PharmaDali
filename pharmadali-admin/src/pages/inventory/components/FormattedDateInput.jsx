@@ -100,7 +100,7 @@ export function FormattedDateInput({
         type="text"
         className={className}
         placeholder={placeholder}
-        style={{ ...style, paddingRight: "2.5rem" }}
+        style={{ ...style, paddingRight: "2.5rem", backgroundImage: "none" }}
         value={textValue}
         onChange={handleTextChange}
         disabled={disabled}

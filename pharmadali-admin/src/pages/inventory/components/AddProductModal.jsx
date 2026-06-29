@@ -279,7 +279,11 @@ export function AddProductModal({
           >
             Cancel
           </button>
-          <button type="submit" className="add-product-btn-add">
+          <button 
+            type="submit" 
+            className="add-product-btn-add"
+            disabled={Object.keys(inputErrors).length > 0}
+          >
             Add
           </button>
         </div>
