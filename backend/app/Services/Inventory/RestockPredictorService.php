@@ -37,4 +37,15 @@ class RestockPredictorService
             return $this->predictor->predict($snapshot, $limit);
         });
     }
+
+    /**
+     * Clears the priority restocks cache for a given pharmacy.
+     *
+     * @param int $pharmacyId
+     */
+    public function clearPriorityRestocksCache(int $pharmacyId): void
+    {
+        $cacheKey = "pharmacy_{$pharmacyId}_priority_restocks";
+        Cache::forget($cacheKey);
+    }
 }
