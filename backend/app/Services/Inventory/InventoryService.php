@@ -2,6 +2,7 @@
 
 namespace App\Services\Inventory;
 
+use App\Models\InventoryLog;
 use App\Models\PharmacyProduct;
 use App\Repositories\ProductBatchRepository;
 use Carbon\Carbon;
@@ -235,76 +236,45 @@ class InventoryService
 
     public function getInventoryLogs(array $filters = [])
     {
-        $search = strtolower($filters['search'] ?? '');
-        $action = $filters['action'] ?? 'All';
-        $dateRange = $filters['date_range'] ?? '';
+        $query = InventoryLog::with(['pharmacyProduct.product', 'user']);
 
-        $logs = collect();
-
-        // 1. Stock OUT logs from orders
-        $ordersQuery = \App\Models\Order::with(['items.pharmacyProduct.product', 'user'])
-            ->where('status', 'completed');
-
-        if ($dateRange) {
-            $ordersQuery->whereDate('placed_at', $dateRange);
+        // Filter by product name search
+        if (!empty($filters['search'])) {
+            $search = '%' . strtolower($filters['search']) . '%';
+            $query->whereHas('pharmacyProduct.product', function ($q) use ($search) {
+                $q->whereRaw('LOWER(product_name) LIKE ?', [$search]);
+            });
         }
 
-        $orders = $ordersQuery->get();
-
-        foreach ($orders as $order) {
-            foreach ($order->items as $item) {
-                $productName = $item->pharmacyProduct->product->product_name ?? $item->product_name ?? 'Product';
-                
-                // apply search criteria
-                if ($search && strpos(strtolower($productName), $search) === false) {
-                    continue;
-                }
-
-                if ($action !== 'All' && strtolower($action) !== 'stock out') {
-                    continue;
-                }
-
-                $logs->push([
-                    'id' => 'LOG-OUT' . str_pad($item->id, 4, '0', STR_PAD_LEFT),
-                    'productName' => $productName,
-                    'action' => 'Stock OUT',
-                    'quantity' => $item->quantity,
-                    'dateTime' => Carbon::parse($order->placed_at ?? $order->created_at)->format('Y-m-d H:i'),
-                    'user' => $order->user ? ($order->user->first_name . ' ' . $order->user->last_name) : 'System',
-                ]);
-            }
+        // Filter by transaction type (action)
+        if (!empty($filters['action']) && strtolower($filters['action']) !== 'all') {
+            $typeMap = [
+                'stock in'   => 'stock_in',
+                'stock out'  => 'stock_out',
+                'adjustment' => 'adjustment',
+                'waste'      => 'waste',
+            ];
+            $mapped = $typeMap[strtolower($filters['action'])] ?? strtolower($filters['action']);
+            $query->where('transaction_type', $mapped);
         }
 
-        // 2. Generate stock IN simulated/historical logs for any pharmacy products
-        $bpQuery = PharmacyProduct::with('product');
-        $bps = $bpQuery->get();
-
-        foreach ($bps as $bp) {
-            $productName = $bp->product->product_name ?? 'Product';
-
-            if ($search && strpos(strtolower($productName), $search) === false) {
-                continue;
-            }
-
-            if ($action !== 'All' && strtolower($action) !== 'stock in') {
-                continue;
-            }
-
-            $date = Carbon::parse($bp->created_at);
-            if ($dateRange && $date->toDateString() !== $dateRange) {
-                continue;
-            }
-
-            $logs->push([
-                'id' => 'LOG-IN' . str_pad($bp->id, 4, '0', STR_PAD_LEFT),
-                'productName' => $productName,
-                'action' => 'Stock IN',
-                'quantity' => $bp->stock + 100, // simulated initial stock in
-                'dateTime' => $date->format('Y-m-d H:i'),
-                'user' => 'Denmar Redondo',
-            ]);
+        // Filter by date
+        if (!empty($filters['date_range'])) {
+            $query->whereDate('created_at', $filters['date_range']);
         }
 
-        return $logs->sortByDesc('dateTime')->values();
+        return $query->latest()->get()->map(function ($log) {
+            return [
+                'id'          => 'LOG-' . str_pad($log->id, 5, '0', STR_PAD_LEFT),
+                'productName' => $log->pharmacyProduct->product->product_name ?? 'Unknown Product',
+                'action'      => ucwords(str_replace('_', ' ', $log->transaction_type)),
+                'quantity'    => $log->quantity,
+                'dateTime'    => $log->created_at->format('Y-m-d H:i'),
+                'user'        => $log->user
+                    ? ($log->user->first_name . ' ' . $log->user->last_name)
+                    : 'System',
+                'reason'      => $log->reason,
+            ];
+        });
     }
 }

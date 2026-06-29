@@ -12,6 +12,7 @@ class ProductBatchService
 {
     public function __construct(
         private readonly ProductBatchRepository $batchRepository,
+        private readonly InventoryLogService $logService,
     ) {}
 
     /**
@@ -32,6 +33,14 @@ class ProductBatchService
     {
         $batch = $this->batchRepository->createBatch($pharmacyProduct->id, $data);
 
+        $this->logService->logStockIn(
+            pharmacyId:          $pharmacyProduct->pharmacy_id,
+            pharmacyProductId:   $pharmacyProduct->id,
+            batchId:             $batch->id,
+            quantity:            (int) $batch->stock,
+            reason:              'New batch received' . ($batch->batch_number ? ': #' . $batch->batch_number : ''),
+        );
+
         return $this->formatBatch($batch, Carbon::today());
     }
 
@@ -40,7 +49,16 @@ class ProductBatchService
      */
     public function updateBatchStock(PharmacyProduct $pharmacyProduct, ProductBatch $batch, int $newStock): array
     {
-        $updated = $this->batchRepository->updateBatchStock($batch, $newStock);
+        $oldStock = (int) $batch->stock;
+        $updated  = $this->batchRepository->updateBatchStock($batch, $newStock);
+
+        $this->logService->logAdjustment(
+            pharmacyId:          $pharmacyProduct->pharmacy_id,
+            pharmacyProductId:   $pharmacyProduct->id,
+            batchId:             $batch->id,
+            oldStock:            $oldStock,
+            newStock:            (int) $updated->stock,
+        );
 
         return $this->formatBatch($updated, Carbon::today());
     }
@@ -58,6 +76,16 @@ class ProductBatchService
     public function stockOut(PharmacyProduct $pharmacyProduct, int $quantity): array
     {
         $deductions = $this->batchRepository->stockOutFefo($pharmacyProduct->id, $quantity);
+
+        foreach ($deductions as $deduction) {
+            $this->logService->logStockOut(
+                pharmacyId:          $pharmacyProduct->pharmacy_id,
+                pharmacyProductId:   $pharmacyProduct->id,
+                batchId:             $deduction['batch_id'],
+                quantity:            $deduction['deducted'],
+                reason:              'Manual stock-out deduction',
+            );
+        }
 
         $today          = Carbon::today();
         $updatedBatches = $this->batchRepository

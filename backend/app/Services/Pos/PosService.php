@@ -6,6 +6,7 @@ use App\Models\PharmacyProduct;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Notifications\OrderCompletedNotification;
+use App\Services\Inventory\InventoryLogService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -14,6 +15,9 @@ use App\Services\Messaging\ConversationService;
 
 class PosService
 {
+    public function __construct(
+        private readonly InventoryLogService $logService,
+    ) {}
     /**
      * Get products for POS with infinite scroll and search functionality.
      */
@@ -93,6 +97,14 @@ class PosService
 
                 // Update stock
                 $pharmacyProduct->decrement('stock', $item['qty']);
+
+                $this->logService->logStockOut(
+                    pharmacyId:         $pharmacyProduct->pharmacy_id,
+                    pharmacyProductId:  $pharmacyProduct->id,
+                    batchId:            null, // POS uses direct decrement, no FEFO batch tracking
+                    quantity:           $item['qty'],
+                    reason:             'POS Sale: ' . $order->order_number,
+                );
             }
 
             return $order;
