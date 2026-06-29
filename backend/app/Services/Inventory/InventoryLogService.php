@@ -2,6 +2,7 @@
 
 namespace App\Services\Inventory;
 
+use App\Events\InventoryUpdated;
 use App\Models\InventoryLog;
 use Illuminate\Support\Facades\Auth;
 
@@ -26,6 +27,8 @@ class InventoryLogService
             'quantity'             => $quantity,
             'reason'               => $reason,
         ]);
+
+        InventoryUpdated::dispatch($pharmacyId);
     }
 
     /**
@@ -47,6 +50,8 @@ class InventoryLogService
             'quantity'             => $quantity,
             'reason'               => $reason,
         ]);
+
+        InventoryUpdated::dispatch($pharmacyId);
     }
 
     /**
@@ -79,5 +84,7 @@ class InventoryLogService
             'quantity'             => $delta,
             'reason'               => $reason,
         ]);
+
+        InventoryUpdated::dispatch($pharmacyId);
     }
 }

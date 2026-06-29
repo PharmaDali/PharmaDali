@@ -236,7 +236,7 @@ class InventoryService
 
     public function getInventoryLogs(array $filters = [])
     {
-        $query = InventoryLog::with(['pharmacyProduct.product', 'user']);
+        $query = InventoryLog::with(['pharmacyProduct.product', 'batch', 'user']);
 
         // Filter by product name search
         if (!empty($filters['search'])) {
@@ -265,15 +265,20 @@ class InventoryService
 
         return $query->latest()->get()->map(function ($log) {
             return [
-                'id'          => 'LOG-' . str_pad($log->id, 5, '0', STR_PAD_LEFT),
-                'productName' => $log->pharmacyProduct->product->product_name ?? 'Unknown Product',
-                'action'      => ucwords(str_replace('_', ' ', $log->transaction_type)),
-                'quantity'    => $log->quantity,
-                'dateTime'    => $log->created_at->format('Y-m-d H:i'),
-                'user'        => $log->user
+                'id'           => 'LOG-' . str_pad($log->id, 5, '0', STR_PAD_LEFT),
+                'productName'  => $log->pharmacyProduct->product->product_name ?? 'Unknown Product',
+                'batchNumber'  => $log->batch?->batch_number,
+                'expiryDate'   => $log->batch?->expiry_date?->toDateString(),
+                'action'       => ucwords(str_replace('_', ' ', $log->transaction_type)),
+                'quantity'     => $log->quantity,
+                'dateTime'     => $log->created_at->format('Y-m-d H:i'),
+                'user'         => $log->user
                     ? ($log->user->first_name . ' ' . $log->user->last_name)
                     : 'System',
-                'reason'      => $log->reason,
+                'reason'       => $log->reason,
+                'sellingPrice' => $log->pharmacyProduct?->selling_price ? (float) $log->pharmacyProduct->selling_price : null,
+                'unitCost'     => null,
+                'barcode'      => null,
             ];
         });
     }
