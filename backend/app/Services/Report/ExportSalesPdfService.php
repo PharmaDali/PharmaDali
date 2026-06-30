@@ -19,7 +19,7 @@ class ExportSalesPdfService
      * 
      * @param string|null $startDate
      * @param string|null $endDate
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return array
      */
     public function execute(?string $startDate, ?string $endDate)
     {
@@ -30,6 +30,23 @@ class ExportSalesPdfService
             throw new \Exception("User is not associated with a pharmacy.");
         }
 
-        return $this->orderRepository->getSalesListAll($pharmacyId, $startDate, $endDate);
+        $orders = $this->orderRepository->getSalesListAll($pharmacyId, $startDate, $endDate);
+
+        $dateRange = 'All Time';
+        if ($startDate && $endDate) {
+            $dateRange = $startDate . ' to ' . $endDate;
+        } elseif ($startDate) {
+            $dateRange = 'From ' . $startDate;
+        } elseif ($endDate) {
+            $dateRange = 'Up to ' . $endDate;
+        }
+
+        $totalAmount = $orders->sum('total_amount');
+
+        return [
+            'orders' => $orders,
+            'date_range' => $dateRange,
+            'total_amount' => $totalAmount,
+        ];
     }
 }
