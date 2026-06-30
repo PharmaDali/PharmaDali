@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\Report\GetSalesSummaryService;
 use App\Services\Report\GetSalesListService;
+use App\Services\Report\ExportSalesCsvService;
+use App\Services\Report\ExportSalesPdfService;
 use Illuminate\Http\JsonResponse;
 
 class ReportController extends Controller
@@ -41,42 +43,69 @@ class ReportController extends Controller
         ]);
 
         try {
-            $sales = $getSalesListService->execute(
+            $result = $getSalesListService->execute(
                 $request->input('start_date'),
                 $request->input('end_date'),
                 $request->input('per_page', 15)
             );
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+    }
 
-            $formattedSales = collect($sales->items())->map(function ($order) {
-                return [
-                    'id' => $order->order_number,
-                    'items' => $order->items->sum('quantity'),
-                    'processedBy' => $order->verifier ? $order->verifier->first_name . ' ' . $order->verifier->last_name : 'N/A',
-                    'total' => $order->total_amount,
-                    'date' => $order->completed_at ? $order->completed_at->format('Y-m-d H:i') : null,
-                    'orderItems' => $order->items->map(function ($item) {
-                        return [
-                            'name' => $item->product_name,
-                            'qty' => $item->quantity,
-                            'price' => $item->unit_price_snapshot,
-                            'subtotal' => $item->line_total,
-                        ];
-                    }),
-                ];
-            });
+    /**
+     * Export sales report as CSV
+     */
+    public function exportSalesCsv(Request $request, ExportSalesCsvService $exportSalesCsvService)
+    {
+        $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
 
-            return response()->json([
-                'data' => $formattedSales,
-                'meta' => [
-                    'current_page' => $sales->currentPage(),
-                    'last_page' => $sales->lastPage(),
-                    'per_page' => $sales->perPage(),
-                    'total' => $sales->total(),
-                ]
-            ]);
+        try {
+            $result = $exportSalesCsvService->execute(
+                $request->input('start_date'),
+                $request->input('end_date')
+            );
+
+            $headers = [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="' . $result['filename'] . '"',
+                'Pragma' => 'no-cache',
+                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+                'Expires' => '0',
+            ];
+
+            return response()->stream($result['callback'], 200, $headers);
 
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
         }
     }
+
+    /**
+     * Export sales report as printable PDF/HTML
+     */
+    public function exportSalesPdf(Request $request, ExportSalesPdfService $exportSalesPdfService)
+    {
+        $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
+
+        try {
+            $data = $exportSalesPdfService->execute(
+                $request->input('start_date'),
+                $request->input('end_date')
+            );
+
+            return view('reports.sales-pdf', $data);
+
+        } catch (\Exception $e) {
+            return response('Error generating report: ' . $e->getMessage(), 400);
+        }
+    }
 }
+

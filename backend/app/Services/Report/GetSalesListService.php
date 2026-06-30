@@ -15,12 +15,12 @@ class GetSalesListService
     }
 
     /**
-     * Execute the service
+     * Execute the service and return structured, formatted sales data with metadata.
      * 
      * @param string|null $startDate
      * @param string|null $endDate
      * @param int $perPage
-     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     * @return array
      */
     public function execute(?string $startDate, ?string $endDate, int $perPage = 15)
     {
@@ -31,6 +31,34 @@ class GetSalesListService
             throw new \Exception("User is not associated with a pharmacy.");
         }
 
-        return $this->orderRepository->getSalesList($pharmacyId, $startDate, $endDate, $perPage);
+        $sales = $this->orderRepository->getSalesList($pharmacyId, $startDate, $endDate, $perPage);
+
+        $formattedSales = collect($sales->items())->map(function ($order) {
+            return [
+                'id' => $order->order_number,
+                'items' => $order->items->sum('quantity'),
+                'processedBy' => $order->verifier ? $order->verifier->first_name . ' ' . $order->verifier->last_name : 'N/A',
+                'total' => $order->total_amount,
+                'date' => $order->completed_at ? $order->completed_at->format('Y-m-d H:i') : null,
+                'orderItems' => $order->items->map(function ($item) {
+                    return [
+                        'name' => $item->product_name,
+                        'qty' => $item->quantity,
+                        'price' => $item->unit_price_snapshot,
+                        'subtotal' => $item->line_total,
+                    ];
+                }),
+            ];
+        });
+
+        return [
+            'data' => $formattedSales,
+            'meta' => [
+                'current_page' => $sales->currentPage(),
+                'last_page' => $sales->lastPage(),
+                'per_page' => $sales->perPage(),
+                'total' => $sales->total(),
+            ]
+        ];
     }
 }

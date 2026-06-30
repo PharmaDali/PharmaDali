@@ -60,4 +60,24 @@ class OrderRepository
 
         return $query->orderBy('completed_at', 'desc')->paginate($perPage);
     }
+
+    /**
+     * Get all completed orders for the sales report export.
+     */
+    public function getSalesListAll(int $pharmacyId, ?string $startDate, ?string $endDate)
+    {
+        $query = Order::with(['items', 'verifier'])
+            ->where('pharmacy_id', $pharmacyId)
+            ->where('status', 'completed');
+
+        if ($startDate) {
+            $query->where('completed_at', '>=', Carbon::parse($startDate)->startOfDay());
+        }
+
+        if ($endDate) {
+            $query->where('completed_at', '<=', Carbon::parse($endDate)->endOfDay());
+        }
+
+        return $query->orderBy('completed_at', 'desc')->get();
+    }
 }
