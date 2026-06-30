@@ -12,6 +12,7 @@ import './assets/css/analytics-and-forecasting.css'
 import './assets/css/pickup.css'
 import './assets/css/modal.css'
 import './assets/css/login.css'
+import './assets/css/notifications.css'
 import './index.css'
 import App from './App.jsx'
 

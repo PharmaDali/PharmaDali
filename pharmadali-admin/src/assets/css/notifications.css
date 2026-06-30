@@ -1,0 +1,32 @@
+/* ─── Notification Table ─────────────────────────────────────────────────── */
+.notification-table thead th {
+  background-color: #d7e7ef;
+  border: none;
+  font-size: 0.8rem;
+  color: #202329;
+  font-weight: 700;
+  padding: 10px 8px;
+}
+
+.notification-table thead th:first-child { border-radius: 9px 0 0 9px; }
+.notification-table thead th:last-child  { border-radius: 0 9px 9px 0; }
+
+.notification-table tbody tr { border-bottom: 6px solid transparent; }
+
+.notification-table tbody td {
+  background-color: #f7f5f5;
+  border: none;
+  padding: 10px 8px;
+}
+
+.notification-table tbody td:first-child { border-radius: 10px 0 0 10px; }
+.notification-table tbody td:last-child  { border-radius: 0 10px 10px 0; }
+
+.notification-row:hover td { background-color: #edf4f9; }
+
+.notification-action-btn {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.notification-row:hover .notification-action-btn { opacity: 1; }

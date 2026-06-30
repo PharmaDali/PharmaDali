@@ -42,6 +42,32 @@
   border-radius: 2px;
 }
 
+/* Notification Bell */
+.navbar-bell {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  color: #1e6fa1;
+  font-size: 17px;
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
+  flex-shrink: 0;
+}
+
+.navbar-bell:hover {
+  background: rgba(255, 255, 255, 0.6);
+  color: #155d8c;
+  transform: scale(1.08);
+}
+
+.navbar-bell-badge {
+  font-size: 0.6rem;
+  padding: 0.25em 0.45em;
+  line-height: 1;
+}
+
+
 @media (max-width: 767.98px) {
   .navbar-bar {
     padding: 0 0.75rem !important;

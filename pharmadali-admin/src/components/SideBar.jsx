@@ -12,8 +12,6 @@ import notificationsIcon from "../assets/icons/sidebar-icons/notifications.svg";
 import settingsIcon from "../assets/icons/sidebar-icons/settings.svg";
 import getTechnicalHelpIcon from "../assets/icons/sidebar-icons/get-technical-help.svg";
 
-const VISUAL_UNREAD_BADGE = 1;
-
 const formatUnreadBadge = (count) => {
   const numericCount = Number(count);
 
@@ -66,13 +64,10 @@ const MENU_SECTIONS = [
   },
 ];
 
-function SideBar({ isOpen, onToggle, unreadNotificationsCount = null, readyPickupOrdersCount = 0, user = null }) {
+function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOrdersCount = 0, user = null }) {
 
   const navigate = useNavigate();
-  const notificationsBadge = formatUnreadBadge(
-    unreadNotificationsCount ?? VISUAL_UNREAD_BADGE
-  );
-
+  const notificationsBadge = formatUnreadBadge(unreadNotificationsCount);
   const pickupBadge = formatUnreadBadge(readyPickupOrdersCount);
 
   const displayName = user ? `${user.first_name}` : "Admin";

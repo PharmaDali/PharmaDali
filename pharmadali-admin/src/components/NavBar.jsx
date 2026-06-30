@@ -89,3 +89,4 @@ function NavBar({ onToggleSidebar, sidebarOpen }) {
 }
 
 export default NavBar;
+
