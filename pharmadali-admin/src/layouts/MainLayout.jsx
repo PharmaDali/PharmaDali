@@ -4,11 +4,13 @@ import NavBar from "../components/NavBar";
 import SideBar from "../components/SideBar";
 import { getCurrentUser } from "../services/loginService";
 import { usePickupOrdersCount } from "../hooks/usePickupOrders";
+import { useNotifications } from "../hooks/useNotifications";
 
 function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
   const { readyPickupCount } = usePickupOrdersCount();
+  const notifications = useNotifications();
   const navigate = useNavigate();
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
@@ -29,14 +31,15 @@ function MainLayout() {
   return (
     <div className="layout-wrapper">
       <NavBar onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
-      <SideBar isOpen={sidebarOpen} onToggle={toggleSidebar} readyPickupOrdersCount={readyPickupCount} user={user} />
+      <SideBar isOpen={sidebarOpen} onToggle={toggleSidebar} readyPickupOrdersCount={readyPickupCount} unreadNotificationsCount={notifications.unreadCount} user={user} />
       <main
         className={`main-content${sidebarOpen ? " sidebar-open" : ""}`}
       >
-        <Outlet />
+        <Outlet context={{ notifications }} />
       </main>
     </div>
   );
 }
 
 export default MainLayout;
+
