@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import pdfIcon from "../assets/icons/sale-and-reports/pdf-icon.svg";
 import printIcon from "../assets/icons/sale-and-reports/print.svg";
-import { fetchSalesSummary, fetchSalesList } from "../services/salesReportService";
+import { fetchSalesSummary, fetchSalesList, exportSalesCsv, exportSalesPdf } from "../services/salesReportService";
 
 function SalesReports() {
   const [selectedRow, setSelectedRow] = useState(null);
@@ -19,6 +19,43 @@ function SalesReports() {
   // Filter state
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+
+  // Dropdown state
+  const [showExportDropdown, setShowExportDropdown] = useState(false);
+
+  const handleExportCsv = async () => {
+    setShowExportDropdown(false);
+    try {
+      const response = await exportSalesCsv({ start_date: startDate || undefined, end_date: endDate || undefined });
+      const blob = new Blob([response], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `sales_report_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err?.message ?? "Failed to export CSV.");
+    }
+  };
+
+  const handleExportPdf = async () => {
+    setShowExportDropdown(false);
+    try {
+      const response = await exportSalesPdf({ start_date: startDate || undefined, end_date: endDate || undefined });
+      const blob = new Blob([response], { type: "text/html" });
+      const url = window.URL.createObjectURL(blob);
+      
+      const printWindow = window.open(url, "_blank");
+      if (!printWindow) {
+        alert("Please allow popups to print/save PDF.");
+      }
+    } catch (err) {
+      alert(err?.message ?? "Failed to export PDF.");
+    }
+  };
 
   // Load summary cards
   useEffect(() => {
@@ -163,15 +200,28 @@ function SalesReports() {
                 )}
 
                 {/* Export actions */}
-                <div className="d-flex gap-2 ms-1">
-                  <button className="btn btn-link btn-sm d-flex align-items-center gap-1 text-decoration-none p-0" type="button" style={{ color: "#48AAD9" }}>
-                    <img src={pdfIcon} alt="pdf" style={{ width: 18, height: 18 }} />
-                    <span style={{ fontSize: "12px" }}>PDF</span>
+                <div className="position-relative ms-1">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary rounded-pill px-3 dropdown-toggle"
+                    onClick={() => setShowExportDropdown(!showExportDropdown)}
+                  >
+                    Export
                   </button>
-                  <button className="btn btn-link btn-sm d-flex align-items-center gap-1 text-decoration-none p-0" type="button" style={{ color: "#48AAD9" }}>
-                    <img src={printIcon} alt="print" style={{ width: 18, height: 18 }} />
-                    <span style={{ fontSize: "12px" }}>Print</span>
-                  </button>
+                  {showExportDropdown && (
+                    <ul className="dropdown-menu show position-absolute end-0 mt-1 shadow-sm" style={{ zIndex: 1000 }}>
+                      <li>
+                        <button className="dropdown-item" onClick={handleExportCsv}>
+                          Export as CSV
+                        </button>
+                      </li>
+                      <li>
+                        <button className="dropdown-item" onClick={handleExportPdf}>
+                          Export as PDF
+                        </button>
+                      </li>
+                    </ul>
+                  )}
                 </div>
               </div>
             </div>
