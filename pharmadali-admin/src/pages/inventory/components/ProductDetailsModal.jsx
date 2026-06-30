@@ -41,25 +41,27 @@ export function ProductDetailsModal({
       showCloseButton={true}
       footer={
         <div className={`inventory-modal-actions${isModalEditing ? " is-editing" : ""}`}>
-          <button
-            type="button"
-            className="btn inventory-modal-btn btn-outline-warning"
-            onClick={() => {
-              setStockOutForm({ quantity: "" });
-              setShowStockOutModal(true);
-            }}
-            disabled={isModalEditing}
-          >
-            Stock Out
-          </button>
-          <button
-            type="button"
-            className="btn inventory-modal-btn inventory-modal-btn-outline"
-            onClick={() => setIsModalEditing(true)}
-            disabled={isModalEditing}
-          >
-            Edit
-          </button>
+          {!isModalEditing && (
+            <>
+              <button
+                type="button"
+                className="btn inventory-modal-btn btn-outline-warning"
+                onClick={() => {
+                  setStockOutForm({ quantity: "" });
+                  setShowStockOutModal(true);
+                }}
+              >
+                Stock Out
+              </button>
+              <button
+                type="button"
+                className="btn inventory-modal-btn inventory-modal-btn-outline"
+                onClick={() => setIsModalEditing(true)}
+              >
+                Edit
+              </button>
+            </>
+          )}
           {isModalEditing && (
             <button
               type="button"

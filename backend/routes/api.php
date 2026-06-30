@@ -17,6 +17,7 @@ use App\Http\Controllers\API\ForecastSyncController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PosController;
 use App\Http\Controllers\API\InventoryController;
+use App\Http\Controllers\API\ReportController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -142,6 +143,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacy/inventory/priority-restocks', [InventoryController::class, 'getPriorityRestocks']);
         Route::get('pharmacy/inventory/products', [InventoryController::class, 'getInventoryProducts']);
         Route::get('pharmacy/inventory/logs', [InventoryController::class, 'getInventoryLogs']);
+
+        // sales and reports
+        Route::get('pharmacy/reports/sales/summary', [ReportController::class, 'getSalesSummary']);
+        Route::get('pharmacy/reports/sales', [ReportController::class, 'getSalesList']);
 
         // product batches
         Route::get('pharmacy/inventory/products/{pharmacyProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'index']);
