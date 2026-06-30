@@ -147,6 +147,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // sales and reports
         Route::get('pharmacy/reports/sales/summary', [ReportController::class, 'getSalesSummary']);
         Route::get('pharmacy/reports/sales', [ReportController::class, 'getSalesList']);
+        Route::get('pharmacy/reports/sales/export/csv', [ReportController::class, 'exportSalesCsv']);
+        Route::get('pharmacy/reports/sales/export/pdf', [ReportController::class, 'exportSalesPdf']);
 
         // product batches
         Route::get('pharmacy/inventory/products/{pharmacyProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'index']);
