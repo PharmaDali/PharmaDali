@@ -150,6 +150,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacy/reports/sales/export/csv', [ReportController::class, 'exportSalesCsv']);
         Route::get('pharmacy/reports/sales/export/pdf', [ReportController::class, 'exportSalesPdf']);
 
+        // notifications
+        Route::get('notifications', [NotificationController::class, 'index']);
+        Route::get('notifications/unread', [NotificationController::class, 'unread']);
+        Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+        Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
+
         // product batches
         Route::get('pharmacy/inventory/products/{pharmacyProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'index']);
         Route::post('pharmacy/inventory/products/{pharmacyProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'store']);
