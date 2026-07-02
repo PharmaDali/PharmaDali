@@ -1,0 +1,178 @@
+x-backend-common: &backend-common
+  build:
+    context: ./backend
+    target: php-fpm
+  restart: unless-stopped
+  env_file:
+    - ./backend/.env
+  volumes:
+    - backend_storage:/var/www/storage
+    - backend_bootstrap_cache:/var/www/bootstrap/cache
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
+  networks:
+    - app-network
+
+services:
+
+  # ------------------------------------------------------------------ #
+  # Database & Cache                                                     #
+  # ------------------------------------------------------------------ #
+
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+
+  # ------------------------------------------------------------------ #
+  # Backend (Laravel)                                                    #
+  # ------------------------------------------------------------------ #
+
+  backend-app:
+    <<: *backend-common
+
+  backend-web:
+    build:
+      context: ./backend
+      target: web
+    restart: unless-stopped
+    volumes:
+      - backend_storage:/var/www/storage:ro
+    depends_on:
+      - backend-app
+    environment:
+      VIRTUAL_HOST: ${BACKEND_DOMAIN}
+      VIRTUAL_PORT: "80"
+      LETSENCRYPT_HOST: ${BACKEND_DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    networks:
+      - app-network
+      - proxy-network
+
+  queue-worker:
+    <<: *backend-common
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=90"]
+
+  reverb-server:
+    <<: *backend-common
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080", "--no-interaction"]
+    environment:
+      VIRTUAL_HOST: ${REVERB_DOMAIN}
+      VIRTUAL_PORT: "8080"
+      LETSENCRYPT_HOST: ${REVERB_DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    networks:
+      - app-network
+      - proxy-network
+
+  # ------------------------------------------------------------------ #
+  # Admin Frontend (React + Vite)                                        #
+  # ------------------------------------------------------------------ #
+
+  admin-panel:
+    build:
+      context: ./pharmadali-admin
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: https://${BACKEND_DOMAIN}
+        VITE_REVERB_HOST: ${REVERB_DOMAIN}
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: ${ADMIN_DOMAIN}
+      VIRTUAL_PORT: "80"
+      LETSENCRYPT_HOST: ${ADMIN_DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    networks:
+      - proxy-network
+
+  # ------------------------------------------------------------------ #
+  # AI Forecasting Service (Python / FastAPI)                            #
+  # ------------------------------------------------------------------ #
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./ai-service/datasets:/app/datasets:ro
+      - ai_service_cache:/app/cache
+    networks:
+      - app-network
+
+  # ------------------------------------------------------------------ #
+  # Reverse Proxy & Automatic SSL (nginx-proxy + acme-companion)         #
+  # ------------------------------------------------------------------ #
+
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:1.7-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+    networks:
+      - proxy-network
+
+  acme-companion:
+    image: nginxproxy/acme-companion:2.5
+    restart: unless-stopped
+    depends_on:
+      - nginx-proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - acme:/etc/acme.sh
+    environment:
+      NGINX_PROXY_CONTAINER: nginx-proxy
+      DEFAULT_EMAIL: ${LETSENCRYPT_EMAIL}
+    networks:
+      - proxy-network
+
+volumes:
+  db_data:
+  redis_data:
+  backend_storage:
+  backend_bootstrap_cache:
+  ai_service_cache:
+  certs:
+  vhost:
+  html:
+  acme:
+
+networks:
+  app-network:
+    driver: bridge
+  proxy-network:
+    driver: bridge
