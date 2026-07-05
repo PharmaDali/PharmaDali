@@ -5,7 +5,8 @@ import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import StoreIcon from '@assets/icons/store_icon.svg';
-import HomeCarousel from '@assets/icons/home_carousel.svg';
+import HeroImage from '@assets/images/hero-image.svg';
+import ArrowRightIcon from '@assets/icons/arrow-right.svg';
 import ProductCard from '@shared/components/ProductCard';
 import SkeletonHome from '@shared/components/SkeletonHome';
 import PharmacySelectionOverlay from '@shared/components/PharmacySelectionOverlay';
@@ -98,7 +99,7 @@ export default function HomeScreen() {
         </Text>
       </View>
 
-      <View className="px-4 mt-2">
+      <View className="px-4 mt-6">
         <View className={`flex-row items-center rounded-full px-4 py-2 self-end shadow-sm border ${isPharmacyOpen ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'}`}>
           <View className={`w-6 h-6 rounded-full mr-2 items-center justify-center ${isPharmacyOpen ? 'bg-green-600' : 'bg-red-600'}`}>
             <StoreIcon width={24} height={24} />
@@ -109,8 +110,47 @@ export default function HomeScreen() {
           </Text>
         </View>
       </View>
-      <View className="mt-6 items-center">
-        <HomeCarousel width="100%" height={170} />
+
+      {/* ── Hero Section ── */}
+      <View className="mx-4 mt-8 rounded-2xl overflow-hidden">
+        <HeroImage
+          width="100%"
+          height={200}
+          preserveAspectRatio="xMidYMid slice"
+          style={{ position: 'absolute', top: 0, left: 0 }}
+        />
+        <View className="px-5 pt-3 pb-5">
+          <View className="flex-1 pr-4">
+            <Text
+              className="text-2xl text-gray-800"
+              style={{ fontFamily: 'Poppins-Bold'}}
+            >
+              Welcome to PharmaDali!
+            </Text>
+            <Text
+              className="mt-3 text-xs text-gray-700 leading-5"
+              style={{ fontFamily: 'Poppins-Regular' }}
+            >
+              Find the medicines and healthcare essentials you need in one place.
+            </Text>
+            <Text
+              className="mt-2 text-xs text-gray-700 leading-5"
+              style={{ fontFamily: 'Poppins-Regular' }}
+            >
+              Order ahead with ease and pick up your items when they're ready.
+            </Text>
+            <TouchableOpacity
+              className="mt-5 flex-row items-center justify-center self-start rounded-xl bg-sky-500 px-4 py-2"
+              onPress={() => route.push('/tabs/shop/Shop')}
+              activeOpacity={0.8}
+            >
+              <Text className="text-base text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>
+                Start Browsing
+              </Text>
+              <ArrowRightIcon width={18} height={18} style={{ marginLeft: 6 }} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
       </View>
       <View>
         <View className="flex-row items-center justify-between px-4 py-2 mt-4">
