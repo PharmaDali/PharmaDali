@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\PharmacyController;
 use App\Http\Controllers\API\AuthController;
+use App\Http\Controllers\API\AdminProfileController;
 use App\Http\Controllers\API\PharmacyProductController;
 use App\Http\Controllers\API\ConversationController;
 use App\Http\Controllers\API\CustomerCartController;
@@ -113,6 +114,10 @@ Route::middleware('auth:sanctum')->group(function () {
             fn() =>
             response()->json(['message' => 'Pharmacy Admin dashboard'])
         );
+
+        Route::get('admin/profile', [AdminProfileController::class, 'show']);
+        Route::patch('admin/profile', [AdminProfileController::class, 'update']);
+        Route::patch('admin/pharmacy', [PharmacyController::class, 'updateOwn']);
 
         Route::get('pos/products', [PosController::class, 'getProducts']);
         Route::post('pos/orders', [PosController::class, 'storeOrder']);

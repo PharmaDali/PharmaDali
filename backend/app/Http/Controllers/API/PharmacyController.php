@@ -59,6 +59,26 @@ class PharmacyController extends Controller
     }
 
     /**
+    * Allow a pharmacy_admin to update their own pharmacy's name and location.
+    */
+    public function updateOwn(Request $request): JsonResponse
+    {
+        $pharmacy = Pharmacy::findOrFail($request->user()->pharmacy_id);
+
+        $validated = $request->validate([
+            'pharmacy_name' => 'sometimes|string|max:255',
+            'location'      => 'sometimes|string|max:255',
+        ]);
+
+        $pharmacy->update($validated);
+
+        return response()->json([
+            'message'  => 'Pharmacy updated',
+            'pharmacy' => $pharmacy,
+        ]);
+    }
+
+    /**
     * Remove the specified resource from storage.
     */
     public function destroy(Pharmacy $pharmacy)
