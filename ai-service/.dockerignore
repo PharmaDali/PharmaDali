@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+autoarima-env/
+datasets/
+.git/
+.gitignore
+*.md
