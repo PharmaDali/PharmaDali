@@ -138,9 +138,10 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOr
 
               <ul className="dropdown-menu">
                 <li>
-                  <a className="dropdown-item" href="#">
-                    <i className="bi bi-person text-black me-2">
-                    </i>My profile</a>
+                  <a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); navigate("/profile"); }}>
+                    <i className="bi bi-person text-black me-2" />
+                    My profile
+                  </a>
                 </li>
                 <li>
                   <a className="dropdown-item " href="#" onClick={handleLogout}>

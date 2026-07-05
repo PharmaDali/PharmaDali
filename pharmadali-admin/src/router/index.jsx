@@ -13,6 +13,7 @@ import Inventory from "../pages/inventory/Inventory";
 import InventoryLogs from "../pages/InventoryLogs";
 import Pharmacists from "../pages/Pharmacists";
 import GetTechnicalHelp from "../pages/GetTechnicalHelp";
+import Profile from "../pages/Profile";
 
 function AppRouter() {
   return (
@@ -35,6 +36,7 @@ function AppRouter() {
           <Route path="inventory/logs" element={<InventoryLogs />} />
           <Route path="pharmacists" element={<Pharmacists />} />
           <Route path="get-technical-help" element={<GetTechnicalHelp />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>
     </BrowserRouter>
