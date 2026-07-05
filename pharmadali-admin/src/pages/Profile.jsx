@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { getCurrentUser } from "../services/loginService";
-import { apiRequest } from "../shared/api/apiClient";
+import { getAdminProfile, updateAdminProfile, updateAdminPharmacy } from "../services/profileService";
 import "../assets/css/profile.css";
 import emailIcon from "../assets/icons/profile/email.svg";
 import phoneIcon from "../assets/icons/profile/phone-number.svg";
@@ -31,22 +30,22 @@ const formatDate = (dateStr) => {
 
 function InfoField({ icon, label, value }) {
   return (
-    <div className="profile-info-field">
+    <div className="profile-info-field h-100 rounded-3 border p-3">
       <div className="d-flex align-items-center gap-1 mb-1">
-        <img src={icon} alt="" className="profile-field-icon" />
-        <span className="profile-field-label">{label}</span>
+        <img src={icon} alt="" className="profile-field-icon flex-shrink-0" />
+        <span className="profile-field-label fw-medium lh-1">{label}</span>
       </div>
-      <div className="profile-field-value">{value}</div>
+      <div className="profile-field-value fw-semibold mt-1 ps-3">{value}</div>
     </div>
   );
 }
 
 function EditableInfoField({ icon, label, value, isEditing, editValue, onEdit, onCancel, onSave, onChange, saving }) {
   return (
-    <div className="profile-info-field">
+    <div className="profile-info-field h-100 rounded-3 border p-3">
       <div className="d-flex align-items-center gap-1 mb-1">
-        <img src={icon} alt="" className="profile-field-icon" />
-        <span className="profile-field-label">{label}</span>
+        <img src={icon} alt="" className="profile-field-icon flex-shrink-0" />
+        <span className="profile-field-label fw-medium lh-1">{label}</span>
         {!isEditing && (
           <button
             className="btn btn-link p-0 ms-auto profile-edit-btn"
@@ -73,7 +72,7 @@ function EditableInfoField({ icon, label, value, isEditing, editValue, onEdit, o
           >
             {saving
               ? <span className="spinner-border spinner-border-sm" role="status" />
-              : <img src={editIcon} alt="Save" className="fs-6" />}
+              : <i className="bi bi-check2" />}
           </button>
           <button
             className="btn btn-sm btn-outline-secondary px-2"
@@ -85,7 +84,7 @@ function EditableInfoField({ icon, label, value, isEditing, editValue, onEdit, o
           </button>
         </div>
       ) : (
-        <div className="profile-field-value">{value}</div>
+        <div className="profile-field-value fw-semibold mt-1 ps-3">{value}</div>
       )}
     </div>
   );
@@ -96,13 +95,16 @@ function EditableInfoField({ icon, label, value, isEditing, editValue, onEdit, o
 function Profile() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [editField, setEditField] = useState(null); // 'pharmacyName' | 'location'
+  const [editField, setEditField] = useState(null);
   const [editValue, setEditValue] = useState("");
+  const [nameEditing, setNameEditing] = useState(false);
+  const [firstNameEdit, setFirstNameEdit] = useState("");
+  const [lastNameEdit, setLastNameEdit] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
 
   useEffect(() => {
-    getCurrentUser()
+    getAdminProfile()
       .then(setUser)
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -117,28 +119,54 @@ function Profile() {
   const handleCancel = () => {
     setEditField(null);
     setEditValue("");
+    setNameEditing(false);
     setSaveError(null);
   };
 
-  const handleSave = async () => {
-    if (!user?.pharmacy_id) return;
+  const handleNameEdit = () => {
+    setSaveError(null);
+    setFirstNameEdit(user?.first_name || "");
+    setLastNameEdit(user?.last_name || "");
+    setNameEditing(true);
+  };
+
+  const handleNameSave = async () => {
     setSaving(true);
     setSaveError(null);
     try {
-      const payload =
-        editField === "pharmacyName"
-          ? { pharmacy_name: editValue }
-          : { address: editValue };
-      await apiRequest.put(`/pharmacy/${user.pharmacy_id}`, payload);
-      setUser((prev) => ({
-        ...prev,
-        pharmacy: {
-          ...prev?.pharmacy,
-          ...(editField === "pharmacyName"
+      await updateAdminProfile({ first_name: firstNameEdit, last_name: lastNameEdit });
+      setUser((prev) => ({ ...prev, first_name: firstNameEdit, last_name: lastNameEdit }));
+      setNameEditing(false);
+    } catch {
+      setSaveError("Failed to save changes. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError(null);
+    try {
+      if (editField === "phone") {
+        await updateAdminProfile({ mobile_number: editValue });
+        setUser((prev) => ({ ...prev, mobile_number: editValue }));
+      } else {
+        const payload =
+          editField === "pharmacyName"
             ? { pharmacy_name: editValue }
-            : { address: editValue }),
-        },
-      }));
+            : { location: editValue };
+        await updateAdminPharmacy(payload);
+        setUser((prev) => ({
+          ...prev,
+          pharmacy: {
+            ...prev?.pharmacy,
+            ...(editField === "pharmacyName"
+              ? { pharmacy_name: editValue }
+              : { location: editValue }),
+          },
+        }));
+      }
       setEditField(null);
     } catch {
       setSaveError("Failed to save changes. Please try again.");
@@ -160,7 +188,7 @@ function Profile() {
   const initials = getInitials(user?.first_name, user?.last_name);
   const fullName = user ? `${user.first_name} ${user.last_name}` : "Admin";
   const pharmacyName = user?.pharmacy?.pharmacy_name || "—";
-  const location = user?.pharmacy?.address || "—";
+  const location = user?.pharmacy?.location || "—";
   const pharmacyId = user?.pharmacy?.id ?? user?.pharmacy_id ?? "—";
   const memberSince = formatDate(user?.created_at);
   const dateRegistered = formatDate(user?.pharmacy?.created_at);
@@ -185,14 +213,52 @@ function Profile() {
           <div className="row g-4 align-items-start">
 
             {/* ── Avatar column ── */}
-            <div className="col-12 col-md-auto d-flex flex-column align-items-center profile-avatar-col">
-              <div className="profile-initials-avatar d-flex align-items-center justify-content-center rounded-circle">
-                <span className="profile-initials-text">{initials}</span>
+            <div className="col-12 col-md-auto d-flex flex-column align-items-center profile-avatar-col p-5">
+              <div className="profile-initials-avatar d-flex align-items-center justify-content-center rounded-circle border border-3 flex-shrink-0 p-4">
+                <span className="profile-initials-text fw-bold lh-1">{initials}</span>
               </div>
-              <h5 className="fw-semibold mt-3 mb-1 text-center" style={{ color: "var(--pd-text-dark)" }}>
-                {fullName}
-              </h5>
-              <span className="badge profile-role-badge">Administrator</span>
+
+              {nameEditing ? (
+                <div className="mt-3 w-100">
+                  <label className="form-label small fw-medium text-muted mb-1">First Name</label>
+                  <input
+                    className="form-control form-control-sm mb-2 text-center"
+                    placeholder="First name"
+                    value={firstNameEdit}
+                    onChange={(e) => setFirstNameEdit(e.target.value)}
+                    autoFocus
+                  />
+                  <label className="form-label small fw-medium text-muted mb-1">Last Name</label>
+                  <input
+                    className="form-control form-control-sm mb-2 text-center"
+                    placeholder="Last name"
+                    value={lastNameEdit}
+                    onChange={(e) => setLastNameEdit(e.target.value)}
+                  />
+                  <div className="d-flex gap-2 justify-content-center">
+                    <button className="save-btn btn btn-sm px-3" onClick={handleNameSave} disabled={saving}>
+                      {saving
+                        ? <span className="spinner-border spinner-border-sm" role="status" />
+                        : <i className="bi bi-check2" />}
+                    </button>
+                    <button className="btn btn-sm btn-outline-secondary px-3" onClick={handleCancel} disabled={saving}>
+                      <i className="bi bi-x" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="d-flex align-items-center gap-1 mt-3 mb-1">
+                    <h5 className="fw-semibold m-0 text-center" style={{ color: "var(--pd-text-dark)" }}>
+                      {fullName}
+                    </h5>
+                    <button className="btn btn-link p-0 ms-1 profile-edit-btn" onClick={handleNameEdit} title="Edit name">
+                      <img src={editIcon} alt="Edit name" style={{ width: 20, height: 20 }} />
+                    </button>
+                  </div>
+                  <span className="badge profile-role-badge rounded-pill text-uppercase py-1 px-3">Administrator</span>
+                </>
+              )}
             </div>
 
             {/* ── Vertical divider (desktop only) ── */}
@@ -202,7 +268,7 @@ function Profile() {
 
             {/* ── Account Information ── */}
             <div className="col-12 col-md">
-              <h6 className="profile-section-title mb-3">
+              <h6 className="profile-section-title d-flex align-items-center gap-2 fw-semibold fs-4 pb-2 mb-3">
                 Account Information
               </h6>
               <div className="row g-3">
@@ -210,19 +276,22 @@ function Profile() {
                   <InfoField
                     icon={emailIcon}
                     label="Email Address"
-                    value={
-                      <a
-                        href={`mailto:${user?.email}`}
-                        className="text-primary text-decoration-underline"
-                        style={{ fontSize: "inherit", fontWeight: "inherit" }}
-                      >
-                        {user?.email || "—"}
-                      </a>
-                    }
+                    value={user?.email || "—"}
                   />
                 </div>
                 <div className="col-12">
-                  <InfoField icon={phoneIcon} label="Phone Number" value={user?.mobile_number || "—"} />
+                  <EditableInfoField
+                    icon={phoneIcon}
+                    label="Phone Number"
+                    value={user?.mobile_number || "—"}
+                    isEditing={editField === "phone"}
+                    editValue={editValue}
+                    onEdit={() => handleEdit("phone", user?.mobile_number)}
+                    onCancel={handleCancel}
+                    onSave={handleSave}
+                    onChange={setEditValue}
+                    saving={saving}
+                  />
                 </div>
                 <div className="col-12">
                   <InfoField icon={adminIdIcon} label="Admin ID" value={user?.id ?? "—"} />
@@ -240,7 +309,7 @@ function Profile() {
 
             {/* ── Pharmacy Information ── */}
             <div className="col-12 col-md">
-              <h6 className="profile-section-title mb-3">
+              <h6 className="profile-section-title d-flex align-items-center gap-2 fw-semibold fs-4 pb-2 mb-3">
                 Pharmacy Information
               </h6>
               <div className="row g-3">
