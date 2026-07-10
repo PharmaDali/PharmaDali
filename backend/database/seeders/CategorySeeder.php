@@ -13,6 +13,25 @@ class CategorySeeder extends Seeder
      */
     public function run(): void
     {
-        Category::factory()->count(12)->create();
+        $categories = [
+            "Branded",
+            "Generic",
+            "Injectables",
+            "Eye Med ",
+            "Cream",
+            "Cosmetics",
+            "Hygiene",
+            "Diapers",
+            "Infant",
+            "Milk",
+            "Drinks",
+            "Vitamins"
+        ];
+
+        foreach ($categories as $category) {
+            Category::firstOrCreate(['category_name' => $category], [
+                'description' => 'Description for ' . $category,
+            ]);
+        }
     }
 }

@@ -14,10 +14,13 @@ RUN npm run build
 
 
 # ---- Stage 2: PHP-FPM Application ----
-FROM php:8.2-fpm-alpine AS php-fpm
+FROM php:8.4-fpm-alpine AS php-fpm
 
 # Install system dependencies and PHP extensions
-RUN apk add --no-cache \
+RUN apk add --no-cache --virtual .build-deps \
+        $PHPIZE_DEPS \
+        linux-headers \
+    && apk add --no-cache \
         git \
         curl \
         libpng-dev \
@@ -43,6 +46,7 @@ RUN apk add --no-cache \
         opcache \
     && pecl install redis \
     && docker-php-ext-enable redis opcache \
+    && apk del .build-deps \
     && rm -rf /tmp/pear
 
 # Install Composer
@@ -59,6 +63,14 @@ COPY . .
 
 # Copy compiled Vite assets from node-builder stage
 COPY --from=node-builder /app/public/build ./public/build
+
+# Provide dummy env variables so Laravel's package:discover doesn't crash on Pusher instantiation
+ENV PUSHER_APP_ID="build-dummy-id" \
+    PUSHER_APP_KEY="build-dummy-key" \
+    PUSHER_APP_SECRET="build-dummy-secret" \
+    REVERB_APP_ID="build-dummy-id" \
+    REVERB_APP_KEY="build-dummy-key" \
+    REVERB_APP_SECRET="build-dummy-secret"
 
 # Regenerate autoloader to include application classes
 RUN composer dump-autoload --optimize --no-interaction
