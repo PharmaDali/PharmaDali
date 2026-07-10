@@ -74,3 +74,10 @@ export async function getPharmacyCategories(pharmacyId, forceRefresh = false) {
     method: 'GET',
   });
 }
+
+export async function getHeroRecommendations(pharmacyId) {
+  const endpoint = `/customer/recommendations/hero?pharmacy_id=${pharmacyId}`;
+  return apiRequest(endpoint, {
+    method: 'GET',
+  });
+}

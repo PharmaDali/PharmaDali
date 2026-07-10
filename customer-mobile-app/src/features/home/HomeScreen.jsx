@@ -25,7 +25,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useProfile();
   const { setSelectionPhase, selectedPharmacy, setSelectedPharmacy } = useSelectionPhase();
-  const { loading, categories, pharmacyProducts, normalizeSelectedPharmacy } = useHomeTab(selectedPharmacy);
+  const { loading, categories, pharmacyProducts, heroRecommendations, normalizeSelectedPharmacy } = useHomeTab(selectedPharmacy);
   const { toast, showSuccess, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [hasUnreadMessage, setHasUnreadMessage] = useState(true);
@@ -125,20 +125,22 @@ export default function HomeScreen() {
               className="text-2xl text-gray-800"
               style={{ fontFamily: 'Poppins-Bold'}}
             >
-              Welcome to PharmaDali!
+              {heroRecommendations?.hero_title || 'Welcome to PharmaDali!'}
             </Text>
             <Text
               className="mt-3 text-xs text-gray-700 leading-5"
               style={{ fontFamily: 'Poppins-Regular' }}
             >
-              Find the medicines and healthcare essentials you need in one place.
+              {heroRecommendations?.hero_subtitle || 'Find the medicines and healthcare essentials you need in one place.'}
             </Text>
-            <Text
-              className="mt-2 text-xs text-gray-700 leading-5"
-              style={{ fontFamily: 'Poppins-Regular' }}
-            >
-              Order ahead with ease and pick up your items when they're ready.
-            </Text>
+            {!heroRecommendations && (
+              <Text
+                className="mt-2 text-xs text-gray-700 leading-5"
+                style={{ fontFamily: 'Poppins-Regular' }}
+              >
+                Order ahead with ease and pick up your items when they're ready.
+              </Text>
+            )}
             <TouchableOpacity
               className="mt-5 flex-row items-center justify-center self-start rounded-xl bg-sky-500 px-4 py-2"
               onPress={() => route.push('/tabs/shop/Shop')}

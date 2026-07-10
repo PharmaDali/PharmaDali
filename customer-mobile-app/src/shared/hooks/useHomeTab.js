@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { getPharmacyCategories, getProducts } from '@shared/services/productService';
+import { getPharmacyCategories, getProducts, getHeroRecommendations } from '@shared/services/productService';
 
 function normalizeApiList(payload) {
   if (Array.isArray(payload)) {
@@ -30,6 +30,7 @@ export function useHomeTab(selectedPharmacy) {
   const [loading, setLoading] = useState(!selectedPharmacy);
   const [categories, setCategories] = useState([]);
   const [pharmacyProducts, setPharmacyProducts] = useState([]);
+  const [heroRecommendations, setHeroRecommendations] = useState(null);
   const previousPharmacyIdRef = useRef(null);
 
   useEffect(() => {
@@ -54,9 +55,10 @@ export function useHomeTab(selectedPharmacy) {
       setLoading(true);
 
       try {
-        const [categoriesPayload, productsPayload] = await Promise.all([
+        const [categoriesPayload, productsPayload, recommendationsPayload] = await Promise.all([
           getPharmacyCategories(selectedPharmacyId),
           getProducts(selectedPharmacyId, null, { perPage: HOME_PREVIEW_LIMIT }),
+          getHeroRecommendations(selectedPharmacyId).catch(() => null), // fail gracefully
         ]);
 
         if (!mounted) {
@@ -65,6 +67,9 @@ export function useHomeTab(selectedPharmacy) {
 
         setCategories(normalizeApiList(categoriesPayload));
         setPharmacyProducts(normalizeApiList(productsPayload));
+        if (recommendationsPayload?.data) {
+          setHeroRecommendations(recommendationsPayload.data);
+        }
       } catch {
         if (mounted) {
           setCategories([]);
@@ -93,6 +98,7 @@ export function useHomeTab(selectedPharmacy) {
     loading,
     categories,
     pharmacyProducts,
+    heroRecommendations,
     normalizeSelectedPharmacy,
   };
 }
