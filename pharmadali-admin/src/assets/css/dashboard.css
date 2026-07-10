@@ -80,7 +80,6 @@
 }
 
 .quick-insight-right,
-.forecast-right,
 .inventory-note {
   overflow-wrap: anywhere;
 }
@@ -110,14 +109,12 @@
   }
 
   .quick-insight-row,
-  .forecast-row,
   .inventory-row {
     gap: 0.6rem;
     align-items: flex-start !important;
   }
 
-  .quick-insight-right,
-  .forecast-right {
+  .quick-insight-right {
     max-width: 52%;
   }
 
@@ -155,13 +152,11 @@
   }
 
   .quick-insight-row,
-  .forecast-row,
   .inventory-row {
     flex-direction: column;
   }
 
   .quick-insight-right,
-  .forecast-right,
   .inventory-note {
     max-width: 100%;
     width: 100%;
