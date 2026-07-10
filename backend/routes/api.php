@@ -65,6 +65,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('customer/messages/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage']);
 
         Route::get('customer/profile', [CustomerProfileController::class, 'show']);
+        Route::get('customer/recommendations/hero', [\App\Http\Controllers\API\CustomerRecommendationController::class, 'hero']);
 
         Route::post('customer/cart/items', [CustomerCartController::class, 'addItem']);
         Route::get('customer/cart/items', [CustomerCartController::class, 'viewCart']);
