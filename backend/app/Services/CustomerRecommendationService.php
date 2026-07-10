@@ -28,24 +28,8 @@ class CustomerRecommendationService
 
         if (!$lastOrder) {
             // FALLBACK: No history. Recommend Vitamins & Supplements.
-            $vitamins = PharmacyProduct::with(['product.category', 'pharmacy'])
-                ->where('pharmacy_id', $pharmacyId)
-                ->whereHas('product.category', function ($query) {
-                    $query->where('name', 'like', '%Vitamin%')
-                          ->orWhere('name', 'like', '%Supplement%');
-                })
-                ->where('stock', '>', 0)
-                ->inRandomOrder()
-                ->limit(5)
-                ->get()
-                ->map(function ($pp) {
-                    return [
-                        'id' => $pp->id,
-                        'name' => $pp->product->name,
-                        'price' => $pp->price,
-                        'image_url' => $pp->product->image_url ?? null,
-                    ];
-                });
+            // PharmacyProduct has a direct category() BelongsTo, so we use that.
+            $vitamins = $this->getVitaminProducts($pharmacyId);
 
             return [
                 'has_history' => false,
@@ -78,24 +62,7 @@ class CustomerRecommendationService
 
         // If no matches found from Apriori, fallback to Vitamins
         if (empty($recommendedProductIds)) {
-            $vitamins = PharmacyProduct::with(['product.category'])
-                ->where('pharmacy_id', $pharmacyId)
-                ->whereHas('product.category', function ($query) {
-                    $query->where('name', 'like', '%Vitamin%')
-                          ->orWhere('name', 'like', '%Supplement%');
-                })
-                ->where('stock', '>', 0)
-                ->inRandomOrder()
-                ->limit(5)
-                ->get()
-                ->map(function ($pp) {
-                    return [
-                        'id' => $pp->id,
-                        'name' => $pp->product->name,
-                        'price' => $pp->price,
-                        'image_url' => $pp->product->image_url ?? null,
-                    ];
-                });
+            $vitamins = $this->getVitaminProducts($pharmacyId);
 
             return [
                 'has_history' => true,
@@ -112,20 +79,49 @@ class CustomerRecommendationService
             ->where('stock', '>', 0)
             ->limit(5)
             ->get()
-            ->map(function ($pp) {
-                return [
-                    'id' => $pp->id,
-                    'name' => $pp->product->name,
-                    'price' => $pp->price,
-                    'image_url' => $pp->product->image_url ?? null,
-                ];
-            });
+            ->map(fn($pp) => $this->formatProduct($pp));
 
         return [
             'has_history' => true,
             'hero_title' => 'Recommended for You',
             'hero_subtitle' => 'Based on your recent purchases, you might like these:',
             'recommendations' => $recommendedProducts,
+        ];
+    }
+
+    /**
+     * Fetch vitamin/supplement products from a pharmacy.
+     * Uses PharmacyProduct's direct category() relationship.
+     */
+    private function getVitaminProducts(int $pharmacyId): \Illuminate\Support\Collection
+    {
+        return PharmacyProduct::with(['product', 'category'])
+            ->where('pharmacy_id', $pharmacyId)
+            ->whereHas('category', function ($query) {
+                $query->where('name', 'like', '%Vitamin%')
+                      ->orWhere('name', 'like', '%Supplement%');
+            })
+            ->where('stock', '>', 0)
+            ->inRandomOrder()
+            ->limit(5)
+            ->get()
+            ->map(fn($pp) => $this->formatProduct($pp));
+    }
+
+    /**
+     * Format a PharmacyProduct for the API response.
+     * Accepts both an Eloquent PharmacyProduct model and a plain stdClass
+     * (the latter can happen when objects are deserialized from the cache).
+     */
+    private function formatProduct(mixed $pp): array
+    {
+        // Support both Eloquent models (->property) and stdClass from cache (->property)
+        $product = $pp->product ?? null;
+        return [
+            'id'        => $pp->id,
+            'name'      => $product?->product_name ?? 'Unknown',
+            'price'     => $pp->selling_price,
+            'image_url' => $product?->image_url ?? null,
         ];
     }
 }

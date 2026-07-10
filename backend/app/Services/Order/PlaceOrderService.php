@@ -101,13 +101,19 @@ class PlaceOrderService
                 $pharmacists = $pharmacy->pharmacists;
                 Notification::send($pharmacists, new NewOrderPharmacistNotification($order));
 
+                return $order;
+            });
+
+            // Append system message OUTSIDE the transaction so a broadcast
+            // failure (e.g. Pusher/Soketi not running) cannot roll back the order.
+            try {
                 $this->conversationService->appendSystemMessage($order, 'Order received', [
                     'status' => $order->status,
                     'order_number' => $order->order_number,
                 ]);
-
-                return $order;
-            });
+            } catch (\Throwable $broadcastException) {
+                Log::warning('Order system message broadcast failed (order still placed): ' . $broadcastException->getMessage());
+            }
 
             return response()->json([
                 'status' => 'success',
