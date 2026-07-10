@@ -28,17 +28,17 @@ return new class extends Migration
             DROP FOREIGN KEY order_items_order_id_foreign,
             DROP KEY order_items_order_id_branch_product_id_unique');
 
-        // cart_items: drop unique key
-        DB::unprepared('ALTER TABLE cart_items DROP KEY cart_items_cart_id_product_id_unique');
+        // cart_items: drop unique key and foreign key that depends on it
+        DB::unprepared('ALTER TABLE cart_items DROP FOREIGN KEY cart_items_cart_id_foreign, DROP KEY cart_items_cart_id_product_id_unique');
 
-        // product_batches: drop plain KEY
-        DB::unprepared('ALTER TABLE product_batches DROP KEY product_batches_branch_product_id_foreign');
+        // product_batches: drop plain KEY and FK
+        DB::unprepared('ALTER TABLE product_batches DROP FOREIGN KEY product_batches_branch_product_id_foreign, DROP KEY product_batches_branch_product_id_foreign');
 
-        // carts: drop plain KEY
-        DB::unprepared('ALTER TABLE carts DROP KEY carts_branch_id_foreign');
+        // carts: drop plain KEY and FK
+        DB::unprepared('ALTER TABLE carts DROP FOREIGN KEY carts_branch_id_foreign, DROP KEY carts_branch_id_foreign');
 
-        // branch_products: drop plain KEY
-        DB::unprepared('ALTER TABLE branch_products DROP KEY branch_products_branch_id_foreign');
+        // branch_products: drop plain KEY and FK
+        DB::unprepared('ALTER TABLE branch_products DROP FOREIGN KEY branch_products_branch_id_foreign, DROP KEY branch_products_branch_id_foreign');
 
         DB::unprepared('SET foreign_key_checks = 1');
 
@@ -94,14 +94,18 @@ return new class extends Migration
         // 5. Recreate indexes and the dropped order_id FK
         // ---------------------------------------------------------------
         DB::unprepared('ALTER TABLE pharmacy_products ADD KEY pharmacy_products_pharmacy_id_index (pharmacy_id)');
+        DB::unprepared('ALTER TABLE pharmacy_products ADD CONSTRAINT pharmacy_products_pharmacy_id_foreign FOREIGN KEY (pharmacy_id) REFERENCES pharmacies (id) ON DELETE CASCADE');
         DB::unprepared('ALTER TABLE users RENAME INDEX users_branch_id_foreign TO users_pharmacy_id_index');
         DB::unprepared('ALTER TABLE customers RENAME INDEX customers_branch_id_foreign TO customers_pharmacy_id_index');
         DB::unprepared('ALTER TABLE carts ADD KEY carts_pharmacy_id_index (pharmacy_id)');
+        DB::unprepared('ALTER TABLE carts ADD CONSTRAINT carts_pharmacy_id_foreign FOREIGN KEY (pharmacy_id) REFERENCES pharmacies (id)');
         DB::unprepared('ALTER TABLE order_items ADD KEY order_items_pharmacy_product_id_index (pharmacy_product_id)');
         DB::unprepared('ALTER TABLE order_items ADD UNIQUE KEY order_items_order_id_pharmacy_product_id_unique (order_id, pharmacy_product_id)');
         DB::unprepared('ALTER TABLE order_items ADD CONSTRAINT order_items_order_id_foreign FOREIGN KEY (order_id) REFERENCES orders (id) ON DELETE CASCADE');
         DB::unprepared('ALTER TABLE product_batches ADD KEY product_batches_pharmacy_product_id_index (pharmacy_product_id)');
+        DB::unprepared('ALTER TABLE product_batches ADD CONSTRAINT product_batches_pharmacy_product_id_foreign FOREIGN KEY (pharmacy_product_id) REFERENCES pharmacy_products (id)');
         DB::unprepared('ALTER TABLE cart_items ADD UNIQUE KEY cart_items_cart_id_pharmacy_product_id_unique (cart_id, pharmacy_product_id)');
+        DB::unprepared('ALTER TABLE cart_items ADD CONSTRAINT cart_items_cart_id_foreign FOREIGN KEY (cart_id) REFERENCES carts (id) ON DELETE CASCADE');
     }
 
     /**
@@ -114,7 +118,7 @@ return new class extends Migration
             DROP FOREIGN KEY order_items_order_id_foreign,
             DROP KEY order_items_order_id_pharmacy_product_id_unique,
             DROP KEY order_items_pharmacy_product_id_index');
-        DB::unprepared('ALTER TABLE cart_items DROP KEY cart_items_cart_id_pharmacy_product_id_unique');
+        DB::unprepared('ALTER TABLE cart_items DROP FOREIGN KEY cart_items_cart_id_foreign, DROP KEY cart_items_cart_id_pharmacy_product_id_unique');
         DB::unprepared('ALTER TABLE product_batches DROP KEY product_batches_pharmacy_product_id_index');
         DB::unprepared('ALTER TABLE carts DROP KEY carts_pharmacy_id_index');
         DB::unprepared('ALTER TABLE pharmacy_products DROP KEY pharmacy_products_pharmacy_id_index');
@@ -163,5 +167,6 @@ return new class extends Migration
         DB::unprepared('ALTER TABLE product_batches ADD KEY product_batches_branch_product_id_foreign (branch_product_id)');
         DB::unprepared('ALTER TABLE carts ADD KEY carts_branch_id_foreign (branch_id)');
         DB::unprepared('ALTER TABLE cart_items ADD UNIQUE KEY cart_items_cart_id_product_id_unique (cart_id, product_id)');
+        DB::unprepared('ALTER TABLE cart_items ADD CONSTRAINT cart_items_cart_id_foreign FOREIGN KEY (cart_id) REFERENCES carts (id) ON DELETE CASCADE');
     }
 };

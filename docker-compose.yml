@@ -99,7 +99,7 @@ services:
       context: ./pharmadali-admin
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: https://${BACKEND_DOMAIN}
+        VITE_API_BASE_URL: http://${BACKEND_DOMAIN}/api
         VITE_REVERB_HOST: ${REVERB_DOMAIN}
     restart: unless-stopped
     environment:

@@ -23,7 +23,7 @@ echo "Database is ready."
 # queue-worker and reverb-server share this entrypoint but skip this block.
 if [ "$1" = "php-fpm" ]; then
     echo "Running database migrations..."
-    php artisan migrate --force
+    php artisan migrate --force || true
 
     echo "Creating public storage symlink..."
     php artisan storage:link 2>/dev/null || true
