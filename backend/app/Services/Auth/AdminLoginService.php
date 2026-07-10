@@ -3,7 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
-use App\Notifications\AdminLoginNotification;
+
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -47,13 +47,6 @@ class AdminLoginService
             [$user->role],
             now()->addHours(8) // admin tokens expire after 8 hours
         )->plainTextToken;
-
-        // Notify admin of new login
-        $user->notify(new AdminLoginNotification(
-            ip: $ip,
-            time: now()->toDateTimeString(),
-            device: $device
-        ));
 
         return response()->json([
             'token'      => $token,

@@ -139,6 +139,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacy/inventory/products', [InventoryController::class, 'getInventoryProducts']);
         Route::get('pharmacy/inventory/logs', [InventoryController::class, 'getInventoryLogs']);
 
+        // analytics
+        Route::get('pharmacy/analytics/sales', [\App\Http\Controllers\API\AnalyticsController::class, 'sales']);
+        Route::get('pharmacy/analytics/demand', [\App\Http\Controllers\API\AnalyticsController::class, 'demand']);
+        Route::get('pharmacy/analytics/apriori', [\App\Http\Controllers\API\AnalyticsController::class, 'apriori']);
+
         // sales and reports
         Route::get('pharmacy/reports/sales/summary', [ReportController::class, 'getSalesSummary']);
         Route::get('pharmacy/reports/sales', [ReportController::class, 'getSalesList']);

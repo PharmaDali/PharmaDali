@@ -3,20 +3,16 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AdminLoginNotification extends Notification
+class NewPharmacyAdminNotification extends Notification
 {
     use Queueable;
 
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct(private string $ip, private string $time, private string $device)
+    public function __construct(public string $password)
     {
-       //
+        //
     }
 
     /**
@@ -35,13 +31,13 @@ class AdminLoginNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('New Admin Login Detected')
+            ->subject('Welcome to Pharmadali Admin Dashboard')
             ->greeting("Hello {$notifiable->first_name},")
-            ->line('A new login to your admin account was detected.')
-            ->line("IP Address: {$this->ip}")
-            ->line("Time: {$this->time}")
-            ->line("Device: {$this->device}")
-            ->line('If this was not you, contact your system administrator immediately.');
+            ->line('An account has been created for you as a Pharmacy Admin.')
+            ->line("Your temporary password is: {$this->password}")
+            ->line('Please log in and change your password as soon as possible.')
+            ->action('Login to Dashboard', url(config('app.frontend_url') ?? 'http://admin.pharmadali.local'))
+            ->line('Thank you for using our application!');
     }
 
     /**
