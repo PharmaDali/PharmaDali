@@ -111,21 +111,6 @@ services:
       - proxy-network
 
   # ------------------------------------------------------------------ #
-  # AI Forecasting Service (Python / FastAPI)                            #
-  # ------------------------------------------------------------------ #
-
-  ai-service:
-    build:
-      context: ./ai-service
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    volumes:
-      - ./ai-service/datasets:/app/datasets:ro
-      - ai_service_cache:/app/cache
-    networks:
-      - app-network
-
-  # ------------------------------------------------------------------ #
   # Reverse Proxy & Automatic SSL (nginx-proxy + acme-companion)         #
   # ------------------------------------------------------------------ #
 
@@ -165,7 +150,6 @@ volumes:
   redis_data:
   backend_storage:
   backend_bootstrap_cache:
-  ai_service_cache:
   certs:
   vhost:
   html:

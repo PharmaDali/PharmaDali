@@ -1,9 +1,0 @@
-# /etc/cron.d/ai-service
-# Scheduled forecasting jobs for PharmaDali AI service.
-# Format: m h dom mon dow user command
-
-# Rebuild demand forecasts daily at midnight
-0 0 * * * root cd /app && /usr/local/bin/python main.py demand >> /var/log/cron.log 2>&1
-
-# Rebuild sales forecasts daily at 1 AM
-0 1 * * * root cd /app && /usr/local/bin/python main.py sales >> /var/log/cron.log 2>&1

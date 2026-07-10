@@ -12,9 +12,6 @@ use App\Http\Controllers\API\PharmacistProfileController;
 use App\Http\Controllers\API\PharmacyPharmacistController;
 use App\Http\Controllers\API\CustomerProfileController;
 use App\Http\Controllers\API\FcmTokenController;
-use App\Http\Controllers\API\ForecastController;
-use App\Http\Controllers\API\ForecastInsightController;
-use App\Http\Controllers\API\ForecastSyncController;
 use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PosController;
 use App\Http\Controllers\API\InventoryController;
@@ -55,10 +52,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('pharmacies/{pharmacyId}/products', [PharmacyProductController::class, 'showPharmacyProducts']);
     Route::get('pharmacies/{pharmacyId}/products/{pharmacyProductId}', [PharmacyProductController::class, 'showSinglePharmacyProduct']);
     Route::get('pharmacies/{pharmacyId}/categories', [PharmacyProductController::class, 'showPharmacyCategories']);
-
-    Route::middleware(['ability:pharmacist,pharmacy_admin'])->group(function () {
-        Route::get('pharmacy/forecasts', [ForecastController::class, 'index']);
-    });
 
     Route::middleware('ability:customer')->group(function () {
         Route::get('customer/dashboard', function () {
@@ -128,9 +121,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacists', [PharmacyPharmacistController::class, 'index']);
         Route::put('pharmacists/{pharmacist}', [PharmacyPharmacistController::class, 'update']);
         Route::delete('pharmacists/{pharmacist}', [PharmacyPharmacistController::class, 'destroy']);
-
-        Route::post('pharmacy/forecasts/sync', [ForecastSyncController::class, 'sync']);
-        Route::get('pharmacy/forecast-insights', [ForecastInsightController::class, 'show']);
 
         Route::post('products', [PharmacyProductController::class, 'store']);
         Route::post('products/import', [PharmacyProductController::class, 'importPharmacyProducts']);
