@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\NewPharmacyAdminNotification;
 
 class AdminRegisterService
 {
@@ -31,6 +32,10 @@ class AdminRegisterService
         $user->load('pharmacy');
 
         $token = $user->createToken('API Token', [$role], now()->addHours(8))->plainTextToken;
+
+        if ($role === 'pharmacy_admin') {
+            $user->notify(new NewPharmacyAdminNotification($data['password']));
+        }
 
         return response()->json([
             'message'    => 'Admin registered successfully',
