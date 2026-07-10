@@ -23,7 +23,7 @@ function Login() {
       await login(credentials);
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("tokenExpiry", String(Date.now() + 8 * 60 * 60 * 1000));
-      navigate("/", { replace: true });
+      navigate("/homepage", { replace: true });
     } catch (err: any) {
       setError(err?.message || "Invalid email or password.");
       localStorage.removeItem("isAuthenticated");
