@@ -47,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('pharmacies', [PharmacyController::class, 'index']);
     Route::get('pharmacies/{id}', [PharmacyController::class, 'show']);
 
+    //products
     Route::get('products', [PharmacyProductController::class, 'index']);
     Route::get('products/{id}', [PharmacyProductController::class, 'show']);
     Route::get('pharmacies/{pharmacyId}/products', [PharmacyProductController::class, 'showPharmacyProducts']);
@@ -58,19 +59,23 @@ Route::middleware('auth:sanctum')->group(function () {
             return response()->json(['message' => 'Customer dashboard access granted']);
         });
 
+        // chats
         Route::get('customer/messages/pharmacists', [ConversationController::class, 'customerPharmacists']);
         Route::get('customer/messages/conversations', [ConversationController::class, 'index']);
         Route::post('customer/messages/conversations', [ConversationController::class, 'store']);
         Route::get('customer/messages/conversations/{conversation}', [ConversationController::class, 'show']);
         Route::post('customer/messages/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage']);
 
+        // Profile
         Route::get('customer/profile', [CustomerProfileController::class, 'show']);
         Route::get('customer/recommendations/hero', [\App\Http\Controllers\API\CustomerRecommendationController::class, 'hero']);
 
+        // Cart
         Route::post('customer/cart/items', [CustomerCartController::class, 'addItem']);
         Route::get('customer/cart/items', [CustomerCartController::class, 'viewCart']);
         Route::get('customer/cart/items/count', [CustomerCartController::class, 'countCartItems']);
 
+        // Order
         Route::post('customer/orders', [OrderController::class, 'store']);
         Route::get('customer/orders', [OrderController::class, 'index']);
         Route::get('customer/orders/{order}', [OrderController::class, 'show']);
