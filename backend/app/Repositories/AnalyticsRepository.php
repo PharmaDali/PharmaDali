@@ -26,7 +26,7 @@ class AnalyticsRepository
         // Group by expression based on timeframe
         $groupBy = match ($timeframe) {
             'daily' => "DATE(completed_at)",
-            'weekly' => "YEARWEEK(completed_at, 1)", // 1 = Monday starts the week
+            'weekly' => "DATE_ADD(DATE(completed_at), INTERVAL -WEEKDAY(completed_at) DAY)", // Monday starts the week
             'monthly' => "DATE_FORMAT(completed_at, '%Y-%m')",
             'yearly' => "YEAR(completed_at)",
             default => "DATE(completed_at)",
