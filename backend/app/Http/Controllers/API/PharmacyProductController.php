@@ -106,11 +106,19 @@ class PharmacyProductController extends Controller
                 cursor: $validated['cursor'] ?? null,
             );
         } else {
+            $user = $request->user('sanctum') ?? $request->user();
+            $recommendedProductIds = [];
+            if ($user) {
+                $recService = app(\App\Services\CustomerRecommendationService::class);
+                $recommendedProductIds = $recService->getRecommendedProductIds($user, (int) $validated['pharmacy_id']);
+            }
+
             $paginator = $showPharmacyProductService->handle(
                 pharmacyId: (int) $validated['pharmacy_id'],
                 categoryId: isset($validated['category_id']) ? (int) $validated['category_id'] : null,
                 perPage: (int) ($validated['per_page'] ?? 20),
                 cursor: $validated['cursor'] ?? null,
+                recommendedProductIds: $recommendedProductIds,
             );
         }
 

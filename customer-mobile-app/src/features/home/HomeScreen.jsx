@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import { colors } from '@src/shared/theme/colorPalette';
 import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,7 +25,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useProfile();
   const { setSelectionPhase, selectedPharmacy, setSelectedPharmacy } = useSelectionPhase();
-  const { loading, categories, pharmacyProducts, heroRecommendations, normalizeSelectedPharmacy } = useHomeTab(selectedPharmacy);
+  const { loading, refreshing, refetch, categories, pharmacyProducts, heroRecommendations, normalizeSelectedPharmacy } = useHomeTab(selectedPharmacy);
   const { toast, showSuccess, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [hasUnreadMessage, setHasUnreadMessage] = useState(true);
@@ -59,7 +59,13 @@ export default function HomeScreen() {
     });
   }, [selectedPharmacy, showError]);
 
-  if (loading) return <SkeletonHome />;
+  if (loading) {
+    return (
+      <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
+        <SkeletonHome />
+      </View>
+    );
+  }
 
   if (!selectedPharmacy) {
     return (
@@ -71,7 +77,7 @@ export default function HomeScreen() {
   }
 
   return (
-    <View className="relative flex-1 bg-white">
+    <View className="flex-1 bg-white">
       <ToastMessage
         visible={toast.visible}
         message={toast.message}
@@ -79,6 +85,19 @@ export default function HomeScreen() {
         topOffset={insets.top + 8}
       />
       
+      <ScrollView
+        className="flex-1 bg-white"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refetch}
+            colors={['#3b82f6']}
+            tintColor="#3b82f6"
+          />
+        }
+      >
       {isSearchVisible && (
         <SearchOverlay
           visible={isSearchVisible}
@@ -87,12 +106,6 @@ export default function HomeScreen() {
           onAddToCart={handleAddToCart}
         />
       )}
-
-      <ScrollView
-        className="flex-1 bg-white"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) }}
-      >
       <View className="flex-row items-center justify-between px-4 pt-6">
         <Text className="text-3xl text-start" style={styles.greetingMedium}>
           Magandang Araw, <Text style={styles.greetingBold}>{toTitleCase(profile?.first_name) || 'User'}!</Text>
@@ -183,7 +196,7 @@ export default function HomeScreen() {
       <View className="mt-4">
         <View className="flex-row items-center justify-between px-4 py-2">
           <Text className="text-2xl text-gray-600 px-2 py-1" style={{ fontFamily: 'Poppins-Bold' }}>
-            Pharmacy Products
+            Recommendations
           </Text>
           <Text
             className="text-md text-gray-600 px-2 py-1"
@@ -196,7 +209,7 @@ export default function HomeScreen() {
         <FlatList
           horizontal
           showsHorizontalScrollIndicator={false}
-          data={pharmacyProducts}
+          data={heroRecommendations?.recommendations?.length ? heroRecommendations.recommendations : pharmacyProducts}
           keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
           style={{ height: 240 }}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}

@@ -87,13 +87,42 @@ class AnalyticsRepository
 
         foreach ($orderItems as $item) {
             $baskets[$item->order_id][] = $item->pharmacy_product_id;
-            // Store product names to map back later
             $productNames[$item->pharmacy_product_id] = $item->product_name;
         }
 
         return [
-            'baskets' => array_values($baskets), // We only need the arrays of items, not the order IDs
+            'baskets' => array_values($baskets),
             'product_names' => $productNames
+        ];
+    }
+
+    public function getCategoryBasketsForApriori(int $pharmacyId, string $startDate): array
+    {
+        $orderItems = DB::table('order_items')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->join('pharmacy_products', 'order_items.pharmacy_product_id', '=', 'pharmacy_products.id')
+            ->join('categories', 'pharmacy_products.category_id', '=', 'categories.id')
+            ->where('orders.pharmacy_id', $pharmacyId)
+            ->where('orders.status', 'completed')
+            ->where('orders.completed_at', '>=', Carbon::parse($startDate)->startOfDay())
+            ->select('order_items.order_id', 'categories.id as category_id', 'categories.category_name')
+            ->get();
+
+        $baskets = [];
+        $categoryNames = [];
+
+        foreach ($orderItems as $item) {
+            $baskets[$item->order_id][] = (int) $item->category_id;
+            $categoryNames[$item->category_id] = $item->category_name;
+        }
+
+        $dedupBaskets = array_map(function ($items) {
+            return array_values(array_unique($items));
+        }, array_values($baskets));
+
+        return [
+            'baskets' => $dedupBaskets,
+            'category_names' => $categoryNames,
         ];
     }
 }

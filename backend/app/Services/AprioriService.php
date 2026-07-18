@@ -72,4 +72,45 @@ class AprioriService
             'rules' => $formattedRules
         ];
     }
+
+    /**
+     * Generate Category-level Market Basket Analysis rules using Apriori.
+     */
+    public function generateCategoryRules(
+        int $pharmacyId, 
+        int $monthsBack = 6, 
+        float $minSupport = 0.05, 
+        float $minConfidence = 0.2
+    ): array {
+        $startDate = Carbon::now()->subMonths($monthsBack)->toDateString();
+        $data = $this->repository->getCategoryBasketsForApriori($pharmacyId, $startDate);
+        $baskets = $data['baskets'];
+        $categoryNames = $data['category_names'];
+
+        if (count($baskets) < 5) {
+            return [
+                'total_transactions_analyzed' => count($baskets),
+                'rules' => []
+            ];
+        }
+
+        $apriori = new Apriori($baskets, $minSupport, $minConfidence);
+        $rawRules = $apriori->generateRules();
+
+        $formattedRules = array_map(function ($rule) use ($categoryNames) {
+            return [
+                'antecedent_category_id' => $rule['antecedent'],
+                'antecedent_category_name' => $categoryNames[$rule['antecedent']] ?? 'Unknown Category',
+                'consequent_category_id' => $rule['consequent'],
+                'consequent_category_name' => $categoryNames[$rule['consequent']] ?? 'Unknown Category',
+                'support' => $rule['support'],
+                'confidence' => $rule['confidence'],
+            ];
+        }, $rawRules);
+
+        return [
+            'total_transactions_analyzed' => count($baskets),
+            'rules' => array_slice($formattedRules, 0, 20)
+        ];
+    }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Order;
 use App\Models\PharmacyProduct;
 use App\Models\User;
+use App\Models\Customer;
 use Illuminate\Support\Facades\Cache;
 
 class CustomerRecommendationService
@@ -18,110 +19,215 @@ class CustomerRecommendationService
      */
     public function getRecommendations(User $customer, int $pharmacyId): array
     {
+        $customerRecord = $customer->customer ?? Customer::where('user_id', $customer->id)->first();
+        $targetCustomerId = $customerRecord ? $customerRecord->id : $customer->id;
+
         // 1. Check if customer has any completed orders in this pharmacy
-        $lastOrder = Order::with('items')
-            ->where('customer_id', $customer->id)
+        $lastOrder = Order::with(['items.pharmacyProduct.product', 'items.pharmacyProduct.category'])
+            ->where('customer_id', $targetCustomerId)
+            ->where('pharmacy_id', $pharmacyId)
+            ->where('status', 'completed')
+            ->latest('completed_at')
+            ->first();
+
+        if (!$lastOrder || $lastOrder->items->isEmpty()) {
+            $vitamins = $this->getVitaminProducts($pharmacyId);
+
+            return [
+                'has_history' => false,
+                'hero_title' => 'Stay Healthy!',
+                'hero_subtitle' => 'Stock up on our recommended Vitamins & Healthcare Essentials.',
+                'recommendations' => $vitamins,
+            ];
+        }
+
+        // 2. HAS HISTORY: Run Apriori & Hybrid logic
+        $recommendedProductIds = $this->getRecommendedProductIds($customer, $pharmacyId);
+
+        // Extract primary purchased item & category details dynamically
+        $firstItem = $lastOrder->items->first();
+        $primaryProductName = $firstItem->product_name ?? $firstItem->pharmacyProduct->product->product_name ?? 'your recent purchase';
+        $categoryName = strtolower($firstItem->pharmacyProduct->category->category_name ?? '');
+
+        // Dynamically build context-aware Hero messaging
+        if (str_contains($categoryName, 'milk') || str_contains($categoryName, 'infant') || str_contains($categoryName, 'diaper')) {
+            $heroTitle = "Baby & Child Care Essentials";
+            $heroSubtitle = "Based on your purchase of {$primaryProductName}, here are recommended diapers, formulas, and baby care items:";
+        } elseif (str_contains($categoryName, 'generic') || str_contains($categoryName, 'branded') || str_contains(strtolower($primaryProductName), 'biogesic') || str_contains(strtolower($primaryProductName), 'paracetamol')) {
+            $heroTitle = "Health & Recovery Recommendations";
+            $heroSubtitle = "Since you recently bought {$primaryProductName}, check out these health essentials and immunity boosters:";
+        } else {
+            $heroTitle = "Recommended for You";
+            $heroSubtitle = "Based on your recent purchase of {$primaryProductName}, here are complementary items you might like:";
+        }
+
+        if (empty($recommendedProductIds)) {
+            $vitamins = $this->getVitaminProducts($pharmacyId);
+
+            return [
+                'has_history' => true,
+                'hero_title' => $heroTitle,
+                'hero_subtitle' => $heroSubtitle,
+                'recommendations' => $vitamins,
+            ];
+        }
+
+        // Fetch full PharmacyProduct models preserving rank order
+        $validIds = array_map('intval', $recommendedProductIds);
+        $idsString = implode(',', $validIds);
+
+        $recommendedProducts = PharmacyProduct::with(['product', 'category'])
+            ->where('pharmacy_id', $pharmacyId)
+            ->whereIn('id', $validIds)
+            ->where('stock', '>', 0)
+            ->orderByRaw("FIELD(id, {$idsString})")
+            ->limit(20)
+            ->get();
+
+        return [
+            'has_history' => true,
+            'hero_title' => $heroTitle,
+            'hero_subtitle' => $heroSubtitle,
+            'recommendations' => $recommendedProducts,
+        ];
+    }
+
+    /**
+     * Get Apriori-recommended PharmacyProduct IDs for a customer using a Blended Hybrid strategy.
+     */
+    public function getRecommendedProductIds(User $customer, int $pharmacyId): array
+    {
+        $customerRecord = $customer->customer ?? Customer::where('user_id', $customer->id)->first();
+        $targetCustomerId = $customerRecord ? $customerRecord->id : $customer->id;
+
+        $lastOrder = Order::with(['items.pharmacyProduct.product', 'items.pharmacyProduct.category'])
+            ->where('customer_id', $targetCustomerId)
             ->where('pharmacy_id', $pharmacyId)
             ->where('status', 'completed')
             ->latest('completed_at')
             ->first();
 
         if (!$lastOrder) {
-            // FALLBACK: No history. Recommend Vitamins & Supplements.
-            // PharmacyProduct has a direct category() BelongsTo, so we use that.
-            $vitamins = $this->getVitaminProducts($pharmacyId);
-
-            return [
-                'has_history' => false,
-                'hero_title' => 'Stay Healthy!',
-                'hero_subtitle' => 'Stock up on our recommended Vitamins & Supplements.',
-                'recommendations' => $vitamins,
-            ];
+            return $this->getVitaminProducts($pharmacyId)->pluck('id')->toArray();
         }
 
-        // 2. HAS HISTORY: Run Apriori logic.
+        $poolA_ProductApriori = [];
+        $poolB_CategoryApriori = [];
+        $poolC_NonMedicineBrands = [];
+        $poolD_Vitamins = $this->getVitaminProducts($pharmacyId)->pluck('id')->toArray();
 
-        // Cache the rules for this pharmacy for 24 hours to prevent performance bottleneck
-        $cacheKey = "apriori_rules_pharmacy_{$pharmacyId}";
-        $rulesData = Cache::remember($cacheKey, 60 * 60 * 24, function () use ($pharmacyId) {
+        $recentProductIds = $lastOrder->items->pluck('pharmacy_product_id')->toArray();
+
+        // --- POOL A: Product-Level Apriori Matching ---
+        $productRulesKey = "apriori_rules_pharmacy_{$pharmacyId}";
+        $productRulesData = Cache::remember($productRulesKey, 60 * 60 * 24, function () use ($pharmacyId) {
             return $this->aprioriService->generateFrequentlyBoughtTogether($pharmacyId, 6, 0.05, 0.2);
         });
 
-        $rules = $rulesData['rules'] ?? [];
-        $recentProductIds = $lastOrder->items->pluck('pharmacy_product_id')->toArray();
-        $recommendedProductIds = [];
-
-        // Match recent items against rules
-        foreach ($rules as $rule) {
+        $productRules = $productRulesData['rules'] ?? [];
+        foreach ($productRules as $rule) {
             if (in_array($rule['antecedent_id'], $recentProductIds)) {
-                $recommendedProductIds[] = $rule['consequent_id'];
+                $poolA_ProductApriori[] = (int) $rule['consequent_id'];
             }
         }
 
-        $recommendedProductIds = array_unique($recommendedProductIds);
+        // --- POOL B: Category-Level Apriori Matching ---
+        $recentCategoryIds = $lastOrder->items->map(function ($item) {
+            return $item->pharmacyProduct->category_id ?? null;
+        })->filter()->unique()->toArray();
 
-        // If no matches found from Apriori, fallback to Vitamins
-        if (empty($recommendedProductIds)) {
-            $vitamins = $this->getVitaminProducts($pharmacyId);
+        $categoryRulesKey = "apriori_category_rules_pharmacy_{$pharmacyId}";
+        $categoryRulesData = Cache::remember($categoryRulesKey, 60 * 60 * 24, function () use ($pharmacyId) {
+            return $this->aprioriService->generateCategoryRules($pharmacyId, 6, 0.05, 0.2);
+        });
 
-            return [
-                'has_history' => true,
-                'hero_title' => 'Welcome Back!',
-                'hero_subtitle' => 'Since you\'re back, check out our top Vitamins & Supplements.',
-                'recommendations' => $vitamins,
-            ];
+        $categoryRules = $categoryRulesData['rules'] ?? [];
+        $consequentCategoryIds = [];
+
+        foreach ($categoryRules as $cRule) {
+            if (in_array($cRule['antecedent_category_id'], $recentCategoryIds)) {
+                $consequentCategoryIds[] = (int) $cRule['consequent_category_id'];
+            }
         }
 
-        // Fetch the matched products
-        $recommendedProducts = PharmacyProduct::with(['product'])
-            ->where('pharmacy_id', $pharmacyId)
-            ->whereIn('id', $recommendedProductIds)
-            ->where('stock', '>', 0)
-            ->limit(5)
-            ->get()
-            ->map(fn($pp) => $this->formatProduct($pp));
+        if (!empty($consequentCategoryIds)) {
+            $poolB_CategoryApriori = PharmacyProduct::where('pharmacy_id', $pharmacyId)
+                ->whereIn('category_id', array_unique($consequentCategoryIds))
+                ->whereNotIn('id', $recentProductIds)
+                ->where('stock', '>', 0)
+                ->limit(15)
+                ->pluck('id')
+                ->map('intval')
+                ->toArray();
+        }
 
-        return [
-            'has_history' => true,
-            'hero_title' => 'Recommended for You',
-            'hero_subtitle' => 'Based on your recent purchases, you might like these:',
-            'recommendations' => $recommendedProducts,
-        ];
+        // --- POOL C: Non-Medicine Cross-Brand Discoveries ---
+        // Suggest alternative brands for non-medicine categories (Milk, Diapers, Hygiene, Drinks, Cosmetics, Infant)
+        $nonMedicineCategoryIds = $lastOrder->items->filter(function ($item) {
+            $catName = strtolower($item->pharmacyProduct->category->category_name ?? '');
+            $isPrescribed = (bool) ($item->pharmacyProduct->product->is_prescribed ?? false);
+            $isMedicineCategory = str_contains($catName, 'generic') || str_contains($catName, 'rx') || str_contains($catName, 'medicine');
+            return !$isPrescribed && !$isMedicineCategory;
+        })->map(function ($item) {
+            return $item->pharmacyProduct->category_id ?? null;
+        })->filter()->unique()->toArray();
+
+        if (!empty($nonMedicineCategoryIds)) {
+            $poolC_NonMedicineBrands = PharmacyProduct::where('pharmacy_id', $pharmacyId)
+                ->whereIn('category_id', $nonMedicineCategoryIds)
+                ->whereNotIn('id', $recentProductIds)
+                ->where('stock', '>', 0)
+                ->inRandomOrder()
+                ->limit(15)
+                ->pluck('id')
+                ->map('intval')
+                ->toArray();
+        }
+
+        // --- BLEND / INTERLEAVE POOLS ROUND-ROBIN ---
+        $blendedIds = [];
+        $maxLen = max(count($poolA_ProductApriori), count($poolB_CategoryApriori), count($poolC_NonMedicineBrands), count($poolD_Vitamins));
+
+        for ($i = 0; $i < $maxLen; $i++) {
+            if (isset($poolA_ProductApriori[$i])) $blendedIds[] = $poolA_ProductApriori[$i];
+            if (isset($poolB_CategoryApriori[$i])) $blendedIds[] = $poolB_CategoryApriori[$i];
+            if (isset($poolC_NonMedicineBrands[$i])) $blendedIds[] = $poolC_NonMedicineBrands[$i];
+            if (isset($poolD_Vitamins[$i])) $blendedIds[] = $poolD_Vitamins[$i];
+        }
+
+        $finalIds = array_values(array_unique(array_filter($blendedIds)));
+
+        if (empty($finalIds)) {
+            return $poolD_Vitamins;
+        }
+
+        return $finalIds;
     }
 
     /**
      * Fetch vitamin/supplement products from a pharmacy.
-     * Uses PharmacyProduct's direct category() relationship.
      */
     private function getVitaminProducts(int $pharmacyId): \Illuminate\Support\Collection
     {
-        return PharmacyProduct::with(['product', 'category'])
+        $vitamins = PharmacyProduct::with(['product', 'category'])
             ->where('pharmacy_id', $pharmacyId)
             ->whereHas('category', function ($query) {
-                $query->where('name', 'like', '%Vitamin%')
-                      ->orWhere('name', 'like', '%Supplement%');
+                $query->where('category_name', 'like', '%Vitamin%')
+                      ->orWhere('category_name', 'like', '%Supplement%');
             })
             ->where('stock', '>', 0)
             ->inRandomOrder()
-            ->limit(5)
-            ->get()
-            ->map(fn($pp) => $this->formatProduct($pp));
-    }
+            ->limit(20)
+            ->get();
 
-    /**
-     * Format a PharmacyProduct for the API response.
-     * Accepts both an Eloquent PharmacyProduct model and a plain stdClass
-     * (the latter can happen when objects are deserialized from the cache).
-     */
-    private function formatProduct(mixed $pp): array
-    {
-        // Support both Eloquent models (->property) and stdClass from cache (->property)
-        $product = $pp->product ?? null;
-        return [
-            'id'        => $pp->id,
-            'name'      => $product?->product_name ?? 'Unknown',
-            'price'     => $pp->selling_price,
-            'image_url' => $product?->image_url ?? null,
-        ];
+        if ($vitamins->isEmpty()) {
+            $vitamins = PharmacyProduct::with(['product', 'category'])
+                ->where('pharmacy_id', $pharmacyId)
+                ->where('stock', '>', 0)
+                ->limit(20)
+                ->get();
+        }
+
+        return $vitamins;
     }
 }
