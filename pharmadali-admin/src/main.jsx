@@ -12,6 +12,7 @@ import './assets/css/pickup.css'
 import './assets/css/modal.css'
 import './assets/css/login.css'
 import './assets/css/notifications.css'
+import './assets/css/analytics.css'
 import './index.css'
 import App from './App.jsx'
 

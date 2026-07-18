@@ -8,7 +8,7 @@ import PickUp from "../pages/PickUp";
 import Notifications from "../pages/Notifications";
 import Login from "../pages/Login";
 import ProtectedRoute from "../components/ProtectedRoute";
-import Analytics from "../pages/Analytics";
+import Analytics from "../pages/Analytics/Analytics";
 import Inventory from "../pages/inventory/Inventory";
 import InventoryLogs from "../pages/InventoryLogs";
 import Pharmacists from "../pages/Pharmacists";
