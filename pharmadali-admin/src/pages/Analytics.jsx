@@ -1,6 +1,6 @@
 import React from 'react';
 
-function AnalyticsAndForecasting() {
+function Analytics() {
   return (
     <div style={{ padding: '2rem', textAlign: 'center' }}>
       <h2>Demand and Sales Analytics</h2>
@@ -9,4 +9,4 @@ function AnalyticsAndForecasting() {
   );
 }
 
-export default AnalyticsAndForecasting;
+export default Analytics;

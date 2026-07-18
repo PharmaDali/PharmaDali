@@ -8,7 +8,7 @@ import PickUp from "../pages/PickUp";
 import Notifications from "../pages/Notifications";
 import Login from "../pages/Login";
 import ProtectedRoute from "../components/ProtectedRoute";
-import AnalyticsAndForecasting from "../pages/AnalyticsAndForecasting";
+import Analytics from "../pages/Analytics";
 import Inventory from "../pages/inventory/Inventory";
 import InventoryLogs from "../pages/InventoryLogs";
 import Pharmacists from "../pages/Pharmacists";
@@ -31,7 +31,7 @@ function AppRouter() {
           <Route path="pos" element={<PosPage />} />
           <Route path="pick-up" element={<PickUp />} />
           <Route path="notifications" element={<Notifications />} />
-          <Route path="analytics-and-forecasting" element={<AnalyticsAndForecasting />} />
+          <Route path="analytics" element={<Analytics />} />
           <Route path="inventory" element={<Inventory />} />
           <Route path="inventory/logs" element={<InventoryLogs />} />
           <Route path="pharmacists" element={<Pharmacists />} />

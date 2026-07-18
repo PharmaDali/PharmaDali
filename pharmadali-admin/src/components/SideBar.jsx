@@ -37,7 +37,7 @@ const MENU_SECTIONS = [
   },
   {
     items: [
-      { to: "/analytics-and-forecasting", icon: aiAnalyticsIcon, label: "Demand and Sales Analytics" },
+      { to: "/analytics", icon: aiAnalyticsIcon, label: "Analytics" },
       {
         to: "/sales-reports",
         icon: salesReportsIcon,
