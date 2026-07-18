@@ -10,7 +10,7 @@ import ToastMessage from '@shared/components/ToastMessage'
 import { useToast } from '@shared/hooks/useToast'
 import { CATEGORY_ICONS } from '@src/utils/categoryUtils'
 
-const PRODUCTS_PER_PAGE = 20
+const PRODUCTS_PER_PAGE = 30
 
 const toTitleCase = (str) => {
   return str.replace(
