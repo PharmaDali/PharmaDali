@@ -183,7 +183,7 @@ export default function HomeScreen() {
       <View className="mt-4">
         <View className="flex-row items-center justify-between px-4 py-2">
           <Text className="text-2xl text-gray-600 px-2 py-1" style={{ fontFamily: 'Poppins-Bold' }}>
-            Pharmacy Products
+            Recommendations
           </Text>
           <Text
             className="text-md text-gray-600 px-2 py-1"
