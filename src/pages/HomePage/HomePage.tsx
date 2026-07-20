@@ -1,6 +1,9 @@
 import { useLocation } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar/Sidebar'
 import Navbar from '../../components/Navbar/Navbar'
+import KpiCard from '../../components/Dashboard/KpiCard'
+import PharmacyMap from '../../components/Dashboard/PharmacyMap'
+import PharmacyList from '../../components/Dashboard/PharmacyList'
 
 const PAGE_TITLES: Record<string, string> = {
   '/homepage': 'Dashboard',
@@ -14,21 +17,37 @@ function HomePage() {
   const title = PAGE_TITLES[pathname] ?? 'Dashboard'
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[radial-gradient(circle_at_top_left,rgba(72,170,217,0.18),transparent_28%),linear-gradient(135deg,#eef7fb_0%,#f6fbfd_42%,#eef2f5_100%)] text-[#1f2933] font-[var(--font-primary)]">
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#323642] text-[#e2e8f0] font-[var(--font-primary)]">
       <Sidebar />
 
       <div className="flex-1 flex flex-col min-w-0">
         <Navbar name="Denmar" role="Superman" />
-        
-        <main className="flex-1 p-5 md:p-[40px] overflow-auto">
-          <section className="max-w-[720px] bg-[rgba(255,255,255,0.84)] border border-[rgba(34,49,59,0.08)] rounded-[24px] p-6 md:p-[36px] shadow-[0_24px_80px_rgba(20,33,44,0.08)] backdrop-blur-[12px]">
-          <p className="m-0 mb-2.5 text-[#48aad9] text-[13px] font-bold tracking-[0.18em] uppercase">PharmaDali</p>
-          <h1 className="m-0 text-[clamp(2rem,3vw,3.5rem)] leading-[1.05]">{title}</h1>
-          <p className="mt-[14px] mb-0 max-w-[58ch] text-[16px] leading-[1.7] text-[#55616d]">
-            Use the sidebar to move between the main admin sections. This layout keeps the
-            active tab highlighted in the light blue state from your reference.
-          </p>
-        </section>
+
+        <main className="flex-1 p-6 md:p-8 overflow-auto">
+          {pathname === '/homepage' ? (
+            <div className="flex flex-col gap-8 max-w-[1400px]">
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                <KpiCard title="Total Pharmacies" value="3" orderLabel="Order #1028" />
+                <KpiCard title="Total Active Pharmacies" value="2" orderLabel="Order #1028" />
+                <KpiCard title="Total Users" value="24" orderLabel="Order #1028" />
+                <KpiCard title="KPI 1" value="--" />
+                <KpiCard title="KPI 2" value="--" />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] xl:grid-cols-[1.5fr_1fr] gap-8 mt-4">
+                <PharmacyMap />
+                <PharmacyList />
+              </div>
+            </div>
+          ) : (
+            <section className="max-w-[720px] bg-[#424754] border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 md:p-[36px] shadow-lg">
+              <p className="m-0 mb-2.5 text-[#8ccfed] text-[13px] font-bold tracking-[0.18em] uppercase">PharmaDali</p>
+              <h1 className="m-0 text-[clamp(2rem,3vw,3.5rem)] leading-[1.05] text-white">{title}</h1>
+              <p className="mt-[14px] mb-0 max-w-[58ch] text-[16px] leading-[1.7] text-gray-300">
+                Content for {title} will go here.
+              </p>
+            </section>
+          )}
         </main>
       </div>
     </div>
