@@ -96,7 +96,7 @@ services:
 
   admin-panel:
     build:
-      context: ./pharmadali-admin
+      context: ./applications/pharmadali-admin
       dockerfile: Dockerfile
       args:
         VITE_API_BASE_URL: http://${BACKEND_DOMAIN}/api
