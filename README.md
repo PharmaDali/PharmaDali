@@ -19,7 +19,7 @@ React + Vite admin web application.
 - Provides admin-facing UI and dashboard features.
 - Calls backend API through environment-based base URL.
 
-Read setup guide: [pharmadali-admin/README.md](pharmadali-admin/README.md)
+Read setup guide: [applications/pharmadali-admin/README.md](applications/pharmadali-admin/README.md)
 
 ### `customer-mobile-app/`
 React Native + Expo mobile application.
@@ -27,7 +27,7 @@ React Native + Expo mobile application.
 - Supports customer app flows.
 - Uses role-based app config and environment-driven API URL.
 
-Read setup guide: [customer-mobile-app/README.md](customer-mobile-app/README.md)
+Read setup guide: [applications/customer-mobile-app/README.md](applications/customer-mobile-app/README.md)
 
 
 ### `pharmacist-mobile-app/`
@@ -36,7 +36,7 @@ React Native + Expo mobile application.
 - Supports pharmacist app flows.
 - Uses role-based app config and environment-driven API URL.
 
-Read setup guide: [pharmacist-mobile-app/README.md](pharmacist-mobile-app/README.md)
+Read setup guide: [applications/pharmacist-mobile-app/README.md](applications/pharmacist-mobile-app/README.md)
 
 ## Setup Navigation
 
@@ -49,13 +49,13 @@ cd backend
 cd ..\ai-service
 # Read and follow ai-service/README.md
 
-cd ..\pharmadali-admin
+cd ..\applications\pharmadali-admin
 # Read and follow pharmadali-admin/README.md
 
-cd ..\customer-mobile-app
+cd ..\applications\customer-mobile-app
 # Read and follow customer-mobile-app/README.md
 
-cd ..\pharmacist-mobile-app
+cd ..\applications\pharmacist-mobile-app
 # Read and follow pharmacist-mobile-app/README.md
 ```
 
