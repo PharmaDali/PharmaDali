@@ -14,11 +14,40 @@ export const updateOrderStatusByPharmacist = async (orderId, action, reason) => 
   }
 };
 
-export const getPharmacyOrders = async (status) => {
+export const getPharmacyOrders = async (params = {}) => {
   try {
-    const query = status ? `?status=${encodeURIComponent(status)}` : '';
-    const response = await apiRequest(`/pharmacist/orders${query}`);
-    return response.data;
+    let queryParams = new URLSearchParams();
+
+    if (typeof params === 'string') {
+      queryParams.append('status', params);
+    } else if (typeof params === 'object' && params !== null) {
+      if (params.tab) queryParams.append('tab', params.tab);
+      if (params.status) queryParams.append('status', params.status);
+      if (params.page) queryParams.append('page', params.page);
+      if (params.perPage) queryParams.append('per_page', params.perPage);
+    }
+
+    const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
+    const response = await apiRequest(`/pharmacist/orders${queryString}`);
+
+    if (response && Array.isArray(response.data) && response.current_page !== undefined) {
+      return {
+        items: response.data,
+        currentPage: response.current_page,
+        lastPage: response.last_page,
+        total: response.total,
+        hasMore: Boolean(response.has_more),
+      };
+    }
+
+    const rawData = response?.data || response || [];
+    return {
+      items: Array.isArray(rawData) ? rawData : [],
+      currentPage: 1,
+      lastPage: 1,
+      total: Array.isArray(rawData) ? rawData.length : 0,
+      hasMore: false,
+    };
   } catch (error) {
     throw error;
   }
