@@ -70,6 +70,7 @@ const PharmacistLogin = () => {
         label="Password"
         mode="outlined"
         secureTextEntry={!passwordToggleIcon.showPassword}
+        autoCapitalize="none"
         theme={theme}
         style={styles.input}
         right={passwordToggleIcon.icon}
