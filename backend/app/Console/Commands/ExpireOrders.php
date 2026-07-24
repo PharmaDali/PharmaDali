@@ -22,7 +22,7 @@ class ExpireOrders extends Command
 
     public function handle(): int
     {
-        $now = now(); // Respects app timezone (Asia/Manila)
+        $now = Carbon::now(); // Respects app timezone (Asia/Manila)
         $remindersSent = $this->processPickupReminders($now);
         $expiredCount = $this->processOrderExpirations($now);
 
