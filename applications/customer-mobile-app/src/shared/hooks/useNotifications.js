@@ -41,19 +41,24 @@ export function useNotifications() {
   };
 
   const timeAgo = (date) => {
-    const seconds = Math.floor((new Date() - new Date(date)) / 1000);
-    let interval = seconds / 31536000;
+    if (!date) return 'Recently';
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) return 'Recently';
 
-    if (interval > 1) return Math.floor(interval) + " years ago";
+    const seconds = Math.floor((new Date() - parsedDate) / 1000);
+    if (seconds < 10) return 'Just now';
+
+    let interval = seconds / 31536000;
+    if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? ' year ago' : ' years ago');
     interval = seconds / 2592000;
-    if (interval > 1) return Math.floor(interval) + " months ago";
+    if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? ' month ago' : ' months ago');
     interval = seconds / 86400;
-    if (interval > 1) return Math.floor(interval) + " days ago";
+    if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? ' day ago' : ' days ago');
     interval = seconds / 3600;
-    if (interval > 1) return Math.floor(interval) + " hours ago";
+    if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? ' hour ago' : ' hours ago');
     interval = seconds / 60;
-    if (interval > 1) return Math.floor(interval) + " minutes ago";
-    return Math.floor(seconds) + " seconds ago";
+    if (interval >= 1) return Math.floor(interval) + (Math.floor(interval) === 1 ? ' minute ago' : ' minutes ago');
+    return Math.floor(seconds) + ' seconds ago';
   };
 
   useEffect(() => {
