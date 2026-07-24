@@ -19,7 +19,7 @@ class CustomerRegisterRequest extends FormRequest
             'email'         => ['required', 'email', 'max:255', 'unique:users,email'],
             'password'      => ['required', 'string', 'min:8', 'confirmed'],
             'mobile_number' => ['required', 'string', 'max:20'],
-            'date_of_birth' => ['nullable', 'date'],
+            'date_of_birth' => ['required', 'date', 'before_or_equal:-18 years'],
             'address'       => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -27,14 +27,16 @@ class CustomerRegisterRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'first_name.required'    => 'First name is required.',
-            'last_name.required'     => 'Last name is required.',
-            'email.required'         => 'Email is required.',
-            'email.unique'           => 'This email is already taken.',
-            'password.required'      => 'Password is required.',
-            'password.min'           => 'Password must be at least 8 characters.',
-            'password.confirmed'     => 'Password confirmation does not match.',
-            'mobile_number.required' => 'Mobile number is required.',
+            'first_name.required'             => 'First name is required.',
+            'last_name.required'              => 'Last name is required.',
+            'email.required'                  => 'Email is required.',
+            'email.unique'                    => 'This email is already taken.',
+            'password.required'               => 'Password is required.',
+            'password.min'                    => 'Password must be at least 8 characters.',
+            'password.confirmed'              => 'Password confirmation does not match.',
+            'mobile_number.required'          => 'Mobile number is required.',
+            'date_of_birth.required'          => 'Date of birth is required.',
+            'date_of_birth.before_or_equal'   => 'You must be at least 18 years old to register.',
         ];
     }
 }

@@ -125,6 +125,7 @@ const Register = () => {
                 theme={theme}
                 value={lastName}
                 onChangeText={setLastName}
+                editable={!isSubmitting}
                 style={styles.input}
               />
               <TextInput
@@ -133,6 +134,7 @@ const Register = () => {
                 theme={theme}
                 value={firstName}
                 onChangeText={setFirstName}
+                editable={!isSubmitting}
                 style={styles.input}
               />
             </View>
@@ -145,9 +147,10 @@ const Register = () => {
                 value={email}
                 onChangeText={setEmail}
                 autoCapitalize='none'
+                editable={!isSubmitting}
                 style={{ marginBottom: 16 }}
               />
-              <Pressable onPress={() => setShowDatePicker(true)}>
+              <Pressable onPress={() => !isSubmitting && setShowDatePicker(true)}>
                 <TextInput
                   label="Date of Birth"
                   mode="outlined"
@@ -179,6 +182,7 @@ const Register = () => {
                 style={{ marginTop: 16 }}
                 value={mobileNumber}
                 onChangeText={setMobileNumber}
+                editable={!isSubmitting}
               />
               <TextInput
                 label="Address"
@@ -187,6 +191,7 @@ const Register = () => {
                 style={{ marginTop: 16 }}
                 value={address}
                 onChangeText={setAddress}
+                editable={!isSubmitting}
               />
               <TextInput
                 label="Password"
@@ -198,6 +203,7 @@ const Register = () => {
                 style={{ marginTop: 16 }}
                 right={passwordToggleIcon.icon}
                 autoCapitalize='none'
+                editable={!isSubmitting}
               />
               <TextInput
                 label="Confirm Password"
@@ -209,6 +215,7 @@ const Register = () => {
                 onChangeText={setConfirmPassword}
                 right={confirmPasswordToggleIcon.icon}
                 autoCapitalize='none'
+                editable={!isSubmitting}
               />
               {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
             </View>

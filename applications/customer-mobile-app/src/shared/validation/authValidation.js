@@ -44,6 +44,18 @@ export function validateCustomerRegistration(credentials = {}) {
     return 'Date of birth is required.';
   }
 
+  const today = new Date();
+  const birthDate = new Date(dateOfBirth);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  if (age < 18) {
+    return 'You must be at least 18 years old to register.';
+  }
+
   if (!address?.trim()) {
     return 'Address is required.';
   }
