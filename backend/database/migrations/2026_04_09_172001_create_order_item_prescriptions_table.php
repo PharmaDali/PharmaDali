@@ -68,6 +68,10 @@ return new class extends Migration
 
     private function foreignExists(string $tableName, string $column, string $referencedTable, string $referencedColumn): bool
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return false;
+        }
+
         $databaseName = DB::getDatabaseName();
 
         if (! $databaseName) {

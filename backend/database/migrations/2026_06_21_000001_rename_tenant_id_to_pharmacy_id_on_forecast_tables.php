@@ -16,7 +16,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::unprepared('SET foreign_key_checks = 0');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::unprepared('SET foreign_key_checks = 0');
+        }
 
         // ── forecasts ──────────────────────────────────────────────────────────
         // The original migration created a FK to 'branches'. That table is now
@@ -26,38 +28,38 @@ return new class extends Migration
             $table->renameColumn('tenant_id', 'pharmacy_id');
         });
 
-        // Add FK pointing at pharmacies
-        DB::unprepared(
-            'ALTER TABLE forecasts
-             ADD CONSTRAINT forecasts_pharmacy_id_foreign
-             FOREIGN KEY (pharmacy_id) REFERENCES pharmacies (id) ON DELETE SET NULL'
-        );
-        DB::unprepared('ALTER TABLE forecasts ADD INDEX forecasts_pharmacy_id_index (pharmacy_id)');
-
-        // ── forecast_insights ──────────────────────────────────────────────────
-        // Must drop the unique key that names 'tenant_id' before renaming.
-        DB::unprepared('ALTER TABLE forecast_insights DROP INDEX forecast_insights_unique_key');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::unprepared(
+                'ALTER TABLE forecasts
+                 ADD CONSTRAINT forecasts_pharmacy_id_foreign
+                 FOREIGN KEY (pharmacy_id) REFERENCES pharmacies (id) ON DELETE SET NULL'
+            );
+            DB::unprepared('ALTER TABLE forecasts ADD INDEX forecasts_pharmacy_id_index (pharmacy_id)');
+            DB::unprepared('ALTER TABLE forecast_insights DROP INDEX forecast_insights_unique_key');
+        }
 
         Schema::table('forecast_insights', function (Blueprint $table) {
             $table->renameColumn('tenant_id', 'pharmacy_id');
         });
 
-        // Recreate unique key with updated column name
-        DB::unprepared(
-            'ALTER TABLE forecast_insights
-             ADD UNIQUE KEY forecast_insights_unique_key
-             (pharmacy_id, week_start, demand_granularity, sales_granularity, model)'
-        );
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::unprepared(
+                'ALTER TABLE forecast_insights
+                 ADD UNIQUE KEY forecast_insights_unique_key
+                 (pharmacy_id, week_start, demand_granularity, sales_granularity, model)'
+            );
 
-        // Add FK pointing at pharmacies + plain index
-        DB::unprepared(
-            'ALTER TABLE forecast_insights
-             ADD CONSTRAINT forecast_insights_pharmacy_id_foreign
-             FOREIGN KEY (pharmacy_id) REFERENCES pharmacies (id) ON DELETE SET NULL'
-        );
-        DB::unprepared('ALTER TABLE forecast_insights ADD INDEX forecast_insights_pharmacy_id_index (pharmacy_id)');
+            DB::unprepared(
+                'ALTER TABLE forecast_insights
+                 ADD CONSTRAINT forecast_insights_pharmacy_id_foreign
+                 FOREIGN KEY (pharmacy_id) REFERENCES pharmacies (id) ON DELETE SET NULL'
+            );
+            DB::unprepared('ALTER TABLE forecast_insights ADD INDEX forecast_insights_pharmacy_id_index (pharmacy_id)');
+        }
 
-        DB::unprepared('SET foreign_key_checks = 1');
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::unprepared('SET foreign_key_checks = 1');
+        }
     }
 
     /**

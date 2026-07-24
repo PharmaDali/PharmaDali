@@ -36,9 +36,13 @@ return new class extends Migration
 
     private function ensureCustomersExistForLegacyCartUserIds(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement(<<<'SQL'
             INSERT INTO customers (user_id, created_at, updated_at)
-            SELECT DISTINCT u.id, NOW(), NOW()
+            SELECT DISTINCT u.id, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
             FROM carts c
             INNER JOIN users u ON u.id = c.customer_id
             LEFT JOIN customers existing_customer_id ON existing_customer_id.id = c.customer_id
@@ -50,6 +54,10 @@ return new class extends Migration
 
     private function remapCartCustomerIdsFromUsersToCustomers(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement(<<<'SQL'
             UPDATE carts c
             INNER JOIN users u ON u.id = c.customer_id
@@ -62,6 +70,10 @@ return new class extends Migration
 
     private function remapCartCustomerIdsFromCustomersToUsers(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement(<<<'SQL'
             UPDATE carts c
             INNER JOIN customers customer ON customer.id = c.customer_id
@@ -71,6 +83,10 @@ return new class extends Migration
 
     private function dropCustomerForeignKeyIfExists(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         $databaseName = DB::getDatabaseName();
 
         if (! $databaseName) {
