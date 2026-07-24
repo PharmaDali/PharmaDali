@@ -16,6 +16,8 @@ class Pharmacy extends Model
         'location',
         'contact_number',
         'is_active',
+        'opening_hour',
+        'closing_hour',
     ];
 
     public function users()

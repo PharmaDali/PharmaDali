@@ -38,9 +38,10 @@ const Home = () => {
       const pendingStatuses = new Set(['pending', 'reviewing', 'preparing', 'ready_for_pickup']);
       const completedStatuses = new Set(['completed']);
 
-      const pending = orders.filter((order) =>
-        pendingStatuses.has(String(order?.status || '').toLowerCase())
-      ).length;
+      const pending = orders.filter((order) => {
+        const status = String(order?.status || '').toLowerCase();
+        return pendingStatuses.has(status) && status !== 'overdue' && status !== 'expired';
+      }).length;
       const completed = orders.filter((order) =>
         completedStatuses.has(String(order?.status || '').toLowerCase())
       ).length;

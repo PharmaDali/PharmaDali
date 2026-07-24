@@ -114,7 +114,7 @@ const Notifications = () => {
                 className="text-xs ml-1 text-gray-400"
                 style={{ fontFamily: 'Poppins-Medium' }}
               >
-                {timeAgo(item.created_at)}
+                {timeAgo(item.created_at || item.dateTime)}
               </Text>
             </View>
           }
