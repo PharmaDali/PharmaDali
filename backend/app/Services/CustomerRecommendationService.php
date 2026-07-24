@@ -49,16 +49,28 @@ class CustomerRecommendationService
         $primaryProductName = $firstItem->product_name ?? $firstItem->pharmacyProduct->product->product_name ?? 'your recent purchase';
         $categoryName = strtolower($firstItem->pharmacyProduct->category->category_name ?? '');
 
-        // Dynamically build context-aware Hero messaging
-        if (str_contains($categoryName, 'milk') || str_contains($categoryName, 'infant') || str_contains($categoryName, 'diaper')) {
+        // Dynamically build context-aware Hero messaging across all category groups
+        $catLower = strtolower($categoryName);
+        $prodLower = strtolower($primaryProductName);
+
+        if (str_contains($catLower, 'milk') || str_contains($catLower, 'infant') || str_contains($catLower, 'diaper') || str_contains($catLower, 'baby')) {
             $heroTitle = "Baby & Child Care Essentials";
-            $heroSubtitle = "Based on your purchase of {$primaryProductName}, here are recommended diapers, formulas, and baby care items:";
-        } elseif (str_contains($categoryName, 'generic') || str_contains($categoryName, 'branded') || str_contains(strtolower($primaryProductName), 'biogesic') || str_contains(strtolower($primaryProductName), 'paracetamol')) {
+            $heroSubtitle = "Based on your purchase of {$primaryProductName}, here are recommended diapers, formulas, and baby care items";
+        } elseif (str_contains($catLower, 'vitamin') || str_contains($catLower, 'supplement')) {
+            $heroTitle = "Immunity & Daily Wellness";
+            $heroSubtitle = "Since you recently bought {$primaryProductName}, check out these top vitamins and daily health boosters";
+        } elseif (str_contains($catLower, 'personal') || str_contains($catLower, 'hygiene') || str_contains($catLower, 'skincare') || str_contains($catLower, 'soap') || str_contains($catLower, 'shampoo') || str_contains($catLower, 'cosmetics')) {
+            $heroTitle = "Personal Care & Hygiene Essentials";
+            $heroSubtitle = "Complement your purchase of {$primaryProductName} with these daily personal care and grooming items";
+        } elseif (str_contains($catLower, 'first aid') || str_contains($catLower, 'wound') || str_contains($catLower, 'bandage') || str_contains($catLower, 'device') || str_contains($catLower, 'equipment')) {
+            $heroTitle = "First Aid & Medical Supplies";
+            $heroSubtitle = "Since you bought {$primaryProductName}, keep your home prepared with these essential medical supplies";
+        } elseif (str_contains($catLower, 'generic') || str_contains($catLower, 'branded') || str_contains($catLower, 'rx') || str_contains($catLower, 'medicine') || str_contains($prodLower, 'biogesic') || str_contains($prodLower, 'paracetamol')) {
             $heroTitle = "Health & Recovery Recommendations";
-            $heroSubtitle = "Since you recently bought {$primaryProductName}, check out these health essentials and immunity boosters:";
+            $heroSubtitle = "Since you recently bought {$primaryProductName}, check out these health essentials and recovery boosters";
         } else {
             $heroTitle = "Recommended for You";
-            $heroSubtitle = "Based on your recent purchase of {$primaryProductName}, here are complementary items you might like:";
+            $heroSubtitle = "Based on your recent purchase of {$primaryProductName}, here are complementary items you might like";
         }
 
         if (empty($recommendedProductIds)) {
