@@ -1,4 +1,4 @@
-import { View, ScrollView, Text, RefreshControl } from 'react-native';
+import { View, FlatList, Text, RefreshControl, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
@@ -10,6 +10,11 @@ import { colors } from '@shared/theme/colorPalette';
 
 const orderTabs = ['For Review', 'Preparing', 'Issues'];
 
+const tabApiMap = {
+  'For Review': 'for_review',
+  'Preparing':  'preparing',
+  'Issues':     'issues',
+};
 
 const mapApiStatusToTabStatus = (status) => {
   const s = String(status || '').toLowerCase();
@@ -27,8 +32,6 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
 
   return apiOrders.map((order) => {
     const customer = order?.customer?.user;
-    const itemStatus = order?.status === 'cancelled' ? 'Rejected' : 'Pending';
-    const itemReason = order?.cancellation_reason || 'Requires attention';
     const baseUrl = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/+$/, '').replace(/\/api$/, '');
 
     return {
@@ -87,72 +90,132 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
 
 export default function Orders() {
   const [activeTab, setActiveTab] = useState('For Review');
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
+  // Per-Tab State for Lazy Loading & Infinite Scrolling
+  const [tabStates, setTabStates] = useState({
+    'For Review': { items: [], page: 1, hasMore: true, loaded: false, loading: false, loadingMore: false, total: 0 },
+    'Preparing':  { items: [], page: 1, hasMore: true, loaded: false, loading: false, loadingMore: false, total: 0 },
+    'Issues':     { items: [], page: 1, hasMore: true, loaded: false, loading: false, loadingMore: false, total: 0 },
+  });
+
   // Reason Overlay State
   const [overlayVisible, setOverlayVisible] = useState(false);
-  const [overlayAction, setOverlayAction] = useState('reject'); // 'reject' or 'pending'
+  const [overlayAction, setOverlayAction] = useState('reject');
   const [selectedOrder, setSelectedOrder] = useState(null);
 
-  const loadOrders = useCallback(async (showLoading = true) => {
-    if (showLoading) setLoading(true);
+  // Fetch orders for a specific tab with pagination
+  const fetchTabOrders = useCallback(async (tabName, pageNumber = 1, isPullToRefresh = false) => {
+    const apiTab = tabApiMap[tabName];
+    if (!apiTab) return;
+
     setError('');
+    setTabStates((prev) => ({
+      ...prev,
+      [tabName]: {
+        ...prev[tabName],
+        loading: pageNumber === 1 && !isPullToRefresh,
+        loadingMore: pageNumber > 1,
+      },
+    }));
 
     try {
-      const data = await getPharmacyOrders();
-      const mappedOrders = mapApiOrdersToUiOrders(data);
-      setOrders(mappedOrders);
+      const res = await getPharmacyOrders({
+        tab: apiTab,
+        page: pageNumber,
+        perPage: 10,
+      });
+
+      const mappedNewItems = mapApiOrdersToUiOrders(res.items || []);
+
+      setTabStates((prev) => {
+        const currentTab = prev[tabName];
+        let updatedItems;
+
+        if (pageNumber === 1) {
+          updatedItems = mappedNewItems;
+        } else {
+          // Append and filter out duplicate IDs
+          const existingIds = new Set(currentTab.items.map((item) => item.id));
+          const uniqueNewItems = mappedNewItems.filter((item) => !existingIds.has(item.id));
+          updatedItems = [...currentTab.items, ...uniqueNewItems];
+        }
+
+        return {
+          ...prev,
+          [tabName]: {
+            items: updatedItems,
+            page: pageNumber,
+            hasMore: res.hasMore,
+            loaded: true,
+            loading: false,
+            loadingMore: false,
+            total: res.total || updatedItems.length,
+          },
+        };
+      });
     } catch (e) {
       setError(e?.message || 'Failed to load orders.');
-      setOrders([]);
-    } finally {
-      if (showLoading) setLoading(false);
+      setTabStates((prev) => ({
+        ...prev,
+        [tabName]: {
+          ...prev[tabName],
+          loading: false,
+          loadingMore: false,
+        },
+      }));
     }
   }, []);
 
+  // Lazy Loading: Fetch tab data only when tab becomes active for the first time
+  useEffect(() => {
+    if (!tabStates[activeTab]?.loaded && !tabStates[activeTab]?.loading) {
+      fetchTabOrders(activeTab, 1);
+    }
+  }, [activeTab, fetchTabOrders, tabStates]);
+
+  // Pull to refresh active tab
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadOrders(false);
+    await fetchTabOrders(activeTab, 1, true);
     setRefreshing(false);
-  }, [loadOrders]);
+  }, [activeTab, fetchTabOrders]);
 
-  useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
+  // Infinite scroll trigger for active tab
+  const handleLoadMore = () => {
+    const currentState = tabStates[activeTab];
+    if (currentState && !currentState.loading && !currentState.loadingMore && currentState.hasMore) {
+      fetchTabOrders(activeTab, currentState.page + 1);
+    }
+  };
 
-  const forReviewOrders = orders.filter((o) => o.status === 'For Review');
-  const preparingOrders = orders.filter((o) => o.status === 'Preparing');
-  const issueOrders = orders.filter((o) => o.status === 'Issues');
-  const activeOrders = activeTab === 'For Review'
-    ? forReviewOrders
-    : activeTab === 'Preparing'
-      ? preparingOrders
-      : issueOrders;
+  const currentTabState = tabStates[activeTab] || { items: [], loading: false, loadingMore: false, total: 0 };
+  const activeOrders = currentTabState.items;
+
+  const tabCounts = {
+    'For Review': tabStates['For Review'].total,
+    'Preparing':  tabStates['Preparing'].total,
+    'Issues':     tabStates['Issues'].total,
+  };
+
   const emptyMessage = activeTab === 'For Review'
     ? 'No orders awaiting review today.'
     : activeTab === 'Preparing'
       ? 'No orders are being prepared right now.'
       : 'No orders need attention today.';
 
-  const tabCounts = {
-    'For Review': forReviewOrders.length,
-    'Preparing': preparingOrders.length,
-    'Issues': issueOrders.length,
+  const reloadActiveTab = async () => {
+    await fetchTabOrders(activeTab, 1);
   };
 
   const handleApprove = async (order) => {
     const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
-
-    if (!orderId) {
-      return;
-    }
+    if (!orderId) return;
 
     try {
       await updateOrderStatusByPharmacist(orderId, 'approve');
-      await loadOrders();
+      await reloadActiveTab();
     } catch (e) {
       console.error('[Orders] Error approving order:', e);
       setError(e?.message || 'Failed to approve order.');
@@ -180,7 +243,7 @@ export default function Orders() {
     try {
       await updateOrderStatusByPharmacist(orderId, overlayAction, reason);
       setOverlayVisible(false);
-      await loadOrders();
+      await reloadActiveTab();
     } catch (e) {
       console.error(`[Orders] Error marking order as ${overlayAction}:`, e);
       setError(e?.message || `Failed to mark order as ${overlayAction}.`);
@@ -194,11 +257,35 @@ export default function Orders() {
 
     try {
       await updateOrderStatusByPharmacist(orderId, 'ready');
-      await loadOrders();
+      await reloadActiveTab();
     } catch (e) {
       console.error('[Orders] Error marking order as ready:', e);
       setError(e?.message || 'Failed to mark order as ready.');
     }
+  };
+
+  const renderOrderItem = ({ item }) => {
+    if (activeTab === 'For Review') {
+      return <ReviewOrderCard order={item} onApprove={handleApprove} onReject={handleReject} onPending={handlePending} />;
+    }
+    if (activeTab === 'Preparing') {
+      return <PreparingOrderCard order={item} onMarkAsReady={handleMarkAsReady} />;
+    }
+    return <IssueOrderCard order={item} />;
+  };
+
+  const renderListFooter = () => {
+    if (currentTabState.loadingMore) {
+      return (
+        <View className="py-4 items-center justify-center flex-row gap-2">
+          <ActivityIndicator size="small" color={colors.buttonColor} />
+          <Text style={{ fontFamily: 'Poppins-Medium', color: '#666', fontSize: 13 }}>
+            Loading more orders...
+          </Text>
+        </View>
+      );
+    }
+    return <View className="h-4" />;
   };
 
   return (
@@ -210,10 +297,13 @@ export default function Orders() {
         counts={tabCounts}
       />
 
-      {loading && (
-        <Text className="px-4 py-2" style={{ fontFamily: 'Poppins-Medium', color: '#666' }}>
-          Loading orders...
-        </Text>
+      {currentTabState.loading && (
+        <View className="px-4 py-4 items-center flex-row gap-2">
+          <ActivityIndicator size="small" color={colors.buttonColor} />
+          <Text style={{ fontFamily: 'Poppins-Medium', color: '#666' }}>
+            Loading orders...
+          </Text>
+        </View>
       )}
 
       {!!error && (
@@ -222,9 +312,22 @@ export default function Orders() {
         </Text>
       )}
 
-      <ScrollView
-        className="flex-1"
+      <FlatList
+        data={activeOrders}
+        renderItem={renderOrderItem}
+        keyExtractor={(item) => String(item.id)}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ flexGrow: 1 }}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={renderListFooter}
+        ListEmptyComponent={
+          !currentTabState.loading ? (
+            <Text className="px-4 py-6 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#7A7A7A' }}>
+              {emptyMessage}
+            </Text>
+          ) : null
+        }
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -232,30 +335,7 @@ export default function Orders() {
             tintColor={colors.buttonColor}
           />
         }
-      >
-        {!loading && activeOrders.length === 0 && (
-          <Text className="px-4 py-6 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#7A7A7A' }}>
-            {emptyMessage}
-          </Text>
-        )}
-
-        {activeTab === 'For Review' &&
-          forReviewOrders.map((order, idx) => (
-            <ReviewOrderCard key={idx} order={order} onApprove={handleApprove} onReject={handleReject} onPending={handlePending} />
-          ))}
-
-        {activeTab === 'Preparing' &&
-          preparingOrders.map((order, idx) => (
-            <PreparingOrderCard key={idx} order={order} onMarkAsReady={handleMarkAsReady} />
-          ))}
-
-        {activeTab === 'Issues' &&
-          issueOrders.map((order, idx) => (
-            <IssueOrderCard key={idx} order={order} />
-          ))}
-
-        <View className="h-4" />
-      </ScrollView>
+      />
 
       <ActionReasonOverlay
         visible={overlayVisible}

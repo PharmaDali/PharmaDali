@@ -33,8 +33,8 @@ const Home = () => {
 
   const loadQuickStats = useCallback(async () => {
     try {
-      const data = await getPharmacyOrders();
-      const orders = Array.isArray(data) ? data : [];
+      const res = await getPharmacyOrders();
+      const orders = Array.isArray(res?.items) ? res.items : (Array.isArray(res) ? res : []);
       const pendingStatuses = new Set(['pending', 'reviewing', 'preparing', 'ready_for_pickup']);
       const completedStatuses = new Set(['completed']);
 
