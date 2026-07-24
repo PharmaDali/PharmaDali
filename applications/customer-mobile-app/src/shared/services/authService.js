@@ -27,3 +27,35 @@ export async function loginCustomer({ email, password }) {
   });
 }
 
+export async function sendForgotPasswordOtp({ email }) {
+  return apiRequest('/customer/forgot-password/send-otp', {
+    method: 'POST',
+    body: {
+      email: email.trim(),
+    },
+  });
+}
+
+export async function verifyForgotPasswordOtp({ email, otp }) {
+  return apiRequest('/customer/forgot-password/verify-otp', {
+    method: 'POST',
+    body: {
+      email: email.trim(),
+      otp: otp.trim(),
+    },
+  });
+}
+
+export async function resetPasswordWithOtp({ email, resetToken, password, passwordConfirmation }) {
+  return apiRequest('/customer/forgot-password/reset-password', {
+    method: 'POST',
+    body: {
+      email: email.trim(),
+      reset_token: resetToken,
+      password,
+      password_confirmation: passwordConfirmation,
+    },
+  });
+}
+
+
