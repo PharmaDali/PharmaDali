@@ -20,6 +20,7 @@ class NotificationController extends Controller
                 'message' => $data['message'] ?? '',
                 'dateTime' => $notif->created_at ? $notif->created_at->format('M. d, Y g:i A') : '',
                 'read_at' => $notif->read_at,
+                'data' => $data,
             ];
         });
 
@@ -47,6 +48,7 @@ class NotificationController extends Controller
                 'message' => $data['message'] ?? '',
                 'dateTime' => $notif->created_at ? $notif->created_at->format('M. d, Y g:i A') : '',
                 'read_at' => $notif->read_at,
+                'data' => $data,
             ];
         });
 
