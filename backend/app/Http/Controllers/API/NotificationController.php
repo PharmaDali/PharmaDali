@@ -19,6 +19,7 @@ class NotificationController extends Controller
                 'type' => $data['type'] ?? 'System Alert',
                 'message' => $data['message'] ?? '',
                 'dateTime' => $notif->created_at ? $notif->created_at->format('M. d, Y g:i A') : '',
+                'created_at' => $notif->created_at ? $notif->created_at->toIso8601String() : null,
                 'read_at' => $notif->read_at,
                 'data' => $data,
             ];
@@ -47,6 +48,7 @@ class NotificationController extends Controller
                 'type' => $data['type'] ?? 'System Alert',
                 'message' => $data['message'] ?? '',
                 'dateTime' => $notif->created_at ? $notif->created_at->format('M. d, Y g:i A') : '',
+                'created_at' => $notif->created_at ? $notif->created_at->toIso8601String() : null,
                 'read_at' => $notif->read_at,
                 'data' => $data,
             ];
