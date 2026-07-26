@@ -104,6 +104,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('pos/products', [PosController::class, 'getProducts']);
         Route::post('pos/orders', [PosController::class, 'storeOrder']);
+        Route::get('pos/orders/{order}/receipt', [PosController::class, 'getReceipt']);
 
         Route::get('pharmacist/profile', [PharmacistProfileController::class, 'show']);
 

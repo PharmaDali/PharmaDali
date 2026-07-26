@@ -18,6 +18,20 @@ class Pharmacy extends Model
         'is_active',
         'opening_hour',
         'closing_hour',
+        // BIR / POS receipt compliance fields
+        'tin',
+        'vat_type',
+        'bir_permit_no',
+        'permit_issued_at',
+        'ptu_valid_until',
+        'machine_no',
+        'serial_no',
+        'accreditation_no',
+    ];
+
+    protected $casts = [
+        'permit_issued_at' => 'date',
+        'ptu_valid_until'  => 'date',
     ];
 
     public function users()
