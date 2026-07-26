@@ -3,16 +3,20 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Services\Pos\PosService;
+use App\Services\Receipt\ReceiptService;
 use Illuminate\Http\Request;
 
 class PosController extends Controller
 {
     protected $posService;
+    protected $receiptService;
 
-    public function __construct(PosService $posService)
+    public function __construct(PosService $posService, ReceiptService $receiptService)
     {
-        $this->posService = $posService;
+        $this->posService     = $posService;
+        $this->receiptService = $receiptService;
     }
 
     /**
@@ -83,7 +87,7 @@ class PosController extends Controller
     /**
      * Complete a pickup order.
      */
-    public function completePickupOrder(Request $request, \App\Models\Order $order)
+    public function completePickupOrder(Request $request, Order $order)
     {
         $request->validate([
             'payment_method' => 'required|string|in:cash,gcash,card,maya',
@@ -109,6 +113,57 @@ class PosController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage()
+            ], 400);
+        }
+    }
+
+    /**
+     * Generate a receipt payload for a completed POS or pickup order.
+     *
+     * Returns both structured JSON data and a plain-text ESC/POS receipt string
+     * suitable for direct streaming to a thermal printer.
+     *
+     * GET /pos/orders/{order}/receipt
+     */
+    public function getReceipt(Request $request, Order $order)
+    {
+        $user = $request->user();
+
+        // Ensure the order belongs to the authenticated user's pharmacy
+        if ($order->pharmacy_id !== $user->pharmacy_id) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Unauthorized: This order does not belong to your pharmacy.',
+            ], 403);
+        }
+
+        // Only allow printing receipts for completed orders
+        if ($order->status !== 'completed') {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'A receipt can only be generated for completed orders.',
+            ], 422);
+        }
+
+        try {
+            // Eager-load all relations required by the ReceiptService
+            $order->loadMissing([
+                'pharmacy',
+                'items',
+                'verifier:id,first_name,last_name',
+                'customer.user:id,first_name,last_name',
+            ]);
+
+            $receiptData = $this->receiptService->buildReceiptData($order);
+
+            return response()->json([
+                'status' => 'success',
+                'data'   => $receiptData,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => $e->getMessage(),
             ], 400);
         }
     }
