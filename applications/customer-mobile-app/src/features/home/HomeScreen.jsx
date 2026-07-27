@@ -173,7 +173,7 @@ export default function HomeScreen() {
             Categories
           </Text>
           <Text className="text-md text-gray-600 px-2 py-2 mt-6" style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}
-            onPress={() => route.push('/tabs/shop/Shop')}
+            onPress={() => route.push({ pathname: '/tabs/shop/Shop', params: { expandCategories: 'true' } })}
           >
             See all
           </Text>
