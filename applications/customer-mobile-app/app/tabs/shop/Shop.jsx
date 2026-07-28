@@ -1,6 +1,8 @@
 import { Text, View, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
 import React, { useEffect, useState, useRef, useCallback } from 'react'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
+import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg'
+import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import ProductCard from '@src/shared/components/ProductCard'
 import { useSelectionPhase } from '@src/shared/SelectionPhaseContext'
@@ -47,7 +49,9 @@ const Shop = () => {
   const insets = useSafeAreaInsets()
   const { selectedPharmacy } = useSelectionPhase()
   const selectedPharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null
+  const { expandCategories } = useLocalSearchParams()
   const [categories, setCategories] = useState([])
+  const [categoriesExpanded, setCategoriesExpanded] = useState(expandCategories === 'true')
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const { toast, showSuccess, showError } = useToast()
@@ -191,61 +195,85 @@ const Shop = () => {
     </View>
   ), [selectedPharmacyId, handleAddToCart])
 
-  const ListHeader = useCallback(() => (
-    <View>
+  const CATEGORIES_PER_ROW = 4
+
+  const ListHeader = useCallback(() => {
+    const visibleCategories = categoriesExpanded
+      ? categories
+      : categories.slice(0, CATEGORIES_PER_ROW)
+    const hasMore = categories.length > CATEGORIES_PER_ROW
+
+    return (
       <View>
-        <Text className="text-2xl p-5" style={{ fontFamily: 'Poppins-Bold', color: '#444' }}>
-          Categories
-        </Text>
-        <View className="flex-row flex-wrap px-4">
-          {isLoading && (
-            Array.from({ length: 8 }).map((_, index) => (
-              <View key={`category-skeleton-${index}`} className="w-1/4 items-center mb-4 px-1">
-                <CategorySkeletonCard />
+        <View>
+          <Text className="text-2xl p-5" style={{ fontFamily: 'Poppins-Bold', color: '#444' }}>
+            Categories
+          </Text>
+          <View className="flex-row flex-wrap px-4">
+            {isLoading && (
+              Array.from({ length: 4 }).map((_, index) => (
+                <View key={`category-skeleton-${index}`} className="w-1/4 items-center mb-4 px-1">
+                  <CategorySkeletonCard />
+                </View>
+              ))
+            )}
+
+            {!isLoading && visibleCategories.map((cat, index) => {
+              const rawLabel = cat?.category_name || 'Category'
+              const label = toTitleCase(rawLabel.trim())
+              const IconComponent = CATEGORY_ICONS[label]
+
+              return (
+                <CategoryCard
+                  key={cat?.id || index}
+                  icon={IconComponent ? <IconComponent width={24} height={24} /> : <Text className="text-2xl">🛍️</Text>}
+                  label={label}
+                  onPress={() => navigateToCategory(cat)}
+                />
+              )
+            })}
+
+            {!isLoading && selectedPharmacyId && categories.length === 0 && (
+              <Text className="px-1" style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
+                No categories found for this pharmacy.
+              </Text>
+            )}
+          </View>
+
+          {!isLoading && hasMore && (
+            <TouchableOpacity
+              onPress={() => setCategoriesExpanded(prev => !prev)}
+              className="flex-row items-center justify-center pb-3 gap-1"
+            >
+              <Text style={{ fontFamily: 'Poppins-SemiBold', color: '#48AAD9', fontSize: 13 }}>
+                {categoriesExpanded ? 'See less' : 'See all'}
+              </Text>
+              {categoriesExpanded
+                ? <ArrowUpIcon width={16} height={16} color="#48AAD9" />
+                : <ArrowDownIcon width={16} height={16} color="#48AAD9" />
+              }
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View>
+          <Text className="text-2xl p-5" style={{ fontFamily: 'Poppins-Bold', color: '#444' }}>
+            Products
+          </Text>
+        </View>
+
+        {isLoading && (
+          <View className="flex-row flex-wrap px-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <View key={`skeleton-${index}`} className="w-1/2 px-1 mb-4">
+                <ProductSkeletonCard />
               </View>
-            ))
-          )}
-
-          {!isLoading && categories.map((cat, index) => {
-            const rawLabel = cat?.category_name || 'Category'
-            const label = toTitleCase(rawLabel.trim())
-            const IconComponent = CATEGORY_ICONS[label]
-
-            return (
-              <CategoryCard
-                key={cat?.id || index}
-                icon={IconComponent ? <IconComponent width={24} height={24} /> : <Text className="text-2xl">🛍️</Text>}
-                label={label}
-                onPress={() => navigateToCategory(cat)}
-              />
-            )
-          })}
-
-          {!isLoading && selectedPharmacyId && categories.length === 0 && (
-            <Text className="px-1" style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
-              No categories found for this pharmacy.
-            </Text>
-          )}
-        </View>
+            ))}
+          </View>
+        )}
       </View>
-
-      <View>
-        <Text className="text-2xl p-5" style={{ fontFamily: 'Poppins-Bold', color: '#444' }}>
-          Products
-        </Text>
-      </View>
-
-      {isLoading && (
-        <View className="flex-row flex-wrap px-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <View key={`skeleton-${index}`} className="w-1/2 px-1 mb-4">
-              <ProductSkeletonCard />
-            </View>
-          ))}
-        </View>
-      )}
-    </View>
-  ), [isLoading, categories, selectedPharmacyId])
+    )
+  }, [isLoading, categories, selectedPharmacyId, categoriesExpanded])
 
   const ListFooter = useCallback(() => {
     if (!isFetchingMore) return null
