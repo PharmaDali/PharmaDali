@@ -41,7 +41,7 @@ class ListOrdersService
                 'items:id,order_id,pharmacy_product_id,quantity,unit_price_snapshot,line_total,product_name',
                 'items.pharmacyProduct:id,pharmacy_id,product_id,category_id,selling_price',
                 'items.pharmacyProduct.category:id,category_name',
-                'items.pharmacyProduct.product:id,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
+                'items.pharmacyProduct.product:id,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
                 'items.orderItemPrescription:id,order_item_id,prescription_image_path,status,verified_by,verified_at,rejection_reason',
                 'items.orderItemPrescription.verifier:id,first_name,last_name,email,pharmacy_id,role',
             ])
