@@ -21,10 +21,9 @@ export const exportSalesCsv = async (filters = {}) => {
   if (filters.start_date) params.append("start_date", filters.start_date);
   if (filters.end_date) params.append("end_date", filters.end_date);
 
-  const response = await apiRequest.get(`/pharmacy/reports/sales/export/csv?${params.toString()}`, {
-    responseType: "blob",
-  });
-  return response;
+  // Returns JSON: { date_range, total_amount, orders: [...] }
+  const data = await apiRequest.get(`/pharmacy/reports/sales/export/csv?${params.toString()}`);
+  return data;
 };
 
 export const exportSalesPdf = async (filters = {}) => {
@@ -32,8 +31,8 @@ export const exportSalesPdf = async (filters = {}) => {
   if (filters.start_date) params.append("start_date", filters.start_date);
   if (filters.end_date) params.append("end_date", filters.end_date);
 
-  const response = await apiRequest.get(`/pharmacy/reports/sales/export/pdf?${params.toString()}`, {
-    responseType: "blob",
-  });
-  return response;
+  // Returns JSON: { date_range, total_amount, orders: [...] }
+  const data = await apiRequest.get(`/pharmacy/reports/sales/export/pdf?${params.toString()}`);
+  return data;
 };
+

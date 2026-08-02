@@ -1,0 +1,105 @@
+/**
+ * SalesReportTable
+ *
+ * Renders the paginated sales transactions table, including loading,
+ * error and empty states, and the running total footer.
+ */
+function SalesReportTable({
+  rows,
+  meta,
+  loading,
+  error,
+  totalAmount,
+  selectedRow,
+  onRowClick,
+  onPageChange,
+  startDate,
+  endDate,
+}) {
+  return (
+    <>
+      {/* Table */}
+      <div className="table-responsive rounded-3 border">
+        <table className="table table-hover mb-0" style={{ fontSize: "13px" }}>
+          <thead className="report-thead">
+            <tr>
+              <th>Order ID</th>
+              <th>Items</th>
+              <th>Processed By</th>
+              <th>Total</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={5} className="text-center py-4 text-secondary">
+                  <div className="spinner-border spinner-border-sm me-2" role="status" style={{ color: "#48AAD9" }} />
+                  Loading sales...
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={5} className="text-center py-4 text-danger">{error}</td>
+              </tr>
+            ) : rows.length === 0 ? (
+              <tr>
+                <td colSpan={5} className="text-center py-4 text-secondary">No transactions found.</td>
+              </tr>
+            ) : (
+              rows.map((row, index) => (
+                <tr
+                  key={`${row.id}-${index}`}
+                  onClick={() => onRowClick(row, index)}
+                  className={selectedRow?.id === row.id && selectedRow?.rowIndex === index ? "table-active" : ""}
+                  style={{ cursor: "pointer" }}
+                >
+                  <td>{row.id}</td>
+                  <td>{row.items}</td>
+                  <td>{row.processedBy}</td>
+                  <td>{parseFloat(row.total).toFixed(2)}</td>
+                  <td>{row.date}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Running total */}
+      {!loading && rows.length > 0 && (
+        <div className="d-flex justify-content-end gap-3 pt-3 fw-bold" style={{ color: "#48AAD9", fontSize: "14px" }}>
+          <span>TOTAL</span>
+          <span>{totalAmount.toFixed(2)}</span>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {meta && meta.last_page > 1 && (
+        <div className="d-flex justify-content-between align-items-center pt-3" style={{ fontSize: "12px" }}>
+          <span className="text-secondary">
+            Page {meta.current_page} of {meta.last_page} &middot; {meta.total} records
+          </span>
+          <div className="d-flex gap-2">
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              disabled={meta.current_page <= 1 || loading}
+              onClick={() => onPageChange(meta.current_page - 1, startDate, endDate)}
+            >
+              &lsaquo; Prev
+            </button>
+            <button
+              className="btn btn-sm btn-outline-secondary"
+              disabled={meta.current_page >= meta.last_page || loading}
+              onClick={() => onPageChange(meta.current_page + 1, startDate, endDate)}
+            >
+              Next &rsaquo;
+            </button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+export default SalesReportTable;
