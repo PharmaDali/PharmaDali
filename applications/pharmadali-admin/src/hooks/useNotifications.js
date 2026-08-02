@@ -8,9 +8,10 @@ import {
   deleteNotification,
 } from "../services/notificationService";
 
-const REVERB_APP_KEY = import.meta.env.VITE_REVERB_APP_KEY || "reverb_app_key";
-const REVERB_HOST = import.meta.env.VITE_REVERB_HOST || "localhost";
+const REVERB_APP_KEY = import.meta.env.VITE_REVERB_APP_KEY || "pharmadali-local-key";
+const REVERB_HOST = import.meta.env.VITE_REVERB_HOST || "127.0.0.1";
 const REVERB_PORT = import.meta.env.VITE_REVERB_PORT || 8080;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
 
 /**
  * Custom hook that manages real-time admin notifications.
@@ -51,13 +52,16 @@ export const useNotifications = () => {
       broadcaster: "reverb",
       key: REVERB_APP_KEY,
       wsHost: REVERB_HOST,
-      wsPort: REVERB_PORT,
-      wssPort: REVERB_PORT,
+      wsPort: Number(REVERB_PORT),
+      wssPort: Number(REVERB_PORT),
       forceTLS: false,
+      enabledTransports: ["ws", "wss"],
       disableStats: true,
+      authEndpoint: `${API_BASE_URL.replace(/\/$/, "")}/broadcasting/auth`,
       auth: {
         headers: {
           Authorization: `Bearer ${token}`,
+          Accept: "application/json",
         },
       },
     });
