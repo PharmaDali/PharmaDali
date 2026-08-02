@@ -61,3 +61,15 @@ export const stockOutProduct = async (pharmacyProductId, data) => {
   const response = await apiRequest.post(`/pharmacy/inventory/products/${pharmacyProductId}/stock-out`, data);
   return response;
 };
+
+export const uploadProductImage = async (productId, imageFile) => {
+  const formData = new FormData();
+  formData.append("image", imageFile);
+  const response = await apiRequest.post(`/products/${productId}/image`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
+

@@ -76,8 +76,27 @@ export function InventoryTable({
                   onClick={() => handleSelectItem(item)}
                 >
                   <td>
-                    <p className="inventory-item-name mb-0">{item.name}</p>
-                    <p className="inventory-item-meta mb-0">{item.brand}</p>
+                    <div className="d-flex align-items-center gap-2">
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt={item.name}
+                          className="rounded border"
+                          style={{ width: "36px", height: "36px", objectFit: "cover", backgroundColor: "#f9fafb" }}
+                        />
+                      ) : (
+                        <div
+                          className="rounded border d-flex align-items-center justify-content-center text-secondary"
+                          style={{ width: "36px", height: "36px", backgroundColor: "#f3f4f6" }}
+                        >
+                          <i className="fa-solid fa-pills" style={{ fontSize: "14px", color: "#9ca3af" }} />
+                        </div>
+                      )}
+                      <div>
+                        <p className="inventory-item-name mb-0">{item.name}</p>
+                        <p className="inventory-item-meta mb-0">{item.brand}</p>
+                      </div>
+                    </div>
                   </td>
                   <td>{item.category}</td>
                   <td>{item.quantity}</td>

@@ -18,6 +18,7 @@ use App\Services\PharmacyProduct\SearchPharmacyProductService;
 use App\Services\PharmacyProduct\StorePharmacyProductService;
 use App\Services\PharmacyProduct\UpdatePharmacyProductService;
 use App\Services\PharmacyProduct\DestroyPharmacyProductService;
+use App\Services\PharmacyProduct\UploadProductImageService;
 use App\Repositories\ProductRepository;
 use App\Repositories\PharmacyProductRepository;
 use Maatwebsite\Excel\Facades\Excel;
@@ -30,6 +31,7 @@ class PharmacyProductController extends Controller
         private readonly StorePharmacyProductService $storeService,
         private readonly UpdatePharmacyProductService $updateService,
         private readonly DestroyPharmacyProductService $destroyService,
+        private readonly UploadProductImageService $uploadImageService,
     ) {}
 
     /**
@@ -206,6 +208,46 @@ class PharmacyProductController extends Controller
             'status' => 'success',
             'message' => 'Pharmacy products imported successfully',
             'summary' => $import->summary(),
+        ]);
+    }
+    /**
+     * Upload and replace the image for a specific product.
+     * Image is compressed to WebP (max 800x800, quality 75) before storage.
+     * Storage is scoped per pharmacy: products/{pharmacy_id}/{product_id}.webp
+     */
+    public function uploadImage(Request $request, string $id)
+    {
+        $request->validate([
+            'image' => [
+                'required',
+                'file',
+                'mimes:jpg,jpeg,png,webp',
+                'max:5120', // 5 MB
+            ],
+        ]);
+
+        $product    = $this->productRepository->find((int) $id);
+        $pharmacyId = $request->user()?->pharmacy_id;
+
+        if (!$pharmacyId) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'User is not associated with a pharmacy.',
+            ], 403);
+        }
+
+        Gate::authorize('update', $product);
+
+        $updatedProduct = $this->uploadImageService->handle(
+            (int) $id,
+            $request->file('image'),
+            $pharmacyId
+        );
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Product image uploaded successfully',
+            'data'    => $updatedProduct,
         ]);
     }
 }

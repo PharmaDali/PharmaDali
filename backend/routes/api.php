@@ -139,6 +139,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('products/import', [PharmacyProductController::class, 'importPharmacyProducts']);
         Route::put('products/{id}', [PharmacyProductController::class, 'update']);
         Route::delete('products/{id}', [PharmacyProductController::class, 'destroy']);
+        Route::post('products/{id}/image', [PharmacyProductController::class, 'uploadImage']);
+
 
         Route::get('pharmacy/orders/count', [OrderController::class, 'countTotalOrders']);
         Route::get('pharmacy/orders/stats', [OrderController::class, 'getTodayStats']);

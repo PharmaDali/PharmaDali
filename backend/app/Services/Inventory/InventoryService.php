@@ -229,6 +229,7 @@ class InventoryService
                 'is_discountable'=> $bp->is_discountable,
                 'product_id'     => $product->id ?? null,
                 'product_type'   => $product->product_type ?? 'medicine',
+                'image_url'      => $product->image_url ?? null,
                 'batches'        => $batches,
             ];
         });

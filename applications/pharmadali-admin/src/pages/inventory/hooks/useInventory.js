@@ -9,6 +9,7 @@ import {
   addProductBatch,
   updateProductBatch,
   stockOutProduct,
+  uploadProductImage,
 } from "../../../services/inventoryService";
 import {
   CATEGORY_FILTERS,
@@ -232,6 +233,9 @@ export function useInventory() {
       expiryDate: item.expiryDate || "",
       manufacturedDate: item.manufacturedDate || "",
       needsPrescription: false,
+      imageUrl: item.image_url || null,
+      imageFile: null,
+      imagePreview: null,
     });
     
     const rawBatches = item.batches ?? [];
@@ -244,6 +248,9 @@ export function useInventory() {
   };
 
   const handleModalClose = () => {
+    if (modalDraft?.imagePreview) {
+      URL.revokeObjectURL(modalDraft.imagePreview);
+    }
     setSelectedItem(null);
     setModalDraft(null);
     setIsModalEditing(false);
@@ -259,6 +266,60 @@ export function useInventory() {
       manufactured_date: "",
     });
     setInputErrors({});
+  };
+
+  const handleImageFileSelect = (file) => {
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      setInputErrors((prev) => ({
+        ...prev,
+        image: "Only JPG, PNG, and WebP images are allowed.",
+      }));
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setInputErrors((prev) => ({
+        ...prev,
+        image: "Image size must not exceed 5MB.",
+      }));
+      return;
+    }
+
+    setInputErrors((prev) => {
+      const copy = { ...prev };
+      delete copy.image;
+      return copy;
+    });
+
+    if (modalDraft?.imagePreview) {
+      URL.revokeObjectURL(modalDraft.imagePreview);
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setModalDraft((prev) => ({
+      ...prev,
+      imageFile: file,
+      imagePreview: previewUrl,
+    }));
+  };
+
+  const handleRemoveSelectedImage = () => {
+    if (modalDraft?.imagePreview) {
+      URL.revokeObjectURL(modalDraft.imagePreview);
+    }
+    setModalDraft((prev) => ({
+      ...prev,
+      imageFile: null,
+      imagePreview: null,
+    }));
+    setInputErrors((prev) => {
+      const copy = { ...prev };
+      delete copy.image;
+      return copy;
+    });
   };
 
   // Inline batch adjustments
@@ -514,6 +575,20 @@ export function useInventory() {
 
       await updateInventoryProduct(selectedItem.product_id, payload);
 
+      let updatedImageUrl = selectedItem.image_url;
+
+      // Upload image if a new file was selected in edit mode
+      if (modalDraft.imageFile) {
+        try {
+          const imgResponse = await uploadProductImage(selectedItem.product_id, modalDraft.imageFile);
+          if (imgResponse?.data?.image_url) {
+            updatedImageUrl = imgResponse.data.image_url;
+          }
+        } catch (imgErr) {
+          console.error("Failed to upload product image:", imgErr);
+        }
+      }
+
       // Now apply local state changes
       const updatedItem = {
         ...selectedItem,
@@ -525,6 +600,7 @@ export function useInventory() {
         size: payload.size,
         strength: payload.strength,
         sellingPrice: payload.selling_price,
+        image_url: updatedImageUrl,
       };
 
       setInventoryItems((prev) =>
@@ -724,6 +800,8 @@ export function useInventory() {
     // Actions & Selection Handlers
     handleSelectItem,
     handleModalClose,
+    handleImageFileSelect,
+    handleRemoveSelectedImage,
     handleAddBatchSubmit,
     handleDraftChange,
     handleRequestSave,
