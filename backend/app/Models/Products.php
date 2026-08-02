@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 use App\Models\Concerns\BelongsToPharmacy;
 
@@ -22,7 +23,21 @@ class Products extends Model
         'strength',
         'size',
         'is_prescribed',
+        'image_path',
     ];
+
+    /**
+     * Get the full public URL for the product image.
+     * Returns null when no image has been uploaded.
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image_path
+            ? Storage::disk('public')->url($this->image_path)
+            : null;
+    }
+
+    protected $appends = ['image_url'];
 
     public function pharmacyProducts()
     {
