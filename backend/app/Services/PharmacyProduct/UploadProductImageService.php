@@ -5,10 +5,10 @@ namespace App\Services\PharmacyProduct;
 use App\Models\Products;
 use App\Repositories\ProductRepository;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\WebpEncoder;
 
 class UploadProductImageService
 {
@@ -44,18 +44,20 @@ class UploadProductImageService
             Storage::disk(self::DISK)->delete($product->image_path);
         }
 
-        // Compress and convert to WebP using GD (no external binary needed)
+        // Compress and convert to WebP using GD driver
         $manager = new ImageManager(new Driver());
-        $image   = $manager->read($file->getRealPath());
+        $image   = $manager->decodePath($file->getRealPath());
 
         // Scale down proportionally only if larger than the cap
         $image->scaleDown(self::MAX_WIDTH, self::MAX_HEIGHT);
 
         $relativePath = self::STORAGE_DIR . '/' . $pharmacyId . '/' . $productId . '.webp';
 
+        $encodedImage = $image->encode(new WebpEncoder(self::QUALITY));
+
         Storage::disk(self::DISK)->put(
             $relativePath,
-            $image->toWebp(self::QUALITY)->toString()
+            $encodedImage->toString()
         );
 
         // Persist the relative path
