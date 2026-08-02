@@ -16,12 +16,13 @@ class ExportSalesCsvService
 
     /**
      * Execute the service and return structured data for CSV export.
-     * 
+     * The frontend is responsible for generating the actual CSV file.
+     *
      * @param string|null $startDate
      * @param string|null $endDate
      * @return array
      */
-    public function execute(?string $startDate, ?string $endDate)
+    public function execute(?string $startDate, ?string $endDate): array
     {
         $user = Auth::user();
         $pharmacyId = $user->pharmacy_id;
@@ -32,42 +33,38 @@ class ExportSalesCsvService
 
         $orders = $this->orderRepository->getSalesListAll($pharmacyId, $startDate, $endDate);
 
-        $callback = function () use ($orders) {
-            $file = fopen('php://output', 'w');
-            
-            // UTF-8 BOM
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
+        $dateRange = 'All Time';
+        if ($startDate && $endDate) {
+            $dateRange = $startDate . ' to ' . $endDate;
+        } elseif ($startDate) {
+            $dateRange = 'From ' . $startDate;
+        } elseif ($endDate) {
+            $dateRange = 'Up to ' . $endDate;
+        }
 
-            fputcsv($file, [
-                'Order ID',
-                'Total Items',
-                'Processed By',
-                'Total Amount (PHP)',
-                'Date Completed',
-                'Items Breakdown'
-            ]);
+        $rows = $orders->map(function ($order) {
+            $itemsBreakdown = $order->items->map(function ($item) {
+                return $item->product_name . ' (Qty: ' . $item->quantity . ' @ PHP ' . number_format($item->unit_price_snapshot, 2) . ')';
+            })->implode('; ');
 
-            foreach ($orders as $order) {
-                $itemsBreakdown = $order->items->map(function ($item) {
-                    return $item->product_name . ' (Qty: ' . $item->quantity . ' @ PHP ' . number_format($item->unit_price_snapshot, 2) . ')';
-                })->implode('; ');
-
-                fputcsv($file, [
-                    $order->order_number,
-                    $order->items->sum('quantity'),
-                    $order->verifier ? $order->verifier->first_name . ' ' . $order->verifier->last_name : 'N/A',
-                    number_format($order->total_amount, 2, '.', ''),
-                    $order->completed_at ? $order->completed_at->format('Y-m-d H:i') : 'N/A',
-                    $itemsBreakdown
-                ]);
-            }
-
-            fclose($file);
-        };
+            return [
+                'order_number'   => $order->order_number,
+                'total_items'    => $order->items->sum('quantity'),
+                'processed_by'   => $order->verifier
+                    ? $order->verifier->first_name . ' ' . $order->verifier->last_name
+                    : 'N/A',
+                'total_amount'   => number_format($order->total_amount, 2, '.', ''),
+                'completed_at'   => $order->completed_at
+                    ? $order->completed_at->format('Y-m-d H:i')
+                    : 'N/A',
+                'items_breakdown' => $itemsBreakdown,
+            ];
+        })->values()->toArray();
 
         return [
-            'filename' => 'sales_report_' . date('Ymd_His') . '.csv',
-            'callback' => $callback
+            'date_range'   => $dateRange,
+            'total_amount' => number_format($orders->sum('total_amount'), 2, '.', ''),
+            'orders'       => $rows,
         ];
     }
 }

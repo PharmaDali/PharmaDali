@@ -55,9 +55,10 @@ class ReportController extends Controller
     }
 
     /**
-     * Export sales report as CSV
+     * Export sales report as CSV.
+     * Returns structured JSON; the frontend is responsible for generating the CSV file.
      */
-    public function exportSalesCsv(Request $request, ExportSalesCsvService $exportSalesCsvService)
+    public function exportSalesCsv(Request $request, ExportSalesCsvService $exportSalesCsvService): JsonResponse
     {
         $request->validate([
             'start_date' => 'nullable|date',
@@ -70,15 +71,7 @@ class ReportController extends Controller
                 $request->input('end_date')
             );
 
-            $headers = [
-                'Content-Type' => 'text/csv',
-                'Content-Disposition' => 'attachment; filename="' . $result['filename'] . '"',
-                'Pragma' => 'no-cache',
-                'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
-                'Expires' => '0',
-            ];
-
-            return response()->stream($result['callback'], 200, $headers);
+            return response()->json($result);
 
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 400);
@@ -86,9 +79,10 @@ class ReportController extends Controller
     }
 
     /**
-     * Export sales report as printable PDF/HTML
+     * Export sales report as PDF.
+     * Returns structured JSON; the frontend is responsible for rendering and printing the PDF.
      */
-    public function exportSalesPdf(Request $request, ExportSalesPdfService $exportSalesPdfService)
+    public function exportSalesPdf(Request $request, ExportSalesPdfService $exportSalesPdfService): JsonResponse
     {
         $request->validate([
             'start_date' => 'nullable|date',
@@ -101,10 +95,10 @@ class ReportController extends Controller
                 $request->input('end_date')
             );
 
-            return view('reports.sales-pdf', $data);
+            return response()->json($data);
 
         } catch (\Exception $e) {
-            return response('Error generating report: ' . $e->getMessage(), 400);
+            return response()->json(['message' => $e->getMessage()], 400);
         }
     }
 }
