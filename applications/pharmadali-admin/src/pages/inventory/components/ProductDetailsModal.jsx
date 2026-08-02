@@ -10,6 +10,8 @@ export function ProductDetailsModal({
   setIsModalEditing,
   handleModalClose,
   handleDraftChange,
+  handleImageFileSelect,
+  handleRemoveSelectedImage,
   handleRequestSave,
   batches,
   batchLoading,
@@ -30,6 +32,9 @@ export function ProductDetailsModal({
   inputErrors = {},
 }) {
   const isMedicine = selectedItem?.product_type === "medicine";
+  const fileInputRef = React.useRef(null);
+
+  const displayImage = modalDraft?.imagePreview || modalDraft?.imageUrl || selectedItem?.image_url;
 
   return (
     <Modal
@@ -77,6 +82,99 @@ export function ProductDetailsModal({
     >
       {selectedItem && modalDraft && (
         <div className="inventory-modal-body-content">
+          {/* Product Image Section */}
+          <div className="inventory-modal-section">
+            <h6 className="inventory-modal-section-title mb-2">Product Image</h6>
+            <div className="d-flex align-items-center gap-3">
+              <div
+                className={`inventory-image-container ${isModalEditing ? "is-editable" : ""}`}
+                onClick={() => isModalEditing && fileInputRef.current?.click()}
+                title={isModalEditing ? "Click to change product image" : ""}
+              >
+                {displayImage ? (
+                  <img
+                    src={displayImage}
+                    alt={modalDraft.name || "Product"}
+                    className="inventory-product-img"
+                  />
+                ) : (
+                  <div className="inventory-image-placeholder">
+                    <i className="fa-solid fa-pills mb-1 text-secondary" style={{ fontSize: "24px" }} />
+                    <span style={{ fontSize: "11px", color: "#6b7280" }}>No Image</span>
+                  </div>
+                )}
+
+                {isModalEditing && (
+                  <div className="inventory-image-overlay">
+                    <i className="fa-solid fa-camera" />
+                  </div>
+                )}
+              </div>
+
+              <div className="d-flex flex-column gap-1">
+                {isModalEditing ? (
+                  <>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="d-none"
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleImageFileSelect(file);
+                      }}
+                    />
+                    <div className="d-flex align-items-center gap-2">
+                      <button
+                        type="button"
+                        className="btn btn-sm inventory-image-upload-btn rounded-pill px-3 py-1"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <i className="fa-solid fa-cloud-arrow-up me-1" />
+                        {displayImage ? "Change Image" : "Upload Image"}
+                      </button>
+
+                      {modalDraft.imageFile && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-link text-danger text-decoration-none p-0"
+                          style={{ fontSize: "12px" }}
+                          onClick={handleRemoveSelectedImage}
+                        >
+                          Undo
+                        </button>
+                      )}
+                    </div>
+                    <span className="text-muted" style={{ fontSize: "11px" }}>
+                      JPG, PNG, or WebP (Max 5MB)
+                    </span>
+                    {modalDraft.imageFile && (
+                      <span className="badge bg-success-subtle text-success border border-success-subtle rounded-pill align-self-start" style={{ fontSize: "11px" }}>
+                        New image selected
+                      </span>
+                    )}
+                    {inputErrors.image && (
+                      <span className="text-danger" style={{ fontSize: "12px" }}>
+                        {inputErrors.image}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <div>
+                    <p className="fw-medium mb-0" style={{ fontSize: "13px", color: "#374151" }}>
+                      {displayImage ? "Exclusive Pharmacy Image" : "No Product Image Uploaded"}
+                    </p>
+                    <p className="text-muted mb-0" style={{ fontSize: "11px" }}>
+                      {displayImage
+                        ? "Click 'Edit' to change or update this product image."
+                        : "Click 'Edit' to upload an image for this product."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           <div className="inventory-modal-section">
             <h6 className="inventory-modal-section-title">Basic Information</h6>
             <div className="inventory-modal-grid">

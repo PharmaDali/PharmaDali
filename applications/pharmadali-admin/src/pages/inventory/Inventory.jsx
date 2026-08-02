@@ -67,6 +67,8 @@ export function Inventory() {
     // Actions & Selection Handlers
     handleSelectItem,
     handleModalClose,
+    handleImageFileSelect,
+    handleRemoveSelectedImage,
     handleBatchStockChange,
     handleSaveAllBatches,
     hasBatchChanges,
@@ -168,6 +170,8 @@ export function Inventory() {
         setIsModalEditing={setIsModalEditing}
         handleModalClose={handleModalClose}
         handleDraftChange={handleDraftChange}
+        handleImageFileSelect={handleImageFileSelect}
+        handleRemoveSelectedImage={handleRemoveSelectedImage}
         handleRequestSave={handleRequestSave}
         batches={batches}
         batchLoading={batchLoading}
