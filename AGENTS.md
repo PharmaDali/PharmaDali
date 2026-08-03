@@ -59,16 +59,22 @@ PharmaDali is a full-stack multi-tenant pharmacy management and retail ecosystem
   });
   ```
 
-### B. Notification Categories & UI Classification
+### B. Universal Real-Time Delivery (`['database', 'broadcast']`)
+- **ALL Notification Classes** (`AdminAlertNotification`, `OrderStatusNotification`, `OrderPlacedNotification`, `OrderCompletedNotification`, `NewOrderPharmacistNotification`, etc.) return `['database', 'broadcast']` in their `via()` method so 100% of system notifications are delivered over Laravel Reverb in real time.
+
+### C. Notification Categories & UI Classification
 Admin notifications are classified into 4 core UI tabs:
 - 🌟 **Primary** (All notifications)
-- 📦 **Stocks** (Combines static `Low Stocks` threshold $\le 50$ units AND `Shortage Alert` predicted stockouts $\le 7$ days with estimated remaining supply duration)
+- 📦 **Stocks** (Combines static `Low Stocks` threshold $\le 50$ units AND `Shortage Alert` predicted stockouts $\le 7$ days with mandatory estimated remaining supply duration `"Will last less than X days"`)
 - ⏳ **Expiring** (`Expiry Warning` batches expiring within 30 days)
 - 🛡️ **Alerts** (`System Alert` administrative and system notices)
 
-### C. Observer & Duplicate Prevention Rules
-- **Recipient Targeting**: Real-time stock alerts target all pharmacy staff and admin roles (`whereIn('role', ['pharmacy_admin', 'pharmacist', 'admin', 'system_admin'])`).
-- **Duplicate Prevention**: `CheckInventoryAlerts` and `PharmacyProductObserver` check `$admin->notifications` (both read & unread) natively in PHP using `->contains(...)` to prevent duplicate alert creation.
+### D. Real-Time Observers & Stock Forecast Rules
+- **PharmacyProductObserver**: Fires on `created` & `updated` stock changes. Computes `days_of_stock` for ALL stock notifications so duration forecast ("will last less than X days") is ALWAYS present in the notification text, payload, and UI badge.
+- **ProductBatchObserver**: Fires on `created` & `updated` batch events to evaluate and broadcast real-time `Expiry Warning` alerts via Reverb whenever a batch expires within 30 days.
+- **OrderObserver**: Fires on `created` & `updated` order events to broadcast real-time order alerts to pharmacy staff and customers via Reverb.
+- **Recipient Targeting**: Real-time stock & expiry alerts target all pharmacy staff and admin roles (`whereIn('role', ['pharmacy_admin', 'pharmacist', 'admin', 'system_admin'])`).
+- **Duplicate Prevention**: `CheckInventoryAlerts`, `PharmacyProductObserver`, `ProductBatchObserver`, and `OrderObserver` check `$admin->notifications` (both read & unread) natively in PHP using `->contains(...)` to prevent duplicate alert creation.
 - **Read Status Preservation**: Marking a notification as **Read** updates `read_at` in state and DB. It does **NOT** delete or hide the notification from the list view. Items are only deleted upon explicit user click (`deleteNotification`).
 
 ---
