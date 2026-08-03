@@ -123,17 +123,19 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
           {notification.message || notification.data?.message}
         </h3>
 
-        {notification.data && notification.data.product_name && (
+        {notification.data && (notification.data.product_name || notification.data.current_stock !== undefined) && (
           <div className="p-3 rounded-3 mb-4 border" style={{ backgroundColor: "#f8fafc" }}>
-            <div className="row g-2 text-sm">
-              <div className="col-6 col-md-3">
-                <span className="text-muted d-block small">Product</span>
-                <span className="fw-semibold text-dark">{notification.data.product_name}</span>
-              </div>
+            <div className="row g-3 text-sm">
+              {notification.data.product_name && (
+                <div className="col-6 col-md-3">
+                  <span className="text-muted d-block small">Product Name</span>
+                  <span className="fw-bold text-dark fs-6">{notification.data.product_name}</span>
+                </div>
+              )}
               {notification.data.current_stock !== undefined && (
                 <div className="col-6 col-md-3">
-                  <span className="text-muted d-block small">Current Stock</span>
-                  <span className="fw-semibold text-danger">{notification.data.current_stock} units</span>
+                  <span className="text-muted d-block small">Current Stock Level</span>
+                  <span className="fw-bold text-danger fs-6">{notification.data.current_stock} units</span>
                 </div>
               )}
             </div>
@@ -144,7 +146,7 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
           {!notification.read_at && (
             <button
               type="button"
-              className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 px-3"
+              className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 px-3 py-2 rounded-3"
               onClick={handleMarkRead}
             >
               <i className="fa-regular fa-circle-check" />
@@ -153,7 +155,7 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
           )}
           <button
             type="button"
-            className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 px-3"
+            className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 px-3 py-2 rounded-3"
             onClick={handleDelete}
           >
             <i className="fa-regular fa-trash-can" />
@@ -165,66 +167,92 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
   );
 }
 
-// ─── Table Row Component ──────────────────────────────────────────────────────
-function NotificationRow({ item, onSelect, onMarkAsRead, onDelete }) {
+// ─── Rich Notification Card Component ──────────────────────────────────────────
+function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete }) {
   const typeKey = resolveNotificationType(item);
   const meta = getMeta(typeKey);
   const isUnread = !item.read_at;
 
-  return (
-    <tr
-      onClick={() => onSelect(item)}
-      className="align-middle notification-row"
-      style={{ cursor: "pointer", backgroundColor: isUnread ? "#ffffff" : "#fcfcfd" }}
-    >
-      {/* Unread Indicator */}
-      <td className="ps-3 pe-2" style={{ width: "24px" }}>
-        {isUnread && (
-          <span
-            className="unread-indicator-dot"
-            style={{ backgroundColor: meta.color }}
-            title="Unread"
-          />
-        )}
-      </td>
+  const currentStock = item.data?.current_stock ?? (item.current_stock);
+  const productName = item.data?.product_name ?? (item.product_name);
 
-      {/* Alert Type Badge */}
-      <td style={{ width: "160px" }}>
-        <span
-          className="alert-type-pill"
+  return (
+    <div
+      onClick={() => onSelect(item)}
+      className={`notification-card-item ${isUnread ? "unread" : "read"}`}
+    >
+      <div className="d-flex align-items-start gap-3">
+        {/* Category Avatar Icon */}
+        <div
+          className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-1"
           style={{
-            backgroundColor: meta.badgeBg,
-            color: meta.badgeText,
+            width: "48px",
+            height: "48px",
+            backgroundColor: meta.bg,
+            color: meta.color,
+            fontSize: "20px",
             border: `1px solid ${meta.border}`,
           }}
         >
           <i className={`fa-solid ${meta.icon}`} />
-          {typeKey}
-        </span>
-      </td>
+        </div>
 
-      {/* Message */}
-      <td>
-        <span
-          className="d-block text-truncate"
-          style={{
-            color: isUnread ? "#0f172a" : "#475569",
-            fontWeight: isUnread ? 600 : 400,
-            maxWidth: "580px",
-          }}
-        >
-          {item.message || item.data?.message}
-        </span>
-      </td>
+        {/* Content Body */}
+        <div className="flex-grow-1 min-w-0">
+          <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+            <div className="d-flex align-items-center gap-2 flex-wrap">
+              {/* Category Pill */}
+              <span
+                className="alert-type-pill"
+                style={{
+                  backgroundColor: meta.badgeBg,
+                  color: meta.badgeText,
+                  border: `1px solid ${meta.border}`,
+                }}
+              >
+                <i className={`fa-solid ${meta.icon}`} />
+                {typeKey}
+              </span>
 
-      {/* Date & Time */}
-      <td className="text-nowrap text-muted small" style={{ width: "170px" }}>
-        {item.dateTime || "Just now"}
-      </td>
+              {/* Product / Stock Info Pill */}
+              {currentStock !== undefined && currentStock !== null && (
+                <span
+                  className="badge rounded-pill bg-danger-subtle text-danger border border-danger-subtle"
+                  style={{ fontSize: "0.75rem", fontWeight: 600 }}
+                >
+                  <i className="fa-solid fa-layer-group me-1" />
+                  Stock: {currentStock}
+                </span>
+              )}
+            </div>
 
-      {/* Quick Actions */}
-      <td className="pe-3 text-end" style={{ width: "80px" }}>
-        <div className="d-flex gap-1 justify-content-end align-items-center">
+            {/* Unread Status & Timestamp */}
+            <div className="d-flex align-items-center gap-2">
+              {isUnread && <span className="unread-pulse-dot" title="Unread notification" />}
+              <span className="text-muted small" style={{ fontSize: "0.8rem" }}>
+                <i className="fa-regular fa-clock me-1" />
+                {item.dateTime || "Just now"}
+              </span>
+            </div>
+          </div>
+
+          {/* Main Message Title */}
+          <h6
+            className={`mb-1 ${isUnread ? "fw-bold text-dark" : "fw-medium text-secondary"}`}
+            style={{ fontSize: "0.95rem", lineHeight: 1.4 }}
+          >
+            {item.message || item.data?.message}
+          </h6>
+
+          {productName && (
+            <p className="text-muted mb-0 small" style={{ fontSize: "0.82rem" }}>
+              Product: <span className="fw-semibold text-dark">{productName}</span>
+            </p>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="d-flex gap-1 align-items-center ms-2 flex-shrink-0">
           {isUnread && (
             <button
               type="button"
@@ -235,7 +263,7 @@ function NotificationRow({ item, onSelect, onMarkAsRead, onDelete }) {
                 onMarkAsRead(item.id);
               }}
             >
-              <i className="fa-regular fa-circle-check" style={{ fontSize: 13 }} />
+              <i className="fa-regular fa-circle-check" style={{ fontSize: 14 }} />
             </button>
           )}
           <button
@@ -247,15 +275,15 @@ function NotificationRow({ item, onSelect, onMarkAsRead, onDelete }) {
               onDelete(item.id);
             }}
           >
-            <i className="fa-regular fa-trash-can" style={{ fontSize: 13 }} />
+            <i className="fa-regular fa-trash-can" style={{ fontSize: 14 }} />
           </button>
         </div>
-      </td>
-    </tr>
+      </div>
+    </div>
   );
 }
 
-// ─── Main Notifications Component ─────────────────────────────────────────────
+// ─── Main Notifications Page ──────────────────────────────────────────────────
 function Notifications() {
   const { notifications } = useOutletContext();
   const { unreadNotifications = [], loading, markAsRead, markAllAsRead, deleteNotification } = notifications;
@@ -300,20 +328,20 @@ function Notifications() {
 
   return (
     <section className="py-2">
-      {/* Header */}
+      {/* Page Header */}
       <header className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
         <div>
           <div className="d-flex align-items-center gap-2 mb-1">
             <h4 className="fw-bold mb-0 text-dark">Notifications</h4>
             {unreadNotifications.length > 0 && (
-              <span className="notifications-title-badge">
-                <i className="fa-solid fa-bell" />
+              <span className="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-semibold" style={{ fontSize: "0.78rem" }}>
+                <i className="fa-solid fa-bell me-1" />
                 {unreadNotifications.length} Unread
               </span>
             )}
           </div>
           <p className="text-muted small mb-0">
-            Real-time inventory alerts, shortage warnings, and system notifications.
+            Real-time pharmacy alerts, stock threshold warnings, and system updates.
           </p>
         </div>
 
@@ -329,8 +357,8 @@ function Notifications() {
         )}
       </header>
 
-      {/* Filter Tabs */}
-      <div className="notifications-nav-tabs mb-3">
+      {/* Filter Nav Tabs */}
+      <div className="notifications-nav-tabs mb-4">
         {TAB_CATEGORIES.map((tab) => {
           const isActive = activeTab === tab.id;
           const count = categoryCounts[tab.id] || 0;
@@ -366,50 +394,32 @@ function Notifications() {
         })}
       </div>
 
-      {/* Notifications Table Card */}
-      <div className="notifications-card">
-        <div className="table-responsive">
-          <table className="table notification-table mb-0">
-            <thead>
-              <tr>
-                <th style={{ width: "24px" }} />
-                <th style={{ width: "160px" }}>Alert Type</th>
-                <th>Notification Message</th>
-                <th style={{ width: "170px" }}>Date &amp; Time</th>
-                <th className="text-end" style={{ width: "80px" }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-5">
-                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-                    <span className="text-muted small">Loading notifications…</span>
-                  </td>
-                </tr>
-              ) : filteredNotifications.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="text-center py-5">
-                    <div className="py-3">
-                      <i className="fa-regular fa-bell-slash text-muted fs-3 mb-2 d-block" />
-                      <p className="text-muted small mb-0">No notifications found for this category.</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredNotifications.map((item) => (
-                  <NotificationRow
-                    key={item.id}
-                    item={item}
-                    onSelect={setSelectedNotification}
-                    onMarkAsRead={markAsRead}
-                    onDelete={deleteNotification}
-                  />
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* Notifications Rich Card List Container */}
+      <div className="notifications-container">
+        {loading ? (
+          <div className="text-center py-5 bg-white rounded-4 border">
+            <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+            <span className="text-muted small">Loading notifications…</span>
+          </div>
+        ) : filteredNotifications.length === 0 ? (
+          <div className="text-center py-5 bg-white rounded-4 border">
+            <div className="py-4">
+              <i className="fa-regular fa-bell-slash text-muted fs-2 mb-3 d-block" />
+              <h6 className="fw-semibold text-dark mb-1">No notifications found</h6>
+              <p className="text-muted small mb-0">There are no alerts in this category right now.</p>
+            </div>
+          </div>
+        ) : (
+          filteredNotifications.map((item) => (
+            <NotificationCardItem
+              key={item.id}
+              item={item}
+              onSelect={setSelectedNotification}
+              onMarkAsRead={markAsRead}
+              onDelete={deleteNotification}
+            />
+          ))
+        )}
       </div>
     </section>
   );

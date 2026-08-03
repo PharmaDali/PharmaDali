@@ -23,6 +23,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000
 export const useNotifications = () => {
   const [unreadNotifications, setUnreadNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeToast, setActiveToast] = useState(null);
   const echoRef = useRef(null);
 
   const loadUnread = useCallback(async () => {
@@ -109,8 +110,9 @@ export const useNotifications = () => {
             data: data,
           };
 
-          // Prepend real-time notification to the list
+          // Prepend real-time notification to the list & trigger toast popup
           setUnreadNotifications((prev) => [normalized, ...prev]);
+          setActiveToast(normalized);
         });
     }
 
@@ -146,10 +148,16 @@ export const useNotifications = () => {
     }
   }, []);
 
+  const clearToast = useCallback(() => {
+    setActiveToast(null);
+  }, []);
+
   return {
     unreadNotifications,
     unreadCount: unreadNotifications.length,
     loading,
+    activeToast,
+    clearToast,
     reload: loadUnread,
     markAsRead: handleMarkAsRead,
     markAllAsRead: handleMarkAllAsRead,

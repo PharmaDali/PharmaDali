@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import NavBar from "../components/NavBar";
 import SideBar from "../components/SideBar";
+import ToastNotification from "../components/ToastNotification";
 import { getCurrentUser } from "../services/loginService";
 import { usePickupOrdersCount } from "../hooks/usePickupOrders";
 import { useNotifications } from "../hooks/useNotifications";
@@ -30,6 +31,7 @@ function MainLayout() {
 
   return (
     <div className="layout-wrapper">
+      <ToastNotification toast={notifications.activeToast} onClose={notifications.clearToast} />
       <NavBar onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
       <SideBar isOpen={sidebarOpen} onToggle={toggleSidebar} readyPickupOrdersCount={readyPickupCount} unreadNotificationsCount={notifications.unreadCount} user={user} />
       <main
