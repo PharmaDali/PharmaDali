@@ -91,4 +91,14 @@ class NotificationController extends Controller
             'message' => 'Notification deleted',
         ]);
     }
+
+    public function deleteAll(Request $request): JsonResponse
+    {
+        $request->user()->notifications()->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'All notifications deleted successfully',
+        ]);
+    }
 }

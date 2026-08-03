@@ -19,3 +19,7 @@ export const markAllNotificationsAsRead = async () => {
 export const deleteNotification = async (id) => {
   return await apiRequest.delete(`/notifications/${id}`);
 };
+
+export const deleteAllNotifications = async () => {
+  return await apiRequest.delete("/notifications/delete-all");
+};

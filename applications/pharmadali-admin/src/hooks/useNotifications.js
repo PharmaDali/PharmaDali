@@ -6,6 +6,7 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   deleteNotification,
+  deleteAllNotifications,
 } from "../services/notificationService";
 
 const REVERB_APP_KEY = import.meta.env.VITE_REVERB_APP_KEY || "pharmadali-local-key";
@@ -155,6 +156,15 @@ export const useNotifications = () => {
     }
   }, []);
 
+  const handleDeleteAll = useCallback(async () => {
+    try {
+      await deleteAllNotifications();
+      setNotificationsList([]);
+    } catch (err) {
+      console.error("Failed to delete all notifications:", err);
+    }
+  }, []);
+
   const clearToast = useCallback(() => {
     setActiveToast(null);
   }, []);
@@ -172,5 +182,6 @@ export const useNotifications = () => {
     markAsRead: handleMarkAsRead,
     markAllAsRead: handleMarkAllAsRead,
     deleteNotification: handleDelete,
+    deleteAllNotifications: handleDeleteAll,
   };
 };
