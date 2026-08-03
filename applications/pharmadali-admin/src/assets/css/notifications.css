@@ -1,32 +1,153 @@
-/* ─── Notification Table ─────────────────────────────────────────────────── */
-.notification-table thead th {
-  background-color: #d7e7ef;
-  border: none;
-  font-size: 0.8rem;
-  color: #202329;
+/* ─── PharmaDali Admin Notifications Stylesheet ─────────────────────────── */
+
+.notifications-page-title {
+  color: #1e293b;
   font-weight: 700;
-  padding: 10px 8px;
 }
 
-.notification-table thead th:first-child { border-radius: 9px 0 0 9px; }
-.notification-table thead th:last-child  { border-radius: 0 9px 9px 0; }
-
-.notification-table tbody tr { border-bottom: 6px solid transparent; }
-
-.notification-table tbody td {
-  background-color: #f7f5f5;
-  border: none;
-  padding: 10px 8px;
+.notifications-page-subtitle {
+  color: #64748b;
+  font-size: 0.875rem;
 }
 
-.notification-table tbody td:first-child { border-radius: 10px 0 0 10px; }
-.notification-table tbody td:last-child  { border-radius: 0 10px 10px 0; }
-
-.notification-row:hover td { background-color: #edf4f9; }
-
-.notification-action-btn {
-  opacity: 0;
-  transition: opacity 0.15s;
+/* Category Filter Nav Pills (Bootstrap Nav Pills style) */
+.notifications-nav-pills .nav-link {
+  color: #475569;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
 }
 
-.notification-row:hover .notification-action-btn { opacity: 1; }
+.notifications-nav-pills .nav-link:hover {
+  color: #2aabe2;
+  border-color: #2aabe2;
+  background-color: #f0f9ff;
+}
+
+.notifications-nav-pills .nav-link.active {
+  color: #ffffff !important;
+  background-color: #2aabe2 !important;
+  border-color: #2aabe2 !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(42, 171, 226, 0.25);
+}
+
+.notifications-nav-pills .nav-link .badge-count {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+}
+
+.notifications-nav-pills .nav-link.active .badge-count {
+  background-color: #ffffff !important;
+  color: #2aabe2 !important;
+}
+
+.notifications-nav-pills .nav-link:not(.active) .badge-count {
+  background-color: #f1f5f9;
+  color: #64748b;
+}
+
+/* Notification Card List */
+.notification-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+.notification-card:hover {
+  border-color: #96d2ee;
+  box-shadow: 0 4px 16px rgba(42, 171, 226, 0.12);
+  transform: translateY(-1px);
+}
+
+.notification-card.is-unread {
+  border-left: 4px solid #2aabe2;
+  background-color: #ffffff;
+}
+
+.notification-card.is-read {
+  border-left: 4px solid #cbd5e1;
+  background-color: #f8fafc;
+  opacity: 0.9;
+}
+
+/* Category Badge Pills */
+.alert-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.alert-badge-stocks {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.alert-badge-expiry {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.alert-badge-shortage {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.alert-badge-system {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+/* Action Buttons */
+.btn-action-icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #64748b;
+  transition: all 0.15s ease;
+}
+
+.btn-action-icon:hover {
+  background-color: #f1f5f9;
+  color: #2aabe2;
+  border-color: #96d2ee;
+}
+
+.btn-action-icon.btn-delete:hover {
+  background-color: #fef2f2;
+  color: #ef4444;
+  border-color: #fecaca;
+}
+
+/* Pulse Dot */
+.unread-pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #2aabe2;
+  display: inline-block;
+}

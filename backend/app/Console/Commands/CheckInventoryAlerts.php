@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Models\Pharmacy;
 use App\Models\PharmacyProduct;
 use App\Models\ProductBatch;
+use App\Models\User;
 use App\Notifications\AdminAlertNotification;
 use App\Services\Inventory\RestockPredictorService;
 use Carbon\Carbon;
@@ -53,7 +54,13 @@ class CheckInventoryAlerts extends Command
                 continue;
             }
 
-            $admins = $pp->pharmacy->admins;
+            $admins = User::where(function ($q) use ($pp) {
+                $q->where('pharmacy_id', $pp->pharmacy_id)
+                  ->orWhereNull('pharmacy_id');
+            })
+            ->whereIn('role', ['pharmacy_admin', 'pharmacist', 'admin', 'system_admin'])
+            ->get();
+
             if ($admins->isEmpty()) {
                 continue;
             }
@@ -61,11 +68,11 @@ class CheckInventoryAlerts extends Command
             $message = "Only {$pp->stock} units of {$pp->product->product_name} remaining. This is below your set threshold.";
 
             foreach ($admins as $admin) {
-                // Check if admin already has an unread notification for this product & type
-                $exists = $admin->unreadNotifications()
-                    ->where('data->type', 'Low Stocks')
-                    ->where('data->product_id', $pp->product_id)
-                    ->exists();
+                // Prevent duplicates regardless of whether the previous notification is read or unread
+                $exists = $admin->notifications->contains(function ($notification) use ($pp) {
+                    return ($notification->data['type'] ?? null) === 'Low Stocks'
+                        && (int) ($notification->data['product_id'] ?? 0) === (int) $pp->product_id;
+                });
 
                 if (!$exists) {
                     $admin->notify(new AdminAlertNotification('Low Stocks', $message, [
@@ -110,10 +117,10 @@ class CheckInventoryAlerts extends Command
             $message = "{$batch->stock} units of {$pp->product->product_name} (Batch: {$batch->batch_number}) will expire in {$daysLeft} days (on {$expiryFormatted}).";
 
             foreach ($admins as $admin) {
-                $exists = $admin->unreadNotifications()
-                    ->where('data->type', 'Expiry Warning')
-                    ->where('data->batch_id', $batch->id)
-                    ->exists();
+                $exists = $admin->notifications->contains(function ($notification) use ($batch) {
+                    return ($notification->data['type'] ?? null) === 'Expiry Warning'
+                        && (int) ($notification->data['batch_id'] ?? 0) === (int) $batch->id;
+                });
 
                 if (!$exists) {
                     $admin->notify(new AdminAlertNotification('Expiry Warning', $message, [
@@ -143,8 +150,8 @@ class CheckInventoryAlerts extends Command
             }
 
             try {
-                // Get up to 15 priority restocks predicted
-                $restocks = $restockPredictorService->getPriorityRestocks($pharmacy->id, 15);
+                // Get priority restocks predicted
+                $restocks = $restockPredictorService->getPriorityRestocks($pharmacy->id, 50);
 
                 foreach ($restocks as $restock) {
                     $daysOfStock = $restock['daysOfStock'] ?? 999;
@@ -158,13 +165,14 @@ class CheckInventoryAlerts extends Command
                         continue;
                     }
 
-                    $message = "Based on a recent sales velocity of {$restock['averageDailySales']} units/day, {$productName} is predicted to stock out in {$daysOfStock} days.";
+                    $daysLabel = $daysOfStock <= 1 ? "less than 1 day" : "less than 7 days ({$daysOfStock} days remaining)";
+                    $message = "{$productName} has {$restock['quantity']} units remaining — this stock will last {$daysLabel} based on current sales velocity ({$restock['averageDailySales']} units/day).";
 
                     foreach ($admins as $admin) {
-                        $exists = $admin->unreadNotifications()
-                            ->where('data->type', 'Shortage Alert')
-                            ->where('data->product_id', $productId)
-                            ->exists();
+                        $exists = $admin->notifications->contains(function ($notification) use ($productId) {
+                            return ($notification->data['type'] ?? null) === 'Shortage Alert'
+                                && (int) ($notification->data['product_id'] ?? 0) === (int) $productId;
+                        });
 
                         if (!$exists) {
                             $admin->notify(new AdminAlertNotification('Shortage Alert', $message, [

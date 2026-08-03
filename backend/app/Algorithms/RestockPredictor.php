@@ -38,13 +38,13 @@ class RestockPredictor
                 ? ($ads * self::DEFAULT_LEAD_TIME_DAYS) + self::MIN_SAFETY_STOCK
                 : self::MIN_SAFETY_STOCK;
 
-            // Filter — only flag products at or below their ROP
-            if ($currentStock > $rop) {
-                continue;
-            }
-
             // Days of Stock (DOS) — how many days until stockout
             $daysOfStock = ($ads > 0) ? ($currentStock / $ads) : 999;
+
+            // Filter — flag products at or below their ROP, OR if stock will run out in <= 7 days
+            if ($currentStock > $rop && $daysOfStock > 7) {
+                continue;
+            }
 
             // Weeks left estimate
             $weeksLeft = ($ads > 0) ? ($currentStock / ($ads * 7)) : 99;
