@@ -27,7 +27,7 @@ class SearchPharmacyProductService
         return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($pharmacyId, $query, $perPage, $cursor) {
             return PharmacyProduct::query()
                 ->with([
-                    'product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
+                    'product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
                     'category:id,category_name,description',
                 ])
                 ->where('pharmacy_id', $pharmacyId)

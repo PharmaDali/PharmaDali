@@ -32,7 +32,7 @@ class ViewCustomerCart
 				'cart.pharmacy:id,pharmacy_name,location',
 				'pharmacyProduct:id,pharmacy_id,product_id,category_id,stock,selling_price,is_available',
 				'pharmacyProduct.batches:id,pharmacy_product_id,stock,expiry_date',
-				'pharmacyProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed',
+				'pharmacyProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
 				'pharmacyProduct.category:id,category_name,description',
 			])
 			->whereHas('cart', function ($query) use ($customerId) {

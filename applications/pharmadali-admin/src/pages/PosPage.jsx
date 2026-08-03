@@ -71,8 +71,25 @@ function ProductTable({ results, selectedId, onSelect, onScroll, loadingMore }) 
                   background: selectedId === item.id ? "#e8f0fe" : "white",
                 }}
               >
-                <td className="py-3 border-0 border-bottom text-center" style={{ color: "#333", borderLeft: selectedId === item.id ? "4px solid #96D2EE" : "4px solid transparent", paddingLeft: 8, paddingRight: 12 }}>
-                  {getFullProductName(item.product)}
+                <td className="py-3 border-0 border-bottom text-start" style={{ color: "#333", borderLeft: selectedId === item.id ? "4px solid #96D2EE" : "4px solid transparent", paddingLeft: 12, paddingRight: 12 }}>
+                  <div className="d-flex align-items-center gap-2">
+                    {item.product?.image_url ? (
+                      <img
+                        src={item.product.image_url}
+                        alt={item.product?.product_name || "Product"}
+                        className="rounded border flex-shrink-0"
+                        style={{ width: "32px", height: "32px", objectFit: "cover", backgroundColor: "#f9fafb" }}
+                      />
+                    ) : (
+                      <div
+                        className="rounded border d-flex align-items-center justify-content-center text-secondary flex-shrink-0"
+                        style={{ width: "32px", height: "32px", backgroundColor: "#f3f4f6" }}
+                      >
+                        <i className="fa-solid fa-pills" style={{ fontSize: "13px", color: "#9ca3af" }} />
+                      </div>
+                    )}
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>{getFullProductName(item.product)}</span>
+                  </div>
                 </td>
                 <td className="px-3 py-3 border-0 border-bottom text-end" style={{ color: "#333" }}>{parseFloat(item.selling_price).toFixed(2)}</td>
                 <td className="px-3 py-3 border-0 border-bottom text-center" style={{ color: "#333" }}>{item.stock}</td>

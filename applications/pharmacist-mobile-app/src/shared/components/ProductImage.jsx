@@ -39,6 +39,28 @@ function getCategoryColors(name) {
   return CATEGORY_COLORS[key] || DEFAULT_COLORS;
 }
 
+function resolveImageUrl(uri) {
+  if (!uri) return null;
+  let strUri = typeof uri === 'string' ? uri : uri?.uri;
+  if (!strUri || typeof strUri !== 'string') return null;
+
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL || '';
+  const apiOrigin = apiUrl.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+
+  if (apiOrigin) {
+    strUri = strUri
+      .replace(/^https?:\/\/localhost:\d+/, apiOrigin)
+      .replace(/^https?:\/\/127\.0\.0\.1:\d+/, apiOrigin)
+      .replace(/^https?:\/\/backend\.test/, apiOrigin);
+
+    if (strUri.startsWith('/')) {
+      strUri = `${apiOrigin}${strUri}`;
+    }
+  }
+
+  return strUri;
+}
+
 export default function ProductImage({
   source,
   fallbackSource,
@@ -51,9 +73,9 @@ export default function ProductImage({
   imageStyle,
   resizeMode = 'contain',
 }) {
-  
   // Track whether brand name wrapped to 2 lines
   const [brandWrapped, setBrandWrapped] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const productData = product || null;
   const generic = productData?.generic_name;
@@ -68,20 +90,28 @@ export default function ProductImage({
   const categoryToUse = categoryName || productData?.category_name;
   const colors = getCategoryColors(categoryToUse);
 
-  const hasProductData = Boolean(generic || brand || strengthForm);
+  // Check if an uploaded product image exists
+  const rawImageUri = typeof source === 'string'
+    ? source
+    : (source?.uri || productData?.image_url || productData?.product?.image_url || fallbackSource);
 
-  if (!hasProductData && (source || fallbackSource)) {
-    const finalSource = source || fallbackSource;
-    const imageSource = typeof finalSource === 'string' ? { uri: finalSource } : finalSource;
+  const resolvedUri = resolveImageUrl(rawImageUri);
+
+  // If a valid uploaded image URL is present and hasn't failed to load, render the uploaded image!
+  if (resolvedUri && !imageError) {
     return (
-      <Image
-        source={imageSource || fallbackSource}
-        style={[{ width, height }, imageStyle]}
-        resizeMode={resizeMode}
-      />
+      <View style={[{ width, height, overflow: 'hidden', borderRadius: 8 * (Math.min(width, height) / 100) }, containerStyle]}>
+        <Image
+          source={{ uri: resolvedUri }}
+          style={[{ width: '100%', height: '100%' }, imageStyle]}
+          resizeMode={resizeMode || 'cover'}
+          onError={() => setImageError(true)}
+        />
+      </View>
     );
   }
 
+  // Fallback: If no uploaded image exists, render the default HTML/CSS card layout
   const scale = Math.min(width, height) / 100;
 
   const brandBaseFontSize = brand && brand.length > 11 ? 11 : 11.5;
