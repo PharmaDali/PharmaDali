@@ -4,8 +4,12 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 
+use App\Models\Order;
 use App\Models\PharmacyProduct;
+use App\Models\ProductBatch;
+use App\Observers\OrderObserver;
 use App\Observers\PharmacyProductObserver;
+use App\Observers\ProductBatchObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,5 +27,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         PharmacyProduct::observe(PharmacyProductObserver::class);
+        ProductBatch::observe(ProductBatchObserver::class);
+        Order::observe(OrderObserver::class);
     }
 }

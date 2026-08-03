@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('notifications/unread', [NotificationController::class, 'unread']);
     Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+    Route::delete('notifications/delete-all', [NotificationController::class, 'deleteAll']);
     Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
 
     // FCM Token

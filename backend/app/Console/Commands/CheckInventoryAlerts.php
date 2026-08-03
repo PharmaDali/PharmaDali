@@ -28,7 +28,7 @@ class CheckInventoryAlerts extends Command
         $this->info('Starting inventory alerts scan...');
 
         // 1. Process Low Stock Alerts
-        $this->processLowStocks();
+        $this->processLowStocks($restockPredictorService);
 
         // 2. Process Expiry Warnings
         $this->processExpiryWarnings();
@@ -43,7 +43,7 @@ class CheckInventoryAlerts extends Command
     /**
      * Scan and alert for low stocks.
      */
-    private function processLowStocks(): void
+    private function processLowStocks(RestockPredictorService $restockPredictorService): void
     {
         $lowStockProducts = PharmacyProduct::with(['product', 'pharmacy.admins'])
             ->where('stock', '<=', 50)
@@ -65,7 +65,20 @@ class CheckInventoryAlerts extends Command
                 continue;
             }
 
-            $message = "Only {$pp->stock} units of {$pp->product->product_name} remaining. This is below your set threshold.";
+            // Estimate remaining supply duration
+            $daysOfStock = 7;
+            try {
+                $predictions = $restockPredictorService->getPriorityRestocks($pp->pharmacy_id, 50);
+                foreach ($predictions as $pred) {
+                    if ((int) ($pred['id'] ?? 0) === (int) $pp->id) {
+                        $daysOfStock = (int) ($pred['daysOfStock'] ?? 7);
+                        break;
+                    }
+                }
+            } catch (\Throwable $e) {}
+
+            $daysLabel = $daysOfStock <= 1 ? "less than 1 day" : "less than {$daysOfStock} days";
+            $message = "Only {$pp->stock} units of {$pp->product->product_name} remaining — this stock will last {$daysLabel}.";
 
             foreach ($admins as $admin) {
                 // Prevent duplicates regardless of whether the previous notification is read or unread
@@ -79,6 +92,7 @@ class CheckInventoryAlerts extends Command
                         'product_id' => $pp->product_id,
                         'product_name' => $pp->product->product_name,
                         'current_stock' => $pp->stock,
+                        'days_of_stock' => $daysOfStock,
                     ]));
                 }
             }

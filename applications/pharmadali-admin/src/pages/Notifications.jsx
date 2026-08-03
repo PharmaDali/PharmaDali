@@ -60,7 +60,8 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
   const meta = getMeta(typeKey);
   const isRead = Boolean(notification.read_at);
 
-  const daysOfStock = notification.data?.days_of_stock ?? notification.days_of_stock;
+  const rawDays = notification.data?.days_of_stock ?? notification.days_of_stock;
+  const daysOfStock = rawDays !== undefined && rawDays !== null ? rawDays : (meta.label === "Stocks" ? 7 : undefined);
   const currentStock = notification.data?.current_stock ?? notification.current_stock;
   const productName = notification.data?.product_name ?? notification.product_name;
 
@@ -167,7 +168,8 @@ function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete }) {
   const isUnread = !item.read_at;
 
   const currentStock = item.data?.current_stock ?? item.current_stock;
-  const daysOfStock = item.data?.days_of_stock ?? item.days_of_stock;
+  const rawDays = item.data?.days_of_stock ?? item.days_of_stock;
+  const daysOfStock = rawDays !== undefined && rawDays !== null ? rawDays : (meta.label === "Stocks" ? 7 : undefined);
   const productName = item.data?.product_name ?? item.product_name;
 
   return (
@@ -279,7 +281,7 @@ function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete }) {
 // ─── Main Notifications Component ─────────────────────────────────────────────
 function Notifications() {
   const { notifications } = useOutletContext();
-  const { unreadNotifications = [], unreadCount = 0, loading, markAsRead, markAllAsRead, deleteNotification } = notifications;
+  const { unreadNotifications = [], unreadCount = 0, loading, markAsRead, markAllAsRead, deleteNotification, deleteAllNotifications } = notifications;
 
   const [activeTab, setActiveTab] = useState("All");
   const [selectedNotification, setSelectedNotification] = useState(null);
@@ -338,16 +340,33 @@ function Notifications() {
           </p>
         </div>
 
-        {unreadCount > 0 && (
-          <button
-            type="button"
-            className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2"
-            onClick={markAllAsRead}
-          >
-            <i className="fa-solid fa-circle-check text-success" />
-            <span>Mark all as read</span>
-          </button>
-        )}
+        <div className="d-flex align-items-center gap-2 flex-wrap">
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2"
+              onClick={markAllAsRead}
+            >
+              <i className="fa-solid fa-circle-check text-success" />
+              <span>Mark all as read</span>
+            </button>
+          )}
+
+          {unreadNotifications.length > 0 && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2"
+              onClick={() => {
+                if (window.confirm("Are you sure you want to delete all notifications?")) {
+                  deleteAllNotifications();
+                }
+              }}
+            >
+              <i className="fa-solid fa-trash-can" />
+              <span>Delete all</span>
+            </button>
+          )}
+        </div>
       </header>
 
       {/* Bootstrap Filter Nav Pills */}
