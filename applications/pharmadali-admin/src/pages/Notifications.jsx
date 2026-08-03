@@ -5,17 +5,17 @@ import { useOutletContext } from "react-router-dom";
 const TYPE_META = {
   "Low Stocks": {
     label: "Stocks",
-    fullTitle: "Low Stocks Alert",
+    fullTitle: "Low Stock Alert",
     color: "#2aabe2",
     bgClass: "alert-badge-stocks",
     icon: "fa-boxes-stacked",
   },
   "Shortage Alert": {
-    label: "Shortage",
-    fullTitle: "Shortage Warning",
-    color: "#ef4444",
-    bgClass: "alert-badge-shortage",
-    icon: "fa-triangle-exclamation",
+    label: "Stocks",
+    fullTitle: "Shortage Forecast",
+    color: "#2aabe2",
+    bgClass: "alert-badge-stocks",
+    icon: "fa-boxes-stacked",
   },
   "Expiry Warning": {
     label: "Expiring",
@@ -48,11 +48,10 @@ const resolveNotificationType = (item) => {
 const getMeta = (typeKey) => TYPE_META[typeKey] ?? TYPE_META["System Alert"];
 
 const TAB_CATEGORIES = [
-  { id: "All", label: "Primary", typeFilter: null, icon: "fa-star" },
-  { id: "Low Stocks", label: "Stocks", typeFilter: "Low Stocks", icon: "fa-boxes-stacked" },
-  { id: "Expiry Warning", label: "Expiring", typeFilter: "Expiry Warning", icon: "fa-clock" },
-  { id: "Shortage Alert", label: "Shortage", typeFilter: "Shortage Alert", icon: "fa-triangle-exclamation" },
-  { id: "System Alert", label: "Alerts", typeFilter: "System Alert", icon: "fa-circle-info" },
+  { id: "All", label: "Primary", types: null, icon: "fa-star" },
+  { id: "Stocks", label: "Stocks", types: ["Low Stocks", "Shortage Alert"], icon: "fa-boxes-stacked" },
+  { id: "Expiry Warning", label: "Expiring", types: ["Expiry Warning"], icon: "fa-clock" },
+  { id: "System Alert", label: "Alerts", types: ["System Alert"], icon: "fa-circle-info" },
 ];
 
 // ─── Detail View Component ───────────────────────────────────────────────────
@@ -60,6 +59,10 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
   const typeKey = resolveNotificationType(notification);
   const meta = getMeta(typeKey);
   const isRead = Boolean(notification.read_at);
+
+  const daysOfStock = notification.data?.days_of_stock ?? notification.days_of_stock;
+  const currentStock = notification.data?.current_stock ?? notification.current_stock;
+  const productName = notification.data?.product_name ?? notification.product_name;
 
   const handleMarkRead = () => {
     onMarkAsRead(notification.id);
@@ -106,19 +109,25 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
           {notification.message || notification.data?.message}
         </h4>
 
-        {notification.data && (notification.data.product_name || notification.data.current_stock !== undefined) && (
+        {(productName || currentStock !== undefined || daysOfStock !== undefined) && (
           <div className="p-3 rounded-3 mb-4 bg-light border">
             <div className="row g-3 text-sm">
-              {notification.data.product_name && (
-                <div className="col-6 col-md-3">
+              {productName && (
+                <div className="col-6 col-md-4">
                   <span className="text-muted d-block small">Product Name</span>
-                  <span className="fw-bold text-dark">{notification.data.product_name}</span>
+                  <span className="fw-bold text-dark">{productName}</span>
                 </div>
               )}
-              {notification.data.current_stock !== undefined && (
-                <div className="col-6 col-md-3">
-                  <span className="text-muted d-block small">Current Stock Level</span>
-                  <span className="fw-bold text-danger">{notification.data.current_stock} units</span>
+              {currentStock !== undefined && (
+                <div className="col-6 col-md-4">
+                  <span className="text-muted d-block small">Current Stock</span>
+                  <span className="fw-bold text-danger">{currentStock} units</span>
+                </div>
+              )}
+              {daysOfStock !== undefined && (
+                <div className="col-6 col-md-4">
+                  <span className="text-muted d-block small">Stock Forecast</span>
+                  <span className="fw-bold text-warning-emphasis">Will last less than {daysOfStock <= 1 ? "1 day" : "7 days"} ({daysOfStock} days left)</span>
                 </div>
               )}
             </div>
@@ -158,6 +167,7 @@ function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete }) {
   const isUnread = !item.read_at;
 
   const currentStock = item.data?.current_stock ?? item.current_stock;
+  const daysOfStock = item.data?.days_of_stock ?? item.days_of_stock;
   const productName = item.data?.product_name ?? item.product_name;
 
   return (
@@ -194,6 +204,14 @@ function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete }) {
               {currentStock !== undefined && currentStock !== null && (
                 <span className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
                   Stock: {currentStock} units
+                </span>
+              )}
+
+              {/* Predicted Days Remaining Pill */}
+              {daysOfStock !== undefined && daysOfStock !== null && (
+                <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill">
+                  <i className="fa-solid fa-clock me-1" />
+                  Will last less than {daysOfStock <= 1 ? "1 day" : "7 days"} ({daysOfStock}d remaining)
                 </span>
               )}
 
@@ -270,9 +288,9 @@ function Notifications() {
   const categoryCounts = useMemo(() => {
     const counts = { All: unreadCount };
     TAB_CATEGORIES.forEach((cat) => {
-      if (cat.typeFilter) {
+      if (cat.types) {
         counts[cat.id] = unreadNotifications.filter(
-          (n) => !n.read_at && resolveNotificationType(n) === cat.typeFilter
+          (n) => !n.read_at && cat.types.includes(resolveNotificationType(n))
         ).length;
       }
     });
@@ -282,11 +300,11 @@ function Notifications() {
   // Filter notifications based on active tab
   const filteredNotifications = useMemo(() => {
     const activeCategory = TAB_CATEGORIES.find((cat) => cat.id === activeTab);
-    if (!activeCategory || !activeCategory.typeFilter) {
+    if (!activeCategory || !activeCategory.types) {
       return unreadNotifications;
     }
     return unreadNotifications.filter(
-      (n) => resolveNotificationType(n) === activeCategory.typeFilter
+      (n) => activeCategory.types.includes(resolveNotificationType(n))
     );
   }, [activeTab, unreadNotifications]);
 

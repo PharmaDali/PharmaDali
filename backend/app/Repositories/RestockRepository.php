@@ -22,15 +22,18 @@ class RestockRepository
      */
     public function getProductSalesSnapshot(int $pharmacyId): array
     {
-        $thirtyDaysAgo = Carbon::today()->subDays(30);
+        $ninetyDaysAgo = Carbon::today()->subDays(90);
 
-        // Query the 30-day sales totals grouped by pharmacy_product_id
+        // Query the sales totals grouped by pharmacy_product_id over a 90-day window
         $salesMap = OrderItem::query()
             ->select('pharmacy_product_id', DB::raw('SUM(quantity) as total_sold'))
-            ->whereHas('order', function ($query) use ($pharmacyId, $thirtyDaysAgo) {
+            ->whereHas('order', function ($query) use ($pharmacyId, $ninetyDaysAgo) {
                 $query->where('pharmacy_id', $pharmacyId)
                       ->where('status', 'completed')
-                      ->where('placed_at', '>=', $thirtyDaysAgo);
+                      ->where(function ($q) use ($ninetyDaysAgo) {
+                          $q->where('placed_at', '>=', $ninetyDaysAgo)
+                            ->orWhere('created_at', '>=', $ninetyDaysAgo);
+                      });
             })
             ->groupBy('pharmacy_product_id')
             ->pluck('total_sold', 'pharmacy_product_id')

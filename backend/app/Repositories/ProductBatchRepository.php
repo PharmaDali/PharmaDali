@@ -66,9 +66,11 @@ class ProductBatchRepository
             ->sortBy('expiry_date')
             ->first()?->expiry_date;
 
-        PharmacyProduct::where('id', $pharmacyProductId)->update([
-            'stock'       => $totalStock,
-        ]);
+        $pharmacyProduct = PharmacyProduct::find($pharmacyProductId);
+        if ($pharmacyProduct) {
+            $pharmacyProduct->stock = $totalStock;
+            $pharmacyProduct->save();
+        }
     }
 
     /**

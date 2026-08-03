@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 const TYPE_META = {
   "Low Stocks": {
-    title: "Low Stock Alert",
+    title: "Stock Alert",
     color: "#2aabe2",
     bg: "#eef8fc",
     badgeBg: "#2aabe2",
@@ -10,12 +10,12 @@ const TYPE_META = {
     icon: "fa-boxes-stacked",
   },
   "Shortage Alert": {
-    title: "Inventory Shortage Alert",
-    color: "#ef4444",
-    bg: "#fef2f2",
-    badgeBg: "#ef4444",
+    title: "Stock & Demand Alert",
+    color: "#2aabe2",
+    bg: "#eef8fc",
+    badgeBg: "#2aabe2",
     badgeText: "#ffffff",
-    icon: "fa-triangle-exclamation",
+    icon: "fa-boxes-stacked",
   },
   "Expiry Warning": {
     title: "Product Expiry Notice",

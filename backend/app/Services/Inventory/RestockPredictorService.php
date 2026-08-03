@@ -29,7 +29,7 @@ class RestockPredictorService
      */
     public function getPriorityRestocks(int $pharmacyId, int $limit = 5): array
     {
-        $cacheKey = "pharmacy_{$pharmacyId}_priority_restocks";
+        $cacheKey = "pharmacy_{$pharmacyId}_priority_restocks_{$limit}";
 
         return Cache::remember($cacheKey, self::CACHE_TTL_SECONDS, function () use ($pharmacyId, $limit) {
             $snapshot = $this->restockRepository->getProductSalesSnapshot($pharmacyId);
@@ -45,7 +45,8 @@ class RestockPredictorService
      */
     public function clearPriorityRestocksCache(int $pharmacyId): void
     {
-        $cacheKey = "pharmacy_{$pharmacyId}_priority_restocks";
-        Cache::forget($cacheKey);
+        Cache::forget("pharmacy_{$pharmacyId}_priority_restocks_5");
+        Cache::forget("pharmacy_{$pharmacyId}_priority_restocks_15");
+        Cache::forget("pharmacy_{$pharmacyId}_priority_restocks_50");
     }
 }
