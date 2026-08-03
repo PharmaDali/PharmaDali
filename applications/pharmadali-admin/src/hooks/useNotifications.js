@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 import {
-  fetchUnreadNotifications,
+  fetchNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   deleteNotification,
@@ -16,20 +16,21 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000
 /**
  * Custom hook that manages real-time admin notifications.
  *
- * - Fetches initial unread notifications via REST.
+ * - Fetches notifications via REST.
  * - Subscribes to the private Laravel Reverb broadcast channel.
+ * - Preserves read notifications in state (updating read_at instead of deleting).
  * - Exposes mark-as-read and delete actions.
  */
 export const useNotifications = () => {
-  const [unreadNotifications, setUnreadNotifications] = useState([]);
+  const [notificationsList, setNotificationsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeToast, setActiveToast] = useState(null);
   const echoRef = useRef(null);
 
-  const loadUnread = useCallback(async () => {
+  const loadNotifications = useCallback(async () => {
     try {
-      const res = await fetchUnreadNotifications();
-      setUnreadNotifications(res?.data ?? []);
+      const res = await fetchNotifications();
+      setNotificationsList(res?.data ?? []);
     } catch (err) {
       console.error("Failed to fetch notifications:", err);
     } finally {
@@ -39,8 +40,8 @@ export const useNotifications = () => {
 
   // Initial load
   useEffect(() => {
-    loadUnread();
-  }, [loadUnread]);
+    loadNotifications();
+  }, [loadNotifications]);
 
   // Laravel Echo / Reverb WebSocket subscription
   useEffect(() => {
@@ -106,12 +107,12 @@ export const useNotifications = () => {
             type: resolvedType,
             message: notification.message || data.message || "",
             dateTime: notification.dateTime || data.dateTime || new Date().toLocaleString(),
-            read_at: notification.read_at || null,
+            read_at: null,
             data: data,
           };
 
           // Prepend real-time notification to the list & trigger toast popup
-          setUnreadNotifications((prev) => [normalized, ...prev]);
+          setNotificationsList((prev) => [normalized, ...prev]);
           setActiveToast(normalized);
         });
     }
@@ -124,7 +125,10 @@ export const useNotifications = () => {
   const handleMarkAsRead = useCallback(async (id) => {
     try {
       await markNotificationAsRead(id);
-      setUnreadNotifications((prev) => prev.filter((n) => n.id !== id));
+      // Mark as read in state without deleting the notification
+      setNotificationsList((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
+      );
     } catch (err) {
       console.error("Failed to mark as read:", err);
     }
@@ -133,7 +137,10 @@ export const useNotifications = () => {
   const handleMarkAllAsRead = useCallback(async () => {
     try {
       await markAllNotificationsAsRead();
-      setUnreadNotifications([]);
+      const nowIso = new Date().toISOString();
+      setNotificationsList((prev) =>
+        prev.map((n) => ({ ...n, read_at: n.read_at || nowIso }))
+      );
     } catch (err) {
       console.error("Failed to mark all as read:", err);
     }
@@ -142,7 +149,7 @@ export const useNotifications = () => {
   const handleDelete = useCallback(async (id) => {
     try {
       await deleteNotification(id);
-      setUnreadNotifications((prev) => prev.filter((n) => n.id !== id));
+      setNotificationsList((prev) => prev.filter((n) => n.id !== id));
     } catch (err) {
       console.error("Failed to delete notification:", err);
     }
@@ -152,13 +159,16 @@ export const useNotifications = () => {
     setActiveToast(null);
   }, []);
 
+  const unreadCount = notificationsList.filter((n) => !n.read_at).length;
+
   return {
-    unreadNotifications,
-    unreadCount: unreadNotifications.length,
+    notificationsList,
+    unreadNotifications: notificationsList, // Expose full list for tab filtering
+    unreadCount,
     loading,
     activeToast,
     clearToast,
-    reload: loadUnread,
+    reload: loadNotifications,
     markAsRead: handleMarkAsRead,
     markAllAsRead: handleMarkAllAsRead,
     deleteNotification: handleDelete,

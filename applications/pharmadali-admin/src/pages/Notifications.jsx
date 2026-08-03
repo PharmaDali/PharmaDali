@@ -4,25 +4,29 @@ import { useOutletContext } from "react-router-dom";
 // ─── Alert Category Configurations ─────────────────────────────────────────────
 const TYPE_META = {
   "Low Stocks": {
-    label: "Low Stocks",
+    label: "Stocks",
+    fullTitle: "Low Stocks Alert",
     color: "#2aabe2",
     bgClass: "alert-badge-stocks",
     icon: "fa-boxes-stacked",
   },
   "Shortage Alert": {
-    label: "Shortage Alert",
+    label: "Shortage",
+    fullTitle: "Shortage Warning",
     color: "#ef4444",
     bgClass: "alert-badge-shortage",
     icon: "fa-triangle-exclamation",
   },
   "Expiry Warning": {
-    label: "Expiry Warning",
+    label: "Expiring",
+    fullTitle: "Expiry Notice",
     color: "#f59e0b",
     bgClass: "alert-badge-expiry",
     icon: "fa-clock",
   },
   "System Alert": {
-    label: "System Alert",
+    label: "Alerts",
+    fullTitle: "System Alert",
     color: "#6b7280",
     bgClass: "alert-badge-system",
     icon: "fa-circle-info",
@@ -48,17 +52,17 @@ const TAB_CATEGORIES = [
   { id: "Low Stocks", label: "Stocks", typeFilter: "Low Stocks", icon: "fa-boxes-stacked" },
   { id: "Expiry Warning", label: "Expiring", typeFilter: "Expiry Warning", icon: "fa-clock" },
   { id: "Shortage Alert", label: "Shortage", typeFilter: "Shortage Alert", icon: "fa-triangle-exclamation" },
-  { id: "System Alert", label: "System Alert", typeFilter: "System Alert", icon: "fa-circle-info" },
+  { id: "System Alert", label: "Alerts", typeFilter: "System Alert", icon: "fa-circle-info" },
 ];
 
 // ─── Detail View Component ───────────────────────────────────────────────────
 function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
   const typeKey = resolveNotificationType(notification);
   const meta = getMeta(typeKey);
+  const isRead = Boolean(notification.read_at);
 
   const handleMarkRead = () => {
     onMarkAsRead(notification.id);
-    onBack();
   };
 
   const handleDelete = () => {
@@ -80,10 +84,17 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
 
       <div className="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
         <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-          <span className={`alert-badge ${meta.bgClass}`}>
-            <i className={`fa-solid ${meta.icon}`} />
-            {typeKey}
-          </span>
+          <div className="d-flex align-items-center gap-2">
+            <span className={`alert-badge ${meta.bgClass}`}>
+              <i className={`fa-solid ${meta.icon}`} />
+              {meta.fullTitle}
+            </span>
+            {isRead ? (
+              <span className="badge bg-light text-muted border">Read</span>
+            ) : (
+              <span className="badge bg-primary-subtle text-primary border border-primary-subtle">Unread</span>
+            )}
+          </div>
 
           <span className="text-muted small d-flex align-items-center gap-1">
             <i className="fa-solid fa-clock text-muted" />
@@ -115,7 +126,7 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
         )}
 
         <div className="d-flex gap-2 flex-wrap pt-3 border-top mt-3">
-          {!notification.read_at && (
+          {!isRead && (
             <button
               type="button"
               className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 px-3 py-2 rounded-3"
@@ -173,16 +184,22 @@ function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete }) {
         <div className="flex-grow-1 min-w-0">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
             <div className="d-flex align-items-center gap-2 flex-wrap">
-              {/* Alert Category Badge */}
+              {/* Category Badge */}
               <span className={`alert-badge ${meta.bgClass}`}>
                 <i className={`fa-solid ${meta.icon}`} />
-                {typeKey}
+                {meta.label}
               </span>
 
               {/* Stock Info Pill */}
               {currentStock !== undefined && currentStock !== null && (
                 <span className="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">
                   Stock: {currentStock} units
+                </span>
+              )}
+
+              {!isUnread && (
+                <span className="badge bg-light text-muted border" style={{ fontSize: "0.7rem" }}>
+                  Read
                 </span>
               )}
             </div>
@@ -244,23 +261,23 @@ function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete }) {
 // ─── Main Notifications Component ─────────────────────────────────────────────
 function Notifications() {
   const { notifications } = useOutletContext();
-  const { unreadNotifications = [], loading, markAsRead, markAllAsRead, deleteNotification } = notifications;
+  const { unreadNotifications = [], unreadCount = 0, loading, markAsRead, markAllAsRead, deleteNotification } = notifications;
 
   const [activeTab, setActiveTab] = useState("All");
   const [selectedNotification, setSelectedNotification] = useState(null);
 
   // Compute category unread counts
   const categoryCounts = useMemo(() => {
-    const counts = { All: unreadNotifications.length };
+    const counts = { All: unreadCount };
     TAB_CATEGORIES.forEach((cat) => {
       if (cat.typeFilter) {
         counts[cat.id] = unreadNotifications.filter(
-          (n) => resolveNotificationType(n) === cat.typeFilter
+          (n) => !n.read_at && resolveNotificationType(n) === cat.typeFilter
         ).length;
       }
     });
     return counts;
-  }, [unreadNotifications]);
+  }, [unreadNotifications, unreadCount]);
 
   // Filter notifications based on active tab
   const filteredNotifications = useMemo(() => {
@@ -291,10 +308,10 @@ function Notifications() {
         <div>
           <div className="d-flex align-items-center gap-2 mb-1">
             <h4 className="notifications-page-title mb-0">Notifications</h4>
-            {unreadNotifications.length > 0 && (
+            {unreadCount > 0 && (
               <span className="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 fw-semibold">
                 <i className="fa-solid fa-bell me-1" />
-                {unreadNotifications.length} Unread
+                {unreadCount} Unread
               </span>
             )}
           </div>
@@ -303,7 +320,7 @@ function Notifications() {
           </p>
         </div>
 
-        {unreadNotifications.length > 0 && (
+        {unreadCount > 0 && (
           <button
             type="button"
             className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2"
