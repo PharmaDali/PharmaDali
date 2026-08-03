@@ -58,12 +58,31 @@ export const useNotifications = () => {
       enabledTransports: ["ws", "wss"],
       disableStats: true,
       authEndpoint: `${API_BASE_URL.replace(/\/$/, "")}/broadcasting/auth`,
-      auth: {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
+      authorizer: (channel) => ({
+        authorize: (socketId, callback) => {
+          const currentToken = localStorage.getItem("token");
+          fetch(`${API_BASE_URL.replace(/\/$/, "")}/broadcasting/auth`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${currentToken || ""}`,
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              socket_id: socketId,
+              channel_name: channel.name,
+            }),
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error(`Broadcast auth failed with status ${response.status}`);
+              }
+              return response.json();
+            })
+            .then((data) => callback(false, data))
+            .catch((error) => callback(true, error));
         },
-      },
+      }),
     });
 
     echoRef.current = echo;

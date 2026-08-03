@@ -18,6 +18,10 @@ Broadcast::channel('conversations.{conversationId}', function (User $user, int $
         ->exists();
 });
 
+Broadcast::channel('App.Models.User.{id}', function (User $user, int $id) {
+    return (int) $user->id === (int) $id;
+});
+
 Broadcast::channel('conversations.{conversationId}.staff', function (User $user, int $conversationId) {
     return in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)
         && Conversation::query()
