@@ -2,36 +2,32 @@ import { useEffect } from "react";
 
 const TYPE_META = {
   "Low Stocks": {
-    color: "#2563eb",
-    bg: "#eff6ff",
-    border: "#bfdbfe",
-    badgeBg: "#dbeafe",
-    badgeText: "#1e40af",
+    color: "#2aabe2",
+    bg: "#eef8fc",
+    badgeBg: "#2aabe2",
+    badgeText: "#ffffff",
     icon: "fa-boxes-stacked",
   },
   "Shortage Alert": {
-    color: "#dc2626",
+    color: "#ef4444",
     bg: "#fef2f2",
-    border: "#fecaca",
-    badgeBg: "#fee2e2",
-    badgeText: "#991b1b",
+    badgeBg: "#ef4444",
+    badgeText: "#ffffff",
     icon: "fa-triangle-exclamation",
   },
   "Expiry Warning": {
-    color: "#d97706",
+    color: "#f59e0b",
     bg: "#fffbeb",
-    border: "#fde68a",
-    badgeBg: "#fef3c7",
-    badgeText: "#92400e",
-    icon: "fa-hourglass-half",
+    badgeBg: "#f59e0b",
+    badgeText: "#ffffff",
+    icon: "fa-clock",
   },
   "System Alert": {
-    color: "#7c3aed",
-    bg: "#f5f3ff",
-    border: "#ddd6fe",
-    badgeBg: "#ede9fe",
-    badgeText: "#5b21b6",
-    icon: "fa-bell",
+    color: "#6b7280",
+    bg: "#f3f4f6",
+    badgeBg: "#6b7280",
+    badgeText: "#ffffff",
+    icon: "fa-circle-info",
   },
 };
 
@@ -53,12 +49,12 @@ function ToastNotification({ toast, onClose }) {
   return (
     <div
       className="position-fixed top-0 end-0 p-3"
-      style={{ zIndex: 1080, maxWidth: "420px", width: "100%" }}
+      style={{ zIndex: 1080, maxWidth: "400px", width: "100%" }}
     >
       <div
-        className="card border-0 shadow-lg overflow-hidden animate__animated animate__fadeInRight"
+        className="card border-0 shadow-lg overflow-hidden"
         style={{
-          borderRadius: "14px",
+          borderRadius: "12px",
           background: "#ffffff",
           borderLeft: `5px solid ${meta.color}`,
         }}
@@ -69,11 +65,11 @@ function ToastNotification({ toast, onClose }) {
             <div
               className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
               style={{
-                width: "42px",
-                height: "42px",
+                width: "40px",
+                height: "40px",
                 backgroundColor: meta.bg,
                 color: meta.color,
-                fontSize: "18px",
+                fontSize: "16px",
               }}
             >
               <i className={`fa-solid ${meta.icon}`} />
@@ -87,7 +83,7 @@ function ToastNotification({ toast, onClose }) {
                   style={{
                     backgroundColor: meta.badgeBg,
                     color: meta.badgeText,
-                    fontSize: "0.72rem",
+                    fontSize: "0.7rem",
                     fontWeight: 600,
                   }}
                 >
@@ -98,7 +94,7 @@ function ToastNotification({ toast, onClose }) {
                 </span>
               </div>
               <p
-                className="mb-0 text-dark fw-semibold"
+                className="mb-0 text-dark fw-medium"
                 style={{ fontSize: "0.88rem", lineHeight: 1.35 }}
               >
                 {toast.message}
@@ -109,7 +105,7 @@ function ToastNotification({ toast, onClose }) {
             <button
               type="button"
               className="btn-close text-muted ms-auto flex-shrink-0"
-              style={{ fontSize: "0.8rem" }}
+              style={{ fontSize: "0.75rem" }}
               aria-label="Close"
               onClick={onClose}
             />
