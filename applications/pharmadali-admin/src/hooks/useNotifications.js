@@ -92,8 +92,25 @@ export const useNotifications = () => {
     if (userId) {
       echo.private(`App.Models.User.${userId}`)
         .notification((notification) => {
+          // Normalize notification type if Laravel sends raw class name in notification.type
+          const rawType = notification.type;
+          const data = notification.data || notification;
+          const resolvedType =
+            (typeof rawType === "string" && rawType.includes("\\"))
+              ? (data.type || notification.alertType || "System Alert")
+              : (rawType || data.type || "System Alert");
+
+          const normalized = {
+            id: notification.id || String(Date.now()),
+            type: resolvedType,
+            message: notification.message || data.message || "",
+            dateTime: notification.dateTime || data.dateTime || new Date().toLocaleString(),
+            read_at: notification.read_at || null,
+            data: data,
+          };
+
           // Prepend real-time notification to the list
-          setUnreadNotifications((prev) => [notification, ...prev]);
+          setUnreadNotifications((prev) => [normalized, ...prev]);
         });
     }
 

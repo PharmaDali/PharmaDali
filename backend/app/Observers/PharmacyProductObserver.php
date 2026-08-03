@@ -8,11 +8,29 @@ use App\Notifications\AdminAlertNotification;
 class PharmacyProductObserver
 {
     /**
+     * Handle the PharmacyProduct "created" event.
+     */
+    public function created(PharmacyProduct $pharmacyProduct): void
+    {
+        $this->checkLowStock($pharmacyProduct);
+    }
+
+    /**
      * Handle the PharmacyProduct "updated" event.
      */
     public function updated(PharmacyProduct $pharmacyProduct): void
     {
-        if ($pharmacyProduct->wasChanged('stock') && $pharmacyProduct->stock <= 50) {
+        if ($pharmacyProduct->wasChanged('stock')) {
+            $this->checkLowStock($pharmacyProduct);
+        }
+    }
+
+    /**
+     * Helper to verify low stock thresholds and send admin notification.
+     */
+    private function checkLowStock(PharmacyProduct $pharmacyProduct): void
+    {
+        if ($pharmacyProduct->stock <= 50) {
             $product = $pharmacyProduct->product;
             $pharmacy = $pharmacyProduct->pharmacy;
 

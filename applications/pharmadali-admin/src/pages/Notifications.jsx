@@ -1,49 +1,77 @@
 import { useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 
-// ─── Type Metadata ────────────────────────────────────────────────────────────
+// ─── Type Metadata & Styling Configuration ─────────────────────────────────────
 const TYPE_META = {
   "Low Stocks": {
-    color: "#2aabe2",
-    bg: "#d2edf8",
-    icon: "fa-box-open",
-    badgeClass: "text-info",
+    label: "Low Stocks",
+    color: "#2563eb",
+    bg: "#eff6ff",
+    border: "#bfdbfe",
+    badgeBg: "#dbeafe",
+    badgeText: "#1e40af",
+    icon: "fa-boxes-stacked",
+    gradient: "linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)",
   },
   "Shortage Alert": {
-    color: "#ef4444",
-    bg: "#fde3e1",
+    label: "Shortage Alert",
+    color: "#dc2626",
+    bg: "#fef2f2",
+    border: "#fecaca",
+    badgeBg: "#fee2e2",
+    badgeText: "#991b1b",
     icon: "fa-triangle-exclamation",
-    badgeClass: "text-danger",
+    gradient: "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)",
   },
   "Expiry Warning": {
-    color: "#f59e0b",
-    bg: "#fdf0dd",
-    icon: "fa-clock",
-    badgeClass: "text-warning",
+    label: "Expiry Warning",
+    color: "#d97706",
+    bg: "#fffbeb",
+    border: "#fde68a",
+    badgeBg: "#fef3c7",
+    badgeText: "#92400e",
+    icon: "fa-hourglass-half",
+    gradient: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
   },
   "System Alert": {
-    color: "#6b7280",
-    bg: "#eceaea",
-    icon: "fa-circle-info",
-    badgeClass: "text-secondary",
+    label: "System Alert",
+    color: "#7c3aed",
+    bg: "#f5f3ff",
+    border: "#ddd6fe",
+    badgeBg: "#ede9fe",
+    badgeText: "#5b21b6",
+    icon: "fa-bell",
+    gradient: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
   },
 };
 
-const getMeta = (type) => TYPE_META[type] ?? TYPE_META["System Alert"];
-
-const TAB_TYPE_MAP = {
-  Primary: null,
-  Stocks: "Low Stocks",
-  Expiring: "Expiry Warning",
-  Shortage: "Shortage Alert",
-  "System Alert": "System Alert",
+/**
+ * Safely resolves the notification type string.
+ * Handles cases where type is a raw Laravel PHP class name (e.g. App\Notifications\AdminAlertNotification)
+ */
+const resolveNotificationType = (item) => {
+  if (!item) return "System Alert";
+  let t = item.type || item.data?.type || "System Alert";
+  if (typeof t === "string" && (t.includes("\\") || t.startsWith("App"))) {
+    t = item.data?.type || item.alertType || "System Alert";
+  }
+  return TYPE_META[t] ? t : "System Alert";
 };
 
-const TABS = Object.keys(TAB_TYPE_MAP);
+const getMeta = (typeKey) => TYPE_META[typeKey] ?? TYPE_META["System Alert"];
 
-// ─── Detail View ──────────────────────────────────────────────────────────────
+const TAB_CATEGORIES = [
+  { id: "All", label: "Primary", typeFilter: null, icon: "fa-star" },
+  { id: "Low Stocks", label: "Stocks", typeFilter: "Low Stocks", icon: "fa-boxes-stacked" },
+  { id: "Expiry Warning", label: "Expiring", typeFilter: "Expiry Warning", icon: "fa-hourglass-half" },
+  { id: "Shortage Alert", label: "Shortage", typeFilter: "Shortage Alert", icon: "fa-triangle-exclamation" },
+  { id: "System Alert", label: "System Alert", typeFilter: "System Alert", icon: "fa-shield-halved" },
+];
+
+// ─── Detail View Component ───────────────────────────────────────────────────
 function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
-  const meta = getMeta(notification.type);
+  const typeKey = resolveNotificationType(notification);
+  const meta = getMeta(typeKey);
 
   const handleMarkRead = () => {
     onMarkAsRead(notification.id);
@@ -56,60 +84,80 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
   };
 
   return (
-    <section>
+    <section className="py-2">
       <button
         type="button"
-        className="btn btn-link p-0 mb-3 d-flex align-items-center gap-2 text-decoration-none fw-bold fs-5"
-        style={{ color: "#23252b" }}
+        className="btn btn-link p-0 mb-4 d-inline-flex align-items-center gap-2 text-decoration-none fw-semibold text-dark"
         onClick={onBack}
       >
-        <i className="fa-solid fa-chevron-left" style={{ fontSize: "13px" }} />
-        <span>Notifications</span>
+        <i className="fa-solid fa-arrow-left" style={{ fontSize: "14px" }} />
+        <span>Back to Notifications</span>
       </button>
 
-      <div
-        className="rounded-3 p-4 p-md-5"
-        style={{ backgroundColor: meta.bg, minHeight: "420px" }}
-      >
-        {/* Type badge */}
-        <span
-          className="badge rounded-pill mb-3"
-          style={{ backgroundColor: meta.color, fontSize: "0.85rem" }}
-        >
-          <i className={`fa-solid ${meta.icon} me-1`} />
-          {notification.type}
-        </span>
+      <div className="notification-detail-card">
+        <div
+          className="notification-detail-header-bar"
+          style={{ background: meta.gradient }}
+        />
 
-        <p
-          className="mb-4 fw-semibold"
-          style={{ color: meta.color, fontSize: "clamp(1.4rem, 3vw, 2.2rem)", lineHeight: 1.3 }}
-        >
-          {notification.message}
-        </p>
+        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
+          <span
+            className="alert-type-pill"
+            style={{
+              backgroundColor: meta.badgeBg,
+              color: meta.badgeText,
+              border: `1px solid ${meta.border}`,
+            }}
+          >
+            <i className={`fa-solid ${meta.icon}`} />
+            {typeKey}
+          </span>
 
-        <p className="text-muted mb-4" style={{ fontSize: "0.9rem" }}>
-          <i className="fa-regular fa-clock me-1" />
-          {notification.dateTime}
-        </p>
+          <span className="text-muted small d-flex align-items-center gap-1">
+            <i className="fa-regular fa-clock" />
+            {notification.dateTime || "Just now"}
+          </span>
+        </div>
 
-        <div className="d-flex gap-2 flex-wrap mt-auto">
+        <h3 className="fw-bold mb-4 text-dark" style={{ lineHeight: 1.4 }}>
+          {notification.message || notification.data?.message}
+        </h3>
+
+        {notification.data && notification.data.product_name && (
+          <div className="p-3 rounded-3 mb-4 border" style={{ backgroundColor: "#f8fafc" }}>
+            <div className="row g-2 text-sm">
+              <div className="col-6 col-md-3">
+                <span className="text-muted d-block small">Product</span>
+                <span className="fw-semibold text-dark">{notification.data.product_name}</span>
+              </div>
+              {notification.data.current_stock !== undefined && (
+                <div className="col-6 col-md-3">
+                  <span className="text-muted d-block small">Current Stock</span>
+                  <span className="fw-semibold text-danger">{notification.data.current_stock} units</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="d-flex gap-2 flex-wrap pt-3 border-top mt-4">
           {!notification.read_at && (
             <button
               type="button"
-              className="btn btn-sm btn-light border"
+              className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 px-3"
               onClick={handleMarkRead}
             >
-              <i className="fa-regular fa-circle-check me-1" />
+              <i className="fa-regular fa-circle-check" />
               Mark as Read
             </button>
           )}
           <button
             type="button"
-            className="btn btn-sm btn-outline-danger"
+            className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 px-3"
             onClick={handleDelete}
           >
-            <i className="fa-regular fa-trash-can me-1" />
-            Delete
+            <i className="fa-regular fa-trash-can" />
+            Delete Notification
           </button>
         </div>
       </div>
@@ -117,89 +165,87 @@ function NotificationDetail({ notification, onBack, onMarkAsRead, onDelete }) {
   );
 }
 
-// ─── Row ──────────────────────────────────────────────────────────────────────
+// ─── Table Row Component ──────────────────────────────────────────────────────
 function NotificationRow({ item, onSelect, onMarkAsRead, onDelete }) {
-  const meta = getMeta(item.type);
+  const typeKey = resolveNotificationType(item);
+  const meta = getMeta(typeKey);
   const isUnread = !item.read_at;
 
   return (
     <tr
       onClick={() => onSelect(item)}
       className="align-middle notification-row"
-      style={{ cursor: "pointer" }}
+      style={{ cursor: "pointer", backgroundColor: isUnread ? "#ffffff" : "#fcfcfd" }}
     >
-      {/* Unread indicator */}
-      <td className="ps-3 pe-1" style={{ width: "28px" }}>
+      {/* Unread Indicator */}
+      <td className="ps-3 pe-2" style={{ width: "24px" }}>
         {isUnread && (
           <span
-            className="d-block rounded-circle"
-            style={{ width: 8, height: 8, backgroundColor: meta.color }}
+            className="unread-indicator-dot"
+            style={{ backgroundColor: meta.color }}
+            title="Unread"
           />
         )}
       </td>
 
-      {/* Icon */}
-      <td style={{ width: "40px" }}>
+      {/* Alert Type Badge */}
+      <td style={{ width: "160px" }}>
         <span
-          className="d-flex align-items-center justify-content-center rounded-circle"
+          className="alert-type-pill"
           style={{
-            width: 32,
-            height: 32,
-            backgroundColor: meta.bg,
-            color: meta.color,
-            fontSize: 14,
-            flexShrink: 0,
+            backgroundColor: meta.badgeBg,
+            color: meta.badgeText,
+            border: `1px solid ${meta.border}`,
           }}
         >
           <i className={`fa-solid ${meta.icon}`} />
-        </span>
-      </td>
-
-      {/* Type */}
-      <td style={{ width: "140px" }}>
-        <span className="fw-semibold" style={{ color: meta.color, fontSize: "0.85rem" }}>
-          {item.type}
+          {typeKey}
         </span>
       </td>
 
       {/* Message */}
       <td>
         <span
-          className="text-truncate d-block"
+          className="d-block text-truncate"
           style={{
-            color: isUnread ? "#23252b" : "#666",
-            fontWeight: isUnread ? 500 : 400,
-            maxWidth: "520px",
-            fontSize: "0.88rem",
+            color: isUnread ? "#0f172a" : "#475569",
+            fontWeight: isUnread ? 600 : 400,
+            maxWidth: "580px",
           }}
         >
-          {item.message}
+          {item.message || item.data?.message}
         </span>
       </td>
 
-      {/* Timestamp */}
-      <td className="text-nowrap text-muted" style={{ fontSize: "0.78rem", width: "170px" }}>
-        {item.dateTime}
+      {/* Date & Time */}
+      <td className="text-nowrap text-muted small" style={{ width: "170px" }}>
+        {item.dateTime || "Just now"}
       </td>
 
-      {/* Actions */}
-      <td className="pe-3" style={{ width: "64px" }}>
-        <div className="d-flex gap-2 align-items-center">
+      {/* Quick Actions */}
+      <td className="pe-3 text-end" style={{ width: "80px" }}>
+        <div className="d-flex gap-1 justify-content-end align-items-center">
           {isUnread && (
             <button
               type="button"
-              className="btn btn-link p-0 text-muted notification-action-btn"
+              className="notification-action-btn"
               title="Mark as read"
-              onClick={(e) => { e.stopPropagation(); onMarkAsRead(item.id); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                onMarkAsRead(item.id);
+              }}
             >
               <i className="fa-regular fa-circle-check" style={{ fontSize: 13 }} />
             </button>
           )}
           <button
             type="button"
-            className="btn btn-link p-0 text-muted notification-action-btn"
+            className="notification-action-btn btn-delete"
             title="Delete"
-            onClick={(e) => { e.stopPropagation(); onDelete(item.id); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(item.id);
+            }}
           >
             <i className="fa-regular fa-trash-can" style={{ fontSize: 13 }} />
           </button>
@@ -209,29 +255,36 @@ function NotificationRow({ item, onSelect, onMarkAsRead, onDelete }) {
   );
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+// ─── Main Notifications Component ─────────────────────────────────────────────
 function Notifications() {
   const { notifications } = useOutletContext();
-  const { unreadNotifications, loading, markAsRead, markAllAsRead, deleteNotification } = notifications;
+  const { unreadNotifications = [], loading, markAsRead, markAllAsRead, deleteNotification } = notifications;
 
-  const [activeTab, setActiveTab] = useState("Primary");
+  const [activeTab, setActiveTab] = useState("All");
   const [selectedNotification, setSelectedNotification] = useState(null);
 
-  // Tab counts (only from unread)
-  const tabCounts = useMemo(() => {
-    return TABS.reduce((acc, tab) => {
-      const filterType = TAB_TYPE_MAP[tab];
-      acc[tab] = filterType
-        ? unreadNotifications.filter((n) => n.type === filterType).length
-        : unreadNotifications.length;
-      return acc;
-    }, {});
+  // Compute category unread notification counts
+  const categoryCounts = useMemo(() => {
+    const counts = { All: unreadNotifications.length };
+    TAB_CATEGORIES.forEach((cat) => {
+      if (cat.typeFilter) {
+        counts[cat.id] = unreadNotifications.filter(
+          (n) => resolveNotificationType(n) === cat.typeFilter
+        ).length;
+      }
+    });
+    return counts;
   }, [unreadNotifications]);
 
+  // Filter notifications based on active tab
   const filteredNotifications = useMemo(() => {
-    const filterType = TAB_TYPE_MAP[activeTab];
-    if (!filterType) return unreadNotifications;
-    return unreadNotifications.filter((n) => n.type === filterType);
+    const activeCategory = TAB_CATEGORIES.find((cat) => cat.id === activeTab);
+    if (!activeCategory || !activeCategory.typeFilter) {
+      return unreadNotifications;
+    }
+    return unreadNotifications.filter(
+      (n) => resolveNotificationType(n) === activeCategory.typeFilter
+    );
   }, [activeTab, unreadNotifications]);
 
   if (selectedNotification) {
@@ -246,95 +299,117 @@ function Notifications() {
   }
 
   return (
-    <section>
-      <header className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+    <section className="py-2">
+      {/* Header */}
+      <header className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
         <div>
-          <h4 className="fw-bold mb-1 admin-page-title">Notifications</h4>
-          <p className="admin-page-subtitle mb-0">Real-time pharmacy alerts and system updates.</p>
+          <div className="d-flex align-items-center gap-2 mb-1">
+            <h4 className="fw-bold mb-0 text-dark">Notifications</h4>
+            {unreadNotifications.length > 0 && (
+              <span className="notifications-title-badge">
+                <i className="fa-solid fa-bell" />
+                {unreadNotifications.length} Unread
+              </span>
+            )}
+          </div>
+          <p className="text-muted small mb-0">
+            Real-time inventory alerts, shortage warnings, and system notifications.
+          </p>
         </div>
+
         {unreadNotifications.length > 0 && (
           <button
             type="button"
-            className="btn btn-sm btn-outline-secondary"
+            className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 rounded-3 px-3 py-2"
             onClick={markAllAsRead}
           >
-            <i className="fa-regular fa-circle-check me-1" />
-            Mark all as read
+            <i className="fa-regular fa-circle-check text-success" />
+            <span>Mark all as read</span>
           </button>
         )}
       </header>
 
-      {/* Tabs */}
-      <ul className="nav nav-tabs mb-0 border-bottom border-2" style={{ borderColor: "#86878f" }}>
-        {TABS.map((tab) => {
-          const isActive = activeTab === tab;
-          const count = tabCounts[tab];
+      {/* Filter Tabs */}
+      <div className="notifications-nav-tabs mb-3">
+        {TAB_CATEGORIES.map((tab) => {
+          const isActive = activeTab === tab.id;
+          const count = categoryCounts[tab.id] || 0;
+          const tabMeta = tab.typeFilter ? getMeta(tab.typeFilter) : null;
+
           return (
-            <li className="nav-item" key={tab}>
-              <button
-                type="button"
-                className={`nav-link border-0 border-bottom border-2 rounded-0 ${isActive ? "fw-semibold" : "fw-medium text-muted"}`}
-                style={{
-                  borderBottomColor: isActive ? "var(--pd-primary)" : "transparent",
-                  color: isActive ? "var(--pd-primary)" : undefined,
-                  marginBottom: "-2px",
-                }}
-                onClick={() => { setActiveTab(tab); setSelectedNotification(null); }}
-              >
-                {tab === "Primary" && <i className="fa-regular fa-star me-1" />}
-                {tab}
-                {count > 0 && (
-                  <span className="badge rounded-pill ms-1 text-white"
-                    style={{ backgroundColor: getMeta(TAB_TYPE_MAP[tab] ?? "Low Stocks").color, fontSize: "0.65rem" }}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            </li>
+            <button
+              key={tab.id}
+              type="button"
+              className={`notifications-nav-item ${isActive ? "active" : ""}`}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setSelectedNotification(null);
+              }}
+            >
+              <i className={`fa-regular ${tab.icon}`} />
+              <span>{tab.label}</span>
+              {count > 0 && (
+                <span
+                  className="tab-badge"
+                  style={{
+                    backgroundColor: isActive
+                      ? (tabMeta ? tabMeta.color : "#2563eb")
+                      : "#e2e8f0",
+                    color: isActive ? "#ffffff" : "#475569",
+                  }}
+                >
+                  {count}
+                </span>
+              )}
+            </button>
           );
         })}
-      </ul>
+      </div>
 
-      {/* Table */}
-      <div className="table-responsive rounded-3 mt-2">
-        <table className="table align-middle mb-0 notification-table">
-          <thead>
-            <tr>
-              <th style={{ width: "28px" }} />
-              <th style={{ width: "40px" }} />
-              <th>Type</th>
-              <th>Message</th>
-              <th>Date &amp; Time</th>
-              <th style={{ width: "64px" }} />
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+      {/* Notifications Table Card */}
+      <div className="notifications-card">
+        <div className="table-responsive">
+          <table className="table notification-table mb-0">
+            <thead>
               <tr>
-                <td colSpan={6} className="text-center py-5">
-                  <div className="spinner-border spinner-border-sm text-secondary" role="status" />
-                  <span className="ms-2 text-muted small">Loading notifications…</span>
-                </td>
+                <th style={{ width: "24px" }} />
+                <th style={{ width: "160px" }}>Alert Type</th>
+                <th>Notification Message</th>
+                <th style={{ width: "170px" }}>Date &amp; Time</th>
+                <th className="text-end" style={{ width: "80px" }}>Actions</th>
               </tr>
-            ) : filteredNotifications.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center py-5 text-muted small">
-                  No notifications for this category.
-                </td>
-              </tr>
-            ) : (
-              filteredNotifications.map((item) => (
-                <NotificationRow
-                  key={item.id}
-                  item={item}
-                  onSelect={setSelectedNotification}
-                  onMarkAsRead={markAsRead}
-                  onDelete={deleteNotification}
-                />
-              ))
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-5">
+                    <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
+                    <span className="text-muted small">Loading notifications…</span>
+                  </td>
+                </tr>
+              ) : filteredNotifications.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-5">
+                    <div className="py-3">
+                      <i className="fa-regular fa-bell-slash text-muted fs-3 mb-2 d-block" />
+                      <p className="text-muted small mb-0">No notifications found for this category.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredNotifications.map((item) => (
+                  <NotificationRow
+                    key={item.id}
+                    item={item}
+                    onSelect={setSelectedNotification}
+                    onMarkAsRead={markAsRead}
+                    onDelete={deleteNotification}
+                  />
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </section>
   );
