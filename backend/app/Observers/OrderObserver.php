@@ -55,7 +55,8 @@ class OrderObserver
             $message = "New order #{$order->order_number} placed by {$customerName} ({$fulfillment}).";
         } else {
             $statusFormatted = ucfirst(str_replace('_', ' ', $order->status));
-            $message = "Order #{$order->order_number} status updated to {$statusFormatted}.";
+            $reasonInfo = $order->cancellation_reason ? " (Reason: {$order->cancellation_reason})" : "";
+            $message = "Order #{$order->order_number} status updated to {$statusFormatted}{$reasonInfo}.";
         }
 
         foreach ($admins as $admin) {
