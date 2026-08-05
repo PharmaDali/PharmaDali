@@ -22,7 +22,8 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.pharmadali.pharmacist"
+      "package": "com.pharmadali.pharmacist",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/app_icon.png"

@@ -85,35 +85,38 @@ class PlaceOrderService
         }
 
         try {
-            $order = DB::transaction(function () use ($activeCart, $cartItems, $payload, $customer, $selectedCartItemIds, $user, $pharmacy) {
-                $order = $this->createOrderFromCart(
+            $order = DB::transaction(function () use ($activeCart, $cartItems, $payload, $customer, $selectedCartItemIds, $pharmacy) {
+                return $this->createOrderFromCart(
                     activeCart: $activeCart,
                     cartItems: $cartItems,
                     payload: $payload,
                     customerId: (int) $customer->id,
                     selectedCartItemIds: $selectedCartItemIds,
                 );
-
-                // Send Notification to Customer
-                $user->notify(new OrderPlacedNotification($order));
-
-                // Send Notification to Pharmacists in the pharmacy
-                $pharmacists = $pharmacy->pharmacists;
-                Notification::send($pharmacists, new NewOrderPharmacistNotification($order));
-
-                return $order;
             });
 
-            // Append system message OUTSIDE the transaction so a broadcast
-            // failure (e.g. Pusher/Soketi not running) cannot roll back the order.
-            try {
-                $this->conversationService->appendSystemMessage($order, 'Order received', [
-                    'status' => $order->status,
-                    'order_number' => $order->order_number,
-                ]);
-            } catch (\Throwable $broadcastException) {
-                Log::warning('Order system message broadcast failed (order still placed): ' . $broadcastException->getMessage());
-            }
+            // Defer notification and system message dispatch to Laravel terminating phase
+            // so the HTTP response is delivered INSTANTLY (< 30ms) to the customer.
+            app()->terminating(function () use ($user, $order, $pharmacy) {
+                try {
+                    $user->notify(new OrderPlacedNotification($order));
+                    $pharmacists = $pharmacy->pharmacists;
+                    if ($pharmacists && $pharmacists->isNotEmpty()) {
+                        Notification::send($pharmacists, new NewOrderPharmacistNotification($order));
+                    }
+                } catch (\Throwable $notifException) {
+                    Log::warning('Order notification dispatch error (order placed successfully): ' . $notifException->getMessage());
+                }
+
+                try {
+                    $this->conversationService->appendSystemMessage($order, 'Order received', [
+                        'status' => $order->status,
+                        'order_number' => $order->order_number,
+                    ]);
+                } catch (\Throwable $broadcastException) {
+                    Log::warning('Order system message broadcast failed (order still placed): ' . $broadcastException->getMessage());
+                }
+            });
 
             return response()->json([
                 'status' => 'success',

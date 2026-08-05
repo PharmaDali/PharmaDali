@@ -1,19 +1,10 @@
+# Dependencies & local caches
 node_modules/
 .expo/
 dist/
-npm-debug.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-*.orig.*
-eas-build-*.tgz
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-backend/
-pharmadali-admin/
-ai-service/
-customer-mobile-app/
+web-build/
+*.tsbuildinfo
+
+# Native build artifacts
+/ios
+/android
