@@ -1,4 +1,6 @@
 import { apiRequest } from '@shared/api/client';
+import * as SecureStore from 'expo-secure-store';
+import { removeFcmTokenFromBackend } from '@shared/utils/notificationUtils';
 
 export async function registerCustomer({ credentials }){
   return apiRequest('/customer/register', {
@@ -25,6 +27,22 @@ export async function loginCustomer({ email, password }) {
       password,
     },
   });
+}
+
+export async function logoutCustomer() {
+  try {
+    await removeFcmTokenFromBackend();
+  } catch (e) {
+    console.warn('[Auth] FCM token removal notice:', e);
+  }
+
+  try {
+    await apiRequest('/logout', { method: 'POST' });
+  } catch (e) {
+    console.warn('[Auth] Logout API notice:', e);
+  } finally {
+    await SecureStore.deleteItemAsync('customer_token');
+  }
 }
 
 export async function sendForgotPasswordOtp({ email }) {
