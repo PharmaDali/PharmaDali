@@ -23,20 +23,10 @@ const getParsedData = (data) => {
 
 const Notifications = () => {
   const router = useRouter();
-  const { notifications, loading, refetch, markAsRead, markAllRead, removeNotification, clearAll, timeAgo } = useNotifications();
+  const { notifications, loading, refetch, markAsRead, removeNotification, clearAll, timeAgo } = useNotifications();
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [isClearOverlayVisible, setIsClearOverlayVisible] = useState(false);
-
-  React.useEffect(() => {
-    // When the user opens this screen, mark all as read to clear the badge
-    if (notifications.length > 0) {
-      const hasUnread = notifications.some(n => !n.read_at);
-      if (hasUnread) {
-        markAllRead();
-      }
-    }
-  }, [notifications]);
 
   const onRefresh = async () => {
     setRefreshing(true);

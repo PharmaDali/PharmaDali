@@ -47,3 +47,18 @@ export async function fetchCustomerOrderDetails(orderId) {
   return payload?.data || null;
 }
 
+export async function cancelCustomerOrder(orderId, reason = 'Cancelled by customer') {
+  const numericId = Number(orderId);
+
+  if (!Number.isFinite(numericId) || numericId <= 0) {
+    throw new Error('Invalid order id.');
+  }
+
+  return apiRequest(`/customer/orders/${numericId}/cancel`, {
+    method: 'PATCH',
+    body: {
+      reason: reason || 'Cancelled by customer',
+    },
+  });
+}
+

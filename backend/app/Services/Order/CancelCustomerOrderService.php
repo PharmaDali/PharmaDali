@@ -45,6 +45,12 @@ class CancelCustomerOrderService
             'cancellation_reason' => $reason,
         ]);
 
+        try {
+            $user->notify(new \App\Notifications\OrderStatusNotification($order->fresh()));
+        } catch (\Throwable $notifException) {
+            Log::warning('Customer cancellation notification dispatch error: ' . $notifException->getMessage());
+        }
+
         $msg = $this->conversationService->appendSystemMessage($order, 'Order cancelled by customer', [
             'reason' => $reason,
             'status' => 'cancelled',

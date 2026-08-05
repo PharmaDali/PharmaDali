@@ -42,6 +42,7 @@ class User extends Authenticatable
         'date_of_birth',
         'mobile_number',
         'address',
+        'fcm_token',
     ];
 
     public function pharmacist(): HasOne

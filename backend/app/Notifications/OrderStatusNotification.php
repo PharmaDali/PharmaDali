@@ -55,23 +55,33 @@ class OrderStatusNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $isCancelled = $this->order->status === 'cancelled';
+        $title = $isCancelled ? 'Order Cancelled' : 'Order Status Updated';
+        $message = $isCancelled
+            ? 'Your order #' . $this->order->order_number . ' has been cancelled.'
+            : 'Your order #' . $this->order->order_number . ' status is now ' . str_replace('_', ' ', $this->order->status) . '.';
+
         if ($notifiable->fcm_token) {
-            app(FcmService::class)->sendPushNotification(
-                $notifiable,
-                'Order Status Updated',
-                'Your order #' . $this->order->order_number . ' is now ' . str_replace('_', ' ', $this->order->status) . '.',
-                [
-                    'order_id' => (string) $this->order->id,
-                    'type' => 'order_status_change',
-                ]
-            );
+            try {
+                app(FcmService::class)->sendPushNotification(
+                    $notifiable,
+                    $title,
+                    $message,
+                    [
+                        'order_id' => (string) $this->order->id,
+                        'type' => 'order_status_change',
+                    ]
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('OrderStatusNotification FCM push error: ' . $e->getMessage());
+            }
         }
 
         return [
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
             'status' => $this->order->status,
-            'message' => 'Your order #' . $this->order->order_number . ' status is now ' . str_replace('_', ' ', $this->order->status) . '.',
+            'message' => $message,
             'type' => 'order_status_change',
         ];
     }
