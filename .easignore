@@ -1,0 +1,7 @@
+# Exclude backend and admin portal to prevent Windows symlink traversal during EAS builds
+backend/
+backend/public/storage
+backend/storage/app/public
+applications/pharmadali-admin/
+node_modules/
+.git/
