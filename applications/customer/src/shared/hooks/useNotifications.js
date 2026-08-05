@@ -1,5 +1,11 @@
 import { useState, useEffect } from 'react';
-import { fetchNotifications, markNotificationAsRead, markAllNotificationsAsRead } from '@shared/services/notificationService';
+import {
+  fetchNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+  deleteAllNotifications,
+} from '@shared/services/notificationService';
 
 export function useNotifications() {
   const [notifications, setNotifications] = useState([]);
@@ -40,6 +46,26 @@ export function useNotifications() {
     }
   };
 
+  const removeNotification = async (id) => {
+    try {
+      setNotifications(prev => prev.filter(notif => notif.id !== id));
+      await deleteNotification(id);
+    } catch (err) {
+      console.error('Failed to delete notification:', err);
+      getNotifications(); // revert on failure
+    }
+  };
+
+  const clearAll = async () => {
+    try {
+      setNotifications([]);
+      await deleteAllNotifications();
+    } catch (err) {
+      console.error('Failed to clear all notifications:', err);
+      getNotifications(); // revert on failure
+    }
+  };
+
   const timeAgo = (date) => {
     if (!date) return 'Recently';
     const parsedDate = new Date(date);
@@ -72,6 +98,8 @@ export function useNotifications() {
     refetch: getNotifications, 
     markAsRead, 
     markAllRead,
+    removeNotification,
+    clearAll,
     timeAgo
   };
 }

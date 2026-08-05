@@ -70,14 +70,18 @@ class ProductBatchObserver
             });
 
             if (!$exists) {
-                $admin->notify(new AdminAlertNotification('Expiry Warning', $message, [
-                    'batch_id' => $batch->id,
-                    'batch_number' => $batch->batch_number,
-                    'product_id' => $pp->product_id,
-                    'product_name' => $pp->product->product_name,
-                    'expiry_date' => $batch->expiry_date->toDateString(),
-                    'days_left' => $daysLeft,
-                ]));
+                try {
+                    $admin->notify(new AdminAlertNotification('Expiry Warning', $message, [
+                        'batch_id' => $batch->id,
+                        'batch_number' => $batch->batch_number,
+                        'product_id' => $pp->product_id,
+                        'product_name' => $pp->product->product_name,
+                        'expiry_date' => $batch->expiry_date->toDateString(),
+                        'days_left' => $daysLeft,
+                    ]));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('ProductBatchObserver notification error: ' . $e->getMessage());
+                }
             }
         }
     }

@@ -47,6 +47,12 @@ export async function deleteNotification(id) {
   });
 }
 
+export async function deleteAllNotifications() {
+  return apiRequest('/notifications/delete-all', {
+    method: 'DELETE',
+  });
+}
+
 export async function updateFcmToken(token) {
   return apiRequest('/fcm-token', {
     method: 'POST',

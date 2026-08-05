@@ -72,21 +72,50 @@ export async function apiRequest(path, options = {}) {
     baseHeaders['Content-Type'] = 'application/json';
   }
 
-  const response = await fetch(`${baseUrl}${path}`, {
-    method,
-    headers: baseHeaders,
-    body: body
-      ? (isFormDataBody ? body : JSON.stringify(body))
-      : undefined,
-  });
+  const fullUrl = `${baseUrl}${path}`;
 
-  const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new ApiError(getErrorMessage(data, 'Request failed.'), response.status, data);
+  if (__DEV__) {
+    console.log(`🌐 [API ${method}] ${path}`, {
+      url: fullUrl,
+      headers: baseHeaders,
+      body: body,
+    });
   }
 
-  return data;
+  try {
+    const response = await fetch(fullUrl, {
+      method,
+      headers: baseHeaders,
+      body: body
+        ? (isFormDataBody ? body : JSON.stringify(body))
+        : undefined,
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (__DEV__) {
+      if (response.ok) {
+        console.log(`✅ [API ${response.status}] ${method} ${path}`, data);
+      } else {
+        console.warn(`❌ [API ${response.status}] ${method} ${path}`, {
+          status: response.status,
+          message: getErrorMessage(data, 'Request failed.'),
+          data,
+        });
+      }
+    }
+
+    if (!response.ok) {
+      throw new ApiError(getErrorMessage(data, 'Request failed.'), response.status, data);
+    }
+
+    return data;
+  } catch (error) {
+    if (__DEV__ && !(error instanceof ApiError)) {
+      console.error(`💥 [API Network Error] ${method} ${path}`, error);
+    }
+    throw error;
+  }
 }
 
 export { ApiError };

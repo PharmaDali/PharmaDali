@@ -86,13 +86,17 @@ class PharmacyProductObserver
                 });
 
                 if (!$exists) {
-                    $admin->notify(new AdminAlertNotification('Low Stocks', $message, [
-                        'product_id' => $pharmacyProduct->product_id,
-                        'product_name' => $product->product_name,
-                        'current_stock' => $pharmacyProduct->stock,
-                        'days_of_stock' => $daysOfStock,
-                        'average_daily_sales' => $averageDailySales,
-                    ]));
+                    try {
+                        $admin->notify(new AdminAlertNotification('Low Stocks', $message, [
+                            'product_id' => $pharmacyProduct->product_id,
+                            'product_name' => $product->product_name,
+                            'current_stock' => $pharmacyProduct->stock,
+                            'days_of_stock' => $daysOfStock,
+                            'average_daily_sales' => $averageDailySales,
+                        ]));
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('PharmacyProductObserver notification error: ' . $e->getMessage());
+                    }
                 }
             }
         }
@@ -108,13 +112,17 @@ class PharmacyProductObserver
                 });
 
                 if (!$exists) {
-                    $admin->notify(new AdminAlertNotification('Shortage Alert', $message, [
-                        'product_id' => $pharmacyProduct->product_id,
-                        'product_name' => $product->product_name,
-                        'current_stock' => $pharmacyProduct->stock,
-                        'days_of_stock' => $daysOfStock,
-                        'average_daily_sales' => $averageDailySales,
-                    ]));
+                    try {
+                        $admin->notify(new AdminAlertNotification('Shortage Alert', $message, [
+                            'product_id' => $pharmacyProduct->product_id,
+                            'product_name' => $product->product_name,
+                            'current_stock' => $pharmacyProduct->stock,
+                            'days_of_stock' => $daysOfStock,
+                            'average_daily_sales' => $averageDailySales,
+                        ]));
+                    } catch (\Throwable $e) {
+                        \Illuminate\Support\Facades\Log::warning('PharmacyProductObserver shortage notification error: ' . $e->getMessage());
+                    }
                 }
             }
         }
