@@ -65,13 +65,17 @@ class OrderObserver
             });
 
             if (!$exists) {
-                $admin->notify(new AdminAlertNotification('System Alert', $message, [
-                    'order_id' => $order->id,
-                    'order_number' => $order->order_number,
-                    'status' => $order->status,
-                    'event' => $event,
-                    'fulfillment_type' => $order->fulfillment_type,
-                ]));
+                try {
+                    $admin->notify(new AdminAlertNotification('System Alert', $message, [
+                        'order_id' => $order->id,
+                        'order_number' => $order->order_number,
+                        'status' => $order->status,
+                        'event' => $event,
+                        'fulfillment_type' => $order->fulfillment_type,
+                    ]));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('OrderObserver notification dispatch error: ' . $e->getMessage());
+                }
             }
         }
     }
