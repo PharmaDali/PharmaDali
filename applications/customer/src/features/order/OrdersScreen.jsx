@@ -70,7 +70,7 @@ export default function OrdersScreen() {
 
       {!loading && !errorMessage && (
         activeTab === 'active'
-          ? <ActiveOrdersScreen orders={activeOrders} />
+          ? <ActiveOrdersScreen orders={activeOrders} onOrderCancelled={reloadOrders} />
           : <CompletedOrdersScreen orders={completedOrders} />
       )}
     </ScrollView>

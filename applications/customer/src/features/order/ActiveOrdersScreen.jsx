@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
 import CancelOrderOverlay from '@src/shared/components/CancelOrderOverlay'
+import { cancelCustomerOrder } from '@shared/services/orderService'
 
 function ActiveOrderCard({ order, onCancel }) {
   return (
@@ -37,19 +38,36 @@ function ActiveOrderCard({ order, onCancel }) {
   )
 }
 
-export default function ActiveOrdersScreen({ orders = [] }) {
+export default function ActiveOrdersScreen({ orders = [], onOrderCancelled }) {
   const [cancelVisible, setCancelVisible] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [cancelError, setCancelError] = useState('')
 
   const handleCancelPress = (order) => {
     setSelectedOrder(order)
+    setCancelError('')
     setCancelVisible(true)
   }
 
-  const handleConfirmCancel = () => {
-    // TODO: handle actual order cancellation logic
-    setCancelVisible(false)
-    setSelectedOrder(null)
+  const handleConfirmCancel = async (reason) => {
+    if (!selectedOrder?.id) return
+
+    setSubmitting(true)
+    setCancelError('')
+
+    try {
+      await cancelCustomerOrder(selectedOrder.id, reason)
+      setCancelVisible(false)
+      setSelectedOrder(null)
+      if (typeof onOrderCancelled === 'function') {
+        onOrderCancelled()
+      }
+    } catch (err) {
+      setCancelError(err instanceof Error ? err.message : 'Failed to cancel order.')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   if (!orders.length) {
@@ -69,8 +87,15 @@ export default function ActiveOrdersScreen({ orders = [] }) {
 
       <CancelOrderOverlay
         visible={cancelVisible}
-        onClose={() => setCancelVisible(false)}
+        onClose={() => {
+          if (!submitting) {
+            setCancelVisible(false)
+            setSelectedOrder(null)
+          }
+        }}
         onConfirm={handleConfirmCancel}
+        submitting={submitting}
+        errorMessage={cancelError}
       />
     </View>
   )
