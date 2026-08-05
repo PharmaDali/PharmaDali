@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'expo-router';
 import { colors } from '@src/shared/theme/colorPalette'
 import AccountIcon from '@assets/icons/account_icon.svg'
@@ -7,10 +7,28 @@ import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import EditIcon from '@assets/icons/edit_icon.svg'
 import { useProfile } from '@src/shared/hooks/useProfile';
 import { toTitleCase } from '@src/shared/utils/stringUtils';
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { logoutCustomer } from '@shared/services/authService'
+import LogoutOverlay from '@shared/components/LogoutOverlay'
 
 const Account = () => {
   const router = useRouter();
   const { profile, loading } = useProfile();
+  const [isLogoutOverlayVisible, setIsLogoutOverlayVisible] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logoutCustomer();
+      setIsLogoutOverlayVisible(false);
+      router.replace('/');
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -53,6 +71,31 @@ const Account = () => {
         <Text style={styles.textMedium} className="flex-1 text-base ml-3">Personal Details</Text>
         <ArrowForwardIcon width={18} height={18} />
       </TouchableOpacity>
+
+      <TouchableOpacity
+        className="mx-4 mt-4 px-4 py-4 rounded-xl border border-red-200 bg-white flex-row items-center active:bg-red-50 shadow-sm"
+        onPress={() => setIsLogoutOverlayVisible(true)}
+      >
+        <MaterialCommunityIcons name="logout" size={24} color="#EF4444" />
+        <Text
+          className="flex-1 text-base ml-3 text-red-500 font-semibold"
+          style={{ fontFamily: 'Poppins-SemiBold' }}
+        >
+          Log Out
+        </Text>
+        <ArrowForwardIcon width={18} height={18} color="#EF4444" />
+      </TouchableOpacity>
+
+      <LogoutOverlay
+        visible={isLogoutOverlayVisible}
+        onClose={() => {
+          if (!isLoggingOut) {
+            setIsLogoutOverlayVisible(false);
+          }
+        }}
+        onConfirm={handleLogout}
+        submitting={isLoggingOut}
+      />
     </View>
   )
 }

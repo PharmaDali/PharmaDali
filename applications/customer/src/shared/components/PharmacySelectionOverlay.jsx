@@ -175,10 +175,10 @@ export default function PharmacySelectionOverlay({ visible, onSelect }) {
   return (
     <Modal visible={visible} transparent animationType="slide" statusBarTranslucent>
       <View style={styles.backdrop}>
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 24) + 12 }]}>
           <Text style={styles.title}>Select a Pharmacy</Text>
-          <Text style={styles.subtitle}>Select a Pharmacy</Text>
-          <ScrollView className="mt-4" showsVerticalScrollIndicator={false}>
+          <Text style={styles.subtitle}>Choose a branch to view available products</Text>
+          <ScrollView className="mt-4" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 12 }}>
             {isLoading && <Text style={styles.stateText}>Loading pharmacies...</Text>}
 
             {!isLoading && errorMessage ? (
@@ -202,7 +202,7 @@ export default function PharmacySelectionOverlay({ visible, onSelect }) {
 const styles = StyleSheet.create({
   title: {
     fontFamily: 'Poppins-Bold',
-    fontSize: 16,
+    fontSize: 18,
     color: colors.textColor,
     textAlign: 'center',
   },
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   sheet: {
     backgroundColor: '#FFFFFF',
@@ -263,6 +263,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingTop: 24,
-    maxHeight: '55%',
+    maxHeight: '75%',
   },
 });
