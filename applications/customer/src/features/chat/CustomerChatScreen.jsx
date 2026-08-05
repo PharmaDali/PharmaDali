@@ -223,6 +223,7 @@ export default function CustomerChatScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
+              colors={['#48AAD9']}
               tintColor={colors.buttonColor}
             />
           }

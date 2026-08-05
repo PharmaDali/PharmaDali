@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, RefreshControl } from 'react-native'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useLocalSearchParams } from 'expo-router'
 import { colors } from '@src/shared/theme/colorPalette'
 import ActiveOrdersScreen from './ActiveOrdersScreen'
@@ -10,6 +10,7 @@ import SkeletonOrders from '@shared/components/SkeletonOrders'
 export default function OrdersScreen() {
   const { tab } = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState(tab === 'completed' ? 'completed' : 'active')
+  const [refreshing, setRefreshing] = useState(false)
   const {
     loading,
     errorMessage,
@@ -24,8 +25,19 @@ export default function OrdersScreen() {
     }
   }, [tab])
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    await reloadOrders()
+    setRefreshing(false)
+  }, [reloadOrders])
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#48AAD9']} tintColor="#48AAD9" />
+      }
+    >
       <View className="items-center">
         <View className="flex-row items-center justify-center mt-5 rounded-2xl shadow-xl px-8 py-2 bg-white elevation-2 border border-gray-200">
           <TouchableOpacity onPress={() => setActiveTab('active')} className="px-4">
