@@ -4,7 +4,6 @@ import {
   FlatList,
   Image,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   Pressable,
   StyleSheet,
@@ -66,14 +65,11 @@ const groupMessagesByDate = (messages) => {
 };
 
 export default function CustomerConversationScreen() {
-  // Guard: Expo Router v6 may not have params ready on first render
   const params = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [initialBottomInset] = useState(insets.bottom);
 
   const flatListRef = useRef(null);
-
   const conversationId = params?.conversationId ?? null;
 
   const [conversation, setConversation] = useState(null);
@@ -85,19 +81,18 @@ export default function CustomerConversationScreen() {
   const [error, setError] = useState('');
   const [headerHeight, setHeaderHeight] = useState(0);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
+    const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
     });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
     });
-
     return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
+      showSub.remove();
+      hideSub.remove();
     };
   }, []);
 
@@ -123,9 +118,7 @@ export default function CustomerConversationScreen() {
         setError('Camera permission is required.');
         return;
       }
-      const result = await ImagePicker.launchCameraAsync({
-        quality: 0.8,
-      });
+      const result = await ImagePicker.launchCameraAsync({ quality: 0.8 });
       if (!result.canceled && result.assets && result.assets[0]) {
         setSelectedImage(result.assets[0]);
         setError('');
@@ -135,9 +128,7 @@ export default function CustomerConversationScreen() {
     }
   };
 
-  const clearSelectedImage = () => {
-    setSelectedImage(null);
-  };
+  const clearSelectedImage = () => setSelectedImage(null);
 
   const conversationPartner = useMemo(() => {
     if (!conversation) return null;
@@ -172,7 +163,6 @@ export default function CustomerConversationScreen() {
     }
   }, []);
 
-  // Plain mount-only effect — no navigation hooks
   useEffect(() => {
     let cancelled = false;
     let interval = null;
@@ -200,7 +190,7 @@ export default function CustomerConversationScreen() {
       cancelled = true;
       if (interval) clearInterval(interval);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -233,19 +223,19 @@ export default function CustomerConversationScreen() {
   const renderItem = ({ item }) => {
     if (item._type === 'separator') {
       return (
-        <View style={styles.dateSepRow}>
-          <View style={styles.dateSepLine} />
-          <Text style={styles.dateLabel}>{item.label}</Text>
-          <View style={styles.dateSepLine} />
+        <View className="flex-row items-center my-3.5">
+          <View className="flex-1 h-px bg-slate-200" />
+          <Text style={s.dateLabel} className="mx-2.5">{item.label}</Text>
+          <View className="flex-1 h-px bg-slate-200" />
         </View>
       );
     }
 
     if (item.message_type === 'system') {
       return (
-        <View style={styles.systemRow}>
-          <View style={styles.systemPill}>
-            <Text style={styles.systemText}>{item.body}</Text>
+        <View className="items-center my-2">
+          <View className="bg-slate-100 rounded-full px-3.5 py-1">
+            <Text style={s.systemText}>{item.body}</Text>
           </View>
         </View>
       );
@@ -254,20 +244,20 @@ export default function CustomerConversationScreen() {
     const isMine = item?.sender_user_id === currentUserId;
 
     return (
-      <View style={[styles.messageRow, isMine ? styles.rowMine : styles.rowTheirs]}>
+      <View className={`flex-row mb-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
         {!isMine && (
-          <View style={styles.partnerAvatar}>
-            <Text style={styles.partnerAvatarText}>{getInitials(partnerName)}</Text>
+          <View className="h-[30px] w-[30px] rounded-full bg-sky-100 items-center justify-center mr-2 self-end">
+            <Text style={s.partnerAvatarText}>{getInitials(partnerName)}</Text>
           </View>
         )}
-        <View style={styles.bubbleWrapper}>
-          {!isMine && <Text style={styles.senderLabel}>{partnerName}</Text>}
+        <View className="max-w-[76%]">
+          {!isMine && <Text style={s.senderLabel} className="mb-0.5 ml-1">{partnerName}</Text>}
           <View
             style={[
-              styles.bubble,
-              isMine ? styles.mineBubble : styles.theirsBubble,
-              (item?.message_type === 'image' || item?.metadata?.image_url) && { padding: 4, borderRadius: 12 }
+              isMine ? s.mineBubble : s.theirsBubble,
+              (item?.message_type === 'image' || item?.metadata?.image_url) && { padding: 4, borderRadius: 12 },
             ]}
+            className="rounded-[18px] px-3.5 py-2"
           >
             {(item?.message_type === 'image' || item?.metadata?.image_url) && item?.metadata?.image_url ? (
               <Image
@@ -279,22 +269,16 @@ export default function CustomerConversationScreen() {
             {!!item?.body && (
               <Text
                 style={[
-                  styles.messageText,
-                  isMine ? styles.mineText : styles.theirsText,
-                  (item?.message_type === 'image' || item?.metadata?.image_url) && { paddingHorizontal: 8, paddingVertical: 4 }
+                  s.messageText,
+                  isMine ? s.mineText : s.theirsText,
+                  (item?.message_type === 'image' || item?.metadata?.image_url) && { paddingHorizontal: 8, paddingVertical: 4 },
                 ]}
               >
                 {item?.body}
               </Text>
             )}
-            <View
-              style={[
-                styles.timeRow,
-                isMine ? styles.timeRowMine : styles.timeRowTheirs,
-                (item?.message_type === 'image' || item?.metadata?.image_url) && { paddingHorizontal: 8, paddingBottom: 4 }
-              ]}
-            >
-              <Text style={[styles.timeText, isMine ? styles.mineTime : styles.theirsTime]}>
+            <View className={`flex-row items-center mt-0.5 ${isMine ? 'justify-end' : 'justify-start'}`}>
+              <Text style={[s.timeText, isMine ? s.mineTime : s.theirsTime]}>
                 {formatTime(item?.created_at)}
               </Text>
               {isMine && (
@@ -310,42 +294,53 @@ export default function CustomerConversationScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.centerState, { paddingTop: insets.top }]}>
+      <View className="flex-1 items-center justify-center bg-slate-50" style={{ paddingTop: insets.top }}>
         <ActivityIndicator size="large" color={colors.buttonColor} />
-        <Text style={styles.stateText}>Opening chat...</Text>
+        <Text style={s.stateText} className="mt-2.5">Opening chat...</Text>
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
-      {/* ── Header (outside KAV) ── */}
+    <View className="flex-1 bg-slate-50">
+      {/* ── Header ── */}
       <View
         onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}
-        style={[styles.header, { paddingTop: insets.top + 10 }]}
+        style={[s.header, { paddingTop: insets.top + 10 }]}
+        className="px-4 pb-4"
       >
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
+        <View className="flex-row items-center">
+          <Pressable
+            onPress={() => router.back()}
+            className="mr-2 h-[38px] w-[38px] rounded-full items-center justify-center"
+            style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+          >
             <MaterialCommunityIcons name="chevron-left" size={28} color="#fff" />
           </Pressable>
 
-          <View style={styles.headerAvatar}>
-            <Text style={styles.headerAvatarText}>{getInitials(partnerName)}</Text>
+          <View
+            className="h-10 w-10 rounded-full items-center justify-center mr-2.5 border-2"
+            style={{ backgroundColor: 'rgba(255,255,255,0.25)', borderColor: 'rgba(255,255,255,0.4)' }}
+          >
+            <Text style={s.headerAvatarText}>{getInitials(partnerName)}</Text>
           </View>
 
-          <View style={{ flex: 1 }}>
-            <Text style={styles.headerName} numberOfLines={1}>{partnerName}</Text>
-            <View style={styles.headerSubRow}>
-              <View style={styles.onlineDot} />
-              <Text style={styles.headerSub} numberOfLines={1}>
+          <View className="flex-1">
+            <Text style={s.headerName} numberOfLines={1}>{partnerName}</Text>
+            <View className="flex-row items-center mt-px">
+              <View className="h-[7px] w-[7px] rounded-full bg-emerald-400 mr-1.5" />
+              <Text style={s.headerSub} numberOfLines={1}>
                 {conversation?.pharmacy?.pharmacy_name || 'Pharmacy'}
               </Text>
             </View>
           </View>
 
           {conversation?.order?.order_number && (
-            <View style={styles.orderBadge}>
-              <Text style={styles.orderBadgeText}>
+            <View
+              className="rounded-full px-2.5 py-1 ml-2"
+              style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
+            >
+              <Text style={s.orderBadgeText}>
                 #{conversation.order.order_number.split('-').pop()}
               </Text>
             </View>
@@ -353,16 +348,12 @@ export default function CustomerConversationScreen() {
         </View>
       </View>
 
-      {/* ── Scrollable area + input wrapped in KAV (avoiding ScrollView nesting error) ── */}
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-      >
+      {/* ── Scrollable area + input ── */}
+      <View style={{ flex: 1, marginBottom: keyboardHeight > 0 ? keyboardHeight + 50 : 0 }}>
         {!!error && (
-          <View style={styles.errorBanner}>
+          <View className="flex-row items-center bg-red-50 mx-4 mt-2.5 rounded-xl px-3 py-2">
             <MaterialCommunityIcons name="alert-circle-outline" size={16} color="#DC2626" />
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={s.errorText} className="flex-1 ml-1.5">{error}</Text>
           </View>
         )}
 
@@ -371,45 +362,46 @@ export default function CustomerConversationScreen() {
           data={grouped}
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            paddingHorizontal: 16,
-            paddingTop: 16,
-            paddingBottom: 0,
-            flexGrow: 1,
-          }}
+          className="flex-1"
+          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
           overScrollMode="never"
           ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <View style={styles.emptyIcon}>
+            <View className="flex-1 items-center justify-center pt-12 px-8">
+              <View className="h-[68px] w-[68px] rounded-full bg-sky-100 items-center justify-center mb-3.5">
                 <MaterialCommunityIcons name="message-text-outline" size={34} color={colors.buttonColor} />
               </View>
-              <Text style={styles.emptyTitle}>Start the conversation</Text>
-              <Text style={styles.emptySubtitle}>
-                Your pharmacist is ready to help.
-              </Text>
+              <Text style={s.emptyTitle} className="mb-1">Start the conversation</Text>
+              <Text style={s.emptySubtitle} className="text-center">Your pharmacist is ready to help.</Text>
             </View>
           }
         />
 
         {selectedImage && (
-          <View style={styles.imagePreviewContainer}>
-            <View style={styles.imagePreviewWrapper}>
-              <Image source={{ uri: selectedImage.uri }} style={styles.imagePreview} />
-              <TouchableOpacity onPress={clearSelectedImage} style={styles.clearImageBtn} activeOpacity={0.7}>
+          <View className="bg-white border-t border-slate-200 px-4 pt-3 pb-1">
+            <View className="w-20 h-20 relative">
+              <Image source={{ uri: selectedImage.uri }} className="w-20 h-20 rounded-lg" />
+              <TouchableOpacity
+                onPress={clearSelectedImage}
+                className="absolute -top-1.5 -right-1.5 w-[22px] h-[22px] rounded-full items-center justify-center"
+                style={{ backgroundColor: 'rgba(15, 23, 42, 0.75)' }}
+                activeOpacity={0.7}
+              >
                 <MaterialCommunityIcons name="close" size={14} color="#fff" />
               </TouchableOpacity>
             </View>
           </View>
         )}
 
-        <View style={[styles.inputBar, { paddingBottom: Math.max(initialBottomInset, 12) }]}>
-          <TouchableOpacity onPress={pickFromGallery} style={styles.attachBtn} activeOpacity={0.7}>
+        <View
+          className="flex-row items-end bg-white border-t border-slate-200 px-3 pt-2"
+          style={{ paddingBottom: keyboardHeight > 0 ? 10 : insets.bottom + 20 }}
+        >
+          <TouchableOpacity onPress={pickFromGallery} className="h-11 w-9 items-center justify-center mb-0.5 mr-1" activeOpacity={0.7}>
             <MaterialCommunityIcons name="image-outline" size={24} color="#64748B" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={takePhoto} style={styles.attachBtn} activeOpacity={0.7}>
+          <TouchableOpacity onPress={takePhoto} className="h-11 w-9 items-center justify-center mb-0.5 mr-1" activeOpacity={0.7}>
             <MaterialCommunityIcons name="camera-outline" size={24} color="#64748B" />
           </TouchableOpacity>
           <TextInput
@@ -417,14 +409,15 @@ export default function CustomerConversationScreen() {
             onChangeText={setDraft}
             placeholder="Type a message..."
             placeholderTextColor="#94A3B8"
-            style={styles.input}
+            style={s.input}
             multiline
             blurOnSubmit={false}
           />
           <Pressable
             onPress={handleSend}
             disabled={(!draft.trim() && !selectedImage) || sending}
-            style={[styles.sendBtn, ((!draft.trim() && !selectedImage) || sending) && { opacity: 0.45 }]}
+            className="h-11 w-11 rounded-full items-center justify-center mb-0.5"
+            style={[{ backgroundColor: colors.buttonColor }, ((!draft.trim() && !selectedImage) || sending) && { opacity: 0.45 }]}
           >
             {sending
               ? <ActivityIndicator size="small" color="#fff" />
@@ -432,314 +425,133 @@ export default function CustomerConversationScreen() {
             }
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  centerState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
-  },
+const s = StyleSheet.create({
+  // ── Fonts & colors only ──
   stateText: {
-    marginTop: 10,
-    fontFamily: 'Poppins-Medium',
-    color: '#64748B',
-    fontSize: 14,
+     fontFamily: 'Poppins-Medium', 
+     color: '#64748B', 
+     fontSize: 14 
   },
-  header: {
+  header: { 
     backgroundColor: colors.buttonColor,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+     borderBottomLeftRadius: 20, 
+     borderBottomRightRadius: 20, 
+     elevation: 4, 
+     shadowColor: '#000', 
+     shadowOffset: { width: 0, height: 2 }, 
+     shadowOpacity: 0.12, 
+     shadowRadius: 8 
   },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backBtn: {
-    marginRight: 8,
-    height: 38,
-    width: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerAvatar: {
-    height: 40,
-    width: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.4)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  headerAvatarText: {
-    fontFamily: 'Poppins-Bold',
-    color: '#fff',
-    fontSize: 14,
+  headerAvatarText: { 
+    fontFamily: 'Poppins-Bold', 
+    color: '#fff', 
+    fontSize: 14 
   },
   headerName: {
-    fontFamily: 'Poppins-Bold',
-    color: '#fff',
-    fontSize: 16,
-  },
-  headerSubRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 1,
-  },
-  onlineDot: {
-    height: 7,
-    width: 7,
-    borderRadius: 4,
-    backgroundColor: '#34D399',
-    marginRight: 5,
-  },
+     fontFamily: 'Poppins-Bold', 
+     color: '#fff', 
+     fontSize: 16
+     },
   headerSub: {
-    fontFamily: 'Poppins-Medium',
-    color: 'rgba(255,255,255,0.85)',
-    fontSize: 12,
-  },
-  orderBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginLeft: 8,
-  },
+     fontFamily: 'Poppins-Medium', 
+     color: 'rgba(255,255,255,0.85)', 
+     fontSize: 12
+     },
   orderBadgeText: {
-    fontFamily: 'Poppins-SemiBold',
-    color: '#fff',
-    fontSize: 11,
-  },
-  // Messages
-  messageRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  rowMine: { justifyContent: 'flex-end' },
-  rowTheirs: { justifyContent: 'flex-start' },
-  bubbleWrapper: { maxWidth: '76%' },
-  partnerAvatar: {
-    height: 30,
-    width: 30,
-    borderRadius: 15,
-    backgroundColor: '#E0F2FE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 8,
-    alignSelf: 'flex-end',
-  },
-  partnerAvatarText: {
-    fontFamily: 'Poppins-Bold',
-    fontSize: 10,
-    color: colors.buttonColor,
-  },
-  senderLabel: {
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: 11,
-    color: colors.buttonColor,
-    marginBottom: 3,
-    marginLeft: 4,
-  },
-  bubble: {
-    borderRadius: 18,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-  },
-  mineBubble: {
-    backgroundColor: colors.buttonColor,
-    borderBottomRightRadius: 4,
-  },
-  theirsBubble: {
-    backgroundColor: '#fff',
-    borderBottomLeftRadius: 4,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 3,
-  },
-  messageText: {
-    fontFamily: 'Poppins-Medium',
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  mineText: { color: '#fff' },
-  theirsText: { color: '#1E293B' },
-  timeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 3,
-  },
-  timeRowMine: { justifyContent: 'flex-end' },
-  timeRowTheirs: { justifyContent: 'flex-start' },
-  timeText: {
-    fontFamily: 'Poppins-Medium',
-    fontSize: 10,
-  },
-  mineTime: { color: 'rgba(255,255,255,0.65)' },
-  theirsTime: { color: '#94A3B8' },
-  dateSepRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 14,
-  },
-  dateSepLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#E2E8F0',
-  },
+     fontFamily: 'Poppins-SemiBold', 
+     color: '#fff', 
+     fontSize: 11
+     },
   dateLabel: {
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: 11,
-    color: '#94A3B8',
-    marginHorizontal: 10,
-  },
-  systemRow: {
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  systemPill: {
-    backgroundColor: '#F1F5F9',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-  },
+     fontFamily: 'Poppins-SemiBold',
+     fontSize: 11,
+     color: '#94A3B8' 
+    },
   systemText: {
-    fontFamily: 'Poppins-Medium',
-    fontSize: 11,
-    color: '#64748B',
+     fontFamily: 'Poppins-Medium', 
+     fontSize: 11, 
+     color: '#64748B' 
+    },
+  partnerAvatarText: {
+     fontFamily: 'Poppins-Bold',
+      fontSize: 10, 
+      color: colors.buttonColor 
+    },
+  senderLabel: {
+     fontFamily: 'Poppins-SemiBold', 
+     fontSize: 11, 
+     color: colors.buttonColor 
+    },
+  mineBubble: { 
+    backgroundColor: colors.buttonColor, 
+    borderBottomRightRadius: 4 
   },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 48,
-    paddingHorizontal: 32,
+  theirsBubble: { 
+    backgroundColor: '#fff', 
+    borderBottomLeftRadius: 4, 
+    borderWidth: 1, 
+    borderColor: '#E2E8F0', 
+    elevation: 1, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 1 }, 
+    shadowOpacity: 0.04, 
+    shadowRadius: 3 
   },
-  emptyIcon: {
-    height: 68,
-    width: 68,
-    borderRadius: 34,
-    backgroundColor: '#E0F2FE',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
+  messageText: { 
+    fontFamily: 'Poppins-Medium', 
+    fontSize: 14, 
+    lineHeight: 20 
   },
+  mineText: { 
+    color: '#fff' 
+  },
+  theirsText: {
+     color: '#1E293B' 
+    },
+  timeText: { 
+    fontFamily: 'Poppins-Medium', 
+    fontSize: 10 
+  },
+  mineTime: { 
+    color: 'rgba(255,255,255,0.65)' 
+  },
+  theirsTime: {
+     color: '#94A3B8' 
+    },
   emptyTitle: {
-    fontFamily: 'Poppins-Bold',
-    color: '#1E293B',
-    fontSize: 17,
-    marginBottom: 4,
+     fontFamily: 'Poppins-Bold', 
+     color: '#1E293B', 
+     fontSize: 17 
+    },
+  emptySubtitle: { 
+    fontFamily: 'Poppins-Medium', 
+    color: '#64748B', 
+    fontSize: 13 
   },
-  emptySubtitle: {
-    fontFamily: 'Poppins-Medium',
-    color: '#64748B',
-    fontSize: 13,
-    textAlign: 'center',
+  errorText: { 
+    fontFamily: 'Poppins-Medium', 
+    color: '#DC2626', 
+    fontSize: 12 
   },
-  inputBar: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    paddingHorizontal: 12,
-    paddingTop: 8,
-  },
-  input: {
-    flex: 1,
-    minHeight: 44,
-    maxHeight: 120,
-    backgroundColor: '#F8FAFC',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 22,
-    paddingHorizontal: 16,
-    paddingTop: Platform.OS === 'ios' ? 12 : 10,
-    paddingBottom: Platform.OS === 'ios' ? 12 : 10,
-    fontFamily: 'Poppins-Medium',
-    fontSize: 14,
-    color: '#1E293B',
-    marginRight: 8,
-  },
-  sendBtn: {
-    height: 44,
-    width: 44,
-    borderRadius: 22,
-    backgroundColor: colors.buttonColor,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 2,
-  },
-  errorBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FEF2F2',
-    marginHorizontal: 16,
-    marginTop: 10,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  errorText: {
-    fontFamily: 'Poppins-Medium',
-    color: '#DC2626',
-    fontSize: 12,
-    flex: 1,
-    marginLeft: 6,
-  },
-  attachBtn: {
-    height: 44,
-    width: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 2,
-    marginRight: 4,
-  },
-  imagePreviewContainer: {
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#E2E8F0',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 4,
-  },
-  imagePreviewWrapper: {
-    width: 80,
-    height: 80,
-    position: 'relative',
-  },
-  imagePreview: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-  },
-  clearImageBtn: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    backgroundColor: 'rgba(15, 23, 42, 0.75)',
-    borderRadius: 12,
-    width: 22,
-    height: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+  input: { 
+    flex: 1, 
+    minHeight: 44, 
+    maxHeight: 120, 
+    backgroundColor: '#F8FAFC', 
+    borderWidth: 1, 
+    borderColor: '#E2E8F0', 
+    borderRadius: 22, 
+    paddingHorizontal: 16, 
+    paddingTop: Platform.OS === 'ios' ? 12 : 10, 
+    paddingBottom: Platform.OS === 'ios' ? 12 : 10, 
+    fontFamily: 'Poppins-Medium', 
+    fontSize: 14, 
+    color: '#1E293B', 
+    marginRight: 8 
   },
 });
