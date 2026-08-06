@@ -8,3 +8,13 @@ export const fetchOrdersCount = async () => {
 export const fetchTodayStats = async () => {
   return await apiRequest.get('/pharmacy/orders/stats');
 };
+
+export const fetchDashboardOverview = async () => {
+  const response = await apiRequest.get('/pharmacy/dashboard/overview');
+  return response?.data ?? response;
+};
+
+export const fetchSalesTrend = async (range = 'Weekly') => {
+  const response = await apiRequest.get(`/pharmacy/dashboard/sales-trend?range=${range}`);
+  return response?.data ?? response;
+};

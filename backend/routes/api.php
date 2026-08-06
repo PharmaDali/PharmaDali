@@ -16,6 +16,7 @@ use App\Http\Controllers\API\NotificationController;
 use App\Http\Controllers\API\PosController;
 use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\ReportController;
+use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\CustomerForgotPasswordController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -116,6 +117,8 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware(['ability:pharmacy_admin'])->group(function () {
+        Route::get('pharmacy/dashboard/overview', [DashboardController::class, 'overview']);
+        Route::get('pharmacy/dashboard/sales-trend', [DashboardController::class, 'salesTrend']);
         Route::get(
             'pharmacy/dashboard',
             fn() =>
