@@ -10,36 +10,17 @@ import {
 import { Line } from "react-chartjs-2";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchTodayStats } from "../services/dashboardService";
+import { fetchDashboardOverview, fetchSalesTrend } from "../services/dashboardService";
 import { maxChartValue } from "../utils/dashboardUtils";
 import "../assets/css/dashboard.css";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
-const SALES_FORECAST_DATA = {
-  Weekly: {
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    values: [31, 38, 42, 50, 53, 49, 58],
-  },
-  Monthly: {
-    labels: Array.from({ length: 30 }, (_, i) => `Day ${i + 1}`),
-    values: Array.from({ length: 30 }, (_, i) => 20 + Math.round(Math.sin(i / 3) * 10 + i * 1.2)),
-  },
-};
-
-const STAT_CARDS = [
-  { label: "Sales Today", value: "20,003", prefix: "PHP", bg: "#96D2EE" },
-  { label: "Orders Today", value: "167", prefix: null, bg: "#96D2EE" },
-  { label: "Inventory Value", value: "518,000", prefix: "PHP", bg: "#96D2EE" },
-  { label: "Low Stock Items", value: "3", prefix: null, bg: "#F9C784" },
-  { label: "Predicted Stockout Risk", value: "High", prefix: null, bg: "#F28B82" },
-];
-
 const EMPTY_QUICK_INSIGHTS = [
   { category: "Top Selling", main: "No data", right: "0", rightSub: "units sold" },
   { category: "Top Category", main: "No data", right: "--", rightSub: "of total sales" },
   { category: "Sales Growth", main: "0%", right: "0%", rightSub: "vs last period" },
-  { category: "Profit Today", main: "No data", right: "--", rightSub: "margin" },
+  { category: "Profit Today", main: "PHP 0.00", right: "30%", rightSub: "margin" },
 ];
 
 const LOADING_QUICK_INSIGHTS = [
@@ -49,18 +30,6 @@ const LOADING_QUICK_INSIGHTS = [
   { category: "Profit Today", main: "Loading...", right: "--", rightSub: "margin" },
 ];
 
-const LOW_STOCK = [
-  { name: "Amoxicillin", note: "less than 1 day of supply" },
-  { name: "Cetirizine", note: "1 day supply" },
-  { name: "Loperamide", note: "2 days supply only" },
-];
-
-const EXPIRING_SOON = [
-  { name: "Amoxicillin", days: "14 days" },
-  { name: "Paracetamol", days: "10 days" },
-  { name: "Ibuprofen", days: "23 days" },
-];
-
 function StatCard({ label, value, prefix, bg }) {
   return (
     <div
@@ -68,8 +37,8 @@ function StatCard({ label, value, prefix, bg }) {
       style={{ background: bg }}
     >
       <div style={{ fontSize: 13, color: "#444444", marginBottom: 4 }}>{label}</div>
-      <div className="dashboard-stat-value" style={{ fontWeight: 900, lineHeight: 2, color: "#444444", fontSize: 40 }}>
-        {prefix && <span style={{ fontSize: 20, fontWeight: 900, verticalAlign: "middle", marginRight: 5 }}>{prefix}</span>}
+      <div className="dashboard-stat-value" style={{ fontWeight: 900, lineHeight: 2, color: "#444444", fontSize: 32 }}>
+        {prefix && <span style={{ fontSize: 18, fontWeight: 900, verticalAlign: "middle", marginRight: 5 }}>{prefix}</span>}
         {value}
       </div>
     </div>
@@ -102,15 +71,28 @@ function InsightRows({ items, rowClassName, rightClassName }) {
   );
 }
 
-function SalesTrend() {
-  const [range, setRange] = useState("Weekly");
-  const [salesSeries, setSalesSeries] = useState(SALES_FORECAST_DATA.Weekly);
-  const { labels, values } = salesSeries || SALES_FORECAST_DATA.Weekly;
+function SalesTrend({ initialTrend }) {
+  const [range, setRange] = useState("Daily");
+  const [trendData, setTrendData] = useState(initialTrend?.Daily || null);
 
   useEffect(() => {
-    // Dummy implementation until new analytics is integrated
-    setSalesSeries(SALES_FORECAST_DATA[range]);
-  }, [range]);
+    if (initialTrend && initialTrend[range]) {
+      setTrendData(initialTrend[range]);
+    } else {
+      let mounted = true;
+      fetchSalesTrend(range)
+        .then((res) => {
+          if (mounted && res) {
+            setTrendData(res);
+          }
+        })
+        .catch(console.error);
+      return () => { mounted = false; };
+    }
+  }, [range, initialTrend]);
+
+  const labels = trendData?.labels || ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const values = trendData?.values || [0, 0, 0, 0, 0, 0, 0];
 
   const data = useMemo(
     () => {
@@ -157,20 +139,20 @@ function SalesTrend() {
               color: "#5f6670",
               font: { size: 12, family: "Poppins" },
               autoSkip: true,
-              maxTicksLimit: range === "Monthly" ? 6 : 8,
+              maxTicksLimit: range === "Monthly" ? 12 : range === "Weekly" ? 8 : 7,
             },
           },
           y: {
-            min: 10,
+            min: 0,
             max: maxValue,
-            beginAtZero: false,
+            beginAtZero: true,
             grid: { color: "rgba(15, 23, 42, 0.06)" },
             ticks: {
               stepSize,
               color: "#5f6670",
               font: { size: 12, family: "Poppins" },
               padding: 8,
-              callback: (value) => Math.round(value).toString(),
+              callback: (value) => Math.round(value).toLocaleString(),
             },
           },
         },
@@ -182,7 +164,7 @@ function SalesTrend() {
   return (
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
       <div className="dashboard-card-header d-flex align-items-md-center justify-content-between mb-3 gap-2">
-        <h6 className="fw-bold mb-0" style={{ fontSize: 16, color: "#2aabe2" }}>Sales Trend</h6>
+        <h6 className="fw-bold mb-0" style={{ fontSize: 16, color: "#2aabe2" }}>Sales Trend (Overall Sales)</h6>
         <div className="position-relative pd-range-select-wrap">
           <select
             className="form-select form-select-sm pe-4 pd-range-select"
@@ -190,7 +172,9 @@ function SalesTrend() {
             onChange={(e) => setRange(e.target.value)}
             aria-label="Select trend range"
           >
-            {Object.keys(SALES_FORECAST_DATA).map((k) => <option key={k}>{k}</option>)}
+            <option value="Daily">Daily</option>
+            <option value="Weekly">Weekly</option>
+            <option value="Monthly">Monthly</option>
           </select>
           <i
             className="bi bi-chevron-down position-absolute top-50 translate-middle-y"
@@ -211,7 +195,7 @@ function QuickInsights({ items, loading }) {
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Quick Insights</h6>
       {loading && <div className="text-muted small mb-2">Loading insights...</div>}
       <InsightRows
-        items={loading ? LOADING_QUICK_INSIGHTS : items}
+        items={loading ? LOADING_QUICK_INSIGHTS : (items && items.length > 0 ? items : EMPTY_QUICK_INSIGHTS)}
         rowClassName="quick-insight-row"
         rightClassName="quick-insight-right"
       />
@@ -219,31 +203,42 @@ function QuickInsights({ items, loading }) {
   );
 }
 
-function InventoryHealth({ onKnowMore }) {
+function InventoryHealth({ data, onKnowMore }) {
+  const lowStock = (data?.low_stock ?? []).slice(0, 5);
+  const expiringSoon = (data?.expiring_soon ?? []).slice(0, 5);
+
   return (
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 d-flex flex-column dashboard-panel">
-      <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Inventory Health </h6>
+      <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Inventory Health</h6>
       <div className="d-flex flex-column flex-md-row flex-grow-1" style={{ minHeight: 0 }}>
         <div className="pe-md-3" style={{ flex: 1 }}>
           <div style={{ fontSize: 12, color: "#555", fontWeight: 600, marginBottom: 8 }}>
             Low Stock Items
           </div>
-          {LOW_STOCK.map((item) => (
-            <div key={`${item.name}-${item.note}`} className="d-flex justify-content-between align-items-center mb-3 inventory-row">
-              <div style={{ fontSize: 13, color: "#222" }}>{item.name}</div>
-              <div className="inventory-note" style={{ fontSize: 12, color: "#888" }}>{item.note}</div>
-            </div>
-          ))}
+          {lowStock.length === 0 ? (
+            <div style={{ fontSize: 13, color: "#888", padding: "12px 0" }}>No low stock alerts</div>
+          ) : (
+            lowStock.map((item) => (
+              <div key={`${item.name}-${item.note}`} className="d-flex justify-content-between align-items-center mb-3 inventory-row">
+                <div style={{ fontSize: 13, color: "#222" }}>{item.name}</div>
+                <div className="inventory-note" style={{ fontSize: 12, color: "#888" }}>{item.note}</div>
+              </div>
+            ))
+          )}
         </div>
         <div className="inventory-divider" />
         <div className="ps-md-3" style={{ flex: 1 }}>
           <div style={{ fontSize: 12, color: "#555", fontWeight: 600, marginBottom: 8 }}>Expiring Soon</div>
-          {EXPIRING_SOON.map((item) => (
-            <div key={`${item.name}-${item.days}`} className="d-flex justify-content-between align-items-center mb-3 inventory-row">
-              <div style={{ fontWeight: 700, fontSize: 13, color: "#222" }}>{item.name}</div>
-              <div style={{ fontSize: 13, color: "#555" }}>{item.days}</div>
-            </div>
-          ))}
+          {expiringSoon.length === 0 ? (
+            <div style={{ fontSize: 13, color: "#888", padding: "12px 0" }}>No expiring batch alerts</div>
+          ) : (
+            expiringSoon.map((item) => (
+              <div key={`${item.name}-${item.days}`} className="d-flex justify-content-between align-items-center mb-3 inventory-row">
+                <div style={{ fontWeight: 700, fontSize: 13, color: "#222" }}>{item.name}</div>
+                <div style={{ fontSize: 13, color: "#555" }}>{item.days}</div>
+              </div>
+            ))
+          )}
         </div>
       </div>
       <div className="text-end mt-auto pt-2">
@@ -262,63 +257,88 @@ function InventoryHealth({ onKnowMore }) {
 
 function DashBoard() {
   const navigate = useNavigate();
-  const [ordersCount, setOrdersCount] = useState(null);
-  const [salesToday, setSalesToday] = useState(null);
-  const [quickInsights, setQuickInsights] = useState(EMPTY_QUICK_INSIGHTS);
-  const [quickInsightsLoading, setQuickInsightsLoading] = useState(false);
+  const [overviewData, setOverviewData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchDashboardOverview();
+      setOverviewData(data);
+    } catch (err) {
+      console.error("Failed to load dashboard overview:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
 
-    const loadTodayStats = async () => {
-      try {
-        const stats = await fetchTodayStats();
-        if (mounted) {
-          setOrdersCount(stats?.total_orders ?? 0);
-          setSalesToday(stats?.total_sales ?? 0);
-        }
-      } catch {
-        if (mounted) {
-          setOrdersCount(0);
-          setSalesToday(0);
-        }
-      }
-    };
+    loadDashboard();
 
-    loadTodayStats();
+    // Auto-refresh dashboard data every 30 seconds
+    const interval = setInterval(loadDashboard, 30000);
 
-    // Auto-refresh orders count
-    const interval = setInterval(loadTodayStats, 30000); 
-
-    // Also listen for manual updates
-    window.addEventListener("order-status-updated", loadTodayStats);
+    // Listen for order status updates or inventory changes
+    window.addEventListener("order-status-updated", loadDashboard);
 
     return () => {
       mounted = false;
       clearInterval(interval);
-      window.removeEventListener("order-status-updated", loadTodayStats);
+      window.removeEventListener("order-status-updated", loadDashboard);
     };
   }, []);
 
-  const statCards = useMemo(
-    () =>
-      STAT_CARDS.map((card) => {
-        if (card.label === "Orders Today") {
-          return {
-            ...card,
-            value: ordersCount === null ? "Loading..." : Number(ordersCount).toLocaleString(),
-          };
-        }
-        if (card.label === "Sales Today") {
-          return {
-            ...card,
-            value: salesToday === null ? "Loading..." : Number(salesToday).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-          };
-        }
-        return card;
-      }),
-    [ordersCount, salesToday]
-  );
+  const statCards = useMemo(() => {
+    const cards = overviewData?.stat_cards;
+
+    return [
+      {
+        label: "Sales Today",
+        value: loading
+          ? "Loading..."
+          : cards
+          ? Number(cards.sales_today).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : "0.00",
+        prefix: "PHP",
+        bg: "#96D2EE",
+      },
+      {
+        label: "Orders Today",
+        value: loading ? "Loading..." : cards ? Number(cards.orders_today).toLocaleString() : "0",
+        prefix: null,
+        bg: "#96D2EE",
+      },
+      {
+        label: "Inventory Value",
+        value: loading
+          ? "Loading..."
+          : cards
+          ? Number(cards.inventory_value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : "0.00",
+        prefix: "PHP",
+        bg: "#96D2EE",
+      },
+      {
+        label: "Low Stock Items",
+        value: loading ? "Loading..." : cards ? Number(cards.low_stock_count).toLocaleString() : "0",
+        prefix: null,
+        bg: "#F9C784",
+      },
+      {
+        label: "Predicted Stockout Risk",
+        value: loading ? "Loading..." : cards ? cards.predicted_stockout_risk : "Low",
+        prefix: null,
+        bg:
+          cards?.predicted_stockout_risk === "High"
+            ? "#F28B82"
+            : cards?.predicted_stockout_risk === "Medium"
+            ? "#F9C784"
+            : "#96D2EE",
+      },
+    ];
+  }, [overviewData, loading]);
 
   return (
     <section className="dashboard-page" aria-label="Dashboard overview">
@@ -337,16 +357,16 @@ function DashBoard() {
 
       <div className="row g-4 mb-4">
         <div className="col-12 col-md-7 col-lg-8">
-          <SalesTrend />
+          <SalesTrend initialTrend={overviewData?.sales_trend} />
         </div>
         <div className="col-12 col-md-5 col-lg-4">
-          <QuickInsights items={quickInsights} loading={quickInsightsLoading} />
+          <QuickInsights items={overviewData?.quick_insights} loading={loading} />
         </div>
       </div>
 
       <div className="row g-4">
         <div className="col-12">
-          <InventoryHealth onKnowMore={() => navigate("/inventory")} />
+          <InventoryHealth data={overviewData?.inventory_health} onKnowMore={() => navigate("/inventory")} />
         </div>
       </div>
     </section>
