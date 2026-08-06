@@ -404,6 +404,57 @@
   outline: none;
 }
 
+.pharmacists-form-input.is-invalid {
+  border-color: #ef4444 !important;
+  background: #fff5f5 !important;
+  box-shadow: 0 0 0 0.18rem rgba(239, 68, 68, 0.15) !important;
+}
+
+.pharmacists-form-input.is-invalid:focus {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 0.18rem rgba(220, 38, 38, 0.25) !important;
+}
+
+.pharmacists-error-banner {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  border-radius: var(--pd-radius-md);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.pharmacists-error-banner i {
+  color: #ef4444;
+  font-size: 16px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.pharmacists-error-banner-content {
+  flex: 1;
+}
+
+.pharmacists-error-banner-title {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.pharmacists-field-error {
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .pharmacists-form-input::placeholder {
   color: #9ca3af;
 }

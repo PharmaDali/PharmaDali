@@ -48,15 +48,30 @@ function Pharmacists() {
 	});
 	const [editingId, setEditingId] = useState(null);
 	const [isSaving, setIsSaving] = useState(false);
+	const [fieldErrors, setFieldErrors] = useState({});
+	const [formError, setFormError] = useState(null);
 	const lastSubmitRef = useRef(0);
+
+	const [tableError, setTableError] = useState(null);
 
 	const loadPharmacists = async () => {
 		try {
 			setLoading(true);
+			setTableError(null);
 			const response = await fetchPharmacists();
 			setPharmacists(response);
 		} catch (error) {
 			console.error("Failed to load pharmacists:", error);
+			const isTimeout =
+				error.code === "ECONNABORTED" ||
+				error.code === "ETIMEDOUT" ||
+				error.message?.toLowerCase().includes("timeout") ||
+				error.message?.toLowerCase().includes("network error");
+			setTableError(
+				isTimeout
+					? "Server request timed out. Please check your connection and refresh."
+					: (error.response?.data?.message || "Failed to load pharmacist list.")
+			);
 		} finally {
 			setLoading(false);
 		}
@@ -81,6 +96,8 @@ function Pharmacists() {
 	}, [search, pharmacists]);
 
 	const handleOpenModal = (pharmacist = null) => {
+		setFieldErrors({});
+		setFormError(null);
 		if (pharmacist) {
 			setFormData({
 				firstName: pharmacist.first_name || "",
@@ -120,6 +137,8 @@ function Pharmacists() {
 	const handleCloseModal = () => {
 		setShowModal(false);
 		setEditingId(null);
+		setFieldErrors({});
+		setFormError(null);
 		setFormData({
 			firstName: "",
 			lastName: "",
@@ -137,22 +156,62 @@ function Pharmacists() {
 			...prev,
 			[name]: value,
 		}));
+
+		if (fieldErrors[name]) {
+			setFieldErrors((prev) => {
+				const next = { ...prev };
+				delete next[name];
+				return next;
+			});
+		}
+		if (formError) {
+			setFormError(null);
+		}
 	};
 
 	const handleSave = async (e) => {
 		e.preventDefault();
 
+		setFieldErrors({});
+		setFormError(null);
+
+		// Client side validation
+		const errors = {};
+		if (!formData.firstName.trim()) {
+			errors.firstName = "First name is required.";
+		}
+		if (!formData.lastName.trim()) {
+			errors.lastName = "Last name is required.";
+		}
+		if (!editingId && !formData.email.trim()) {
+			errors.email = "Email address is required.";
+		} else if (!editingId && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+			errors.email = "Please enter a valid email address.";
+		}
+		if (!formData.mobile.trim()) {
+			errors.mobile = "Mobile number is required.";
+		}
+		if (!formData.birthdate) {
+			errors.birthdate = "Birthdate is required.";
+		}
+
+		if (Object.keys(errors).length > 0) {
+			setFieldErrors(errors);
+			setFormError("Please fill out all required fields correctly.");
+			return;
+		}
+
 		const now = Date.now();
-		if (now - lastSubmitRef.current < 2000) return;
+		if (now - lastSubmitRef.current < 1500) return;
 		lastSubmitRef.current = now;
 
 		const payload = {
-			first_name: formData.firstName,
-			last_name: formData.lastName,
-			email: formData.email,
-			mobile_number: formData.mobile,
+			first_name: formData.firstName.trim(),
+			last_name: formData.lastName.trim(),
+			email: formData.email.trim(),
+			mobile_number: formData.mobile.trim(),
 			date_of_birth: formData.birthdate || null,
-			license_number: formData.licenseNumber || null,
+			license_number: formData.licenseNumber?.trim() || null,
 			is_active: formData.status === "Active",
 		};
 
@@ -166,7 +225,31 @@ function Pharmacists() {
 			await loadPharmacists();
 			handleCloseModal();
 		} catch (error) {
-			alert(error.message || (editingId ? "Failed to update pharmacist" : "Failed to create pharmacist"));
+			console.error("Failed to save pharmacist:", error);
+			const isTimeout =
+				error.code === "ECONNABORTED" ||
+				error.code === "ETIMEDOUT" ||
+				error.message?.toLowerCase().includes("timeout") ||
+				error.message?.toLowerCase().includes("network error");
+
+			if (isTimeout) {
+				setFormError("Server connection timed out. Please check your network and try again.");
+			} else if (error.response?.status === 422 && error.response?.data?.errors) {
+				const backendErrors = error.response.data.errors;
+				const newFieldErrors = {};
+				if (backendErrors.first_name) newFieldErrors.firstName = backendErrors.first_name[0];
+				if (backendErrors.last_name) newFieldErrors.lastName = backendErrors.last_name[0];
+				if (backendErrors.email) newFieldErrors.email = backendErrors.email[0];
+				if (backendErrors.mobile_number) newFieldErrors.mobile = backendErrors.mobile_number[0];
+				if (backendErrors.date_of_birth) newFieldErrors.birthdate = backendErrors.date_of_birth[0];
+				if (backendErrors.license_number) newFieldErrors.licenseNumber = backendErrors.license_number[0];
+
+				setFieldErrors(newFieldErrors);
+				setFormError(error.response?.data?.message || "Please fix the validation errors below.");
+			} else {
+				const message = error.response?.data?.message || error.message || (editingId ? "Failed to update pharmacist account." : "Failed to create pharmacist account.");
+				setFormError(message);
+			}
 		} finally {
 			setIsSaving(false);
 		}
@@ -178,7 +261,7 @@ function Pharmacists() {
 			await deletePharmacist(id);
 			await loadPharmacists();
 		} catch (error) {
-			alert(error.message || "Failed to delete pharmacist");
+			console.error("Failed to delete pharmacist:", error);
 		}
 	};
 
@@ -235,6 +318,13 @@ function Pharmacists() {
 										Loading pharmacists...
 									</td>
 								</tr>
+							) : tableError ? (
+								<tr>
+									<td colSpan={6} className="text-center text-danger py-4">
+										<i className="fa-solid fa-triangle-exclamation me-2" />
+										{tableError}
+									</td>
+								</tr>
 							) : rows.length === 0 ? (
 								<tr>
 									<td colSpan={6} className="text-center text-muted py-4">
@@ -288,75 +378,109 @@ function Pharmacists() {
 							</button>
 						</div>
 
-						<form onSubmit={handleSave} className="pharmacists-modal-form">
+						<form onSubmit={handleSave} className="pharmacists-modal-form" noValidate>
+							{formError && (
+								<div className="pharmacists-error-banner" role="alert">
+									<i className="fa-solid fa-circle-exclamation" aria-hidden="true" />
+									<div className="pharmacists-error-banner-content">
+										<div className="pharmacists-error-banner-title">{formError}</div>
+									</div>
+								</div>
+							)}
+
 							<div className="pharmacists-form-row">
 								<div className="pharmacists-form-group">
-									<label className="pharmacists-form-label">First name</label>
+									<label className="pharmacists-form-label">First name *</label>
 									<input
 										type="text"
-										className="form-control pharmacists-form-input"
+										className={`form-control pharmacists-form-input ${fieldErrors.firstName ? "is-invalid" : ""}`}
 										name="firstName"
 										value={formData.firstName}
 										onChange={handleInputChange}
 										placeholder="Enter first name"
-										required
 									/>
+									{fieldErrors.firstName && (
+										<span className="pharmacists-field-error">
+											<i className="fa-solid fa-circle-exclamation" style={{ fontSize: "11px" }} />
+											{fieldErrors.firstName}
+										</span>
+									)}
 								</div>
 								<div className="pharmacists-form-group">
-									<label className="pharmacists-form-label">Last name</label>
+									<label className="pharmacists-form-label">Last name *</label>
 									<input
 										type="text"
-										className="form-control pharmacists-form-input"
+										className={`form-control pharmacists-form-input ${fieldErrors.lastName ? "is-invalid" : ""}`}
 										name="lastName"
 										value={formData.lastName}
 										onChange={handleInputChange}
 										placeholder="Enter last name"
-										required
 									/>
+									{fieldErrors.lastName && (
+										<span className="pharmacists-field-error">
+											<i className="fa-solid fa-circle-exclamation" style={{ fontSize: "11px" }} />
+											{fieldErrors.lastName}
+										</span>
+									)}
 								</div>
 							</div>
 
-{!editingId && (
-						<div className="pharmacists-form-row pharmacists-form-row-single">
-							<div className="pharmacists-form-group">
-								<label className="pharmacists-form-label">Email</label>
-								<input
-									type="email"
-									className="form-control pharmacists-form-input"
-									name="email"
-									value={formData.email}
-									onChange={handleInputChange}
-									placeholder="Enter email address"
-									required
-								/>
-							</div>
-						</div>
-					)}
+							{!editingId && (
+								<div className="pharmacists-form-row pharmacists-form-row-single">
+									<div className="pharmacists-form-group">
+										<label className="pharmacists-form-label">Email *</label>
+										<input
+											type="email"
+											className={`form-control pharmacists-form-input ${fieldErrors.email ? "is-invalid" : ""}`}
+											name="email"
+											value={formData.email}
+											onChange={handleInputChange}
+											placeholder="Enter email address"
+										/>
+										{fieldErrors.email && (
+											<span className="pharmacists-field-error">
+												<i className="fa-solid fa-circle-exclamation" style={{ fontSize: "11px" }} />
+												{fieldErrors.email}
+											</span>
+										)}
+									</div>
+								</div>
+							)}
 
 							<div className="pharmacists-form-row">
 								<div className="pharmacists-form-group">
-									<label className="pharmacists-form-label">Mobile number</label>
+									<label className="pharmacists-form-label">Mobile number *</label>
 									<input
 										type="tel"
-										className="form-control pharmacists-form-input"
+										className={`form-control pharmacists-form-input ${fieldErrors.mobile ? "is-invalid" : ""}`}
 										name="mobile"
 										value={formData.mobile}
 										onChange={handleInputChange}
 										placeholder="Enter mobile number"
-										required
 									/>
+									{fieldErrors.mobile && (
+										<span className="pharmacists-field-error">
+											<i className="fa-solid fa-circle-exclamation" style={{ fontSize: "11px" }} />
+											{fieldErrors.mobile}
+										</span>
+									)}
 								</div>
 								<div className="pharmacists-form-group">
-									<label className="pharmacists-form-label">Birthdate</label>
+									<label className="pharmacists-form-label">Birthdate *</label>
 									<input
 										type="date"
-										className="form-control pharmacists-form-input"
+										className={`form-control pharmacists-form-input ${fieldErrors.birthdate ? "is-invalid" : ""}`}
 										name="birthdate"
 										value={formData.birthdate}
 										max={`${new Date().getFullYear()}-12-31`}
 										onChange={handleInputChange}
-										required
 									/>
+									{fieldErrors.birthdate && (
+										<span className="pharmacists-field-error">
+											<i className="fa-solid fa-circle-exclamation" style={{ fontSize: "11px" }} />
+											{fieldErrors.birthdate}
+										</span>
+									)}
 								</div>
 							</div>
 
@@ -364,11 +488,10 @@ function Pharmacists() {
 								<div className="pharmacists-form-group">
 									<label className="pharmacists-form-label">Status</label>
 									<select
-										className="form-control pharmacists-form-input"
+										className={`form-control pharmacists-form-input ${fieldErrors.status ? "is-invalid" : ""}`}
 										name="status"
 										value={formData.status}
 										onChange={handleInputChange}
-										required
 									>
 										<option value="Active">Active</option>
 										<option value="Inactive">Inactive</option>
@@ -378,12 +501,18 @@ function Pharmacists() {
 									<label className="pharmacists-form-label">License number</label>
 									<input
 										type="text"
-										className="form-control pharmacists-form-input"
+										className={`form-control pharmacists-form-input ${fieldErrors.licenseNumber ? "is-invalid" : ""}`}
 										name="licenseNumber"
 										value={formData.licenseNumber}
 										onChange={handleInputChange}
 										placeholder="Enter license number"
 									/>
+									{fieldErrors.licenseNumber && (
+										<span className="pharmacists-field-error">
+											<i className="fa-solid fa-circle-exclamation" style={{ fontSize: "11px" }} />
+											{fieldErrors.licenseNumber}
+										</span>
+									)}
 								</div>
 							</div>
 
