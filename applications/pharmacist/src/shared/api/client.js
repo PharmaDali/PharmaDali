@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 
 class ApiError extends Error {
@@ -8,7 +9,11 @@ class ApiError extends Error {
   }
 }
 
-const getBaseUrl = () => (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/+$/, '');
+const getBaseUrl = () => {
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (envUrl && envUrl.trim()) return envUrl.trim().replace(/\/+$/, '');
+  return 'http://localhost:3000/api';
+};
 
 const getErrorMessage = (data, fallback) => {
   if (data?.errors) {
@@ -18,8 +23,23 @@ const getErrorMessage = (data, fallback) => {
   return data?.message?.trim() || fallback;
 };
 
+const getItem = async (key) => {
+  if (Platform.OS === 'web') {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+  try {
+    return await SecureStore.getItemAsync(key);
+  } catch {
+    return null;
+  }
+};
+
 const getStoredToken = async () => {
-  const raw = await SecureStore.getItemAsync('pharmacist_token');
+  const raw = await getItem('pharmacist_token');
 
   if (!raw) {
     return null;
@@ -43,7 +63,7 @@ const getStoredToken = async () => {
 };
 
 const getStoredPharmacyId = async () => {
-  const raw = await SecureStore.getItemAsync('pharmacist_token');
+  const raw = await getItem('pharmacist_token');
 
   if (!raw) return null;
 
