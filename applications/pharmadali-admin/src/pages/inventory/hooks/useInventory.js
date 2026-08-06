@@ -725,7 +725,19 @@ export function useInventory() {
       loadData();
     } catch (err) {
       console.error("Failed to create product:", err);
-      if (err.response?.status === 422 && err.response?.data?.errors) {
+      const isTimeout =
+        err.code === "ECONNABORTED" ||
+        err.code === "ETIMEDOUT" ||
+        err.message?.toLowerCase().includes("timeout") ||
+        err.message?.toLowerCase().includes("network error");
+
+      if (isTimeout) {
+        setErrorModal({
+          isOpen: true,
+          title: "Connection Timeout",
+          message: "Server connection timed out. Please check your network connection and try again."
+        });
+      } else if (err.response?.status === 422 && err.response?.data?.errors) {
         // Assume backend returns field errors mapped by field name
         const backendErrors = err.response.data.errors;
         let formattedErrors = {};
