@@ -222,7 +222,7 @@ const UploadPrescriptionScreen = () => {
           ))}
         </View>
 
-        <View className="mx-4 mt-5">
+        <View className="mx-4 mt-5 mb-5">
           <Text className="text-sm mb-3" style={styles.fontBold}>Upload Prescription</Text>
 
           <View className="flex-row gap-3">
