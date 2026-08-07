@@ -1,5 +1,6 @@
 import { View, FlatList, Text, RefreshControl, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
 import StatusFeedbackModal from '@shared/components/StatusFeedbackModal';
@@ -90,9 +91,17 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
 };
 
 export default function Orders() {
-  const [activeTab, setActiveTab] = useState('For Review');
+  const params = useLocalSearchParams();
+  const initialTab = params?.tab && orderTabs.includes(params.tab) ? params.tab : 'For Review';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (params?.tab && orderTabs.includes(params.tab)) {
+      setActiveTab(params.tab);
+    }
+  }, [params?.tab]);
 
   // Per-Tab State for Lazy Loading & Infinite Scrolling
   const [tabStates, setTabStates] = useState({
@@ -218,14 +227,37 @@ export default function Orders() {
     const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
     if (!orderId) return;
 
+    setError('');
+    const previousTabStates = JSON.parse(JSON.stringify(tabStates));
+
+    // Optimistic UI: Immediately remove order from 'For Review' UI list
+    setTabStates((prev) => {
+      const forReview = prev['For Review'];
+      const updatedItems = (forReview.items || []).filter((item) => item.id !== order.id);
+      return {
+        ...prev,
+        'For Review': {
+          ...forReview,
+          items: updatedItems,
+          total: Math.max(0, (forReview.total || 1) - 1),
+        },
+        'Preparing': {
+          ...prev['Preparing'],
+          loaded: false,
+        },
+      };
+    });
+
+    setFeedbackAction('approve');
+    setFeedbackVisible(true);
+
     try {
       await updateOrderStatusByPharmacist(orderId, 'approve');
-      await reloadActiveTab();
-      setFeedbackAction('approve');
-      setFeedbackVisible(true);
+      fetchTabOrders(activeTab, 1, true);
     } catch (e) {
       console.error('[Orders] Error approving order:', e);
       setError(e?.message || 'Failed to approve order.');
+      setTabStates(previousTabStates);
     }
   };
 
@@ -247,16 +279,40 @@ export default function Orders() {
     const orderId = selectedOrder?.id ?? selectedOrder?.orderId ?? selectedOrder?.orderNumber;
     if (!orderId) return;
 
+    setError('');
+    const action = overlayAction;
+    const targetOrderId = selectedOrder?.id;
+    setOverlayVisible(false);
+    const previousTabStates = JSON.parse(JSON.stringify(tabStates));
+
+    // Optimistic UI: Immediately remove order from 'For Review' UI list
+    setTabStates((prev) => {
+      const forReview = prev['For Review'];
+      const updatedItems = (forReview.items || []).filter((item) => item.id !== targetOrderId);
+      return {
+        ...prev,
+        'For Review': {
+          ...forReview,
+          items: updatedItems,
+          total: Math.max(0, (forReview.total || 1) - 1),
+        },
+        'Issues': {
+          ...prev['Issues'],
+          loaded: false,
+        },
+      };
+    });
+
+    setFeedbackAction(action);
+    setFeedbackVisible(true);
+
     try {
-      await updateOrderStatusByPharmacist(orderId, overlayAction, reason);
-      setOverlayVisible(false);
-      await reloadActiveTab();
-      setFeedbackAction(overlayAction);
-      setFeedbackVisible(true);
+      await updateOrderStatusByPharmacist(orderId, action, reason);
+      fetchTabOrders(activeTab, 1, true);
     } catch (e) {
-      console.error(`[Orders] Error marking order as ${overlayAction}:`, e);
-      setError(e?.message || `Failed to mark order as ${overlayAction}.`);
-      setOverlayVisible(false);
+      console.error(`[Orders] Error marking order as ${action}:`, e);
+      setError(e?.message || `Failed to mark order as ${action}.`);
+      setTabStates(previousTabStates);
     }
   };
 
@@ -264,14 +320,33 @@ export default function Orders() {
     const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
     if (!orderId) return;
 
+    setError('');
+    const previousTabStates = JSON.parse(JSON.stringify(tabStates));
+
+    // Optimistic UI: Immediately remove order from 'Preparing' UI list
+    setTabStates((prev) => {
+      const preparing = prev['Preparing'];
+      const updatedItems = (preparing.items || []).filter((item) => item.id !== order.id);
+      return {
+        ...prev,
+        'Preparing': {
+          ...preparing,
+          items: updatedItems,
+          total: Math.max(0, (preparing.total || 1) - 1),
+        },
+      };
+    });
+
+    setFeedbackAction('ready');
+    setFeedbackVisible(true);
+
     try {
       await updateOrderStatusByPharmacist(orderId, 'ready');
-      await reloadActiveTab();
-      setFeedbackAction('ready');
-      setFeedbackVisible(true);
+      fetchTabOrders(activeTab, 1, true);
     } catch (e) {
       console.error('[Orders] Error marking order as ready:', e);
       setError(e?.message || 'Failed to mark order as ready.');
+      setTabStates(previousTabStates);
     }
   };
 
@@ -307,15 +382,6 @@ export default function Orders() {
         tabs={orderTabs} 
         counts={tabCounts}
       />
-
-      {currentTabState.loading && (
-        <View className="px-4 py-4 items-center flex-row gap-2">
-          <ActivityIndicator size="small" color={colors.buttonColor} />
-          <Text style={{ fontFamily: 'Poppins-Medium', color: '#666' }}>
-            Loading orders...
-          </Text>
-        </View>
-      )}
 
       {!!error && (
         <Text className="px-4 pb-2" style={{ fontFamily: 'Poppins-Medium', color: '#CC3A3A' }}>

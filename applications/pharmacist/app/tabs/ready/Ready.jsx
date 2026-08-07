@@ -212,15 +212,6 @@ const Ready = () => {
         counts={counts}
       />
 
-      {currentTabState.loading && (
-        <View className="px-4 py-4 items-center flex-row gap-2">
-          <ActivityIndicator size="small" color={colors.buttonColor} />
-          <Text style={{ fontFamily: 'Poppins-Medium', color: '#666' }}>
-            Loading orders...
-          </Text>
-        </View>
-      )}
-
       {!!error && (
         <Text className="px-4 pb-2" style={{ fontFamily: 'Poppins-Medium', color: '#CC3A3A' }}>
           {error}

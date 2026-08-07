@@ -5,6 +5,7 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use App\Services\Notification\FcmService;
 
@@ -13,6 +14,7 @@ class OrderCompletedNotification extends Notification implements ShouldQueue
     use Queueable;
 
     protected $order;
+    protected bool $pushSent = false;
 
     /**
      * Create a new notification instance.
@@ -54,16 +56,21 @@ class OrderCompletedNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        if ($notifiable->fcm_token) {
-            app(FcmService::class)->sendPushNotification(
-                $notifiable,
-                'Order Completed',
-                'Your order #' . $this->order->order_number . ' has been marked as completed. Thank you!',
-                [
-                    'order_id' => (string) $this->order->id,
-                    'type' => 'order_completed',
-                ]
-            );
+        if ($notifiable->fcm_token && !$this->pushSent) {
+            $this->pushSent = true;
+            try {
+                app(FcmService::class)->sendPushNotification(
+                    $notifiable,
+                    'Order Completed',
+                    'Your order #' . $this->order->order_number . ' has been marked as completed. Thank you!',
+                    [
+                        'order_id' => (string) $this->order->id,
+                        'type' => 'order_completed',
+                    ]
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('OrderCompletedNotification FCM push error: ' . $e->getMessage());
+            }
         }
 
         return [
@@ -73,5 +80,20 @@ class OrderCompletedNotification extends Notification implements ShouldQueue
             'message' => 'Your order #' . $this->order->order_number . ' has been completed. Thank you!',
             'type' => 'order_completed',
         ];
+    }
+
+    /**
+     * Get the broadcast representation of the notification.
+     */
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            'id' => $this->id,
+            'order_id' => $this->order->id,
+            'order_number' => $this->order->order_number,
+            'status' => 'completed',
+            'message' => 'Your order #' . $this->order->order_number . ' has been completed. Thank you!',
+            'type' => 'order_completed',
+        ]);
     }
 }

@@ -9,6 +9,8 @@ import AnimatedSplashLayout from '@src/shared/components/AnimatedSplashLayout';
 import { loginCustomer } from '@src/shared/services/authService';
 import { validateCustomerLogin } from '@src/shared/validation/authValidation';
 
+import { syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
+
 export default function LoginScreen() {
   const router = useRouter();
   const passwordToggleIcon = useConfirmPasswordToggle();
@@ -31,6 +33,7 @@ export default function LoginScreen() {
       const token = await loginCustomer({ email, password });
 
       await SecureStore.setItemAsync('customer_token', JSON.stringify(token));
+      syncFcmTokenWithBackend().catch(() => {});
 
       router.replace('/tabs/Home');
     } catch (error) {

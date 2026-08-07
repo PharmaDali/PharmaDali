@@ -1,12 +1,15 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '@src/shared/theme/colorPalette'
 import AccountIcon from '@assets/icons/account_icon.svg'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import EditIcon from '@assets/icons/edit_icon.svg'
 import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
+import { logoutPharmacist } from '@shared/services/authService';
 import { toTitleCase } from '@shared/utils/stringUtils';
+import LogoutConfirmationOverlay from '@shared/components/LogoutConfirmationOverlay';
 
 const Account = () => {
   const router = useRouter();
@@ -14,6 +17,8 @@ const Account = () => {
   const [profile, setProfile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isLogoutOverlayVisible, setIsLogoutOverlayVisible] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -45,6 +50,20 @@ const Account = () => {
       isMounted = false;
     };
   }, []);
+
+  const handleConfirmLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await logoutPharmacist();
+      setIsLogoutOverlayVisible(false);
+      router.replace('/auth/PharmacistLogin');
+    } catch {
+      setIsLogoutOverlayVisible(false);
+      router.replace('/auth/PharmacistLogin');
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   const firstName = profile?.user?.first_name ?? '';
   const lastName = profile?.user?.last_name ?? '';
@@ -91,6 +110,27 @@ const Account = () => {
         <Text style={styles.textMedium} className="flex-1 text-base ml-3">Personal Details</Text>
         <ArrowForwardIcon width={18} height={18} />
       </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.card}
+        className="mx-4 mt-3 px-4 py-4 rounded-xl border border-red-200 flex-row items-center bg-red-50/20"
+        onPress={() => setIsLogoutOverlayVisible(true)}
+      >
+        <View className="w-7 h-7 rounded-full bg-red-100 items-center justify-center">
+          <MaterialCommunityIcons name="logout" size={18} color="#EF4444" />
+        </View>
+        <Text className="flex-1 text-base ml-3 text-red-500 font-semibold" style={{ fontFamily: 'Poppins-Medium' }}>
+          Log Out
+        </Text>
+        <ArrowForwardIcon width={18} height={18} />
+      </TouchableOpacity>
+
+      <LogoutConfirmationOverlay
+        visible={isLogoutOverlayVisible}
+        loading={isLoggingOut}
+        onClose={() => setIsLogoutOverlayVisible(false)}
+        onConfirm={handleConfirmLogout}
+      />
     </View>
   )
 }
@@ -133,4 +173,3 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
 })
-

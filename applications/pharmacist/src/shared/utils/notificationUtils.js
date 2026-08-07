@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { updateFcmToken, removeFcmToken } from '@shared/services/notificationService';
 
@@ -18,8 +19,8 @@ export function configureForegroundNotifications() {
 }
 
 /**
- * Requests notification permissions and returns the Expo Push Token.
- * Returns null if permissions are denied or the device is a simulator.
+ * Requests notification permissions and returns either the Native FCM Device Token or Expo Push Token.
+ * Supports Development Builds, Expo Go, and standalone production binaries.
  */
 export async function registerForPushNotificationsAsync() {
   if (!Device.isDevice) {
@@ -46,11 +47,46 @@ export async function registerForPushNotificationsAsync() {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#48AAD9',
+      sound: 'default',
+      enableVibrate: true,
+      showBadge: true,
     });
   }
 
-  const tokenData = await Notifications.getExpoPushTokenAsync();
-  return tokenData.data;
+  // 1. Try Native Device Push Token (Direct FCM Token) first for direct Firebase delivery
+  try {
+    const deviceToken = await Notifications.getDevicePushTokenAsync();
+    if (deviceToken?.data) {
+      const rawToken = typeof deviceToken.data === 'string'
+        ? deviceToken.data
+        : deviceToken.data?.token || null;
+      if (rawToken) {
+        console.log('[Push] Obtained Native Device Push Token (FCM):', rawToken);
+        return rawToken;
+      }
+    }
+  } catch (deviceErr) {
+    console.warn('[Push] Native device push token fetch failed, attempting Expo push token:', deviceErr);
+  }
+
+  const projectId =
+    Constants?.expoConfig?.extra?.eas?.projectId ||
+    Constants?.easConfig?.projectId;
+
+  // 2. Fallback to Expo Push Token
+  try {
+    const tokenData = await Notifications.getExpoPushTokenAsync(
+      projectId ? { projectId } : undefined
+    );
+    if (tokenData?.data) {
+      console.log('[Push] Obtained Expo Push Token:', tokenData.data);
+      return tokenData.data;
+    }
+  } catch (expoErr) {
+    console.error('[Push] Error getting Expo push token:', expoErr);
+  }
+
+  return null;
 }
 
 /**
@@ -60,11 +96,14 @@ export async function registerForPushNotificationsAsync() {
 export async function syncFcmTokenWithBackend() {
   try {
     const token = await registerForPushNotificationsAsync();
-    if (!token) return;
+    if (!token) {
+      console.warn('[Push] Could not retrieve push token.');
+      return;
+    }
     await updateFcmToken(token);
-    console.log('[Push] Token synced with backend:', token);
+    console.log('[Push] FCM token synced with backend successfully:', token);
   } catch (err) {
-    console.error('[Push] Failed to sync token:', err);
+    console.error('[Push] Failed to sync token with backend:', err);
   }
 }
 

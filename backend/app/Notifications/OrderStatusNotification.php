@@ -5,6 +5,7 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use App\Services\Notification\FcmService;
 
@@ -13,6 +14,7 @@ class OrderStatusNotification extends Notification implements ShouldQueue
     use Queueable;
 
     protected $order;
+    protected bool $pushSent = false;
 
     /**
      * Create a new notification instance.
@@ -33,16 +35,52 @@ class OrderStatusNotification extends Notification implements ShouldQueue
     }
 
     /**
+     * Get direct, user-friendly title and message based on exact order status.
+     */
+    private function getNotificationText(): array
+    {
+        $status = strtolower((string) ($this->order->status ?? ''));
+        $orderNumber = $this->order->order_number ?? $this->order->id;
+
+        return match ($status) {
+            'preparing' => [
+                'title' => 'Order Being Prepared',
+                'message' => "Your order #{$orderNumber} is now being prepared by the pharmacist.",
+            ],
+            'ready_for_pickup' => [
+                'title' => 'Ready for Pickup!',
+                'message' => "Your order #{$orderNumber} is ready for pickup! Please visit the pharmacy to collect your items.",
+            ],
+            'stand_by' => [
+                'title' => 'Order On Hold',
+                'message' => "Your order #{$orderNumber} has been placed on hold. Please check your order details or messages.",
+            ],
+            'cancelled', 'rejected' => [
+                'title' => 'Order Cancelled',
+                'message' => "Your order #{$orderNumber} has been cancelled.",
+            ],
+            'completed' => [
+                'title' => 'Order Completed',
+                'message' => "Your order #{$orderNumber} has been completed. Thank you for choosing PharmaDali!",
+            ],
+            default => [
+                'title' => 'Order Updated',
+                'message' => "Your order #{$orderNumber} status is now " . str_replace('_', ' ', $status) . ".",
+            ],
+        };
+    }
+
+    /**
      * Get the mail representation of the notification.
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $status = str_replace('_', ' ', $this->order->status);
+        $text = $this->getNotificationText();
 
         return (new MailMessage)
-            ->subject('Order Status Updated - ' . $this->order->order_number)
+            ->subject($text['title'] . ' - ' . $this->order->order_number)
             ->greeting('Hello ' . $notifiable->name . '!')
-            ->line('The status of your order ' . $this->order->order_number . ' has been updated to: ' . strtoupper($status) . '.')
+            ->line($text['message'])
             ->action('View Order Details', url('/orders/' . $this->order->id))
             ->line('Thank you for choosing PharmaDali!');
     }
@@ -55,18 +93,15 @@ class OrderStatusNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        $isCancelled = $this->order->status === 'cancelled';
-        $title = $isCancelled ? 'Order Cancelled' : 'Order Status Updated';
-        $message = $isCancelled
-            ? 'Your order #' . $this->order->order_number . ' has been cancelled.'
-            : 'Your order #' . $this->order->order_number . ' status is now ' . str_replace('_', ' ', $this->order->status) . '.';
+        $text = $this->getNotificationText();
 
-        if ($notifiable->fcm_token) {
+        if ($notifiable->fcm_token && !$this->pushSent) {
+            $this->pushSent = true;
             try {
                 app(FcmService::class)->sendPushNotification(
                     $notifiable,
-                    $title,
-                    $message,
+                    $text['title'],
+                    $text['message'],
                     [
                         'order_id' => (string) $this->order->id,
                         'type' => 'order_status_change',
@@ -81,8 +116,27 @@ class OrderStatusNotification extends Notification implements ShouldQueue
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
             'status' => $this->order->status,
-            'message' => $message,
+            'title' => $text['title'],
+            'message' => $text['message'],
             'type' => 'order_status_change',
         ];
+    }
+
+    /**
+     * Get the broadcast representation of the notification.
+     */
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        $text = $this->getNotificationText();
+
+        return new BroadcastMessage([
+            'id' => $this->id,
+            'order_id' => $this->order->id,
+            'order_number' => $this->order->order_number,
+            'status' => $this->order->status,
+            'title' => $text['title'],
+            'message' => $text['message'],
+            'type' => 'order_status_change',
+        ]);
     }
 }

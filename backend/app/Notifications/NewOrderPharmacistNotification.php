@@ -5,15 +5,16 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 use App\Services\Notification\FcmService;
-
 
 class NewOrderPharmacistNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
     protected $order;
+    protected bool $pushSent = false;
 
     /**
      * Create a new notification instance.
@@ -62,16 +63,21 @@ class NewOrderPharmacistNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
-        if ($notifiable->fcm_token) {
-            app(FcmService::class)->sendPushNotification(
-                $notifiable,
-                'New Order Received',
-                'New order #' . $this->order->order_number . ' received. Please process it.',
-                [
-                    'order_id' => (string) $this->order->id,
-                    'type' => 'new_order_pharmacist',
-                ]
-            );
+        if ($notifiable->fcm_token && !$this->pushSent) {
+            $this->pushSent = true;
+            try {
+                app(FcmService::class)->sendPushNotification(
+                    $notifiable,
+                    'New Order Received',
+                    'New order #' . $this->order->order_number . ' received. Please process it.',
+                    [
+                        'order_id' => (string) $this->order->id,
+                        'type' => 'new_order_pharmacist',
+                    ]
+                );
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('NewOrderPharmacistNotification FCM push error: ' . $e->getMessage());
+            }
         }
 
         $customerUser = $this->order->customer?->user;
@@ -88,5 +94,27 @@ class NewOrderPharmacistNotification extends Notification implements ShouldQueue
             'message' => 'New order #' . $this->order->order_number . ' received.',
             'type' => 'new_order_pharmacist',
         ];
+    }
+
+    /**
+     * Get the broadcast representation of the notification.
+     */
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        $customerUser = $this->order->customer?->user;
+        $customerName = $customerUser ? trim(($customerUser->first_name ?? '') . ' ' . ($customerUser->last_name ?? '')) : 'Guest';
+        if (empty($customerName)) {
+            $customerName = 'Guest';
+        }
+
+        return new BroadcastMessage([
+            'id' => $this->id,
+            'order_id' => $this->order->id,
+            'order_number' => $this->order->order_number,
+            'customer_name' => $customerName,
+            'total_amount' => $this->order->total_amount,
+            'message' => 'New order #' . $this->order->order_number . ' received.',
+            'type' => 'new_order_pharmacist',
+        ]);
     }
 }
