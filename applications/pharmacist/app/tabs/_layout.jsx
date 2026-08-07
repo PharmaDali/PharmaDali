@@ -20,25 +20,30 @@ function LayoutContent() {
     // Register device and sync the Expo Push Token to the backend
     syncFcmTokenWithBackend();
 
-    // Handle notification taps — navigate to the pharmacist orders screen
+    // Handle notification taps — navigate to the pharmacist orders screen safely
     notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data;
       if (!data) return;
 
       const { order_id, order_number } = data;
 
-      if (order_id) {
-        // Navigate to the orders screen; pharmacist order detail uses Orders screen with param
-        router.push({
-          pathname: '/tabs/orders/Orders',
-          params: {
-            highlightOrderId: String(order_id),
-            orderNumber: order_number ?? '',
-          },
-        });
-      } else {
-        router.push('/tabs/orders/Orders');
-      }
+      setTimeout(() => {
+        try {
+          if (order_id) {
+            router.push({
+              pathname: '/tabs/orders/Orders',
+              params: {
+                highlightOrderId: String(order_id),
+                orderNumber: order_number ?? '',
+              },
+            });
+          } else {
+            router.push('/tabs/orders/Orders');
+          }
+        } catch (e) {
+          console.warn('[NotificationResponse] Navigation context deferred:', e);
+        }
+      }, 300);
     });
 
     return () => {

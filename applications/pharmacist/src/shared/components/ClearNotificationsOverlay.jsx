@@ -1,6 +1,6 @@
-import { Text, View, Modal, TouchableOpacity, Pressable, StyleSheet } from 'react-native'
-import React from 'react'
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { Text, View, Modal, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
+import React from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function ClearNotificationsOverlay({ visible, onClose, onConfirm }) {
   return (

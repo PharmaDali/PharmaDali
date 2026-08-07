@@ -1,4 +1,4 @@
-import { Text, View, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Animated, PanResponder } from 'react-native'
+import { Text, View, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Animated, PanResponder, Pressable } from 'react-native'
 import React, { useState, useCallback, useRef } from 'react'
 import { useRouter } from 'expo-router'
 import ClockIcon from '@assets/icons/clock_icon.svg'
@@ -154,11 +154,11 @@ const Notifications = () => {
               {notifications.length > 0 && (
                 <TouchableOpacity
                   onPress={handleClearAll}
-                  className="flex-row items-center px-3 py-1.5 rounded-full bg-red-50 active:bg-red-100"
+                  className="flex-row items-center px-3 py-1.5 rounded-full bg-sky-50 active:bg-sky-100"
                 >
-                  <MaterialCommunityIcons name="delete-sweep-outline" size={18} color="#EF4444" />
+                  <MaterialCommunityIcons name="delete-sweep-outline" size={18} color="#48AAD9" />
                   <Text
-                    className="text-xs font-semibold text-red-500 ml-1"
+                    className="text-xs font-semibold text-[#48AAD9] ml-1"
                     style={{ fontFamily: 'Poppins-SemiBold' }}
                   >
                     Clear All
@@ -294,36 +294,40 @@ function SwipeableNotificationCard({ onPress, onSwipeDelete, title, description,
         }}
         {...panResponder.panHandlers}
       >
-        <TouchableOpacity activeOpacity={0.9} onPress={onPress}>
-          <View
-            className={`rounded-2xl p-4 border ${
-              isRead
-                ? 'bg-gray-50 border-gray-100'
-                : 'bg-white border-sky-100 shadow-sm'
-            }`}
-          >
-            <View className="flex-1">
-              <View className="flex-row items-center mb-1">
-                {!isRead && (
-                  <View className="w-2 h-2 rounded-full bg-sky-400 mr-2" />
-                )}
-                <Text
-                  className={`text-sm ${isRead ? 'text-slate-400' : 'text-slate-800'}`}
-                  style={{ fontFamily: 'Poppins-Bold' }}
-                >
-                  {title}
-                </Text>
+        <Pressable onPress={onPress}>
+          {({ pressed }) => (
+            <View
+              className={`rounded-2xl p-4 border ${
+                pressed
+                  ? 'bg-sky-50 border-sky-200'
+                  : isRead
+                  ? 'bg-gray-50 border-gray-100'
+                  : 'bg-white border-sky-100 shadow-sm'
+              }`}
+            >
+              <View className="flex-1">
+                <View className="flex-row items-center mb-1">
+                  {!isRead && (
+                    <View className="w-2 h-2 rounded-full bg-sky-400 mr-2" />
+                  )}
+                  <Text
+                    className={`text-sm ${isRead ? 'text-slate-400' : 'text-slate-800'}`}
+                    style={{ fontFamily: 'Poppins-Bold' }}
+                  >
+                    {title}
+                  </Text>
+                </View>
+                {description}
+                {footer}
               </View>
-              {description}
-              {footer}
+              {trailing && (
+                <View className="ml-2">
+                  {trailing}
+                </View>
+              )}
             </View>
-            {trailing && (
-              <View className="ml-2">
-                {trailing}
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
+          )}
+        </Pressable>
       </Animated.View>
     </View>
   );
