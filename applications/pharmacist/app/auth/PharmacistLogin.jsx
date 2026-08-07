@@ -11,6 +11,8 @@ import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 import { loginPharmacist } from '@src/shared/services/authService';
 import { validatePharmacistLogin } from '@src/shared/validation/authValidation';
 
+import { syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
+
 const PharmacistLogin = () => {
 
   const router = useRouter();
@@ -34,6 +36,7 @@ const PharmacistLogin = () => {
     try {
       const token = await loginPharmacist({ employeeNumber, password });
       await SecureStore.setItemAsync('pharmacist_token', JSON.stringify(token));
+      syncFcmTokenWithBackend().catch(() => {});
       router.replace('/tabs/Home');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
