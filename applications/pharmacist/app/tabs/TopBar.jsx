@@ -6,11 +6,13 @@ import NotificationIcon from '@assets/icons/notification_icon.svg'
 import ChatIcon from '@assets/icons/chat_icon.svg'
 import { useRouter } from 'expo-router'
 import { useUnreadNotifications } from '@shared/hooks/useUnreadNotifications'
+import { useUnreadChatCount } from '@shared/hooks/useUnreadChatCount'
 
 const TopBar = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { unreadCount } = useUnreadNotifications()
+  const { unreadChatCount } = useUnreadChatCount()
 
   return (
     <View className="bg-sky-500" style={{ paddingTop: insets.top }}>
@@ -47,8 +49,30 @@ const TopBar = () => {
         <MainLogo />
 
         {/* Right — Chat */}
-        <TouchableOpacity onPress={() => router.push('/tabs/chat/Chat')} className="p-2">
+        <TouchableOpacity
+          onPress={() => router.push('/tabs/chat/Chat')}
+          className="p-2"
+          style={{ position: 'relative' }}
+        >
           <ChatIcon width={26} height={26} />
+          {unreadChatCount > 0 && (
+            <View style={{
+              position: 'absolute',
+              top: 4,
+              right: 4,
+              backgroundColor: '#EF4444',
+              borderRadius: 8,
+              minWidth: 16,
+              height: 16,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingHorizontal: 3,
+            }}>
+              <Text style={{ color: '#fff', fontSize: 10, fontFamily: 'Poppins-Bold' }}>
+                {unreadChatCount > 99 ? '99+' : unreadChatCount}
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
 
       </View>

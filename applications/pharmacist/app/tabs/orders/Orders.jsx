@@ -2,6 +2,7 @@ import { View, FlatList, Text, RefreshControl, ActivityIndicator } from 'react-n
 import React, { useCallback, useEffect, useState } from 'react';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
+import StatusFeedbackModal from '@shared/components/StatusFeedbackModal';
 import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { getPharmacyOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
@@ -104,6 +105,10 @@ export default function Orders() {
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [overlayAction, setOverlayAction] = useState('reject');
   const [selectedOrder, setSelectedOrder] = useState(null);
+
+  // Status Feedback Modal State
+  const [feedbackVisible, setFeedbackVisible] = useState(false);
+  const [feedbackAction, setFeedbackAction] = useState('approve');
 
   // Fetch orders for a specific tab with pagination
   const fetchTabOrders = useCallback(async (tabName, pageNumber = 1, isPullToRefresh = false) => {
@@ -216,6 +221,8 @@ export default function Orders() {
     try {
       await updateOrderStatusByPharmacist(orderId, 'approve');
       await reloadActiveTab();
+      setFeedbackAction('approve');
+      setFeedbackVisible(true);
     } catch (e) {
       console.error('[Orders] Error approving order:', e);
       setError(e?.message || 'Failed to approve order.');
@@ -244,6 +251,8 @@ export default function Orders() {
       await updateOrderStatusByPharmacist(orderId, overlayAction, reason);
       setOverlayVisible(false);
       await reloadActiveTab();
+      setFeedbackAction(overlayAction);
+      setFeedbackVisible(true);
     } catch (e) {
       console.error(`[Orders] Error marking order as ${overlayAction}:`, e);
       setError(e?.message || `Failed to mark order as ${overlayAction}.`);
@@ -258,6 +267,8 @@ export default function Orders() {
     try {
       await updateOrderStatusByPharmacist(orderId, 'ready');
       await reloadActiveTab();
+      setFeedbackAction('ready');
+      setFeedbackVisible(true);
     } catch (e) {
       console.error('[Orders] Error marking order as ready:', e);
       setError(e?.message || 'Failed to mark order as ready.');
@@ -343,6 +354,12 @@ export default function Orders() {
         actionType={overlayAction}
         onClose={() => setOverlayVisible(false)}
         onSubmit={handleReasonSubmit}
+      />
+
+      <StatusFeedbackModal
+        visible={feedbackVisible}
+        actionType={feedbackAction}
+        onClose={() => setFeedbackVisible(false)}
       />
     </View>
   );

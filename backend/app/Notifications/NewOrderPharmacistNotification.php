@@ -38,11 +38,17 @@ class NewOrderPharmacistNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $customerUser = $this->order->customer?->user;
+        $customerName = $customerUser ? trim(($customerUser->first_name ?? '') . ' ' . ($customerUser->last_name ?? '')) : 'Guest';
+        if (empty($customerName)) {
+            $customerName = 'Guest';
+        }
+
         return (new MailMessage)
             ->subject('New Order Received - ' . $this->order->order_number)
             ->greeting('Hello Pharmacist!')
             ->line('A new order #' . $this->order->order_number . ' has been received at your pharmacy.')
-            ->line('Customer: ' . ($this->order->customer->user->name ?? 'Guest'))
+            ->line('Customer: ' . $customerName)
             ->line('Total Amount: ' . number_format($this->order->total_amount, 2))
             ->action('View and Process Order', url('/pharmacist/orders/' . $this->order->id))
             ->line('Please review and process the order as soon as possible.');
@@ -68,10 +74,16 @@ class NewOrderPharmacistNotification extends Notification implements ShouldQueue
             );
         }
 
+        $customerUser = $this->order->customer?->user;
+        $customerName = $customerUser ? trim(($customerUser->first_name ?? '') . ' ' . ($customerUser->last_name ?? '')) : 'Guest';
+        if (empty($customerName)) {
+            $customerName = 'Guest';
+        }
+
         return [
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
-            'customer_name' => $this->order->customer->user->name ?? 'Guest',
+            'customer_name' => $customerName,
             'total_amount' => $this->order->total_amount,
             'message' => 'New order #' . $this->order->order_number . ' received.',
             'type' => 'new_order_pharmacist',

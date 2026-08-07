@@ -53,32 +53,38 @@ function LayoutContent() {
     // Register device and sync the Expo Push Token to the backend
     syncFcmTokenWithBackend();
 
-    // Handle notification taps — navigate to the relevant screen
+    // Handle notification taps — navigate to the relevant screen safely after NavigationContainer mounts
     notificationResponseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data;
       if (!data) return;
 
       const { type, order_id, order_number } = data;
 
-      if (order_id) {
-        router.push({
-          pathname: '/tabs/orders/ViewOrderDetails',
-          params: {
-            orderId: String(order_id),
-            orderNumber: order_number ?? '',
-          },
-        });
-        return;
-      }
+      setTimeout(() => {
+        try {
+          if (order_id) {
+            router.push({
+              pathname: '/tabs/orders/ViewOrderDetails',
+              params: {
+                orderId: String(order_id),
+                orderNumber: order_number ?? '',
+              },
+            });
+            return;
+          }
 
-      if (type === 'order_completed' || type === 'order_rejected' || type === 'order_expired') {
-        router.push({ pathname: '/tabs/orders/Orders', params: { tab: 'completed' } });
-        return;
-      }
+          if (type === 'order_completed' || type === 'order_rejected' || type === 'order_expired') {
+            router.push({ pathname: '/tabs/orders/Orders', params: { tab: 'completed' } });
+            return;
+          }
 
-      if (type === 'order_placed' || type === 'order_status_change') {
-        router.push('/tabs/orders/Orders');
-      }
+          if (type === 'order_placed' || type === 'order_status_change') {
+            router.push('/tabs/orders/Orders');
+          }
+        } catch (e) {
+          console.warn('[NotificationResponse] Navigation context deferred:', e);
+        }
+      }, 300);
     });
 
     return () => {

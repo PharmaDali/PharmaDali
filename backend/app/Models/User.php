@@ -45,6 +45,15 @@ class User extends Authenticatable
         'fcm_token',
     ];
 
+    /**
+     * Get the user's full name.
+     */
+    public function getNameAttribute(): string
+    {
+        $fullName = trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
+        return $fullName !== '' ? $fullName : 'Guest';
+    }
+
     public function pharmacist(): HasOne
     {
         return $this->hasOne(Pharmacist::class);
