@@ -1,5 +1,6 @@
 import { View, FlatList, Text, RefreshControl, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
 import StatusFeedbackModal from '@shared/components/StatusFeedbackModal';
@@ -90,9 +91,17 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
 };
 
 export default function Orders() {
-  const [activeTab, setActiveTab] = useState('For Review');
+  const params = useLocalSearchParams();
+  const initialTab = params?.tab && orderTabs.includes(params.tab) ? params.tab : 'For Review';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (params?.tab && orderTabs.includes(params.tab)) {
+      setActiveTab(params.tab);
+    }
+  }, [params?.tab]);
 
   // Per-Tab State for Lazy Loading & Infinite Scrolling
   const [tabStates, setTabStates] = useState({
