@@ -21,9 +21,7 @@ class OrderObserver
      */
     public function updated(Order $order): void
     {
-        if ($order->wasChanged('status')) {
-            $this->notifyStaffAndAdmins($order, 'status_updated');
-        }
+        // Pharmacists and staff perform status updates directly and do not receive notification alerts for status changes.
     }
 
     /**
@@ -36,11 +34,12 @@ class OrderObserver
             return;
         }
 
+        // Target admins and system staff only (Pharmacists are notified directly via NewOrderPharmacistNotification in PlaceOrderService)
         $admins = User::where(function ($q) use ($pharmacyId) {
             $q->where('pharmacy_id', $pharmacyId)
               ->orWhereNull('pharmacy_id');
         })
-        ->whereIn('role', ['pharmacy_admin', 'pharmacist', 'admin', 'system_admin'])
+        ->whereIn('role', ['pharmacy_admin', 'admin', 'system_admin'])
         ->get();
 
         if ($admins->isEmpty()) {
@@ -60,9 +59,8 @@ class OrderObserver
         }
 
         foreach ($admins as $admin) {
-            $exists = $admin->notifications->contains(function ($n) use ($order, $event) {
-                return ($n->data['order_id'] ?? 0) === $order->id
-                    && ($n->data['event'] ?? '') === $event;
+            $exists = $admin->notifications->contains(function ($n) use ($order) {
+                return ($n->data['order_id'] ?? 0) === $order->id;
             });
 
             if (!$exists) {
