@@ -5,8 +5,13 @@ export async function fetchNotifications() {
     method: 'GET',
   });
 
-  if (payload?.status === 'success' && payload?.data?.data) {
-    return payload.data.data;
+  if (payload?.status === 'success') {
+    if (Array.isArray(payload?.data)) {
+      return payload.data;
+    }
+    if (Array.isArray(payload?.data?.data)) {
+      return payload.data.data;
+    }
   }
 
   return [];

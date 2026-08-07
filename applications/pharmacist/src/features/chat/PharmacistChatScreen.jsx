@@ -237,6 +237,7 @@ export default function PharmacistChatScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
+              colors={[colors.buttonColor]}
               tintColor={colors.buttonColor}
             />
           }

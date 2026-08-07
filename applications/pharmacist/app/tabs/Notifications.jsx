@@ -175,7 +175,7 @@ export default function PharmacistNotifications() {
       onEndReached={loadMore}
       onEndReachedThreshold={0.4}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#48AAD9" />
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#48AAD9']} tintColor="#48AAD9" />
       }
       ListHeaderComponent={
         <>
