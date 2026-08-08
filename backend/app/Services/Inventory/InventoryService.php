@@ -8,21 +8,30 @@ use App\Repositories\ProductBatchRepository;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
+use App\Services\Inventory\RestockPredictorService;
+
 class InventoryService
 {
     public function __construct(
         private readonly ProductBatchRepository $batchRepository,
+        private readonly RestockPredictorService $restockPredictorService,
     ) {}
 
-    public function getInventoryMetrics()
+    public function getInventoryMetrics(?int $pharmacyId = null)
     {
         $today = Carbon::today()->toDateString();
         $expiringLimit = Carbon::today()->addDays(30)->toDateString();
 
         $totalProducts = PharmacyProduct::count();
 
-        $lowStocks = PharmacyProduct::where('stock', '<=', 50)
-            ->count();
+        $lowStocks = 0;
+        try {
+            $pharmacyId = $pharmacyId ?? 1;
+            $predictions = $this->restockPredictorService->getPriorityRestocks($pharmacyId, 200);
+            $lowStocks = count($predictions);
+        } catch (\Throwable $e) {
+            $lowStocks = PharmacyProduct::where('stock', '<=', 10)->count();
+        }
 
         $expiring = PharmacyProduct::whereHas('batches', function ($q) use ($today, $expiringLimit) {
             $q->whereNotNull('expiry_date')

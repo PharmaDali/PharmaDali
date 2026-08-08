@@ -22,7 +22,7 @@ class RestockPredictor
      * @param  int   $limit      Max number of results to return
      * @return array             Ranked restock predictions
      */
-    public function predict(array $products, int $limit = 5): array
+    public function predict(array $products, int $limit = 5, int $leadTimeDays = self::DEFAULT_LEAD_TIME_DAYS, int $forecastHorizonDays = 7): array
     {
         $predictions = [];
 
@@ -35,14 +35,14 @@ class RestockPredictor
 
             // Dynamic Reorder Point (ROP)
             $rop = ($ads > 0)
-                ? ($ads * self::DEFAULT_LEAD_TIME_DAYS) + self::MIN_SAFETY_STOCK
+                ? ($ads * $leadTimeDays) + self::MIN_SAFETY_STOCK
                 : self::MIN_SAFETY_STOCK;
 
             // Days of Stock (DOS) — how many days until stockout
             $daysOfStock = ($ads > 0) ? ($currentStock / $ads) : 999;
 
-            // Filter — flag products at or below their ROP, OR if stock will run out in <= 7 days
-            if ($currentStock > $rop && $daysOfStock > 7) {
+            // Dynamic Filter — flag products at or below their dynamic ROP, OR if stock will run out in <= forecast Horizon days
+            if ($currentStock > $rop && $daysOfStock > $forecastHorizonDays) {
                 continue;
             }
 

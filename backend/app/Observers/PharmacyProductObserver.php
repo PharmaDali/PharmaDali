@@ -55,17 +55,22 @@ class PharmacyProductObserver
         $daysOfStock = 7;
         $averageDailySales = 0;
 
+        $isRestockRequired = false;
+        $reorderPoint = 10;
+
         try {
             /** @var RestockPredictorService $predictorService */
             $predictorService = app(RestockPredictorService::class);
             $predictorService->clearPriorityRestocksCache($pharmacy->id);
 
-            $predictions = $predictorService->getPriorityRestocks($pharmacy->id, 50);
+            $predictions = $predictorService->getPriorityRestocks($pharmacy->id, 100);
 
             foreach ($predictions as $prediction) {
                 if ((int) ($prediction['id'] ?? 0) === (int) $pharmacyProduct->id) {
                     $daysOfStock = (int) ($prediction['daysOfStock'] ?? 7);
                     $averageDailySales = $prediction['averageDailySales'] ?? 0;
+                    $reorderPoint = $prediction['reorderPoint'] ?? 10;
+                    $isRestockRequired = true;
                     break;
                 }
             }
@@ -75,39 +80,13 @@ class PharmacyProductObserver
 
         $daysLabel = $daysOfStock <= 1 ? "less than 1 day" : "less than {$daysOfStock} days";
 
-        // 1. Check Low Stock Threshold (stock <= 50)
-        if ($pharmacyProduct->stock <= 50) {
+        // Dynamic Restock Alert — triggered when stock <= ROP or DOS <= 7 days
+        if ($isRestockRequired || $daysOfStock <= 7 || $pharmacyProduct->stock <= $reorderPoint) {
             $message = "Only {$pharmacyProduct->stock} units of {$product->product_name} remaining — this stock will last {$daysLabel}.";
 
             foreach ($admins as $admin) {
                 $exists = $admin->notifications->contains(function ($n) use ($pharmacyProduct) {
-                    return ($n->data['type'] ?? null) === 'Low Stocks'
-                        && (int) ($n->data['product_id'] ?? 0) === (int) $pharmacyProduct->product_id;
-                });
-
-                if (!$exists) {
-                    try {
-                        $admin->notify(new AdminAlertNotification('Low Stocks', $message, [
-                            'product_id' => $pharmacyProduct->product_id,
-                            'product_name' => $product->product_name,
-                            'current_stock' => $pharmacyProduct->stock,
-                            'days_of_stock' => $daysOfStock,
-                            'average_daily_sales' => $averageDailySales,
-                        ]));
-                    } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::warning('PharmacyProductObserver notification error: ' . $e->getMessage());
-                    }
-                }
-            }
-        }
-
-        // 2. Check Shortage / Sales Velocity Forecast (daysOfStock <= 7) in real-time
-        if ($daysOfStock <= 7) {
-            $message = "{$product->product_name} has {$pharmacyProduct->stock} units remaining — this stock will last {$daysLabel} based on current sales velocity ({$averageDailySales} units/day).";
-
-            foreach ($admins as $admin) {
-                $exists = $admin->notifications->contains(function ($n) use ($pharmacyProduct) {
-                    return ($n->data['type'] ?? null) === 'Shortage Alert'
+                    return in_array($n->data['type'] ?? null, ['Low Stocks', 'Shortage Alert'])
                         && (int) ($n->data['product_id'] ?? 0) === (int) $pharmacyProduct->product_id;
                 });
 
@@ -121,7 +100,7 @@ class PharmacyProductObserver
                             'average_daily_sales' => $averageDailySales,
                         ]));
                     } catch (\Throwable $e) {
-                        \Illuminate\Support\Facades\Log::warning('PharmacyProductObserver shortage notification error: ' . $e->getMessage());
+                        \Illuminate\Support\Facades\Log::warning('PharmacyProductObserver notification error: ' . $e->getMessage());
                     }
                 }
             }

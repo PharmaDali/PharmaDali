@@ -45,17 +45,11 @@ class CheckInventoryAlerts extends Command
      */
     private function processLowStocks(RestockPredictorService $restockPredictorService): void
     {
-        $lowStockProducts = PharmacyProduct::with(['product', 'pharmacy.admins'])
-            ->where('stock', '<=', 50)
-            ->get();
+        $pharmacies = Pharmacy::all();
 
-        foreach ($lowStockProducts as $pp) {
-            if (!$pp->product || !$pp->pharmacy) {
-                continue;
-            }
-
-            $admins = User::where(function ($q) use ($pp) {
-                $q->where('pharmacy_id', $pp->pharmacy_id)
+        foreach ($pharmacies as $pharmacy) {
+            $admins = User::where(function ($q) use ($pharmacy) {
+                $q->where('pharmacy_id', $pharmacy->id)
                   ->orWhereNull('pharmacy_id');
             })
             ->whereIn('role', ['pharmacy_admin', 'pharmacist', 'admin', 'system_admin'])
@@ -65,36 +59,41 @@ class CheckInventoryAlerts extends Command
                 continue;
             }
 
-            // Estimate remaining supply duration
-            $daysOfStock = 7;
             try {
-                $predictions = $restockPredictorService->getPriorityRestocks($pp->pharmacy_id, 50);
+                $predictions = $restockPredictorService->getPriorityRestocks($pharmacy->id, 100);
+
                 foreach ($predictions as $pred) {
-                    if ((int) ($pred['id'] ?? 0) === (int) $pp->id) {
-                        $daysOfStock = (int) ($pred['daysOfStock'] ?? 7);
-                        break;
+                    $pp = PharmacyProduct::with('product')->find($pred['id'] ?? 0);
+                    if (!$pp || !$pp->product) {
+                        continue;
+                    }
+
+                    $daysOfStock = (int) ($pred['daysOfStock'] ?? 7);
+                    $daysLabel = $daysOfStock <= 1 ? "less than 1 day" : "less than {$daysOfStock} days";
+                    $message = "Only {$pp->stock} units of {$pp->product->product_name} remaining — this stock will last {$daysLabel}.";
+
+                    foreach ($admins as $admin) {
+                        $exists = $admin->notifications->contains(function ($notification) use ($pp) {
+                            return in_array($notification->data['type'] ?? null, ['Low Stocks', 'Shortage Alert'])
+                                && (int) ($notification->data['product_id'] ?? 0) === (int) $pp->product_id;
+                        });
+
+                        if (!$exists) {
+                            try {
+                                $admin->notify(new AdminAlertNotification('Shortage Alert', $message, [
+                                    'product_id' => $pp->product_id,
+                                    'product_name' => $pp->product->product_name,
+                                    'current_stock' => $pp->stock,
+                                    'days_of_stock' => $daysOfStock,
+                                ]));
+                            } catch (\Throwable $e) {
+                                Log::warning('CheckInventoryAlerts notification error: ' . $e->getMessage());
+                            }
+                        }
                     }
                 }
-            } catch (\Throwable $e) {}
-
-            $daysLabel = $daysOfStock <= 1 ? "less than 1 day" : "less than {$daysOfStock} days";
-            $message = "Only {$pp->stock} units of {$pp->product->product_name} remaining — this stock will last {$daysLabel}.";
-
-            foreach ($admins as $admin) {
-                // Prevent duplicates regardless of whether the previous notification is read or unread
-                $exists = $admin->notifications->contains(function ($notification) use ($pp) {
-                    return ($notification->data['type'] ?? null) === 'Low Stocks'
-                        && (int) ($notification->data['product_id'] ?? 0) === (int) $pp->product_id;
-                });
-
-                if (!$exists) {
-                    $admin->notify(new AdminAlertNotification('Low Stocks', $message, [
-                        'product_id' => $pp->product_id,
-                        'product_name' => $pp->product->product_name,
-                        'current_stock' => $pp->stock,
-                        'days_of_stock' => $daysOfStock,
-                    ]));
-                }
+            } catch (\Throwable $e) {
+                Log::warning('CheckInventoryAlerts processLowStocks error: ' . $e->getMessage());
             }
         }
     }
