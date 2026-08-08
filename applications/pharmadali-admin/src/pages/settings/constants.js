@@ -2,47 +2,31 @@ export const settingsList = [
   {
     id: "general",
     label: "General Settings",
-    description: "Basic pharmacy information and system display preferences.",
+    description: "Pharmacy identity, contact details, tax rates, and branding preferences.",
   },
   {
     id: "account",
-    label: "Account Settings",
-    description: "Manage account credentials and security options.",
+    label: "Account & Security",
+    description: "Manage account credentials, password changes, and security recovery email.",
   },
   {
-    id: "products",
-    label: "Products and Pricing",
-    description: "Configure product categories, items, and pricing rules.",
-  },
-
-  {
-    id: "receipt",
-    label: "Receipt and Printing",
-    description: "Customize receipt format and printing options.",
+    id: "category",
+    label: "Category Management",
+    description: "Organize product categories, POS color badges, and catalog status.",
   },
   {
-    id: "devices",
-    label: "Devices",
-    description: "Set up and manage connected hardware devices.",
+    id: "hardware",
+    label: "Hardware & Receipts",
+    description: "Configure receipt printers, auto-printing options, and receipt layout.",
   },
   {
     id: "operations",
-    label: "Operations",
-    description: "Configure internal processes and system-generated reports.",
-  },
-  {
-    id: "mobile",
-    label: "Mobile App Content",
-    description: "Manage content displayed in the PharmaDali customer mobile application.",
-  },
-  {
-    id: "export",
-    label: "Export Data",
-    description: "Export your system data into downloadable files.",
+    label: "Operations & Reports",
+    description: "Set up End-of-Day report preferences and operational inventory rules.",
   },
   {
     id: "backup",
-    label: "Backup and Restore",
-    description: "Handle data backup, recovery, and system restoration.",
+    label: "Backup & Restore",
+    description: "Create snapshots and restore pharmacy tenant database backups.",
   },
 ];

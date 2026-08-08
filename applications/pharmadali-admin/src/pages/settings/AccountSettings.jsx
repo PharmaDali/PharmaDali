@@ -2,35 +2,65 @@ import { useState } from "react";
 import { SettingForm } from "./SettingForm";
 import "../../assets/css/settings/common.css";
 
-const initialData = {
-  recoveryEmail: "",
+const initialAccountData = {
+  recoveryEmail: "admin.recovery@pharmadali.com",
   currentPassword: "",
   newPassword: "",
-  rememberPassword: false,
+  confirmPassword: "",
+  emailAlerts: true,
+  securityNotifications: true,
 };
 
 export const AccountSettings = ({ onNavigate }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState(initialData);
+  const [savedData, setSavedData] = useState(initialAccountData);
+  const [formData, setFormData] = useState(initialAccountData);
+  const [passwordError, setPasswordError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (field === "confirmPassword" || field === "newPassword") {
+      setPasswordError("");
+    }
   };
 
   const handleSave = () => {
+    if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
+      setPasswordError("New password and confirmation password do not match.");
+      return;
+    }
+    setPasswordError("");
+    const updated = {
+      ...formData,
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    };
+    setSavedData(updated);
+    setFormData(updated);
+    setIsEditing(false);
+    setSuccessMessage("Account security settings updated successfully.");
+    setTimeout(() => setSuccessMessage(""), 4000);
+    // Prepared for backend API Sanctum POST /api/user/password endpoint
+  };
+
+  const handleCancel = () => {
+    setFormData(savedData);
+    setPasswordError("");
     setIsEditing(false);
   };
 
   const sections = [
     {
       key: "recoveryEmail",
-      label: "Recovery Email",
-      helper: "Receive recovery instructions and security updates.",
+      label: "Security Recovery Email",
+      helper: "Email address used to receive security alerts and password reset links.",
       content: (
         <input
           type="email"
-          className="settings-form-input"
-          placeholder="Add recovery email"
+          className="form-control settings-form-input"
+          placeholder="recovery@pharmadali.com"
           value={formData.recoveryEmail}
           onChange={(e) => handleInputChange("recoveryEmail", e.target.value)}
           disabled={!isEditing}
@@ -39,13 +69,13 @@ export const AccountSettings = ({ onNavigate }) => {
     },
     {
       key: "password",
-      label: "Reset Password",
-      helper: "Update your account password and security credentials.",
+      label: "Change Password",
+      helper: "Update account login password securely.",
       content: (
-        <div className="settings-flex-column">
+        <div className="d-flex flex-column gap-2 w-100">
           <input
             type="password"
-            className="settings-form-input"
+            className="form-control settings-form-input"
             placeholder="Current Password"
             value={formData.currentPassword}
             onChange={(e) => handleInputChange("currentPassword", e.target.value)}
@@ -53,30 +83,57 @@ export const AccountSettings = ({ onNavigate }) => {
           />
           <input
             type="password"
-            className="settings-form-input"
+            className="form-control settings-form-input"
             placeholder="New Password"
             value={formData.newPassword}
             onChange={(e) => handleInputChange("newPassword", e.target.value)}
             disabled={!isEditing}
           />
+          <input
+            type="password"
+            className="form-control settings-form-input"
+            placeholder="Confirm New Password"
+            value={formData.confirmPassword}
+            onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+            disabled={!isEditing}
+          />
+          {passwordError && (
+            <div className="text-danger small mt-1">{passwordError}</div>
+          )}
         </div>
       ),
     },
     {
-      key: "rememberPassword",
-      label: "Remember Password",
-      helper: "Keep this device signed in to speed up logins.",
+      key: "securityNotifications",
+      label: "Security & System Alerts",
+      helper: "Receive real-time notifications for login attempts and system security updates.",
       content: (
-        <div className="settings-section-right">
-          <div className="pd-checkbox-container" onClick={() => isEditing && handleInputChange("rememberPassword", !formData.rememberPassword)}>
+        <div className="d-flex flex-column gap-2">
+          <div
+            className="pd-checkbox-container"
+            onClick={() => isEditing && handleInputChange("emailAlerts", !formData.emailAlerts)}
+          >
             <input
               type="checkbox"
               className="pd-checkbox"
-              checked={formData.rememberPassword}
+              checked={formData.emailAlerts}
               disabled={!isEditing}
               onChange={() => {}}
             />
-            <span className="pd-checkbox-label">Keep me signed in</span>
+            <span className="pd-checkbox-label">Email security alerts</span>
+          </div>
+          <div
+            className="pd-checkbox-container"
+            onClick={() => isEditing && handleInputChange("securityNotifications", !formData.securityNotifications)}
+          >
+            <input
+              type="checkbox"
+              className="pd-checkbox"
+              checked={formData.securityNotifications}
+              disabled={!isEditing}
+              onChange={() => {}}
+            />
+            <span className="pd-checkbox-label">In-app security notifications</span>
           </div>
         </div>
       ),
@@ -85,17 +142,24 @@ export const AccountSettings = ({ onNavigate }) => {
 
   return (
     <SettingForm
-      title="Account Settings"
-      description="Manage account credentials and security options."
+      title="Account & Security"
+      description="Manage account security credentials, password changes, and security notifications."
       isEditing={isEditing}
       onEditChange={setIsEditing}
       onSave={handleSave}
+      onCancel={handleCancel}
+      showEditSave={true}
       breadcrumbs={[
         { label: "Settings", view: "settings" },
-        { label: "Account Settings", view: "account" },
+        { label: "Account & Security", view: "account" },
       ]}
       onNavigate={onNavigate}
     >
+      {successMessage && (
+        <div className="alert alert-success py-2 px-3 mb-3 text-center small rounded-3 border-0 bg-success-subtle text-success">
+          {successMessage}
+        </div>
+      )}
       <div className="settings-section-list">
         {sections.map((section, index) => (
           <div
@@ -113,3 +177,5 @@ export const AccountSettings = ({ onNavigate }) => {
     </SettingForm>
   );
 };
+
+export default AccountSettings;

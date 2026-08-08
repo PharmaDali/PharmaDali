@@ -2,15 +2,18 @@ import { useRef, useState } from "react";
 import { SettingForm } from "./SettingForm";
 
 const initialData = {
-  pharmacyName: "PureMed Pharmacy",
+  pharmacyName: "PharmaDali Branch 1",
+  tinNumber: "000-123-456-000",
   contactNumber: "09223344556",
-  email: "pureMedpharmacy@gmail.com",
+  email: "pharmadali@gmail.com",
   address: "Poblacion 5, Tanauan City, Batangas",
-  dateFormat: "MM-DD-YYYY",
+  currency: "PHP (₱)",
+  vatRate: "12%",
 };
 
 export const GeneralSettings = ({ onNavigate }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [savedData, setSavedData] = useState(initialData);
   const [formData, setFormData] = useState(initialData);
   const [logoPreview, setLogoPreview] = useState("/assets/logo-placeholder.png");
   const fileInputRef = useRef(null);
@@ -20,12 +23,14 @@ export const GeneralSettings = ({ onNavigate }) => {
   };
 
   const handleSave = () => {
+    setSavedData(formData);
     setIsEditing(false);
+    // Prepared for backend API PUT /api/pharmacy/settings
   };
 
   const handleCancel = () => {
+    setFormData(savedData);
     setIsEditing(false);
-    setFormData(initialData);
   };
 
   const handleLogoPick = () => {
@@ -36,9 +41,7 @@ export const GeneralSettings = ({ onNavigate }) => {
 
   const handleLogoChange = (event) => {
     const file = event.target.files?.[0];
-    if (!file) {
-      return;
-    }
+    if (!file) return;
 
     const previewUrl = URL.createObjectURL(file);
     setLogoPreview(previewUrl);
@@ -47,8 +50,8 @@ export const GeneralSettings = ({ onNavigate }) => {
   const sections = [
     {
       key: "pharmacyName",
-      label: "Pharmacy name",
-      helper: "Basic pharmacy information and system display preferences.",
+      label: "Pharmacy Name",
+      helper: "Official registered name of this pharmacy store branch.",
       content: (
         <input
           type="text"
@@ -60,9 +63,23 @@ export const GeneralSettings = ({ onNavigate }) => {
       ),
     },
     {
+      key: "tinNumber",
+      label: "TIN / Tax License No.",
+      helper: "Business Tax Identification Number printed on official receipts.",
+      content: (
+        <input
+          type="text"
+          className="form-control settings-form-input"
+          value={formData.tinNumber}
+          onChange={(e) => handleInputChange("tinNumber", e.target.value)}
+          disabled={!isEditing}
+        />
+      ),
+    },
+    {
       key: "contactNumber",
       label: "Contact Number",
-      helper: "Manage account credentials and security options.",
+      helper: "Official store phone or mobile number for store inquiries.",
       content: (
         <input
           type="tel"
@@ -76,7 +93,7 @@ export const GeneralSettings = ({ onNavigate }) => {
     {
       key: "email",
       label: "Email Address",
-      helper: "Configure product categories, items, and pricing rules.",
+      helper: "Official branch email address for customer communications.",
       content: (
         <input
           type="email"
@@ -89,12 +106,12 @@ export const GeneralSettings = ({ onNavigate }) => {
     },
     {
       key: "address",
-      label: "Address",
-      helper: "Control payment methods and transaction behavior.",
+      label: "Physical Address",
+      helper: "Store location displayed on customer receipts and app listings.",
       content: (
         <textarea
           className="form-control settings-form-input settings-form-input--singleline"
-          rows="1"
+          rows="2"
           value={formData.address}
           onChange={(e) => handleInputChange("address", e.target.value)}
           disabled={!isEditing}
@@ -103,10 +120,10 @@ export const GeneralSettings = ({ onNavigate }) => {
     },
     {
       key: "logo",
-      label: "Logo Upload",
-      helper: "Customize receipt format and printing options.",
+      label: "Pharmacy Logo",
+      helper: "Official logo image displayed on POS receipts and customer app.",
       content: (
-        <div className="settings-logo-upload">
+        <div className="settings-logo-upload d-flex align-items-center gap-3">
           <div className="settings-logo-placeholder">
             <img src={logoPreview} alt="Pharmacy Logo" className="settings-logo-image" />
           </div>
@@ -120,30 +137,40 @@ export const GeneralSettings = ({ onNavigate }) => {
           {isEditing && (
             <button
               type="button"
-              className="btn btn-outline-primary btn-sm"
+              className="btn btn-outline-primary btn-sm rounded-3"
               onClick={handleLogoPick}
             >
-              Upload
+              Upload Logo
             </button>
           )}
         </div>
       ),
     },
     {
-      key: "dateFormat",
-      label: "Date Format",
-      helper: "Set up and manage connected hardware devices.",
+      key: "currency",
+      label: "Currency Symbol",
+      helper: "Default currency unit used for transactions and prices.",
       content: (
-        <select
-          className="form-select settings-form-input"
-          value={formData.dateFormat}
-          onChange={(e) => handleInputChange("dateFormat", e.target.value)}
+        <input
+          type="text"
+          className="form-control settings-form-input bg-light"
+          value={formData.currency}
+          disabled={true}
+        />
+      ),
+    },
+    {
+      key: "vatRate",
+      label: "Default Tax / VAT Rate",
+      helper: "Standard Value Added Tax percentage applied to sales.",
+      content: (
+        <input
+          type="text"
+          className="form-control settings-form-input"
+          value={formData.vatRate}
+          onChange={(e) => handleInputChange("vatRate", e.target.value)}
           disabled={!isEditing}
-        >
-          <option>MM-DD-YYYY</option>
-          <option>DD-MM-YYYY</option>
-          <option>YYYY-MM-DD</option>
-        </select>
+        />
       ),
     },
   ];
@@ -151,10 +178,12 @@ export const GeneralSettings = ({ onNavigate }) => {
   return (
     <SettingForm
       title="General Settings"
-      description="Basic pharmacy information and system display preferences."
+      description="Pharmacy identity, contact details, tax rates, and branding preferences."
       isEditing={isEditing}
       onEditChange={setIsEditing}
       onSave={handleSave}
+      onCancel={handleCancel}
+      showEditSave={true}
       breadcrumbs={[
         { label: "Settings", view: "settings" },
         { label: "General Settings", view: "general" },
@@ -178,3 +207,5 @@ export const GeneralSettings = ({ onNavigate }) => {
     </SettingForm>
   );
 };
+
+export default GeneralSettings;
