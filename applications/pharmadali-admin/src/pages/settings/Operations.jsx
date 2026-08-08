@@ -9,7 +9,9 @@ const initialOperationsData = {
     printCopy: false,
     saveAsPDF: true,
   },
-  lowStockThreshold: 50,
+  restockNoticeDays: 7,
+  supplierLeadTimeDays: 3,
+  expiryNoticeMonths: 1,
   autoExpireUnclaimedOrders: true,
 };
 
@@ -103,19 +105,56 @@ export const Operations = ({ onNavigate }) => {
       ),
     },
     {
-      key: "lowStockThreshold",
-      label: "Default Low Stock Threshold",
-      helper: "Default stock quantity limit (units) to trigger real-time low inventory alerts.",
+      key: "restockNoticeDays",
+      label: "Days of Stock Alert Notice",
+      helper: "How many days before running out of supply should the system warn you to reorder?",
       content: (
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "200px" }}>
+        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "220px" }}>
           <input
             type="number"
             className="form-control settings-form-input"
-            value={formData.lowStockThreshold}
-            onChange={(e) => handleInputChange("lowStockThreshold", Number(e.target.value))}
+            value={formData.restockNoticeDays}
+            onChange={(e) => handleInputChange("restockNoticeDays", Number(e.target.value))}
             min="1"
+            max="30"
           />
-          <span className="small text-muted">units</span>
+          <span className="small text-muted">days before stockout</span>
+        </div>
+      ),
+    },
+    {
+      key: "supplierLeadTimeDays",
+      label: "Supplier Delivery Time",
+      helper: "How many days does it usually take for your supplier to deliver orders to your store?",
+      content: (
+        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "220px" }}>
+          <input
+            type="number"
+            className="form-control settings-form-input"
+            value={formData.supplierLeadTimeDays}
+            onChange={(e) => handleInputChange("supplierLeadTimeDays", Number(e.target.value))}
+            min="1"
+            max="30"
+          />
+          <span className="small text-muted">days delivery time</span>
+        </div>
+      ),
+    },
+    {
+      key: "expiryNoticeMonths",
+      label: "Product Expiry Alert Notice",
+      helper: "How many months in advance should the system warn you before a product batch expires?",
+      content: (
+        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "220px" }}>
+          <input
+            type="number"
+            className="form-control settings-form-input"
+            value={formData.expiryNoticeMonths}
+            onChange={(e) => handleInputChange("expiryNoticeMonths", Number(e.target.value))}
+            min="1"
+            max="12"
+          />
+          <span className="small text-muted">months in advance</span>
         </div>
       ),
     },
@@ -140,7 +179,7 @@ export const Operations = ({ onNavigate }) => {
   return (
     <SettingForm
       title="Operations & Reports"
-      description="Set up End-of-Day report preferences and operational inventory rules."
+      description="Set up End-of-Day report preferences, dynamic inventory restock warning rules, and product expiry alert windows."
       showEditSave={false}
       breadcrumbs={[
         { label: "Settings", view: "settings" },
