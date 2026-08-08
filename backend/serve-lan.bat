@@ -1,7 +1,7 @@
 @echo off
-title PharmaDali LAN Server & Background Services
+title PharmaDali LAN Server ^& Background Services
 echo ========================================================
-echo   Starting PharmaDali LAN Server & Background Services...
+echo   Starting PharmaDali LAN Server ^& Background Services...
 echo ========================================================
 echo.
 
@@ -13,7 +13,7 @@ start "PharmaDali - Reverb WebSockets" cmd /k "cd /d "%~dp0" && php artisan reve
 echo [2/3] Starting Laravel Queue Worker...
 start "PharmaDali - Queue Worker" cmd /k "cd /d "%~dp0" && php artisan queue:work --tries=3"
 
-echo [3/3] Starting Laravel Task Scheduler (Auto-Expire Orders & Alerts)...
+echo [3/3] Starting Laravel Task Scheduler (Auto-Expire Orders ^& Alerts)...
 start "PharmaDali - Task Scheduler" cmd /k "cd /d "%~dp0" && php artisan schedule:work"
 
 echo.
