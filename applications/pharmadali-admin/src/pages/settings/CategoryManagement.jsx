@@ -84,12 +84,19 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
     <>
       <div className="settings-header">
         <Breadcrumb
-          crumbs={[
-            { label: "Settings", view: "settings" },
-            { label: "Products and Pricing", view: "products" },
-            { label: "Products Configuration", onClick: onBack },
-            { label: "Category", view: "category" },
-          ]}
+          crumbs={
+            onBack
+              ? [
+                  { label: "Settings", view: "settings" },
+                  { label: "Products and Pricing", view: "products" },
+                  { label: "Products Configuration", onClick: onBack },
+                  { label: "Category Management", view: "category" },
+                ]
+              : [
+                  { label: "Settings", view: "settings" },
+                  { label: "Category Management", view: "category" },
+                ]
+          }
           onNavigate={onNavigate}
         />
         <p className="settings-header-subtitle" style={{ marginTop: "-1rem" }}>

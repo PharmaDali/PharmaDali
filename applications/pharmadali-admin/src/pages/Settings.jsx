@@ -1,18 +1,12 @@
 import { useState } from "react";
 import "../assets/css/settings.css";
 import { SettingsListView } from "./settings/SettingsList";
-import { PlaceholderSettings } from "./settings/PlaceholderSettings";
 import { GeneralSettings } from "./settings/GeneralSettings";
 import { AccountSettings } from "./settings/AccountSettings";
-import { ProductsPricing } from "./settings/ProductsPricing";
-import { ProductConfiguration } from "./settings/ProductConfiguration";
-import { PricingRules } from "./settings/PricingRules";
-import ReceiptAndPrinting from "./settings/ReceiptAndPrinting";
-import Devices from "./settings/Devices";
+import { CategoryManagement } from "./settings/CategoryManagement";
+import HardwareAndReceipts from "./settings/HardwareAndReceipts";
 import Operations from "./settings/Operations";
-import MobileAppContent from "./settings/MobileAppContent";
 import BackupAndRestore from "./settings/BackupAndRestore";
-import ExportData from "./settings/ExportData";
 
 const settingsMap = {
   general: {
@@ -21,30 +15,21 @@ const settingsMap = {
   account: {
     component: AccountSettings,
   },
-  products: {
-    component: ProductsPricing,
+  category: {
+    component: CategoryManagement,
   },
-  "product-config": {
-    component: ProductConfiguration,
+  hardware: {
+    component: HardwareAndReceipts,
   },
-  "pricing-rules": {
-    component: PricingRules,
-  },
-
+  // Alias mappings for legacy routes
   receipt: {
-    component: ReceiptAndPrinting,
+    component: HardwareAndReceipts,
   },
   devices: {
-    component: Devices,
+    component: HardwareAndReceipts,
   },
   operations: {
     component: Operations,
-  },
-  mobile: {
-    component: MobileAppContent,
-  },
-  export: {
-    component: ExportData,
   },
   backup: {
     component: BackupAndRestore,
@@ -61,20 +46,11 @@ function Settings() {
     if (settingConfig) {
       const Component = settingConfig.component;
       const props = settingConfig.props || {};
-      return (
-        <>
-          <Component {...props} onNavigate={handleNavigate} />
-        </>
-      );
+      return <Component {...props} onNavigate={handleNavigate} />;
     }
   }
 
-  return (
-    <>
-      <SettingsListView onNavigate={handleNavigate} />
-    </>
-  );
+  return <SettingsListView onNavigate={handleNavigate} />;
 }
 
 export default Settings;
-
