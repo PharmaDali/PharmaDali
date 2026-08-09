@@ -34,7 +34,13 @@ function normalizeCategoryKey(name) {
     .trim();
 }
 
-function getCategoryColors(name) {
+function getCategoryColors(name, categoryObj) {
+  // If the category object from API includes background_color, use it directly!
+  const customBg = categoryObj?.background_color || categoryObj?.background;
+  if (customBg && typeof customBg === 'string') {
+    return { fill: customBg, stroke: customBg };
+  }
+
   const key = normalizeCategoryKey(name);
   return CATEGORY_COLORS[key] || DEFAULT_COLORS;
 }
@@ -87,8 +93,9 @@ export default function ProductImage({
     ? isPrescribed
     : Boolean(Number(productData?.is_prescribed ?? 0));
 
-  const categoryToUse = categoryName || productData?.category_name;
-  const colors = getCategoryColors(categoryToUse);
+  const categoryObj = productData?.category || null;
+  const categoryToUse = categoryName || productData?.category_name || categoryObj?.category_name;
+  const colors = getCategoryColors(categoryToUse, categoryObj);
 
   // Check if an uploaded product image exists
   const rawImageUri = typeof source === 'string'

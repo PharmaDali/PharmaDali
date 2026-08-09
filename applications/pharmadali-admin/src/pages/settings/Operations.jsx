@@ -1,192 +1,185 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SettingForm } from "./SettingForm";
 import "../../assets/css/settings/common.css";
-
-const initialOperationsData = {
-  useEODReport: true,
-  eodReportType: "summary", // "summary", "detailed", "both"
-  defaultReportOutput: {
-    printCopy: false,
-    saveAsPDF: true,
-  },
-  restockNoticeDays: 7,
-  supplierLeadTimeDays: 3,
-  expiryNoticeMonths: 1,
-  autoExpireUnclaimedOrders: true,
-};
+import {
+  getPharmacySettings,
+  updatePharmacySettings,
+} from "../../services/pharmacySettingsService";
 
 export const Operations = ({ onNavigate }) => {
-  const [formData, setFormData] = useState(initialOperationsData);
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const [formData, setFormData] = useState({
+    low_stock_threshold: 50,
+    shortage_days_threshold: 7,
+    expiry_days_threshold: 30,
+  });
+
+  const [savedData, setSavedData] = useState({ ...formData });
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      setErrorMessage("");
+      const res = await getPharmacySettings();
+      const thresholds = res.alert_thresholds || {};
+
+      const loadedData = {
+        low_stock_threshold: thresholds.low_stock ?? 50,
+        shortage_days_threshold: thresholds.shortage_days ?? 7,
+        expiry_days_threshold: thresholds.expiry_days ?? 30,
+      };
+
+      setFormData(loadedData);
+      setSavedData(loadedData);
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to load threshold settings.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleNestedChange = (parent, field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [parent]: { ...prev[parent], [field]: value },
-    }));
+  const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: Number(value) }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      await updatePharmacySettings(formData);
+
+      setSavedData(formData);
+      setIsEditing(false);
+      setSuccessMessage("Alert threshold rules updated successfully.");
+      setTimeout(() => setSuccessMessage(""), 4000);
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to save threshold settings.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData(savedData);
+    setIsEditing(false);
+    setErrorMessage("");
   };
 
   const sections = [
     {
-      key: "useEODReport",
-      label: "Enable End of Day (EOD) Reports",
-      helper: "Automatically compile daily sales and inventory summary upon shift register close.",
+      key: "low_stock_threshold",
+      label: "Low Stock Alert Threshold",
+      helper: "Trigger a Low Stock alert when a product's total inventory quantity drops below or reaches this unit count.",
       content: (
-        <div className="pd-checkbox-container" onClick={() => handleInputChange("useEODReport", !formData.useEODReport)}>
-          <input
-            type="checkbox"
-            className="pd-checkbox"
-            checked={formData.useEODReport}
-            onChange={() => {}}
-          />
-          <span className="pd-checkbox-label">Generate EOD report on register close</span>
-        </div>
-      ),
-    },
-    {
-      key: "eodReportType",
-      label: "EOD Report Detail Level",
-      helper: "Choose report granularity for end of day operational closing.",
-      content: (
-        <div className="d-flex flex-column gap-2">
-          {[
-            { label: "Summary Only (Total Sales & Payments)", value: "summary" },
-            { label: "Detailed (Line Items & Batch Deductions)", value: "detailed" },
-            { label: "Summary and Detailed Both", value: "both" },
-          ].map((option) => (
-            <div
-              key={option.value}
-              className="pd-radio-container"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleInputChange("eodReportType", option.value)}
-            >
-              <input
-                type="radio"
-                className="pd-radio"
-                name="eodReportType"
-                checked={formData.eodReportType === option.value}
-                onChange={() => {}}
-              />
-              <span className="pd-radio-label">{option.label}</span>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
-      key: "defaultReportOutput",
-      label: "EOD Report Export Format",
-      helper: "Default output destination when generating daily operational reports.",
-      content: (
-        <div className="d-flex flex-column gap-2">
-          {[
-            { label: "Print Hard Copy", field: "printCopy" },
-            { label: "Save Digital PDF Copy", field: "saveAsPDF" },
-          ].map((option) => (
-            <div
-              key={option.field}
-              className="pd-checkbox-container"
-              style={{ cursor: "pointer" }}
-              onClick={() => handleNestedChange("defaultReportOutput", option.field, !formData.defaultReportOutput[option.field])}
-            >
-              <input
-                type="checkbox"
-                className="pd-checkbox"
-                checked={formData.defaultReportOutput[option.field]}
-                onChange={() => {}}
-              />
-              <span className="pd-checkbox-label">{option.label}</span>
-            </div>
-          ))}
-        </div>
-      ),
-    },
-    {
-      key: "restockNoticeDays",
-      label: "Days of Stock Alert Notice",
-      helper: "How many days before running out of supply should the system warn you to reorder?",
-      content: (
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "220px" }}>
+        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "240px" }}>
           <input
             type="number"
             className="form-control settings-form-input"
-            value={formData.restockNoticeDays}
-            onChange={(e) => handleInputChange("restockNoticeDays", Number(e.target.value))}
+            value={formData.low_stock_threshold}
+            onChange={(e) => handleInputChange("low_stock_threshold", e.target.value)}
+            disabled={!isEditing || saving}
             min="1"
-            max="30"
           />
-          <span className="small text-muted">days before stockout</span>
+          <span className="small text-muted">units</span>
         </div>
       ),
     },
     {
-      key: "supplierLeadTimeDays",
-      label: "Supplier Delivery Time",
-      helper: "How many days does it usually take for your supplier to deliver orders to your store?",
+      key: "shortage_days_threshold",
+      label: "Shortage Alert Notice (Days of Stock)",
+      helper: "Warn staff with a Shortage Alert when projected remaining supply duration drops to or below this many days.",
       content: (
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "220px" }}>
+        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "240px" }}>
           <input
             type="number"
             className="form-control settings-form-input"
-            value={formData.supplierLeadTimeDays}
-            onChange={(e) => handleInputChange("supplierLeadTimeDays", Number(e.target.value))}
+            value={formData.shortage_days_threshold}
+            onChange={(e) => handleInputChange("shortage_days_threshold", e.target.value)}
+            disabled={!isEditing || saving}
             min="1"
-            max="30"
+            max="365"
           />
-          <span className="small text-muted">days delivery time</span>
+          <span className="small text-muted">days remaining</span>
         </div>
       ),
     },
     {
-      key: "expiryNoticeMonths",
-      label: "Product Expiry Alert Notice",
-      helper: "How many months in advance should the system warn you before a product batch expires?",
+      key: "expiry_days_threshold",
+      label: "Product Expiry Warning Notice Window",
+      helper: "Warn staff with an Expiry Warning when a product batch is scheduled to expire within this many days.",
       content: (
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "220px" }}>
+        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "240px" }}>
           <input
             type="number"
             className="form-control settings-form-input"
-            value={formData.expiryNoticeMonths}
-            onChange={(e) => handleInputChange("expiryNoticeMonths", Number(e.target.value))}
+            value={formData.expiry_days_threshold}
+            onChange={(e) => handleInputChange("expiry_days_threshold", e.target.value)}
+            disabled={!isEditing || saving}
             min="1"
-            max="12"
+            max="365"
           />
-          <span className="small text-muted">months in advance</span>
-        </div>
-      ),
-    },
-    {
-      key: "autoExpireUnclaimedOrders",
-      label: "Auto-Expire Unclaimed Pickup Orders",
-      helper: "Automatically flag in-store pickup orders as overdue when unclaimed after 48 hours.",
-      content: (
-        <div className="pd-checkbox-container" onClick={() => handleInputChange("autoExpireUnclaimedOrders", !formData.autoExpireUnclaimedOrders)}>
-          <input
-            type="checkbox"
-            className="pd-checkbox"
-            checked={formData.autoExpireUnclaimedOrders}
-            onChange={() => {}}
-          />
-          <span className="pd-checkbox-label">Auto-flag overdue pickup orders</span>
+          <span className="small text-muted">days before expiry</span>
         </div>
       ),
     },
   ];
 
+  if (loading) {
+    return (
+      <SettingForm
+        title="Operations & Thresholds"
+        description="Configure dynamic inventory low stock thresholds, shortage prediction windows, and expiry warning alerts."
+        showEditSave={false}
+        breadcrumbs={[
+          { label: "Settings", view: "settings" },
+          { label: "Operations & Thresholds", view: "operations" },
+        ]}
+        onNavigate={onNavigate}
+      >
+        <div className="text-center py-5 text-muted">
+          <div className="spinner-border spinner-border-sm me-2" style={{ color: "#2aabe2" }} role="status" />
+          Loading threshold settings...
+        </div>
+      </SettingForm>
+    );
+  }
+
   return (
     <SettingForm
-      title="Operations & Reports"
-      description="Set up End-of-Day report preferences, dynamic inventory restock warning rules, and product expiry alert windows."
-      showEditSave={false}
+      title="Operations & Thresholds"
+      description="Configure dynamic inventory low stock thresholds, shortage prediction windows, and expiry warning alerts."
+      isEditing={isEditing}
+      onEditChange={setIsEditing}
+      onSave={handleSave}
+      onCancel={handleCancel}
+      showEditSave={true}
       breadcrumbs={[
         { label: "Settings", view: "settings" },
-        { label: "Operations & Reports", view: "operations" },
+        { label: "Operations & Thresholds", view: "operations" },
       ]}
       onNavigate={onNavigate}
     >
+      {errorMessage && (
+        <div className="alert alert-danger py-2 px-3 mb-3 small rounded-3 border-0 bg-danger-subtle text-danger">
+          {errorMessage}
+        </div>
+      )}
+      {successMessage && (
+        <div className="alert alert-success py-2 px-3 mb-3 small rounded-3 border-0 bg-success-subtle text-success">
+          {successMessage}
+        </div>
+      )}
       <div className="settings-section-list">
         {sections.map((section, index) => (
           <div

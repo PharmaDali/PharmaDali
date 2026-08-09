@@ -28,11 +28,12 @@ class ShowPharmacyCategoriesService
     private function queryCategories(int $pharmacyId): Collection
     {
         return Category::query()
-            ->select('categories.id', 'categories.category_name', 'categories.description')
+            ->select('categories.id', 'categories.category_name', 'categories.description', 'categories.background_color', 'categories.font_color', 'categories.is_enabled')
             ->selectRaw('COUNT(pharmacy_products.id) as product_count')
             ->join('pharmacy_products', 'pharmacy_products.category_id', '=', 'categories.id')
             ->where('pharmacy_products.pharmacy_id', $pharmacyId)
-            ->groupBy('categories.id', 'categories.category_name', 'categories.description')
+            ->where('categories.is_enabled', true)
+            ->groupBy('categories.id', 'categories.category_name', 'categories.description', 'categories.background_color', 'categories.font_color', 'categories.is_enabled')
             ->orderByDesc('product_count')
             ->orderBy('categories.category_name')
             ->get();

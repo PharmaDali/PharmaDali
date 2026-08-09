@@ -23,7 +23,7 @@ class ShowPharmacyProductService
         $query = PharmacyProduct::query()
             ->with([
                 'product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
-                'category:id,category_name,description',
+                'category:id,category_name,description,background_color,font_color,is_enabled',
             ])
             ->where('pharmacy_id', $pharmacyId);
 
