@@ -17,8 +17,12 @@ class CustomerRecommendationService
     /**
      * Get dynamic recommendations and hero text for a customer.
      */
-    public function getRecommendations(User $customer, int $pharmacyId): array
+    public function getRecommendations(User $customer, int $pharmacyId, int $page = 1, int $perPage = 10): array
     {
+        $perPage = max(1, min($perPage, 50));
+        $page = max(1, $page);
+        $offset = ($page - 1) * $perPage;
+
         $customerRecord = $customer->customer ?? Customer::where('user_id', $customer->id)->first();
         $targetCustomerId = $customerRecord ? $customerRecord->id : $customer->id;
 
@@ -31,76 +35,90 @@ class CustomerRecommendationService
             ->first();
 
         if (!$lastOrder || $lastOrder->items->isEmpty()) {
-            $vitamins = $this->getVitaminProducts($pharmacyId);
-
-            return [
-                'has_history' => false,
-                'hero_title' => 'Stay Healthy!',
-                'hero_subtitle' => 'Stock up on our recommended Vitamins & Healthcare Essentials.',
-                'recommendations' => $vitamins,
-            ];
-        }
-
-        // 2. HAS HISTORY: Run Apriori & Hybrid logic
-        $recommendedProductIds = $this->getRecommendedProductIds($customer, $pharmacyId);
-
-        // Extract primary purchased item & category details dynamically
-        $firstItem = $lastOrder->items->first();
-        $primaryProductName = $firstItem->product_name ?? $firstItem->pharmacyProduct->product->product_name ?? 'your recent purchase';
-        $categoryName = strtolower($firstItem->pharmacyProduct->category->category_name ?? '');
-
-        // Dynamically build context-aware Hero messaging across all category groups
-        $catLower = strtolower($categoryName);
-        $prodLower = strtolower($primaryProductName);
-
-        if (str_contains($catLower, 'milk') || str_contains($catLower, 'infant') || str_contains($catLower, 'diaper') || str_contains($catLower, 'baby')) {
-            $heroTitle = "Baby & Child Care Essentials";
-            $heroSubtitle = "Based on your purchase of {$primaryProductName}, here are recommended diapers, formulas, and baby care items";
-        } elseif (str_contains($catLower, 'vitamin') || str_contains($catLower, 'supplement')) {
-            $heroTitle = "Immunity & Daily Wellness";
-            $heroSubtitle = "Since you recently bought {$primaryProductName}, check out these top vitamins and daily health boosters";
-        } elseif (str_contains($catLower, 'personal') || str_contains($catLower, 'hygiene') || str_contains($catLower, 'skincare') || str_contains($catLower, 'soap') || str_contains($catLower, 'shampoo') || str_contains($catLower, 'cosmetics')) {
-            $heroTitle = "Personal Care & Hygiene Essentials";
-            $heroSubtitle = "Complement your purchase of {$primaryProductName} with these daily personal care and grooming items";
-        } elseif (str_contains($catLower, 'first aid') || str_contains($catLower, 'wound') || str_contains($catLower, 'bandage') || str_contains($catLower, 'device') || str_contains($catLower, 'equipment')) {
-            $heroTitle = "First Aid & Medical Supplies";
-            $heroSubtitle = "Since you bought {$primaryProductName}, keep your home prepared with these essential medical supplies";
-        } elseif (str_contains($catLower, 'generic') || str_contains($catLower, 'branded') || str_contains($catLower, 'rx') || str_contains($catLower, 'medicine') || str_contains($prodLower, 'biogesic') || str_contains($prodLower, 'paracetamol')) {
-            $heroTitle = "Health & Recovery Recommendations";
-            $heroSubtitle = "Since you recently bought {$primaryProductName}, check out these health essentials and recovery boosters";
+            $heroTitle = 'Stay Healthy!';
+            $heroSubtitle = 'Stock up on our recommended Vitamins & Healthcare Essentials.';
+            $allRecommendedIds = $this->getVitaminProducts($pharmacyId)->pluck('id')->toArray();
         } else {
-            $heroTitle = "Recommended for You";
-            $heroSubtitle = "Based on your recent purchase of {$primaryProductName}, here are complementary items you might like";
+            // HAS HISTORY: Run Apriori & Hybrid logic
+            $allRecommendedIds = $this->getRecommendedProductIds($customer, $pharmacyId);
+
+            // Extract primary purchased item & category details dynamically
+            $firstItem = $lastOrder->items->first();
+            $primaryProductName = $firstItem->product_name ?? $firstItem->pharmacyProduct->product->product_name ?? 'your recent purchase';
+            $categoryName = strtolower($firstItem->pharmacyProduct->category->category_name ?? '');
+
+            $catLower = strtolower($categoryName);
+            $prodLower = strtolower($primaryProductName);
+
+            if (str_contains($catLower, 'milk') || str_contains($catLower, 'infant') || str_contains($catLower, 'diaper') || str_contains($catLower, 'baby')) {
+                $heroTitle = "Baby & Child Care Essentials";
+                $heroSubtitle = "Based on your purchase of {$primaryProductName}, here are recommended diapers, formulas, and baby care items";
+            } elseif (str_contains($catLower, 'vitamin') || str_contains($catLower, 'supplement')) {
+                $heroTitle = "Immunity & Daily Wellness";
+                $heroSubtitle = "Since you recently bought {$primaryProductName}, check out these top vitamins and daily health boosters";
+            } elseif (str_contains($catLower, 'personal') || str_contains($catLower, 'hygiene') || str_contains($catLower, 'skincare') || str_contains($catLower, 'soap') || str_contains($catLower, 'shampoo') || str_contains($catLower, 'cosmetics')) {
+                $heroTitle = "Personal Care & Hygiene Essentials";
+                $heroSubtitle = "Complement your purchase of {$primaryProductName} with these daily personal care and grooming items";
+            } elseif (str_contains($catLower, 'first aid') || str_contains($catLower, 'wound') || str_contains($catLower, 'bandage') || str_contains($catLower, 'device') || str_contains($catLower, 'equipment')) {
+                $heroTitle = "First Aid & Medical Supplies";
+                $heroSubtitle = "Since you bought {$primaryProductName}, keep your home prepared with these essential medical supplies";
+            } elseif (str_contains($catLower, 'generic') || str_contains($catLower, 'branded') || str_contains($catLower, 'rx') || str_contains($catLower, 'medicine') || str_contains($prodLower, 'biogesic') || str_contains($prodLower, 'paracetamol')) {
+                $heroTitle = "Health & Recovery Recommendations";
+                $heroSubtitle = "Since you recently bought {$primaryProductName}, check out these health essentials and recovery boosters";
+            } else {
+                $heroTitle = "Recommended for You";
+                $heroSubtitle = "Based on your recent purchase of {$primaryProductName}, here are complementary items you might like";
+            }
         }
 
-        if (empty($recommendedProductIds)) {
-            $vitamins = $this->getVitaminProducts($pharmacyId);
-
-            return [
-                'has_history' => true,
-                'hero_title' => $heroTitle,
-                'hero_subtitle' => $heroSubtitle,
-                'recommendations' => $vitamins,
-            ];
+        if (empty($allRecommendedIds)) {
+            $allRecommendedIds = $this->getVitaminProducts($pharmacyId)->pluck('id')->toArray();
         }
 
-        // Fetch full PharmacyProduct models preserving rank order
-        $validIds = array_map('intval', $recommendedProductIds);
-        $idsString = implode(',', $validIds);
+        // Slice recommended IDs for current page
+        $validIds = array_values(array_map('intval', $allRecommendedIds));
+        $pageIds = array_slice($validIds, $offset, $perPage);
 
-        $recommendedProducts = PharmacyProduct::with(['product', 'category'])
-            ->where('pharmacy_id', $pharmacyId)
-            ->whereIn('id', $validIds)
-            ->where('stock', '>', 0)
-            ->orderByRaw("FIELD(id, {$idsString})")
-            ->limit(20)
-            ->get();
+        $items = collect();
+        if (!empty($pageIds)) {
+            $idsString = implode(',', $pageIds);
+            $items = PharmacyProduct::with(['product', 'category'])
+                ->where('pharmacy_id', $pharmacyId)
+                ->whereIn('id', $pageIds)
+                ->where('stock', '>', 0)
+                ->orderByRaw("FIELD(id, {$idsString})")
+                ->get();
+        }
+
+        // If page recommendation items count is less than perPage, append general pharmacy products as fallbacks for infinite feed
+        if ($items->count() < $perPage) {
+            $needed = $perPage - $items->count();
+            $existingIds = array_merge(array_slice($validIds, 0, $offset + count($pageIds)), $items->pluck('id')->toArray());
+            
+            $fallbacks = PharmacyProduct::with(['product', 'category'])
+                ->where('pharmacy_id', $pharmacyId)
+                ->whereNotIn('id', array_unique($existingIds))
+                ->where('stock', '>', 0)
+                ->orderBy('id')
+                ->limit($needed)
+                ->get();
+
+            $items = $items->concat($fallbacks);
+        }
+
+        // Check if there are more items after this page
+        $totalPharmacyProducts = PharmacyProduct::where('pharmacy_id', $pharmacyId)->where('stock', '>', 0)->count();
+        $totalFetchedSoFar = $offset + $items->count();
+        $hasMore = $totalFetchedSoFar < $totalPharmacyProducts || ($offset + $perPage) < count($validIds);
 
         return [
-            'has_history' => true,
+            'has_history' => isset($lastOrder) && $lastOrder && !$lastOrder->items->isEmpty(),
             'hero_title' => $heroTitle,
             'hero_subtitle' => $heroSubtitle,
-            'recommendations' => $recommendedProducts,
+            'recommendations' => $items->values(),
+            'page' => $page,
+            'per_page' => $perPage,
+            'has_more' => $hasMore,
         ];
     }
 
