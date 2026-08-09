@@ -80,8 +80,9 @@ class PharmacyProductObserver
 
         $daysLabel = $daysOfStock <= 1 ? "less than 1 day" : "less than {$daysOfStock} days";
 
-        // Dynamic Restock Alert — triggered when stock <= ROP or DOS <= 7 days
-        if ($isRestockRequired || $daysOfStock <= 7 || $pharmacyProduct->stock <= $reorderPoint) {
+        // Dynamic Restock Alert — triggered when stock <= ROP or DOS <= pharmacy's shortage threshold
+        $shortageThreshold = $pharmacy->shortage_days_threshold ?? 7;
+        if ($isRestockRequired || $daysOfStock <= $shortageThreshold || $pharmacyProduct->stock <= $reorderPoint) {
             $message = "Only {$pharmacyProduct->stock} units of {$product->product_name} remaining — this stock will last {$daysLabel}.";
 
             foreach ($admins as $admin) {

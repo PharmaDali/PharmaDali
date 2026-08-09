@@ -3,6 +3,7 @@
 namespace App\Services\Inventory;
 
 use App\Models\InventoryLog;
+use App\Models\Pharmacy;
 use App\Models\PharmacyProduct;
 use App\Repositories\ProductBatchRepository;
 use Carbon\Carbon;
@@ -59,8 +60,10 @@ class InventoryService
         return PharmacyProduct::count();
     }
 
-    public function getInventoryProducts(array $filters = [])
+    public function getInventoryProducts(array $filters = [], ?Pharmacy $pharmacy = null)
     {
+        $lowStockThreshold = $pharmacy?->low_stock_threshold ?? 50;
+        $expiryDaysThreshold = $pharmacy?->expiry_days_threshold ?? 30;
         $query = PharmacyProduct::with(['product', 'category', 'batches']);
 
         // Filter by search / query
@@ -118,7 +121,7 @@ class InventoryService
         }
 
         $today = Carbon::today();
-        $expiringLimit = Carbon::today()->addDays(30);
+        $expiringLimit = Carbon::today()->addDays($expiryDaysThreshold);
 
         // Filter by status
         if (!empty($filters['status']) && $filters['status'] !== 'All') {
@@ -137,9 +140,9 @@ class InventoryService
                       ->where('expiry_date', '<=', $expiringLimit->toDateString());
                 });
             } elseif ($status === 'Low Stocks') {
-                $query->where('stock', '<=', 50);
+                $query->where('stock', '<=', $lowStockThreshold);
             } elseif ($status === 'Normal') {
-                $query->where('stock', '>', 50)
+                $query->where('stock', '>', $lowStockThreshold)
                     ->whereDoesntHave('batches', function ($q) use ($expiringLimit) {
                         $q->whereNotNull('expiry_date')
                           ->where('stock', '>', 0)
@@ -150,7 +153,7 @@ class InventoryService
 
         $pharmacyProducts = $query->get();
 
-        return $pharmacyProducts->map(function ($bp) use ($today) {
+        return $pharmacyProducts->map(function ($bp) use ($today, $expiryDaysThreshold, $lowStockThreshold) {
             $product  = $bp->product;
             $category = $bp->category;
 
@@ -173,9 +176,9 @@ class InventoryService
             $status = 'Normal';
             if ($earliestExpiryDate && $expiringInDays <= 0) {
                 $status = 'Expired';
-            } elseif ($earliestExpiryDate && $expiringInDays <= 30) {
+            } elseif ($earliestExpiryDate && $expiringInDays <= $expiryDaysThreshold) {
                 $status = 'Expiring soon';
-            } elseif ($bp->stock <= 50) {
+            } elseif ($bp->stock <= $lowStockThreshold) {
                 $status = 'Low Stocks';
             }
 

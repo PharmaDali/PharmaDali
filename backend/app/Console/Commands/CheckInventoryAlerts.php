@@ -104,46 +104,57 @@ class CheckInventoryAlerts extends Command
     private function processExpiryWarnings(): void
     {
         $today = Carbon::today();
-        $thirtyDaysFromNow = Carbon::today()->addDays(30);
 
-        // Fetch active batches expiring within 30 days
+        // Fetch active batches expiring within the pharmacy's configured expiry_days_threshold
         $expiringBatches = ProductBatch::with(['pharmacyProduct.product', 'pharmacyProduct.pharmacy.admins'])
             ->where('stock', '>', 0)
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '>=', $today->toDateString())
-            ->where('expiry_date', '<=', $thirtyDaysFromNow->toDateString())
             ->get();
 
-        foreach ($expiringBatches as $batch) {
-            $pp = $batch->pharmacyProduct;
-            if (!$pp || !$pp->product || !$pp->pharmacy) {
+        // Group by pharmacy so we apply per-pharmacy threshold
+        $batchesByPharmacy = $expiringBatches->groupBy(fn ($batch) => $batch->pharmacyProduct?->pharmacy?->id);
+
+        foreach ($batchesByPharmacy as $pharmacyId => $batches) {
+            $pharmacy = $batches->first()->pharmacyProduct?->pharmacy;
+            if (!$pharmacy) {
                 continue;
             }
 
-            $admins = $pp->pharmacy->admins;
-            if ($admins->isEmpty()) {
-                continue;
-            }
+            $expiryThresholdDays = $pharmacy->expiry_days_threshold ?? 30;
+            $thresholdDate = Carbon::today()->addDays($expiryThresholdDays);
 
-            $expiryFormatted = $batch->expiry_date->format('M. d, Y');
-            $daysLeft = (int) $today->diffInDays($batch->expiry_date, false);
-            $message = "{$batch->stock} units of {$pp->product->product_name} (Batch: {$batch->batch_number}) will expire in {$daysLeft} days (on {$expiryFormatted}).";
+            foreach ($batches as $batch) {
+                $pp = $batch->pharmacyProduct;
+                if (!$pp || !$pp->product || $batch->expiry_date->isAfter($thresholdDate)) {
+                    continue;
+                }
 
-            foreach ($admins as $admin) {
-                $exists = $admin->notifications->contains(function ($notification) use ($batch) {
-                    return ($notification->data['type'] ?? null) === 'Expiry Warning'
-                        && (int) ($notification->data['batch_id'] ?? 0) === (int) $batch->id;
-                });
+                $admins = $pharmacy->admins;
+                if ($admins->isEmpty()) {
+                    continue;
+                }
 
-                if (!$exists) {
-                    $admin->notify(new AdminAlertNotification('Expiry Warning', $message, [
-                        'batch_id' => $batch->id,
-                        'batch_number' => $batch->batch_number,
-                        'product_id' => $pp->product_id,
-                        'product_name' => $pp->product->product_name,
-                        'expiry_date' => $batch->expiry_date->toDateString(),
-                        'days_left' => $daysLeft,
-                    ]));
+                $expiryFormatted = $batch->expiry_date->format('M. d, Y');
+                $daysLeft = (int) $today->diffInDays($batch->expiry_date, false);
+                $message = "{$batch->stock} units of {$pp->product->product_name} (Batch: {$batch->batch_number}) will expire in {$daysLeft} days (on {$expiryFormatted}).";
+
+                foreach ($admins as $admin) {
+                    $exists = $admin->notifications->contains(function ($notification) use ($batch) {
+                        return ($notification->data['type'] ?? null) === 'Expiry Warning'
+                            && (int) ($notification->data['batch_id'] ?? 0) === (int) $batch->id;
+                    });
+
+                    if (!$exists) {
+                        $admin->notify(new AdminAlertNotification('Expiry Warning', $message, [
+                            'batch_id' => $batch->id,
+                            'batch_number' => $batch->batch_number,
+                            'product_id' => $pp->product_id,
+                            'product_name' => $pp->product->product_name,
+                            'expiry_date' => $batch->expiry_date->toDateString(),
+                            'days_left' => $daysLeft,
+                        ]));
+                    }
                 }
             }
         }
@@ -168,7 +179,8 @@ class CheckInventoryAlerts extends Command
 
                 foreach ($restocks as $restock) {
                     $daysOfStock = $restock['daysOfStock'] ?? 999;
-                    if ($daysOfStock > 7) {
+                    $shortageThreshold = $pharmacy->shortage_days_threshold ?? 7;
+                    if ($daysOfStock > $shortageThreshold) {
                         continue;
                     }
 
