@@ -31,6 +31,11 @@ export function useHomeTab(selectedPharmacy) {
   const [categories, setCategories] = useState([]);
   const [pharmacyProducts, setPharmacyProducts] = useState([]);
   const [heroRecommendations, setHeroRecommendations] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+  const [recPage, setRecPage] = useState(1);
+  const [recHasMore, setRecHasMore] = useState(false);
+  const [isFetchingMoreRecs, setIsFetchingMoreRecs] = useState(false);
+  const isFetchingMoreRecsRef = useRef(false);
   const previousPharmacyIdRef = useRef(null);
 
   const [refreshing, setRefreshing] = useState(false);
@@ -58,7 +63,7 @@ export function useHomeTab(selectedPharmacy) {
       const [categoriesPayload, productsPayload, recommendationsPayload] = await Promise.all([
         getPharmacyCategories(selectedPharmacyId, isRefresh),
         getProducts(selectedPharmacyId, null, { perPage: HOME_PREVIEW_LIMIT }),
-        getHeroRecommendations(selectedPharmacyId).catch(() => null),
+        getHeroRecommendations(selectedPharmacyId, { page: 1, perPage: 10 }).catch(() => null),
       ]);
 
       setCategories(normalizeApiList(categoriesPayload));
@@ -67,15 +72,56 @@ export function useHomeTab(selectedPharmacy) {
       const recData = recommendationsPayload?.data ?? recommendationsPayload;
       if (recData && (recData.hero_title || recData.recommendations)) {
         setHeroRecommendations(recData);
+        setRecommendations(recData.recommendations ?? []);
+        setRecPage(1);
+        setRecHasMore(Boolean(recData.has_more));
+      } else {
+        setRecommendations([]);
+        setRecPage(1);
+        setRecHasMore(false);
       }
     } catch {
       setCategories([]);
       setPharmacyProducts([]);
+      setRecommendations([]);
+      setRecPage(1);
+      setRecHasMore(false);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   }, [selectedPharmacyId]);
+
+  const loadMoreRecommendations = useCallback(async () => {
+    if (isFetchingMoreRecsRef.current || !recHasMore || !selectedPharmacyId || loading) {
+      return;
+    }
+
+    isFetchingMoreRecsRef.current = true;
+    setIsFetchingMoreRecs(true);
+
+    try {
+      const nextPage = recPage + 1;
+      const res = await getHeroRecommendations(selectedPharmacyId, { page: nextPage, perPage: 10 });
+      const recData = res?.data ?? res;
+      const newItems = recData?.recommendations ?? [];
+
+      if (newItems.length > 0) {
+        setRecommendations((prev) => {
+          const existingIds = new Set(prev.map((item) => item.id));
+          const filteredNew = newItems.filter((item) => !existingIds.has(item.id));
+          return [...prev, ...filteredNew];
+        });
+        setRecPage(nextPage);
+      }
+      setRecHasMore(Boolean(recData?.has_more));
+    } catch {
+      // Silently fail — user can scroll again
+    } finally {
+      isFetchingMoreRecsRef.current = false;
+      setIsFetchingMoreRecs(false);
+    }
+  }, [recHasMore, selectedPharmacyId, loading, recPage]);
 
   useEffect(() => {
     if (!selectedPharmacyId) return;
@@ -99,6 +145,10 @@ export function useHomeTab(selectedPharmacy) {
     categories,
     pharmacyProducts,
     heroRecommendations,
+    recommendations,
+    recHasMore,
+    isFetchingMoreRecs,
+    loadMoreRecommendations,
     normalizeSelectedPharmacy,
   };
 }
