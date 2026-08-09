@@ -14,10 +14,13 @@ import ToastMessage from '@shared/components/ToastMessage';
 import SkeletonProductView from '@src/shared/components/SkeletonProductView';
 import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useFlyToCart } from '@shared/context/FlyToCartContext';
 
 const ProductView = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { triggerFlyToCart } = useFlyToCart();
+  const [tapPos, setTapPos] = useState({ x: null, y: null });
   const { productId, pharmacyProductId, pharmacyId } = useLocalSearchParams();
   const [detailsOpen, setDetailsOpen] = useState(false);
   const { toast, showSuccess, showError } = useToast();
@@ -77,7 +80,8 @@ const ProductView = () => {
     };
   }, [pharmacyId, pharmacyProductId]);
 
-  const handleAddToCartPress = () => {
+  const handleAddToCartPress = (event) => {
+    setTapPos({ x: event?.nativeEvent?.pageX ?? null, y: event?.nativeEvent?.pageY ?? null });
     setQuantity(1);
     setIsQuantityModalOpen(true);
   };
@@ -95,6 +99,11 @@ const ProductView = () => {
     }).then((result) => {
       if (result && result.ok) {
         setIsAddedSuccess(true);
+        triggerFlyToCart({
+          startX: tapPos.x,
+          startY: tapPos.y,
+          img: productData?.product?.image_url,
+        });
         setTimeout(() => {
           setIsAddedSuccess(false);
         }, 2000);
@@ -158,22 +167,12 @@ const ProductView = () => {
 
         <View className="px-5 mb-4">
           <TouchableOpacity
-            className={`rounded-xl py-3 items-center flex-row justify-center ${isAddedSuccess ? 'bg-[#059669]' : 'bg-[#48AAD9]'}`}
+            className="rounded-xl py-3 items-center flex-row justify-center bg-[#48AAD9]"
             onPress={handleAddToCartPress}
-            disabled={isAddedSuccess}
           >
-            {isAddedSuccess ? (
-              <>
-                <MaterialCommunityIcons name="check-circle" size={18} color="white" style={{ marginRight: 6 }} />
-                <Text className="text-sm text-white" style={styles.fontSemiBold}>
-                  Added to Cart
-                </Text>
-              </>
-            ) : (
-              <Text className="text-sm text-white" style={styles.fontSemiBold}>
-                Add to cart
-              </Text>
-            )}
+            <Text className="text-sm text-white" style={styles.fontSemiBold}>
+              Add to cart
+            </Text>
           </TouchableOpacity>
         </View>
 

@@ -11,7 +11,7 @@ import ProductCard from '@shared/components/ProductCard';
 import SkeletonHome from '@shared/components/SkeletonHome';
 import PharmacySelectionOverlay from '@shared/components/PharmacySelectionOverlay';
 import SearchOverlay from '@shared/components/SearchOverlay';
-import { useSelectionPhase } from '@shared/SelectionPhaseContext';
+import { useSelectionPhase } from '@shared/context/SelectionPhaseContext';
 import { formatProductPrice, useHomeTab } from '@shared/hooks/useHomeTab';
 import { useProfile } from '@shared/hooks/useProfile';
 import { addPharmacyProductToCart } from '@shared/utils/cartUtils';

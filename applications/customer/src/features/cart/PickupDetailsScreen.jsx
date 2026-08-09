@@ -10,7 +10,7 @@ import RedInfoIcon from '@assets/icons/red_info_icon.svg'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
 import { submitCheckoutOrder } from '@shared/services/checkoutSubmissionService'
-import { useSelectionPhase } from '@shared/SelectionPhaseContext'
+import { useSelectionPhase } from '@shared/context/SelectionPhaseContext'
 import {
   buildEffectivePickupBounds,
   buildScheduledPickupDateTime,
