@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\CustomerRecommendationController;
 use App\Http\Controllers\API\AnalyticsController;
 use App\Http\Controllers\API\ProductBatchController;
+use App\Http\Controllers\API\CategoryController;
 
 
 // Public routes
@@ -138,6 +139,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('pharmacy/settings', [PharmacySettingsController::class, 'update']);
         Route::post('pharmacy/settings/logo', [PharmacySettingsController::class, 'uploadLogo']);
         Route::patch('pharmacy/settings/password', [PharmacySettingsController::class, 'updatePassword']);
+
+        // Category settings CRUD
+        Route::get('pharmacy/categories/all', [CategoryController::class, 'index']);
+        Route::post('pharmacy/categories/store', [CategoryController::class, 'store']);
+        Route::put('pharmacy/categories/{id}', [CategoryController::class, 'update']);
+        Route::delete('pharmacy/categories/{id}', [CategoryController::class, 'destroy']);
 
         Route::get('pos/products', [PosController::class, 'getProducts']);
         Route::post('pos/orders', [PosController::class, 'storeOrder']);

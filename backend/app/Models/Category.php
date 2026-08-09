@@ -7,12 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Category extends Model
 {
-
     use HasFactory;
 
     protected $fillable = [
         'category_name',
         'description',
+        'is_enabled',
+        'background_color',
+        'font_color',
+    ];
+
+    protected $casts = [
+        'is_enabled' => 'boolean',
     ];
 
     public function pharmacyProducts()
