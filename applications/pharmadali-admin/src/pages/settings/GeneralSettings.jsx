@@ -1,36 +1,91 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SettingForm } from "./SettingForm";
-
-const initialData = {
-  pharmacyName: "PharmaDali Branch 1",
-  tinNumber: "000-123-456-000",
-  contactNumber: "09223344556",
-  email: "pharmadali@gmail.com",
-  address: "Poblacion 5, Tanauan City, Batangas",
-  currency: "PHP (₱)",
-  vatRate: "12%",
-};
+import {
+  getPharmacySettings,
+  updatePharmacySettings,
+  uploadPharmacyLogo,
+} from "../../services/pharmacySettingsService";
 
 export const GeneralSettings = ({ onNavigate }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [savedData, setSavedData] = useState(initialData);
-  const [formData, setFormData] = useState(initialData);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const [formData, setFormData] = useState({
+    pharmacy_name: "",
+    contact_number: "",
+    email: "",
+    location: "",
+    opening_hour: "09:00",
+    closing_hour: "21:00",
+  });
+
+  const [savedData, setSavedData] = useState({ ...formData });
   const [logoPreview, setLogoPreview] = useState("/assets/logo-placeholder.png");
   const fileInputRef = useRef(null);
+
+  // Fetch settings on mount
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      setErrorMessage("");
+      const res = await getPharmacySettings();
+      const pharmacy = res.pharmacy || {};
+
+      const loadedData = {
+        pharmacy_name: pharmacy.pharmacy_name || "",
+        contact_number: pharmacy.contact_number || "",
+        email: pharmacy.email || "",
+        location: pharmacy.location || "",
+        opening_hour: pharmacy.opening_hour ? pharmacy.opening_hour.substring(0, 5) : "09:00",
+        closing_hour: pharmacy.closing_hour ? pharmacy.closing_hour.substring(0, 5) : "21:00",
+      };
+
+      setFormData(loadedData);
+      setSavedData(loadedData);
+      if (pharmacy.logo_url) {
+        setLogoPreview(pharmacy.logo_url);
+      }
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to load pharmacy settings.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    setSavedData(formData);
-    setIsEditing(false);
-    // Prepared for backend API PUT /api/pharmacy/settings
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      await updatePharmacySettings(formData);
+
+      setSavedData(formData);
+      setIsEditing(false);
+      setSuccessMessage("Pharmacy settings saved successfully.");
+      setTimeout(() => setSuccessMessage(""), 4000);
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to save settings.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
     setFormData(savedData);
     setIsEditing(false);
+    setErrorMessage("");
   };
 
   const handleLogoPick = () => {
@@ -39,83 +94,112 @@ export const GeneralSettings = ({ onNavigate }) => {
     }
   };
 
-  const handleLogoChange = (event) => {
+  const handleLogoChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Show local preview immediately
     const previewUrl = URL.createObjectURL(file);
     setLogoPreview(previewUrl);
+
+    try {
+      setErrorMessage("");
+      const res = await uploadPharmacyLogo(file);
+      if (res.logo_url) {
+        setLogoPreview(res.logo_url);
+        setSuccessMessage("Pharmacy logo uploaded successfully.");
+        setTimeout(() => setSuccessMessage(""), 4000);
+      }
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to upload logo.");
+    }
   };
 
   const sections = [
     {
-      key: "pharmacyName",
+      key: "pharmacy_name",
       label: "Pharmacy Name",
       helper: "Official registered name of this pharmacy store branch.",
       content: (
         <input
           type="text"
           className="form-control settings-form-input"
-          value={formData.pharmacyName}
-          onChange={(e) => handleInputChange("pharmacyName", e.target.value)}
-          disabled={!isEditing}
+          value={formData.pharmacy_name}
+          onChange={(e) => handleInputChange("pharmacy_name", e.target.value)}
+          disabled={!isEditing || saving}
         />
       ),
     },
     {
-      key: "tinNumber",
-      label: "TIN / Tax License No.",
-      helper: "Business Tax Identification Number printed on official receipts.",
-      content: (
-        <input
-          type="text"
-          className="form-control settings-form-input"
-          value={formData.tinNumber}
-          onChange={(e) => handleInputChange("tinNumber", e.target.value)}
-          disabled={!isEditing}
-        />
-      ),
-    },
-    {
-      key: "contactNumber",
+      key: "contact_number",
       label: "Contact Number",
-      helper: "Official store phone or mobile number for store inquiries.",
+      helper: "Official store phone or mobile number for customer inquiries.",
       content: (
         <input
           type="tel"
           className="form-control settings-form-input"
-          value={formData.contactNumber}
-          onChange={(e) => handleInputChange("contactNumber", e.target.value)}
-          disabled={!isEditing}
+          value={formData.contact_number}
+          onChange={(e) => handleInputChange("contact_number", e.target.value)}
+          disabled={!isEditing || saving}
         />
       ),
     },
     {
       key: "email",
       label: "Email Address",
-      helper: "Official branch email address for customer communications.",
+      helper: "Official branch email address for store communications.",
       content: (
         <input
           type="email"
           className="form-control settings-form-input"
           value={formData.email}
           onChange={(e) => handleInputChange("email", e.target.value)}
-          disabled={!isEditing}
+          disabled={!isEditing || saving}
         />
       ),
     },
     {
-      key: "address",
-      label: "Physical Address",
+      key: "location",
+      label: "Physical Address / Location",
       helper: "Store location displayed on customer receipts and app listings.",
       content: (
         <textarea
           className="form-control settings-form-input settings-form-input--singleline"
           rows="2"
-          value={formData.address}
-          onChange={(e) => handleInputChange("address", e.target.value)}
-          disabled={!isEditing}
+          value={formData.location}
+          onChange={(e) => handleInputChange("location", e.target.value)}
+          disabled={!isEditing || saving}
         />
+      ),
+    },
+    {
+      key: "operating_hours",
+      label: "Operating Hours",
+      helper: "Standard daily opening and closing schedule for the store.",
+      content: (
+        <div className="d-flex align-items-center gap-2">
+          <div className="d-flex flex-column">
+            <span className="small text-muted mb-1">Opening Time</span>
+            <input
+              type="time"
+              className="form-control settings-form-input"
+              value={formData.opening_hour}
+              onChange={(e) => handleInputChange("opening_hour", e.target.value)}
+              disabled={!isEditing || saving}
+            />
+          </div>
+          <span className="mt-4 text-muted font-monospace">–</span>
+          <div className="d-flex flex-column">
+            <span className="small text-muted mb-1">Closing Time</span>
+            <input
+              type="time"
+              className="form-control settings-form-input"
+              value={formData.closing_hour}
+              onChange={(e) => handleInputChange("closing_hour", e.target.value)}
+              disabled={!isEditing || saving}
+            />
+          </div>
+        </div>
       ),
     },
     {
@@ -139,6 +223,7 @@ export const GeneralSettings = ({ onNavigate }) => {
               type="button"
               className="btn btn-outline-primary btn-sm rounded-3"
               onClick={handleLogoPick}
+              disabled={saving}
             >
               Upload Logo
             </button>
@@ -146,39 +231,32 @@ export const GeneralSettings = ({ onNavigate }) => {
         </div>
       ),
     },
-    {
-      key: "currency",
-      label: "Currency Symbol",
-      helper: "Default currency unit used for transactions and prices.",
-      content: (
-        <input
-          type="text"
-          className="form-control settings-form-input bg-light"
-          value={formData.currency}
-          disabled={true}
-        />
-      ),
-    },
-    {
-      key: "vatRate",
-      label: "Default Tax / VAT Rate",
-      helper: "Standard Value Added Tax percentage applied to sales.",
-      content: (
-        <input
-          type="text"
-          className="form-control settings-form-input"
-          value={formData.vatRate}
-          onChange={(e) => handleInputChange("vatRate", e.target.value)}
-          disabled={!isEditing}
-        />
-      ),
-    },
   ];
+
+  if (loading) {
+    return (
+      <SettingForm
+        title="General Settings"
+        description="Pharmacy identity, contact details, operating hours, and branding."
+        showEditSave={false}
+        breadcrumbs={[
+          { label: "Settings", view: "settings" },
+          { label: "General Settings", view: "general" },
+        ]}
+        onNavigate={onNavigate}
+      >
+        <div className="text-center py-5 text-muted">
+          <div className="spinner-border spinner-border-sm me-2" style={{ color: "#2aabe2" }} role="status" />
+          Loading settings...
+        </div>
+      </SettingForm>
+    );
+  }
 
   return (
     <SettingForm
       title="General Settings"
-      description="Pharmacy identity, contact details, tax rates, and branding preferences."
+      description="Pharmacy identity, contact details, operating hours, and branding."
       isEditing={isEditing}
       onEditChange={setIsEditing}
       onSave={handleSave}
@@ -190,6 +268,16 @@ export const GeneralSettings = ({ onNavigate }) => {
       ]}
       onNavigate={onNavigate}
     >
+      {errorMessage && (
+        <div className="alert alert-danger py-2 px-3 mb-3 small rounded-3 border-0 bg-danger-subtle text-danger">
+          {errorMessage}
+        </div>
+      )}
+      {successMessage && (
+        <div className="alert alert-success py-2 px-3 mb-3 small rounded-3 border-0 bg-success-subtle text-success">
+          {successMessage}
+        </div>
+      )}
       <div className="settings-section-list">
         {sections.map((section, index) => (
           <div
@@ -207,5 +295,3 @@ export const GeneralSettings = ({ onNavigate }) => {
     </SettingForm>
   );
 };
-
-export default GeneralSettings;

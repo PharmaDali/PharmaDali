@@ -6,8 +6,8 @@ export const settingsList = [
   },
   {
     id: "account",
-    label: "Account & Security",
-    description: "Manage account credentials, password changes, and security recovery email.",
+    label: "Password Settings",
+    description: "Manage admin account security credentials and change password.",
   },
   {
     id: "category",
