@@ -3,7 +3,7 @@ import { apiRequest } from '@shared/api/client';
 export async function getProducts(pharmacyId, categoryId = null, { cursor = null, perPage = null, priceMin, priceMax, brands, availability, prescriptionType, sort } = {}) {
   const searchParams = new URLSearchParams();
 
-  if (categoryId !== null && categoryId !== undefined) {
+  if (categoryId !== null && categoryId !== undefined && String(categoryId).trim() !== '' && String(categoryId).toLowerCase() !== 'null') {
     searchParams.append('category_id', String(categoryId));
   }
 

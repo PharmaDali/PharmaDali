@@ -1,9 +1,8 @@
-import { Text, View, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native'
+import { Text, View, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, RefreshControl } from 'react-native'
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useLocalSearchParams } from 'expo-router'
 import FilterIcon from '@assets/icons/filter_icon.svg'
 import SortIcon from '@assets/icons/sort_icon.svg'
-import ArrowDropDownIcon from '@assets/icons/arrow_drop_down_icon.svg'
 import ProductCard from '@src/shared/components/ProductCard'
 import SortOverlay from '@src/shared/components/SortOverlay'
 import FilterOverlay from '@src/shared/components/FilterOverlay'
@@ -14,6 +13,8 @@ import { useToast } from '@shared/hooks/useToast'
 import ToastMessage from '@shared/components/ToastMessage'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { toTitleCase } from '@shared/utils/stringUtils'
+import SkeletonCategoryGrid from '@src/shared/components/SkeletonCategoryGrid'
+import { Modal, Pressable } from 'react-native'
 
 const PRODUCTS_PER_PAGE = 20
 
@@ -44,8 +45,16 @@ const Categories = () => {
 
   const [categories, setCategories] = useState([])
   const [products, setProducts] = useState([])
-  const [selectedCategoryId, setSelectedCategoryId] = useState(initialCategoryId || null)
+  const normalizedInitialId = (initialCategoryId && String(initialCategoryId) !== 'null' && String(initialCategoryId) !== 'undefined') ? initialCategoryId : null
+  const [selectedCategoryId, setSelectedCategoryId] = useState(normalizedInitialId)
   const [selectedCategoryLabel, setSelectedCategoryLabel] = useState(initialCategoryLabel || 'All')
+
+  // Update selected category if navigation params change
+  useEffect(() => {
+    const validId = (initialCategoryId && String(initialCategoryId) !== 'null' && String(initialCategoryId) !== 'undefined') ? initialCategoryId : null
+    setSelectedCategoryId(validId)
+    setSelectedCategoryLabel(initialCategoryLabel || 'All')
+  }, [initialCategoryId, initialCategoryLabel])
   
   const [isLoading, setIsLoading] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -197,61 +206,61 @@ const Categories = () => {
 
         <View className="flex-1 ml-3" style={{ zIndex: 120 }}>
           <TouchableOpacity
-            className="flex-row items-center justify-between bg-white rounded-lg px-3 py-2.5 shadow-lg"
+            className="flex-row items-center justify-center bg-white rounded-xl h-[42px] px-4 shadow-lg border border-gray-100"
             onPress={() => setDropdownOpen(!dropdownOpen)}
           >
-            <Text className="text-[13px] text-gray-400 flex-1" style={styles.fontMedium} numberOfLines={1}>
-              {selectedCategoryLabel === 'All' ? 'Select a category' : selectedCategoryLabel}
+            <Text className="text-[14px] text-center" style={[styles.fontMedium, { color: '#48AAD9' }]} numberOfLines={1}>
+              {selectedCategoryLabel === 'All' ? 'All Categories' : selectedCategoryLabel}
             </Text>
-            <ArrowDropDownIcon width={20} height={20} />
           </TouchableOpacity>
 
-          {dropdownOpen && (
-            <View className="absolute top-[46px] left-0 right-0 bg-white rounded-lg border border-gray-300 shadow-md" style={{ elevation: 5, zIndex: 1000 }}>
-              <ScrollView style={{ maxHeight: 300 }} nestedScrollEnabled={true}>
-                <TouchableOpacity
-                  className={`px-3.5 py-2.5 ${selectedCategoryId === null ? 'bg-[#E8F4FA]' : ''}`}
-                  onPress={() => {
-                    setSelectedCategoryId(null)
-                    setSelectedCategoryLabel('All')
-                    setDropdownOpen(false)
-                  }}
-                >
-                  <Text style={selectedCategoryId === null ? styles.dropdownActive : styles.dropdownInactive}>All</Text>
-                </TouchableOpacity>
-                {!isLoading && selectedPharmacyId && categories.length === 0 && (
-                  <Text className="px-1" style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
-                    No categories found for this pharmacy.
-                  </Text>
-                )}
-                {categories.map((cat) => {
-                  const label = toTitleCase(cat?.category_name)
-                  const isActive = String(cat.id) === String(selectedCategoryId)
-                  return (
-                    <TouchableOpacity
-                      key={cat.id}
-                      className={`px-3.5 py-2.5 ${isActive ? 'bg-[#E8F4FA]' : ''}`}
-                      onPress={() => {
-                        setSelectedCategoryId(cat.id)
-                        setSelectedCategoryLabel(label)
-                        setDropdownOpen(false)
-                      }}
-                    >
-                      <Text style={isActive ? styles.dropdownActive : styles.dropdownInactive}>
-                        {label}
-                      </Text>
-                    </TouchableOpacity>
-                  )
-                })}
-              </ScrollView>
-            </View>
-          )}
+          <Modal visible={dropdownOpen} transparent animationType="fade" onRequestClose={() => setDropdownOpen(false)}>
+            <Pressable className="flex-1 bg-black/30 justify-center items-center px-6" onPress={() => setDropdownOpen(false)}>
+              <Pressable className="bg-white rounded-2xl p-4 w-full max-h-[60%]" onPress={(e) => e.stopPropagation()}>
+                <Text className="text-base mb-3 px-1" style={[styles.titleBold, { color: '#48AAD9' }]}>Select Category</Text>
+                <ScrollView showsVerticalScrollIndicator={true} style={{ maxHeight: 320 }}>
+                  <TouchableOpacity
+                    className={`px-3.5 py-3 rounded-xl mb-1 ${selectedCategoryId === null ? 'bg-[#E8F4FA]' : ''}`}
+                    onPress={() => {
+                      setSelectedCategoryId(null)
+                      setSelectedCategoryLabel('All')
+                      setDropdownOpen(false)
+                    }}
+                  >
+                    <Text style={selectedCategoryId === null ? styles.dropdownActive : styles.dropdownInactive}>All Categories</Text>
+                  </TouchableOpacity>
+                  {!isLoading && selectedPharmacyId && categories.length === 0 && (
+                    <Text className="px-1 py-2 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
+                      No categories found for this pharmacy.
+                    </Text>
+                  )}
+                  {categories.map((cat) => {
+                    const label = toTitleCase(cat?.category_name)
+                    const isActive = String(cat.id) === String(selectedCategoryId)
+                    return (
+                      <TouchableOpacity
+                        key={cat.id}
+                        className={`px-3.5 py-3 rounded-xl mb-1 ${isActive ? 'bg-[#E8F4FA]' : ''}`}
+                        onPress={() => {
+                          setSelectedCategoryId(cat.id)
+                          setSelectedCategoryLabel(label)
+                          setDropdownOpen(false)
+                        }}
+                      >
+                        <Text style={isActive ? styles.dropdownActive : styles.dropdownInactive}>
+                          {label}
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })}
+                </ScrollView>
+              </Pressable>
+            </Pressable>
+          </Modal>
         </View>
       </View>
       {isLoading && (
-        <View className="px-5 py-10 items-center justify-center">
-          <ActivityIndicator size="large" color="#48AAD9" />
-        </View>
+        <SkeletonCategoryGrid count={6} />
       )}
     </View>
   )
@@ -285,8 +294,14 @@ const Categories = () => {
         onEndReached={loadMoreProducts}
         onEndReachedThreshold={0.5}
         columnWrapperStyle={{ paddingHorizontal: 16 }}
-        refreshing={isRefreshing}
-        onRefresh={() => loadInitialProducts(true)}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={() => loadInitialProducts(true)}
+            colors={['#48AAD9']}
+            tintColor="#48AAD9"
+          />
+        }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ backgroundColor: 'white', flexGrow: 1 }}
       />

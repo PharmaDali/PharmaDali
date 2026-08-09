@@ -54,29 +54,7 @@ function PriceRangeSection({ priceMin, priceMax, setPriceMin, setPriceMax, onRes
   )
 }
 
-function BrandSection({ selectedBrands, toggleBrand }) {
-  return (
-    <>
-      <Text className="text-base mb-3" style={styles.titleBold}>Brand</Text>
-      <View className="flex-row flex-wrap gap-x-6 gap-y-2 mb-6">
-        {brands.map((brand) => (
-          <TouchableOpacity
-            key={brand}
-            className="flex-row items-center"
-            onPress={() => toggleBrand(brand)}
-          >
-            <View className={`w-5 h-5 rounded border mr-2 items-center justify-center ${selectedBrands.includes(brand) ? 'bg-[#48AAD9] border-[#48AAD9]' : 'border-gray-300 bg-white'}`}>
-              {selectedBrands.includes(brand) && (
-                <Text className="text-white text-xs">✓</Text>
-              )}
-            </View>
-            <Text className="text-sm" style={styles.textMedium}>{brand}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-    </>
-  )
-}
+
 
 function ChipGroup({ title, options, selected, onSelect }) {
   return (
@@ -108,7 +86,6 @@ function ChipGroup({ title, options, selected, onSelect }) {
 export default function FilterOverlay({ visible, onClose, filters, onApply }) {
   const [priceMin, setPriceMin] = useState(filters?.priceMin ?? 0)
   const [priceMax, setPriceMax] = useState(filters?.priceMax ?? 500)
-  const [selectedBrands, setSelectedBrands] = useState(filters?.brands ?? [])
   const [availability, setAvailability] = useState(filters?.availability ?? null)
   const [prescriptionType, setPrescriptionType] = useState(filters?.prescriptionType ?? null)
 
@@ -116,28 +93,20 @@ export default function FilterOverlay({ visible, onClose, filters, onApply }) {
     if (visible) {
       setPriceMin(filters?.priceMin ?? 0)
       setPriceMax(filters?.priceMax ?? 500)
-      setSelectedBrands(filters?.brands ?? [])
       setAvailability(filters?.availability ?? null)
       setPrescriptionType(filters?.prescriptionType ?? null)
     }
   }, [visible])
 
-  const toggleBrand = (brand) => {
-    setSelectedBrands((prev) =>
-      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
-    )
-  }
-
   const handleReset = () => {
     setPriceMin(0)
     setPriceMax(500)
-    setSelectedBrands([])
     setAvailability(null)
     setPrescriptionType(null)
   }
 
   const handleApply = () => {
-    onApply({ priceMin, priceMax, brands: selectedBrands, availability, prescriptionType })
+    onApply({ priceMin, priceMax, availability, prescriptionType })
     onClose()
   }
 
@@ -155,9 +124,13 @@ export default function FilterOverlay({ visible, onClose, filters, onApply }) {
               setPriceMax={setPriceMax}
               onReset={handleReset}
             />
-            <BrandSection selectedBrands={selectedBrands} toggleBrand={toggleBrand} />
-            <ChipGroup title="Availability" options={availabilityOptions} selected={availability} onSelect={setAvailability} />
-            <ChipGroup title="Prescription Type" options={prescriptionOptions} selected={prescriptionType} onSelect={setPrescriptionType} />
+
+            <ChipGroup
+              title="Availability"
+              options={availabilityOptions}
+              selected={availability}
+              onSelect={setAvailability}
+            /><ChipGroup title="Prescription Type" options={prescriptionOptions} selected={prescriptionType} onSelect={setPrescriptionType} />
           </ScrollView>
         </Pressable>
       </Pressable>
