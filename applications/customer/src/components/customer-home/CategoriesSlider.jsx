@@ -28,10 +28,12 @@ const toTitleCase = (str) => {
   );
 }
 
-const CategoriesSlider = ({ categories = [], onCategoryPress }) => {
+const CategoriesSlider = ({ categories = [], limit = 8, onCategoryPress }) => {
+  const visibleCategories = limit ? categories.slice(0, limit) : categories;
+
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
-      {categories.map((item) => {
+      {visibleCategories.map((item) => {
         const rawLabel = item?.category_name || 'Category';
         const label = toTitleCase(rawLabel.trim());
         const IconComponent = CATEGORY_ICONS[label];
