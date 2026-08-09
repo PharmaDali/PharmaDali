@@ -33,6 +33,7 @@ class ShowPharmacyCategoriesService
             ->join('pharmacy_products', 'pharmacy_products.category_id', '=', 'categories.id')
             ->where('pharmacy_products.pharmacy_id', $pharmacyId)
             ->groupBy('categories.id', 'categories.category_name', 'categories.description')
+            ->orderByDesc('product_count')
             ->orderBy('categories.category_name')
             ->get();
     }

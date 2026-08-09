@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { colors } from '@src/shared/theme/colorPalette';
 import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,8 +25,19 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { profile } = useProfile();
   const { setSelectionPhase, selectedPharmacy, setSelectedPharmacy } = useSelectionPhase();
-  const { loading, refreshing, refetch, categories, pharmacyProducts, heroRecommendations, normalizeSelectedPharmacy } = useHomeTab(selectedPharmacy);
-  const { toast, showSuccess, showError } = useToast();
+  const {
+    loading,
+    refreshing,
+    refetch,
+    categories,
+    pharmacyProducts,
+    heroRecommendations,
+    recommendations,
+    isFetchingMoreRecs,
+    loadMoreRecommendations,
+    normalizeSelectedPharmacy,
+  } = useHomeTab(selectedPharmacy);
+  const { toast, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [hasUnreadMessage, setHasUnreadMessage] = useState(true);
 
@@ -76,28 +87,10 @@ export default function HomeScreen() {
     );
   }
 
-  return (
-    <View className="flex-1 bg-white">
-      <ToastMessage
-        visible={toast.visible}
-        message={toast.message}
-        type={toast.type}
-        topOffset={insets.top + 8}
-      />
-      
-      <ScrollView
-        className="flex-1 bg-white"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) }}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={refetch}
-            colors={['#48AAD9']}
-            tintColor="#48AAD9"
-          />
-        }
-      >
+  const recommendationFeedData = recommendations?.length ? recommendations : (pharmacyProducts ?? []);
+
+  const renderHeader = () => (
+    <View>
       {isSearchVisible && (
         <SearchOverlay
           visible={isSearchVisible}
@@ -167,6 +160,8 @@ export default function HomeScreen() {
           </View>
         </View>
       </View>
+
+      {/* ── Categories Section ── */}
       <View>
         <View className="flex-row items-center justify-between px-4 py-2 mt-4">
           <Text className="text-2xl text-gray-600 px-2 py-2 mt-6" style={{ fontFamily: 'Poppins-Bold' }}>
@@ -181,6 +176,7 @@ export default function HomeScreen() {
 
         <CategoriesSlider
           categories={categories}
+          limit={8}
           onCategoryPress={(item, label) =>
             route.push({
               pathname: '/tabs/shop/Categories',
@@ -191,60 +187,88 @@ export default function HomeScreen() {
             })
           }
         />
-        
       </View>
-      <View className="mt-4">
+
+      {/* ── Recommendations Section Header ── */}
+      <View className="mt-4 mb-2">
         <View className="flex-row items-center justify-between px-4 py-2">
           <Text className="text-2xl text-gray-600 px-2 py-1" style={{ fontFamily: 'Poppins-Bold' }}>
             Recommendations
           </Text>
-          <Text
-            className="text-md text-gray-600 px-2 py-1"
-            style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}
-            onPress={() => route.push('/tabs/shop/Shop')}
-          >
-            See all
-          </Text>
         </View>
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={heroRecommendations?.recommendations?.length ? heroRecommendations.recommendations : pharmacyProducts}
-          keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
-          style={{ height: 240 }}
-          contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8 }}
-          renderItem={({ item }) => {
-            const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
-
-            return (
-              <View>
-                <ProductCard
-                  productId={String(item?.product_id ?? '')}
-                  pharmacyProductId={item?.id}
-                  pharmacyId={pharmacyId}
-                  img={item?.product?.image_url}
-                  product={item?.product}
-                  categoryName={item?.category?.category_name}
-                  description={item?.product?.product_name || 'Unnamed product'}
-                  category={item?.category?.category_name || 'Uncategorized'}
-                  price={formatProductPrice(item?.selling_price)}
-                  isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
-                  isAvailable={
-                    item?.is_available == null
-                      ? true
-                      : (typeof item?.is_available === 'boolean'
-                        ? item.is_available
-                        : Number(item.is_available) === 1)
-                  }
-                  onAddToCart={handleAddToCart}
-                  style={{ width: 150, marginRight: 12 }}
-                />
-              </View>
-            );
-          }}
-        />
       </View>
-      </ScrollView>
+    </View>
+  );
+
+  return (
+    <View className="flex-1 bg-white">
+      <ToastMessage
+        visible={toast.visible}
+        message={toast.message}
+        type={toast.type}
+        topOffset={insets.top + 8}
+      />
+      
+      <FlatList
+        className="flex-1 bg-white"
+        data={recommendationFeedData}
+        numColumns={2}
+        keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
+        columnWrapperStyle={{ justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 12 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) + 40 }}
+        onEndReached={loadMoreRecommendations}
+        onEndReachedThreshold={0.5}
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={() => {
+          if (!isFetchingMoreRecs) return null;
+          return (
+            <View className="py-4 items-center">
+              <ActivityIndicator size="small" color="#48AAD9" />
+              <Text className="mt-2 text-xs text-gray-500" style={{ fontFamily: 'Poppins-Medium' }}>
+                Loading more recommendations...
+              </Text>
+            </View>
+          );
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={refetch}
+            colors={['#48AAD9']}
+            tintColor="#48AAD9"
+          />
+        }
+        renderItem={({ item }) => {
+          const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
+
+          return (
+            <View style={{ width: '48%' }}>
+              <ProductCard
+                productId={String(item?.product_id ?? '')}
+                pharmacyProductId={item?.id}
+                pharmacyId={pharmacyId}
+                img={item?.product?.image_url}
+                product={item?.product}
+                categoryName={item?.category?.category_name}
+                description={item?.product?.product_name || 'Unnamed product'}
+                category={item?.category?.category_name || 'Uncategorized'}
+                price={formatProductPrice(item?.selling_price)}
+                isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
+                isAvailable={
+                  item?.is_available == null
+                    ? true
+                    : (typeof item?.is_available === 'boolean'
+                      ? item.is_available
+                      : Number(item.is_available) === 1)
+                }
+                onAddToCart={handleAddToCart}
+                style={{ width: '100%' }}
+              />
+            </View>
+          );
+        }}
+      />
 
       <TouchableOpacity
         onPress={() => {

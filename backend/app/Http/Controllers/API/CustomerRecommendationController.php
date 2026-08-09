@@ -20,12 +20,16 @@ class CustomerRecommendationController extends Controller
     {
         $request->validate([
             'pharmacy_id' => 'required|integer',
+            'page' => 'nullable|integer|min:1',
+            'per_page' => 'nullable|integer|min:1|max:50',
         ]);
 
         $customer = $request->user();
-        $pharmacyId = $request->input('pharmacy_id');
+        $pharmacyId = (int) $request->input('pharmacy_id');
+        $page = (int) $request->input('page', 1);
+        $perPage = (int) $request->input('per_page', 10);
         
-        $data = $this->recommendationService->getRecommendations($customer, $pharmacyId);
+        $data = $this->recommendationService->getRecommendations($customer, $pharmacyId, $page, $perPage);
 
         return response()->json($data);
     }

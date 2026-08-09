@@ -75,8 +75,13 @@ export async function getPharmacyCategories(pharmacyId, forceRefresh = false) {
   });
 }
 
-export async function getHeroRecommendations(pharmacyId) {
-  const endpoint = `/customer/recommendations/hero?pharmacy_id=${pharmacyId}`;
+export async function getHeroRecommendations(pharmacyId, { page = 1, perPage = 10 } = {}) {
+  const searchParams = new URLSearchParams();
+  searchParams.append('pharmacy_id', String(pharmacyId));
+  if (page) searchParams.append('page', String(page));
+  if (perPage) searchParams.append('per_page', String(perPage));
+
+  const endpoint = `/customer/recommendations/hero?${searchParams.toString()}`;
   return apiRequest(endpoint, {
     method: 'GET',
   });
