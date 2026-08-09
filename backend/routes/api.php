@@ -18,8 +18,12 @@ use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\ReportController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\CustomerForgotPasswordController;
+use App\Http\Controllers\API\PharmacySettingsController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\API\CustomerRecommendationController;
+use App\Http\Controllers\API\AnalyticsController;
+use App\Http\Controllers\API\ProductBatchController;
 
 
 // Public routes
@@ -76,7 +80,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Profile
         Route::get('customer/profile', [CustomerProfileController::class, 'show']);
-        Route::get('customer/recommendations/hero', [\App\Http\Controllers\API\CustomerRecommendationController::class, 'hero']);
+        Route::get('customer/recommendations/hero', [CustomerRecommendationController::class, 'hero']);
 
         // Cart
         Route::post('customer/cart/items', [CustomerCartController::class, 'addItem']);
@@ -129,6 +133,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('admin/profile', [AdminProfileController::class, 'update']);
         Route::patch('admin/pharmacy', [PharmacyController::class, 'updateOwn']);
 
+        // Pharmacy settings (store profile, operating hours, alert thresholds, account security)
+        Route::get('pharmacy/settings', [PharmacySettingsController::class, 'show']);
+        Route::put('pharmacy/settings', [PharmacySettingsController::class, 'update']);
+        Route::post('pharmacy/settings/logo', [PharmacySettingsController::class, 'uploadLogo']);
+        Route::patch('pharmacy/settings/password', [PharmacySettingsController::class, 'updatePassword']);
+
         Route::get('pos/products', [PosController::class, 'getProducts']);
         Route::post('pos/orders', [PosController::class, 'storeOrder']);
         Route::get('pos/pickup-orders', [PosController::class, 'getPickupOrders']);
@@ -159,9 +169,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacy/inventory/logs', [InventoryController::class, 'getInventoryLogs']);
 
         // analytics
-        Route::get('pharmacy/analytics/sales', [\App\Http\Controllers\API\AnalyticsController::class, 'sales']);
-        Route::get('pharmacy/analytics/demand', [\App\Http\Controllers\API\AnalyticsController::class, 'demand']);
-        Route::get('pharmacy/analytics/apriori', [\App\Http\Controllers\API\AnalyticsController::class, 'apriori']);
+        Route::get('pharmacy/analytics/sales', [AnalyticsController::class, 'sales']);
+        Route::get('pharmacy/analytics/demand', [AnalyticsController::class, 'demand']);
+        Route::get('pharmacy/analytics/apriori', [AnalyticsController::class, 'apriori']);
 
         // sales and reports
         Route::get('pharmacy/reports/sales/summary', [ReportController::class, 'getSalesSummary']);
@@ -170,10 +180,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacy/reports/sales/export/pdf', [ReportController::class, 'exportSalesPdf']);
 
         // product batches
-        Route::get('pharmacy/inventory/products/{pharmacyProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'index']);
-        Route::post('pharmacy/inventory/products/{pharmacyProductId}/batches', [\App\Http\Controllers\API\ProductBatchController::class, 'store']);
-        Route::patch('pharmacy/inventory/batches/{batchId}', [\App\Http\Controllers\API\ProductBatchController::class, 'update']);
-        Route::post('pharmacy/inventory/products/{pharmacyProductId}/stock-out', [\App\Http\Controllers\API\ProductBatchController::class, 'stockOut']);
+        Route::get('pharmacy/inventory/products/{pharmacyProductId}/batches', [ProductBatchController::class, 'index']);
+        Route::post('pharmacy/inventory/products/{pharmacyProductId}/batches', [ProductBatchController::class, 'store']);
+        Route::patch('pharmacy/inventory/batches/{batchId}', [ProductBatchController::class, 'update']);
+        Route::post('pharmacy/inventory/products/{pharmacyProductId}/stock-out', [ProductBatchController::class, 'stockOut']);
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {

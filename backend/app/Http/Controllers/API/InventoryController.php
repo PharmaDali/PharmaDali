@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pharmacy;
 use App\Services\Inventory\InventoryService;
 use App\Services\Inventory\RestockPredictorService;
 use Illuminate\Http\Request;
@@ -39,7 +40,8 @@ class InventoryController extends Controller
     public function getInventoryProducts(Request $request)
     {
         $filters = $request->only(['search', 'category', 'price_range', 'stock_range', 'status']);
-        $products = $this->inventoryService->getInventoryProducts($filters);
+        $pharmacy = $request->user()->pharmacy;
+        $products = $this->inventoryService->getInventoryProducts($filters, $pharmacy);
 
         return response()->json([
             'status' => 'success',

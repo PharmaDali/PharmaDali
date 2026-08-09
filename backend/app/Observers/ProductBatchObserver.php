@@ -35,9 +35,10 @@ class ProductBatchObserver
         }
 
         $today = Carbon::today();
-        $thirtyDaysFromNow = Carbon::today()->addDays(30);
+        $expiryThresholdDays = $batch->pharmacyProduct?->pharmacy?->expiry_days_threshold ?? 30;
+        $thresholdDate = Carbon::today()->addDays($expiryThresholdDays);
 
-        if ($batch->expiry_date->isBefore($today) || $batch->expiry_date->isAfter($thirtyDaysFromNow)) {
+        if ($batch->expiry_date->isBefore($today) || $batch->expiry_date->isAfter($thresholdDate)) {
             return;
         }
 
