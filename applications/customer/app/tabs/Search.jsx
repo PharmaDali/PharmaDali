@@ -15,12 +15,12 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSearch } from '@shared/hooks/useSearch';
 import ProductCard from '@shared/components/ProductCard';
 import { formatProductPrice } from '@shared/hooks/useHomeTab';
-import { useSelectionPhase } from '@shared/SelectionPhaseContext';
+import { useSelectionPhase } from '@shared/context/SelectionPhaseContext';
 import { addPharmacyProductToCart } from '@shared/utils/cartUtils';
 import { useToast } from '@shared/hooks/useToast';
 import ToastMessage from '@shared/components/ToastMessage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSearchContext } from '@shared/SearchContext';
+import { useSearchContext } from '@shared/context/SearchContext';
 
 export default function SearchTab() {
   const insets = useSafeAreaInsets();

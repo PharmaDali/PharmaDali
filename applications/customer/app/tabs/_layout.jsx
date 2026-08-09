@@ -5,10 +5,11 @@ import TopBar from '@components/TopBar';
 import { Slot, usePathname, useRouter } from 'expo-router';
 import { colors } from '@src/shared/theme/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
-import { SelectionPhaseProvider, useSelectionPhase } from '@src/shared/SelectionPhaseContext';
-import { SearchProvider } from '@src/shared/SearchContext';
+import { SelectionPhaseProvider, useSelectionPhase } from '@shared/context/SelectionPhaseContext';
+import { SearchProvider } from '@shared/context/SearchContext';
 import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
+import { FlyToCartProvider } from '@shared/context/FlyToCartContext';
 import { configureForegroundNotifications, syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 
 // Configure foreground notification presentation at module level
@@ -106,7 +107,9 @@ export default function RootLayout() {
     <PaperProvider>
       <SelectionPhaseProvider>
         <SearchProvider>
-          <LayoutContent />
+          <FlyToCartProvider>
+            <LayoutContent />
+          </FlyToCartProvider>
         </SearchProvider>
       </SelectionPhaseProvider>
     </PaperProvider>

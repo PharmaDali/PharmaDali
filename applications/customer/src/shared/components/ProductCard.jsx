@@ -7,6 +7,8 @@ import RxIcon from '@assets/icons/rx_icon.svg';
 import ProductImage from '@shared/components/ProductImage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
+import { useFlyToCart } from '@shared/context/FlyToCartContext';
+
 const ProductCard = ({
   img,
   product,
@@ -23,9 +25,11 @@ const ProductCard = ({
   isAvailable = true,
 }) => {
   const router = useRouter();
+  const { triggerFlyToCart } = useFlyToCart();
   const [isQuantityModalOpen, setIsQuantityModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isAddedSuccess, setIsAddedSuccess] = useState(false);
+  const [tapPos, setTapPos] = useState({ x: null, y: null });
 
   const handlePress = () => {
     router.push({
@@ -43,6 +47,10 @@ const ProductCard = ({
 
     if (!isAvailable) {
       return;
+    }
+
+    if (event?.nativeEvent?.pageX && event?.nativeEvent?.pageY) {
+      setTapPos({ x: event.nativeEvent.pageX, y: event.nativeEvent.pageY });
     }
 
     setQuantity(1);
@@ -63,6 +71,11 @@ const ProductCard = ({
         promise.then((result) => {
           if (result && result.ok) {
             setIsAddedSuccess(true);
+            triggerFlyToCart({
+              startX: tapPos.x,
+              startY: tapPos.y,
+              img: img || product?.image_url,
+            });
             setTimeout(() => {
               setIsAddedSuccess(false);
             }, 2000);
@@ -98,22 +111,16 @@ const ProductCard = ({
           </View>
         )}
         <Text className="text-sm mt-2" style={{ fontFamily: 'Poppins-Medium' }} numberOfLines={2}>{description}</Text>
-        
+
         <View className="flex-row items-center justify-between mt-2">
           <Text className="text-md" style={styles.priceBold}>{price}</Text>
           <TouchableOpacity
             onPress={handleAddToCartPress}
             hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            disabled={!isAvailable || isAddedSuccess}
+            disabled={!isAvailable}
             style={!isAvailable ? styles.addToCartDisabled : null}
           >
-            {isAddedSuccess ? (
-              <View style={styles.addSuccessContainer}>
-                <MaterialCommunityIcons name="check-bold" size={18} color="white" />
-              </View>
-            ) : (
-              <AddToCartIcon width={28} height={28} />
-            )}
+            <AddToCartIcon width={28} height={28} />
           </TouchableOpacity>
         </View>
       </View>
