@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Pharmacy extends Model
 {
@@ -15,9 +16,14 @@ class Pharmacy extends Model
         'pharmacy_name',
         'location',
         'contact_number',
+        'email',
+        'logo_path',
         'is_active',
         'opening_hour',
         'closing_hour',
+        'low_stock_threshold',
+        'shortage_days_threshold',
+        'expiry_days_threshold',
         // BIR / POS receipt compliance fields
         'tin',
         'vat_type',
@@ -33,6 +39,18 @@ class Pharmacy extends Model
         'permit_issued_at' => 'date',
         'ptu_valid_until'  => 'date',
     ];
+
+    /**
+     * Get the full public URL for the pharmacy logo.
+     */
+    public function getLogoUrlAttribute(): ?string
+    {
+        if (!$this->logo_path) {
+            return null;
+        }
+
+        return Storage::disk('public')->url($this->logo_path);
+    }
 
     public function users()
     {
