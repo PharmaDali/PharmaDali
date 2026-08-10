@@ -21,19 +21,28 @@ class ReceiptService
         $items    = $order->items;
 
         // --- Totals ---
-        $totalAmount    = (float) $order->total_amount;
+        $rawSubtotal    = (float) ($order->subtotal > 0 ? $order->subtotal : $items->sum('line_total'));
         $discountAmount = (float) ($order->discount_amount ?? 0);
+        $totalAmount    = (float) ($order->total_amount > 0 ? $order->total_amount : max(0, $rawSubtotal - $discountAmount));
         $vatAmount      = 0.00;
-        $subtotal       = $totalAmount;
+        $netSubtotal    = $totalAmount;
 
         if ($pharmacy && $pharmacy->vat_type === 'vat') {
-            // Philippine BIR VAT-inclusive: VAT is embedded in the selling price.
-            // VAT-exclusive base = total / 1.12
-            $subtotal  = round($totalAmount / 1.12, 2);
-            $vatAmount = round($totalAmount - $subtotal, 2);
+            // Philippine BIR VAT-inclusive: VAT is embedded in net amount.
+            $netSubtotal = round($totalAmount / 1.12, 2);
+            $vatAmount   = round($totalAmount - $netSubtotal, 2);
         }
 
         $itemsSold = $items->sum('quantity');
+
+        // Format discount type label for display
+        $discountTypeLabel = match(strtolower($order->discount_type ?? 'none')) {
+            'senior', 'senior_citizen' => 'Senior Citizen',
+            'pwd' => 'PWD',
+            'employee' => 'Employee',
+            'custom' => 'Custom Discount',
+            default => 'None'
+        };
 
         // --- Cashier name ---
         $cashierName = 'N/A';
@@ -84,8 +93,17 @@ class ReceiptService
                 'unit_price' => (float) $item->unit_price_snapshot,
                 'line_total' => (float) $item->line_total,
             ])->values()->all(),
+            'discount' => [
+                'type'             => $discountTypeLabel,
+                'raw_type'         => $order->discount_type ?? 'none',
+                'percentage'       => (float) ($order->discount_percentage ?? 0),
+                'id_number'        => $order->discount_id_number ?? null,
+                'remarks'          => $order->discount_remarks ?? null,
+                'amount'           => $discountAmount,
+            ],
             'totals' => [
-                'subtotal'        => $subtotal,
+                'subtotal'        => $rawSubtotal,
+                'net_subtotal'    => $netSubtotal,
                 'vat_amount'      => $vatAmount,
                 'discount_amount' => $discountAmount,
                 'total_amount'    => $totalAmount,

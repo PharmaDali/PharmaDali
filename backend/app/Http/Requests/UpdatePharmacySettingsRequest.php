@@ -24,6 +24,7 @@ class UpdatePharmacySettingsRequest extends FormRequest
             'low_stock_threshold'     => 'sometimes|integer|min:1|max:100000',
             'shortage_days_threshold' => 'sometimes|integer|min:1|max:365',
             'expiry_days_threshold'   => 'sometimes|integer|min:1|max:365',
+            'enable_vat_exemption_discount' => 'sometimes|boolean',
         ];
     }
 

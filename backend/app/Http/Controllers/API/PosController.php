@@ -44,6 +44,11 @@ class PosController extends Controller
             'items.*.id' => 'required|exists:pharmacy_products,id',
             'items.*.qty' => 'required|integer|min:1',
             'payment_method' => 'required|string',
+            'discount_type' => 'nullable|string',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'discount_id_number' => 'nullable|string|max:100',
+            'discount_remarks' => 'nullable|string|max:255',
             'amount_received' => 'nullable|numeric|min:0',
             'change_amount' => 'nullable|numeric|min:0',
             'note' => 'nullable|string',
@@ -91,6 +96,11 @@ class PosController extends Controller
     {
         $request->validate([
             'payment_method' => 'required|string|in:cash,gcash,card,maya',
+            'discount_type' => 'nullable|string',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'discount_id_number' => 'nullable|string|max:100',
+            'discount_remarks' => 'nullable|string|max:255',
             'amount_received' => 'nullable|numeric|min:0',
             'change_amount' => 'nullable|numeric|min:0',
         ]);
@@ -101,7 +111,8 @@ class PosController extends Controller
                 $request->payment_method, 
                 $request->user(),
                 $request->amount_received,
-                $request->change_amount
+                $request->change_amount,
+                $request->only(['discount_type', 'discount_percentage', 'discount_amount', 'discount_id_number', 'discount_remarks'])
             );
 
             return response()->json([

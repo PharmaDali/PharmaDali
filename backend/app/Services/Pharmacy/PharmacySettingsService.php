@@ -38,6 +38,9 @@ class PharmacySettingsService
                 'shortage_days'  => $pharmacy->shortage_days_threshold,
                 'expiry_days'    => $pharmacy->expiry_days_threshold,
             ],
+            'discount_settings' => [
+                'enable_vat_exemption_discount' => (bool) $pharmacy->enable_vat_exemption_discount,
+            ],
         ];
     }
 
@@ -59,6 +62,7 @@ class PharmacySettingsService
             'low_stock_threshold',
             'shortage_days_threshold',
             'expiry_days_threshold',
+            'enable_vat_exemption_discount',
         ];
 
         $filteredData = array_intersect_key($data, array_flip($allowed));
