@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 const MOCK_PHARMACIES = [
-  { id: 1, name: 'Landicho Drugstore', owner: 'Hydee ---', city: 'Lipa City', contact: '09123456789', status: 'Active' },
-  { id: 2, name: 'Puremed Pharmacy', owner: 'Edcel ---', city: 'Tanauan City', contact: '09541790778', status: 'Active' },
-  { id: 3, name: 'Puremed Pharmacy', owner: 'Edcel ---', city: 'Tanauan City', contact: '09541790778', status: 'Active' },
-  { id: 4, name: 'Puremed Pharmacy', owner: 'Edcel ---', city: 'Tanauan City', contact: '09541790778', status: 'Active' },
-  { id: 5, name: 'Puremed Pharmacy', owner: 'Edcel ---', city: 'Tanauan City', contact: '09541790778', status: 'Active' },
+  { id: 1, name: 'Landicho Drugstore', owner: 'Abigail Barrion', city: 'Lipa City', contact: '09123456789', status: 'Active' },
+  { id: 2, name: 'Puremed Pharmacy', owner: 'Althea Alvarez', city: 'Tanauan City', contact: '09541790778', status: 'Active' },
+  { id: 3, name: 'Generika Drugstore', owner: 'Denmar Redondo', city: 'Batangas City', contact: '09171234567', status: 'Inactive' },
+  { id: 4, name: 'Mercury Drug', owner: 'James Mercado', city: 'Calamba City', contact: '09987654321', status: 'Active' },
+  { id: 5, name: 'Southstar Drug', owner: 'James Orlanes', city: 'Santo Tomas', contact: '09223334444', status: 'Pending' },
 ]
 
 type Props = {
@@ -13,6 +13,20 @@ type Props = {
 }
 
 const PharmacyList: React.FC<Props> = ({ compact }) => {
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const filteredPharmacies = MOCK_PHARMACIES.filter((p) => {
+    const query = searchTerm.toLowerCase().trim()
+    if (!query) return true
+    return (
+      p.name.toLowerCase().includes(query) ||
+      p.owner.toLowerCase().includes(query) ||
+      p.city.toLowerCase().includes(query) ||
+      p.contact.toLowerCase().includes(query) ||
+      p.status.toLowerCase().includes(query)
+    )
+  })
+
   // compact mode: used on Dashboard — render a small 3-column table without actions
   if (compact) {
     return (
@@ -61,9 +75,23 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                 </svg>
               </div>
               <input
-                className="w-full bg-[#2f3338] placeholder:text-gray-400 text-gray-100 pl-10 pr-4 py-3 rounded-[8px] border border-transparent focus:outline-none"
-                placeholder="Search by Pharmacy Name or Status"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-[#2f3338] placeholder:text-gray-400 text-gray-100 pl-10 pr-10 py-3 rounded-[8px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                placeholder="Search by Pharmacy Name, Owner, City, or Status"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-white transition-colors"
+                  title="Clear search"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
 
@@ -101,24 +129,32 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                 </tr>
               </thead>
               <tbody>
-                {MOCK_PHARMACIES.map((p, idx) => (
-                  <tr key={p.id + '-' + idx} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0 hover:bg-[rgba(255,255,255,0.01)] align-middle min-h-[64px]">
-                    <td className="py-4 px-5 align-middle text-gray-100 truncate whitespace-nowrap">{p.name}</td>
-                    <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.owner}</td>
-                    <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.city}</td>
-                    <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.contact}</td>
-                    <td className="py-4 px-5 align-middle">
-                      <span className={p.status === 'Active' ? 'text-[#4ade80] font-medium' : 'text-gray-400'}>{p.status}</span>
-                    </td>
-                    <td className="py-4 pr-6 align-middle">
-                      <div className="flex items-center gap-3 justify-end h-full">
-                        <button className="min-w-[72px] h-9 flex items-center justify-center px-3 rounded-[8px] bg-[#60a5fa] text-white text-sm font-medium">View</button>
-                        <button className="min-w-[62px] h-9 flex items-center justify-center px-3 rounded-[8px] border border-[#60a5fa] text-[#bde7ff] text-sm font-medium">Edit</button>
-                        <button className="min-w-[62px] h-9 flex items-center justify-center px-3 rounded-[8px] border border-red-500 text-red-400 text-sm font-medium">Delete</button>
-                      </div>
+                {filteredPharmacies.length > 0 ? (
+                  filteredPharmacies.map((p, idx) => (
+                    <tr key={p.id + '-' + idx} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0 hover:bg-[rgba(255,255,255,0.01)] align-middle min-h-[64px]">
+                      <td className="py-4 px-5 align-middle text-gray-100 truncate whitespace-nowrap">{p.name}</td>
+                      <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.owner}</td>
+                      <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.city}</td>
+                      <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.contact}</td>
+                      <td className="py-4 px-5 align-middle">
+                        <span className={p.status === 'Active' ? 'text-[#4ade80] font-medium' : p.status === 'Pending' ? 'text-amber-400 font-medium' : 'text-gray-400'}>{p.status}</span>
+                      </td>
+                      <td className="py-4 pr-6 align-middle">
+                        <div className="flex items-center gap-3 justify-end h-full">
+                          <button className="min-w-[72px] h-9 flex items-center justify-center px-3 rounded-[8px] bg-[#60a5fa] text-white text-sm font-medium">View</button>
+                          <button className="min-w-[62px] h-9 flex items-center justify-center px-3 rounded-[8px] border border-[#60a5fa] text-[#bde7ff] text-sm font-medium">Edit</button>
+                          <button className="min-w-[62px] h-9 flex items-center justify-center px-3 rounded-[8px] border border-red-500 text-red-400 text-sm font-medium">Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-gray-400">
+                      No pharmacies found matching "{searchTerm}"
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
