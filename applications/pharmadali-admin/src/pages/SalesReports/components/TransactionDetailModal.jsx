@@ -70,39 +70,55 @@ function TransactionDetailModal({ row, onClose }) {
         <hr />
         
         {/* Financial Statement & Discount Breakdown */}
-        <div className="d-flex justify-content-between mb-1" style={{ fontSize: "14px" }}>
-          <span className="text-secondary">Subtotal (Actual Price)</span>
-          <span className="fw-semibold">PHP {grossSubtotal.toFixed(2)}</span>
-        </div>
-
-        {hasDiscount && (
+        {hasDiscount ? (
           <>
+            <div className="d-flex justify-content-between mb-1" style={{ fontSize: "14px" }}>
+              <span className="text-secondary">Subtotal (Original Price)</span>
+              <span className="fw-semibold">PHP {grossSubtotal.toFixed(2)}</span>
+            </div>
+
+            <div className="d-flex justify-content-between mb-1" style={{ fontSize: "13px" }}>
+              <span className="text-secondary">Discount Type</span>
+              <span className="fw-medium text-dark">{discountLabel}</span>
+            </div>
+
+            {row.discountPercentage > 0 && (
+              <div className="d-flex justify-content-between mb-1" style={{ fontSize: "13px" }}>
+                <span className="text-secondary">Discount Rate</span>
+                <span className="fw-medium text-dark">{row.discountPercentage}%</span>
+              </div>
+            )}
+
             <div className="d-flex justify-content-between mb-1 text-danger" style={{ fontSize: "14px" }}>
-              <span>
-                Discount ({discountLabel}
-                {row.discountPercentage > 0 ? ` ${row.discountPercentage}%` : ""})
-              </span>
+              <span>Discount Amount</span>
               <span className="fw-semibold">-PHP {discountAmount.toFixed(2)}</span>
             </div>
+
             {row.discountIdNumber && (
               <div className="d-flex justify-content-between mb-1 text-muted" style={{ fontSize: "12px" }}>
                 <span>ID Card No.</span>
                 <span className="fw-medium">{row.discountIdNumber}</span>
               </div>
             )}
+
             {row.discountRemarks && (
               <div className="d-flex justify-content-between mb-1 text-muted" style={{ fontSize: "12px" }}>
                 <span>Remarks</span>
                 <span className="fw-medium">{row.discountRemarks}</span>
               </div>
             )}
-          </>
-        )}
 
-        <div className="d-flex justify-content-between fw-bold my-2 pt-2 border-top" style={{ fontSize: "16px", color: "#2aabe2" }}>
-          <span>DISCOUNTED PRICE (NET TOTAL)</span>
-          <span>PHP {netTotal.toFixed(2)}</span>
-        </div>
+            <div className="d-flex justify-content-between fw-bold my-2 pt-2 border-top" style={{ fontSize: "16px", color: "#2aabe2" }}>
+              <span>DISCOUNTED PRICE</span>
+              <span>PHP {netTotal.toFixed(2)}</span>
+            </div>
+          </>
+        ) : (
+          <div className="d-flex justify-content-between fw-bold my-2" style={{ fontSize: "16px", color: "#2aabe2" }}>
+            <span>TOTAL AMOUNT</span>
+            <span>PHP {netTotal.toFixed(2)}</span>
+          </div>
+        )}
         <hr />
 
         <div className="d-flex justify-content-between mb-2">
