@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use App\Services\Messaging\ConversationService;
+use App\Models\Pharmacy;
 
 class PosService
 {
@@ -50,10 +51,10 @@ class PosService
         }
 
         return DB::transaction(function () use ($data, $user) {
-            $orderTotal = 0;
+            $subtotal = 0;
             $items = $data['items'] ?? [];
 
-            // Calculate total and validate stock
+            // Calculate subtotal and validate stock
             foreach ($items as $item) {
                 $pharmacyProduct = PharmacyProduct::findOrFail($item['id']);
                 
@@ -61,22 +62,46 @@ class PosService
                     throw new \Exception("Insufficient stock for product: " . ($pharmacyProduct->product->product_name ?? 'Item'));
                 }
 
-                $orderTotal += $item['qty'] * $pharmacyProduct->selling_price;
+                $subtotal += $item['qty'] * $pharmacyProduct->selling_price;
             }
+
+            $pharmacy = $user->pharmacy ?? (Pharmacy::find($user->pharmacy_id ?? 1));
+
+            // Calculate discount details based on pharmacy policy and input
+            $discountType = $data['discount_type'] ?? 'none';
+            $discountPercentageInput = isset($data['discount_percentage']) ? (float) $data['discount_percentage'] : null;
+            $discountAmountInput = isset($data['discount_amount']) ? (float) $data['discount_amount'] : null;
+
+            [$discountAmount, $discountPercentage] = $this->calculateDiscount(
+                subtotal: $subtotal,
+                discountType: $discountType,
+                discountPercentage: $discountPercentageInput,
+                discountAmount: $discountAmountInput,
+                pharmacy: $pharmacy
+            );
+
+            $totalAmount = max(0, round($subtotal - $discountAmount, 2));
+            $amountReceived = isset($data['amount_received']) ? (float) $data['amount_received'] : $totalAmount;
+            $changeAmount = isset($data['change_amount']) ? (float) $data['change_amount'] : max(0, round($amountReceived - $totalAmount, 2));
 
             // Create the order
             $order = Order::create([
                 'order_number' => 'POS-' . strtoupper(Str::random(10)),
-                'pharmacy_id' => $user->pharmacy_id ?? 1, // Defaulting to 1 for now if no pharmacy associated
+                'pharmacy_id' => $pharmacy?->id ?? 1,
                 'status' => 'completed',
                 'verified_by' => $user->id,
                 'verified_at' => now(),
                 'payment_method' => $data['payment_method'] ?? 'cash',
                 'payment_status' => 'paid',
-                'subtotal' => $orderTotal,
-                'total_amount' => $orderTotal,
-                'amount_received' => $data['amount_received'] ?? $orderTotal,
-                'change_amount' => $data['change_amount'] ?? 0,
+                'subtotal' => $subtotal,
+                'discount_type' => $discountType,
+                'discount_percentage' => $discountPercentage,
+                'discount_id_number' => $data['discount_id_number'] ?? null,
+                'discount_remarks' => $data['discount_remarks'] ?? null,
+                'discount_amount' => $discountAmount,
+                'total_amount' => $totalAmount,
+                'amount_received' => $amountReceived,
+                'change_amount' => $changeAmount,
                 'placed_at' => now(),
                 'completed_at' => now(),
                 'note' => $data['note'] ?? 'POS Walk-in Sale',
@@ -160,10 +185,16 @@ class PosService
     }
 
     /**
-     * Complete a pickup order and update payment info.
+     * Complete a pickup order and update payment info (with optional discount application).
      */
-    public function completePickupOrder(Order $order, string $paymentMethod, $user, $amountReceived = null, $changeAmount = null)
-    {
+    public function completePickupOrder(
+        Order $order, 
+        string $paymentMethod, 
+        $user, 
+        $amountReceived = null, 
+        $changeAmount = null,
+        array $discountData = []
+    ) {
         if ($order->pharmacy_id !== $user->pharmacy_id) {
             throw new \Exception("Unauthorized: Order does not belong to your pharmacy.");
         }
@@ -176,13 +207,48 @@ class PosService
             throw new \Exception("Order must be in 'ready_for_pickup' status to be completed at POS.");
         }
 
-        return DB::transaction(function () use ($order, $paymentMethod, $amountReceived, $changeAmount) {
+        return DB::transaction(function () use ($order, $paymentMethod, $user, $amountReceived, $changeAmount, $discountData) {
+            $pharmacy = $user->pharmacy ?? (Pharmacy::find($user->pharmacy_id));
+            
+            // Calculate subtotal from order items if subtotal is 0
+            $subtotal = (float) $order->subtotal;
+            if ($subtotal <= 0) {
+                $subtotal = (float) $order->items->sum('line_total');
+            }
+
+            $discountType = $discountData['discount_type'] ?? $order->discount_type ?? 'none';
+            $discountPercentageInput = isset($discountData['discount_percentage']) 
+                ? (float) $discountData['discount_percentage'] 
+                : ($order->discount_percentage > 0 ? (float) $order->discount_percentage : null);
+            $discountAmountInput = isset($discountData['discount_amount']) 
+                ? (float) $discountData['discount_amount'] 
+                : ($order->discount_amount > 0 ? (float) $order->discount_amount : null);
+
+            [$discountAmount, $discountPercentage] = $this->calculateDiscount(
+                subtotal: $subtotal,
+                discountType: $discountType,
+                discountPercentage: $discountPercentageInput,
+                discountAmount: $discountAmountInput,
+                pharmacy: $pharmacy
+            );
+
+            $totalAmount = max(0, round($subtotal - $discountAmount, 2));
+            $finalAmountReceived = $amountReceived !== null ? (float) $amountReceived : $totalAmount;
+            $finalChangeAmount = $changeAmount !== null ? (float) $changeAmount : max(0, round($finalAmountReceived - $totalAmount, 2));
+
             $order->update([
                 'status' => 'completed',
                 'payment_method' => $paymentMethod,
                 'payment_status' => 'paid',
-                'amount_received' => $amountReceived ?? $order->total_amount,
-                'change_amount' => $changeAmount ?? 0,
+                'subtotal' => $subtotal,
+                'discount_type' => $discountType,
+                'discount_percentage' => $discountPercentage,
+                'discount_id_number' => $discountData['discount_id_number'] ?? $order->discount_id_number,
+                'discount_remarks' => $discountData['discount_remarks'] ?? $order->discount_remarks,
+                'discount_amount' => $discountAmount,
+                'total_amount' => $totalAmount,
+                'amount_received' => $finalAmountReceived,
+                'change_amount' => $finalChangeAmount,
                 'completed_at' => now(),
                 'picked_up_at' => now(),
             ]);
@@ -208,5 +274,50 @@ class PosService
 
             return $order->load(['customer.user', 'items.pharmacyProduct.product']);
         });
+    }
+
+    /**
+     * Calculate discount amount & percentage based on pharmacy configuration and policy.
+     */
+    private function calculateDiscount(
+        float $subtotal,
+        ?string $discountType,
+        ?float $discountPercentage,
+        ?float $discountAmount,
+        ?Pharmacy $pharmacy = null
+    ): array {
+        if (!$discountType || $discountType === 'none' || $subtotal <= 0) {
+            return [0.00, 0.00];
+        }
+
+        $calculatedAmount = 0.00;
+        $calculatedPercentage = 0.00;
+
+        if ($discountPercentage !== null && $discountPercentage > 0) {
+            $calculatedPercentage = min(100.00, max(0.00, $discountPercentage));
+            
+            // Check if pharmacy settings enable statutory Philippine VAT exemption on Senior / PWD discounts
+            $isVatExemptEligible = $pharmacy
+                && !empty($pharmacy->enable_vat_exemption_discount)
+                && $pharmacy->vat_type === 'vat'
+                && in_array(strtolower($discountType), ['senior', 'pwd', 'senior_citizen']);
+
+            if ($isVatExemptEligible) {
+                // VAT-exclusive base = subtotal / 1.12
+                $vatExclusiveSubtotal = round($subtotal / 1.12, 2);
+                $calculatedAmount = round($vatExclusiveSubtotal * ($calculatedPercentage / 100), 2);
+            } else {
+                // Standard percentage discount applied to subtotal
+                $calculatedAmount = round($subtotal * ($calculatedPercentage / 100), 2);
+            }
+        } elseif ($discountAmount !== null && $discountAmount > 0) {
+            $calculatedAmount = min($subtotal, max(0.00, $discountAmount));
+            $calculatedPercentage = round(($calculatedAmount / $subtotal) * 100, 2);
+        }
+
+        return [
+            round($calculatedAmount, 2),
+            round($calculatedPercentage, 2)
+        ];
     }
 }

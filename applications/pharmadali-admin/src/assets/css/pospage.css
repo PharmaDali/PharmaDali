@@ -54,18 +54,54 @@
   height: 39px;
 }
 
-.pos-order-payment-wrap {
+.pos-order-payment-wrap,
+.pos-discount-wrap {
   padding: 8px;
   border: 1px solid #dbe7f2;
   border-radius: var(--pd-radius-md);
   background: #f2f8fd;
 }
 
-.pos-order-payment-title {
+.pos-order-payment-title,
+.pos-discount-title {
   font-size: 13px;
   font-weight: 600;
   color: #444;
   margin-bottom: 6px;
+}
+
+.pos-discount-wrap select,
+.pos-discount-wrap input {
+  border: 1.5px solid #dde3ec;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.pos-discount-wrap select:focus,
+.pos-discount-wrap input:focus {
+  border-color: #2aabe2 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.pos-discount-wrap select option {
+  padding: 6px 10px;
+  background-color: #ffffff;
+  color: #334155;
+}
+
+.pos-discount-wrap select option:hover,
+.pos-discount-wrap select option:focus,
+.pos-discount-wrap select option:active {
+  background-color: #e2e8f0 !important;
+  background: #e2e8f0 linear-gradient(0deg, #e2e8f0 0%, #e2e8f0 100%) !important;
+  color: #1e293b !important;
+}
+
+.pos-discount-wrap select option:checked {
+  background-color: #2aabe2 !important;
+  background: #2aabe2 linear-gradient(0deg, #2aabe2 0%, #2aabe2 100%) !important;
+  color: #ffffff !important;
 }
 
 .pos-order-complete-btn,

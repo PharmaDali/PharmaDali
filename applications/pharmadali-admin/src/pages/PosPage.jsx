@@ -105,10 +105,108 @@ function ProductTable({ results, selectedId, onSelect, onScroll, loadingMore }) 
 
 const ORDER_COL_WIDTHS = ["50%", "25%", "25%"];
 
+function DiscountSelect({ value, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const options = [
+    { value: "none", label: "No Discount" },
+    { value: "senior", label: "Senior Citizen" },
+    { value: "pwd", label: "PWD (Person With Disability)" },
+    { value: "employee", label: "Employee" },
+    { value: "custom", label: "Custom Policy" },
+  ];
+
+  const selectedOption = options.find((o) => o.value === value) || options[0];
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="position-relative w-100 mb-2" ref={dropdownRef}>
+      <button
+        type="button"
+        className="form-select form-select-sm d-flex align-items-center justify-content-between text-start w-100"
+        style={{
+          fontSize: 12,
+          borderRadius: "var(--pd-radius-md)",
+          border: "1.5px solid #dde3ec",
+          background: "#ffffff",
+          color: "#334155",
+          outline: "none",
+          boxShadow: "none",
+          cursor: "pointer",
+        }}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{selectedOption.label}</span>
+      </button>
+
+      {isOpen && (
+        <div
+          className="position-absolute w-100 shadow-sm rounded-2 overflow-hidden border"
+          style={{
+            top: "100%",
+            left: 0,
+            zIndex: 1050,
+            background: "#ffffff",
+            borderColor: "#dde3ec",
+            marginTop: "4px",
+          }}
+        >
+          {options.map((opt) => {
+            const isSelected = opt.value === value;
+            return (
+              <div
+                key={opt.value}
+                className="px-3 py-2 d-flex align-items-center justify-content-between pos-discount-option"
+                style={{
+                  fontSize: 12,
+                  cursor: "pointer",
+                  background: isSelected ? "#e8f0fe" : "transparent",
+                  color: isSelected ? "#2aabe2" : "#334155",
+                  fontWeight: isSelected ? 600 : 400,
+                  transition: "background-color 0.15s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) e.currentTarget.style.backgroundColor = "#f1f5f9";
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
+                }}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+              >
+                <span>{opt.label}</span>
+                {isSelected && <i className="fa-solid fa-check" style={{ fontSize: 11, color: "#2aabe2" }} />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CurrentOrder({
   items,
   paymentMethod,
+  discountType,
+  discountPercentage,
+  discountIdNumber,
   onPaymentChange,
+  onDiscountTypeChange,
+  onDiscountPercentageChange,
+  onDiscountIdNumberChange,
   onCompleteSale,
   onRemove,
 }) {
@@ -126,7 +224,12 @@ function CurrentOrder({
   };
 
   const totalQty = items.reduce((s, i) => s + i.qty, 0);
-  const orderTotal = items.reduce((s, i) => s + i.qty * i.selling_price, 0);
+  const subtotal = items.reduce((s, i) => s + i.qty * i.selling_price, 0);
+  
+  const discountPctNum = parseFloat(discountPercentage) || 0;
+  const discountAmount = discountType !== "none" ? Math.round((subtotal * (discountPctNum / 100)) * 100) / 100 : 0;
+  const netTotal = Math.max(0, subtotal - discountAmount);
+
   const isOrderEmpty = items.length === 0;
 
   return (
@@ -186,12 +289,56 @@ function CurrentOrder({
       <div className="d-flex justify-content-between align-items-end px-1 pt-3 pb-2 pos-order-meta">
         <div>
           <div style={{ fontSize: 12, color: "#888" }}>No. of Items</div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: "#222" }}>{totalQty}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "#222" }}>{totalQty}</div>
         </div>
         <div className="text-end">
+          {discountAmount > 0 && (
+            <div style={{ fontSize: 11, color: "#e25252" }}>
+              Discount: -PHP {discountAmount.toFixed(2)}
+            </div>
+          )}
           <div style={{ fontSize: 12, color: "#888" }}>Order Total</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#222" }}>PHP {orderTotal.toFixed(2)}</div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "#222" }}>PHP {netTotal.toFixed(2)}</div>
         </div>
+      </div>
+
+      {/* Discount Feature Container (Placed directly on top of Payment Method Container) */}
+      <div className="pos-discount-wrap mb-2">
+        <div className="pos-discount-title">
+          <i className="fa-solid fa-percent me-1" style={{ color: "#2aabe2" }} /> Discount Type
+        </div>
+        
+        <DiscountSelect value={discountType} onChange={onDiscountTypeChange} />
+
+        {discountType !== "none" && (
+          <div className="d-flex gap-2">
+            <div style={{ flex: "0 0 40%" }}>
+              <label style={{ fontSize: 10, color: "#64748b" }} className="fw-semibold mb-0">Rate (%)</label>
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                className="form-control form-control-sm"
+                style={{ fontSize: 12 }}
+                placeholder="%"
+                value={discountPercentage}
+                onChange={(e) => onDiscountPercentageChange(e.target.value)}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: 10, color: "#64748b" }} className="fw-semibold mb-0">ID No. (Optional)</label>
+              <input
+                type="text"
+                className="form-control form-control-sm"
+                style={{ fontSize: 12 }}
+                placeholder="ID Number"
+                value={discountIdNumber}
+                onChange={(e) => onDiscountIdNumberChange(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="pb-2 pos-order-payment-wrap">
@@ -245,6 +392,12 @@ function PosPage() {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState("cash");
+
+  // Discount feature state
+  const [discountType, setDiscountType] = useState("none");
+  const [discountPercentage, setDiscountPercentage] = useState("");
+  const [discountIdNumber, setDiscountIdNumber] = useState("");
+
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [isPaymentResultModalOpen, setIsPaymentResultModalOpen] = useState(false);
@@ -308,10 +461,14 @@ function PosPage() {
     setOrderItems((prev) => prev.filter((i) => i.id !== productId));
   }
 
-  const orderTotal = orderItems.reduce(
+  const subtotal = orderItems.reduce(
     (sum, item) => sum + item.qty * item.selling_price,
     0
   );
+
+  const discountPctNum = parseFloat(discountPercentage) || 0;
+  const discountAmount = discountType !== "none" ? Math.round((subtotal * (discountPctNum / 100)) * 100) / 100 : 0;
+  const orderTotal = Math.max(0, subtotal - discountAmount);
 
   const openCompleteSaleModal = () => {
     if (orderItems.length === 0) {
@@ -339,9 +496,12 @@ function PosPage() {
           qty: item.qty
         })),
         payment_method: paymentMethod,
+        discount_type: discountType,
+        discount_percentage: discountPctNum,
+        discount_id_number: discountIdNumber,
         amount_received: Number(cashReceived),
         change_amount: Math.max(changeAmount, 0),
-        note: `POS Sale - ${paymentMethod.toUpperCase()}${paymentMethod === 'gcash' ? ' Ref: ' + gcashReference : ''}`
+        note: `POS Sale - ${paymentMethod.toUpperCase()}${paymentMethod === 'gcash' ? ' Ref: ' + gcashReference : ''}${discountType !== 'none' ? ' [' + discountType.toUpperCase() + ' Discount]' : ''}`
       };
 
       const response = await createPosOrder(orderData);
@@ -350,6 +510,9 @@ function PosPage() {
         setPaymentResult("success");
         setOrderItems([]);
         setSelectedProduct(null);
+        setDiscountType("none");
+        setDiscountPercentage("");
+        setDiscountIdNumber("");
         // Refresh product list to show updated stock
         loadProducts(debouncedSearch, 1, true);
       } else {
@@ -462,7 +625,13 @@ function PosPage() {
             <CurrentOrder
               items={orderItems}
               paymentMethod={paymentMethod}
+              discountType={discountType}
+              discountPercentage={discountPercentage}
+              discountIdNumber={discountIdNumber}
               onPaymentChange={setPaymentMethod}
+              onDiscountTypeChange={setDiscountType}
+              onDiscountPercentageChange={setDiscountPercentage}
+              onDiscountIdNumberChange={setDiscountIdNumber}
               onRemove={removeFromOrder}
               onCompleteSale={openCompleteSaleModal}
             />
