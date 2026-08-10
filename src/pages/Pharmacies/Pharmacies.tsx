@@ -1,6 +1,16 @@
 import React, { useState } from 'react'
 
-const MOCK_PHARMACIES = [
+interface Pharmacy {
+  id: number
+  name: string
+  owner: string
+  city: string
+  contact: string
+  email?: string
+  status: string
+}
+
+const INITIAL_PHARMACIES: Pharmacy[] = [
   { id: 1, name: 'Landicho Drugstore', owner: 'Abigail Barrion', city: 'Lipa City', contact: '09123456789', status: 'Active' },
   { id: 2, name: 'Puremed Pharmacy', owner: 'Althea Alvarez', city: 'Tanauan City', contact: '09541790778', status: 'Active' },
   { id: 3, name: 'Generika Drugstore', owner: 'Denmar Redondo', city: 'Batangas City', contact: '09171234567', status: 'Inactive' },
@@ -13,9 +23,43 @@ type Props = {
 }
 
 const PharmacyList: React.FC<Props> = ({ compact }) => {
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>(INITIAL_PHARMACIES)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    owner: '',
+    contact: '',
+    email: '',
+    city: '',
+    status: 'Active',
+  })
 
-  const filteredPharmacies = MOCK_PHARMACIES.filter((p) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleSavePharmacy = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formData.name.trim()) return
+
+    const newPharmacy: Pharmacy = {
+      id: Date.now(),
+      name: formData.name,
+      owner: formData.owner,
+      contact: formData.contact,
+      email: formData.email,
+      city: formData.city,
+      status: formData.status || 'Active',
+    }
+
+    setPharmacies((prev) => [newPharmacy, ...prev])
+    setFormData({ name: '', owner: '', contact: '', email: '', city: '', status: 'Active' })
+    setIsAddModalOpen(false)
+  }
+
+  const filteredPharmacies = pharmacies.filter((p) => {
     const query = searchTerm.toLowerCase().trim()
     if (!query) return true
     return (
@@ -42,7 +86,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
               </tr>
             </thead>
             <tbody>
-              {MOCK_PHARMACIES.slice(0, 5).map((p) => (
+              {pharmacies.slice(0, 5).map((p) => (
                 <tr key={p.id} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0">
                   <td className="py-4 px-6 text-gray-100 text-base">{p.name}</td>
                   <td className="py-4 px-6 text-gray-200 text-base">{p.city}</td>
@@ -95,7 +139,10 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
             </div>
           </div>
 
-          <button className="flex items-center gap-2 bg-[#2aa6e0] hover:bg-[#35b3f0] text-white text-sm font-medium px-4 py-2 rounded-[8px] shadow">
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 bg-[#2aa6e0] hover:bg-[#35b3f0] text-white text-sm font-medium px-4 py-2 rounded-[8px] shadow transition-colors"
+          >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block">
               <path d="M12 5v14"></path>
               <path d="M5 12h14"></path>
@@ -160,6 +207,103 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
           </div>
         </div>
       </div>
+
+      {/* Add New Pharmacy Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4">
+          <div className="bg-[#292d37] w-full max-w-[500px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)]">
+            <h2 className="text-white text-2xl font-bold text-center mb-8">Pharmacy Information Form</h2>
+
+            <form onSubmit={handleSavePharmacy} className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  placeholder="Pharmacy Name"
+                  required
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  name="owner"
+                  value={formData.owner}
+                  onChange={handleInputChange}
+                  placeholder="Owner Name"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="contact"
+                  value={formData.contact}
+                  onChange={handleInputChange}
+                  placeholder="Contact Number"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="Email"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="city"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  placeholder="City"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+                <div className="relative">
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] appearance-none transition-colors cursor-pointer"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Pending">Pending</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-300">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="w-full py-3.5 px-4 rounded-[12px] border border-[#2aa6e0] text-[#38bdf8] hover:bg-[#2aa6e0]/10 font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-full py-3.5 px-4 rounded-[12px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
