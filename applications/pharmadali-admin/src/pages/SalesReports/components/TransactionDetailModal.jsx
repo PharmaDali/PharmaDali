@@ -7,6 +7,26 @@
 function TransactionDetailModal({ row, onClose }) {
   if (!row) return null;
 
+  const discountLabelMap = {
+    senior: "Senior Citizen",
+    pwd: "PWD (Person With Disability)",
+    employee: "Employee Discount",
+    custom: "Custom Policy Discount",
+  };
+  const discountLabel = discountLabelMap[row.discountType] || "Discount";
+  const discountAmount = Number(row.discountAmount || 0);
+  const hasDiscount = discountAmount > 0 || (row.discountType && row.discountType !== "none");
+
+  // Sum of original item prices (Gross Subtotal before discount)
+  const itemsSum = row.orderItems?.reduce((sum, item) => sum + Number(item.subtotal || 0), 0) || 0;
+  const grossSubtotal = itemsSum > 0 
+    ? itemsSum 
+    : (row.subtotal && Number(row.subtotal) > Number(row.total) 
+        ? Number(row.subtotal) 
+        : Number(row.total || 0) + discountAmount);
+
+  const netTotal = Number(row.total || 0);
+
   return (
     <div
       className="modal d-flex align-items-center justify-content-center"
@@ -20,7 +40,7 @@ function TransactionDetailModal({ row, onClose }) {
       >
         <button className="btn-close position-absolute top-0 end-0 m-3" onClick={onClose} />
 
-        <h2 className="fw-semibold mb-3" style={{ color: "#48AAD9", fontSize: "22px" }}>
+        <h2 className="fw-semibold mb-3" style={{ color: "#2aabe2", fontSize: "22px" }}>
           Transaction Details
         </h2>
         <hr />
@@ -48,10 +68,57 @@ function TransactionDetailModal({ row, onClose }) {
         ))}
 
         <hr />
-        <div className="d-flex justify-content-between fw-bold mb-3" style={{ fontSize: "15px" }}>
-          <span>TOTAL</span>
-          <span>{parseFloat(row.total).toFixed(2)}</span>
-        </div>
+        
+        {/* Financial Statement & Discount Breakdown */}
+        {hasDiscount ? (
+          <>
+            <div className="d-flex justify-content-between mb-1" style={{ fontSize: "14px" }}>
+              <span className="text-secondary">Subtotal</span>
+              <span className="fw-semibold">PHP {grossSubtotal.toFixed(2)}</span>
+            </div>
+
+            <div className="d-flex justify-content-between mb-1" style={{ fontSize: "13px" }}>
+              <span className="text-secondary">Discount Type</span>
+              <span className="fw-medium text-dark">{discountLabel}</span>
+            </div>
+
+            {row.discountPercentage > 0 && (
+              <div className="d-flex justify-content-between mb-1" style={{ fontSize: "13px" }}>
+                <span className="text-secondary">Discount Rate</span>
+                <span className="fw-medium text-dark">{row.discountPercentage}%</span>
+              </div>
+            )}
+
+            <div className="d-flex justify-content-between mb-1 text-danger" style={{ fontSize: "14px" }}>
+              <span>Discount Amount</span>
+              <span className="fw-semibold">-PHP {discountAmount.toFixed(2)}</span>
+            </div>
+
+            {row.discountIdNumber && (
+              <div className="d-flex justify-content-between mb-1 text-muted" style={{ fontSize: "12px" }}>
+                <span>ID Card No.</span>
+                <span className="fw-medium">{row.discountIdNumber}</span>
+              </div>
+            )}
+
+            {row.discountRemarks && (
+              <div className="d-flex justify-content-between mb-1 text-muted" style={{ fontSize: "12px" }}>
+                <span>Remarks</span>
+                <span className="fw-medium">{row.discountRemarks}</span>
+              </div>
+            )}
+
+            <div className="d-flex justify-content-between fw-bold my-2 pt-2 border-top" style={{ fontSize: "16px", color: "#2aabe2" }}>
+              <span>DISCOUNTED PRICE</span>
+              <span>PHP {netTotal.toFixed(2)}</span>
+            </div>
+          </>
+        ) : (
+          <div className="d-flex justify-content-between fw-bold my-2" style={{ fontSize: "16px", color: "#2aabe2" }}>
+            <span>TOTAL AMOUNT</span>
+            <span>PHP {netTotal.toFixed(2)}</span>
+          </div>
+        )}
         <hr />
 
         <div className="d-flex justify-content-between mb-2">

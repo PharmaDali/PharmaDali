@@ -29,6 +29,11 @@ class OrderObserver
      */
     private function notifyStaffAndAdmins(Order $order, string $event): void
     {
+        // POS walk-in sales are over-the-counter transactions and do not generate order alert notifications
+        if (str_starts_with((string) $order->order_number, 'POS-') || $order->customer_id === null) {
+            return;
+        }
+
         $pharmacyId = $order->pharmacy_id;
         if (!$pharmacyId) {
             return;

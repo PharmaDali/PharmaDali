@@ -45,14 +45,20 @@ class ExportSalesPdfService
         $totalAmount = $orders->sum('total_amount');
 
         $rows = $orders->map(function ($order) {
+            $subtotal = (float) ($order->subtotal > 0 ? $order->subtotal : $order->items->sum('line_total'));
+            $discountAmount = (float) ($order->discount_amount ?? 0);
+
             return [
-                'order_number' => $order->order_number,
-                'total_items'  => $order->items->sum('quantity'),
-                'processed_by' => $order->verifier
+                'order_number'    => $order->order_number,
+                'total_items'     => $order->items->sum('quantity'),
+                'processed_by'    => $order->verifier
                     ? $order->verifier->first_name . ' ' . $order->verifier->last_name
                     : 'N/A',
-                'total_amount' => number_format($order->total_amount, 2, '.', ''),
-                'completed_at' => $order->completed_at
+                'subtotal'        => number_format($subtotal, 2, '.', ''),
+                'discount_type'   => $order->discount_type ?? 'none',
+                'discount_amount' => number_format($discountAmount, 2, '.', ''),
+                'total_amount'    => number_format($order->total_amount, 2, '.', ''),
+                'completed_at'    => $order->completed_at
                     ? $order->completed_at->format('Y-m-d H:i')
                     : 'N/A',
             ];
