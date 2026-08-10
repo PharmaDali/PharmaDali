@@ -41,7 +41,7 @@ function Login() {
 
         <div className="shrink-0 w-full md:w-[400px] opacity-0 animate-fade-in-right [animation-delay:0.2s]">
           <form onSubmit={handleLogin} className="bg-transparent border border-[var(--color-input-border)] rounded-xl p-10 flex flex-col gap-5">
-            <h2 className="text-[var(--color-primary-blue)] text-3xl font-semibold m-0 mb-2.5 text-center">Log In</h2>
+            <h2 className="text-[var(--color-primary-blue)] text-2xl font-semibold m-0 mb-2.5 text-center">Log In</h2>
 
             <input
               type="text"
