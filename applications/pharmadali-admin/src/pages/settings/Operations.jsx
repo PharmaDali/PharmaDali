@@ -17,6 +17,7 @@ export const Operations = ({ onNavigate }) => {
     low_stock_threshold: 50,
     shortage_days_threshold: 7,
     expiry_days_threshold: 30,
+    enable_vat_exemption_discount: false,
   });
 
   const [savedData, setSavedData] = useState({ ...formData });
@@ -31,11 +32,13 @@ export const Operations = ({ onNavigate }) => {
       setErrorMessage("");
       const res = await getPharmacySettings();
       const thresholds = res.alert_thresholds || {};
+      const discountSettings = res.discount_settings || {};
 
       const loadedData = {
         low_stock_threshold: thresholds.low_stock ?? 50,
         shortage_days_threshold: thresholds.shortage_days ?? 7,
         expiry_days_threshold: thresholds.expiry_days ?? 30,
+        enable_vat_exemption_discount: Boolean(discountSettings.enable_vat_exemption_discount),
       };
 
       setFormData(loadedData);
@@ -48,7 +51,7 @@ export const Operations = ({ onNavigate }) => {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: Number(value) }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async () => {
@@ -61,10 +64,10 @@ export const Operations = ({ onNavigate }) => {
 
       setSavedData(formData);
       setIsEditing(false);
-      setSuccessMessage("Alert threshold rules updated successfully.");
+      setSuccessMessage("Operations and discount rules updated successfully.");
       setTimeout(() => setSuccessMessage(""), 4000);
     } catch (err) {
-      setErrorMessage(err.message || "Failed to save threshold settings.");
+      setErrorMessage(err.message || "Failed to save settings.");
     } finally {
       setSaving(false);
     }
@@ -87,7 +90,7 @@ export const Operations = ({ onNavigate }) => {
             type="number"
             className="form-control settings-form-input"
             value={formData.low_stock_threshold}
-            onChange={(e) => handleInputChange("low_stock_threshold", e.target.value)}
+            onChange={(e) => handleInputChange("low_stock_threshold", Number(e.target.value))}
             disabled={!isEditing || saving}
             min="1"
           />
@@ -105,7 +108,7 @@ export const Operations = ({ onNavigate }) => {
             type="number"
             className="form-control settings-form-input"
             value={formData.shortage_days_threshold}
-            onChange={(e) => handleInputChange("shortage_days_threshold", e.target.value)}
+            onChange={(e) => handleInputChange("shortage_days_threshold", Number(e.target.value))}
             disabled={!isEditing || saving}
             min="1"
             max="365"
@@ -124,12 +127,35 @@ export const Operations = ({ onNavigate }) => {
             type="number"
             className="form-control settings-form-input"
             value={formData.expiry_days_threshold}
-            onChange={(e) => handleInputChange("expiry_days_threshold", e.target.value)}
+            onChange={(e) => handleInputChange("expiry_days_threshold", Number(e.target.value))}
             disabled={!isEditing || saving}
             min="1"
             max="365"
           />
           <span className="small text-muted">days before expiry</span>
+        </div>
+      ),
+    },
+    {
+      key: "enable_vat_exemption_discount",
+      label: "Statutory VAT Exemption for Senior / PWD Discounts",
+      helper: "Enable automatic 12% VAT removal prior to applying percentage discounts for Senior Citizen and PWD sales.",
+      content: (
+        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "240px" }}>
+          <div className="form-check form-switch m-0" style={{ fontSize: "16px" }}>
+            <input
+              className="form-check-input"
+              type="checkbox"
+              role="switch"
+              id="enable_vat_exemption_discount"
+              checked={formData.enable_vat_exemption_discount}
+              onChange={(e) => handleInputChange("enable_vat_exemption_discount", e.target.checked)}
+              disabled={!isEditing || saving}
+            />
+            <label className="form-check-label small text-muted ms-2" htmlFor="enable_vat_exemption_discount">
+              {formData.enable_vat_exemption_discount ? "Enabled" : "Disabled"}
+            </label>
+          </div>
         </div>
       ),
     },
