@@ -3,7 +3,7 @@ import Sidebar from '../../components/Sidebar/Sidebar'
 import Navbar from '../../components/Navbar/Navbar'
 import KpiCard from '../../components/Dashboard/KpiCard'
 import PharmacyMap from '../../components/Dashboard/PharmacyMap'
-import PharmacyList from '../../components/Dashboard/PharmacyList'
+import Pharmacies from '../../components/Dashboard/Pharmacies'
 
 const PAGE_TITLES: Record<string, string> = {
   '/homepage': 'Dashboard',
@@ -36,18 +36,17 @@ function HomePage() {
 
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] xl:grid-cols-[1.5fr_1fr] gap-8 mt-4">
                 <PharmacyMap />
-                <PharmacyList />
+                <Pharmacies />
               </div>
             </div>
           ) : pathname === '/pharmacies' ? (
             <section className="w-full">
               <div className="max-w-[1400px]">
                 <div className="mb-6">
-                  <p className="m-0 mb-2.5 text-[#8ccfed] text-[13px] font-bold tracking-[0.18em] uppercase">PharmaDali</p>
                   <h1 className="m-0 text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.05] text-white">{title}</h1>
                 </div>
                 <div className="bg-transparent">
-                  <PharmacyList />
+                  <Pharmacies />
                 </div>
               </div>
             </section>
