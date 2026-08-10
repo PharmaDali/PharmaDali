@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Modal from "../components/Modal";
 import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg";
 import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
@@ -174,7 +174,8 @@ function PickUp() {
   }, [loadOrders]);
 
   const getStatusClassName = (status) => {
-    const s = status.toLowerCase();
+    if (!status) return "pickup-status-ready";
+    const s = String(status).toLowerCase();
     if (s === "completed") return "pickup-status-completed";
     if (s === "ready_for_pickup") return "pickup-status-ready";
     return "pickup-status-ready";
@@ -199,7 +200,8 @@ function PickUp() {
   const openDetailsPanel = (order) => {
     setActiveOrder(order);
     setDiscountType(order.discount_type || "none");
-    setDiscountPercentage(order.discount_percentage ? String(order.discount_percentage) : "");
+    const existingPct = Number(order.discount_percentage || 0);
+    setDiscountPercentage(existingPct > 0 ? String(existingPct) : "");
     setDiscountIdNumber(order.discount_id_number || "");
   };
 
@@ -521,7 +523,16 @@ function PickUp() {
                     <i className="fa-solid fa-percent me-1" style={{ color: "#2aabe2" }} /> Apply Discount
                   </div>
                   
-                  <DiscountSelect value={discountType} onChange={setDiscountType} />
+                  <DiscountSelect
+                    value={discountType}
+                    onChange={(type) => {
+                      setDiscountType(type);
+                      if (type === "none") {
+                        setDiscountPercentage("");
+                        setDiscountIdNumber("");
+                      }
+                    }}
+                  />
 
                   {discountType !== "none" && (
                     <div className="d-flex gap-2">

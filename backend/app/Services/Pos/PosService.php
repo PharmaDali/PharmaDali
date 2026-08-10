@@ -161,12 +161,14 @@ class PosService
         }
 
         // Status Filtering
-        if ($status === 'ready') {
+        $statusInput = strtolower(trim((string) ($filters['status'] ?? 'all')));
+
+        if (in_array($statusInput, ['ready', 'ready_for_pickup', 'for_pickup', 'for pickup'], true)) {
             $query->where('status', 'ready_for_pickup');
-        } elseif ($status === 'completed') {
+        } elseif ($statusInput === 'completed') {
             $query->where('status', 'completed');
         } else {
-            // 'all' includes ready and completed by default for this tab, 
+            // 'all' includes ready_for_pickup and completed by default for this tab
             $query->whereIn('status', ['ready_for_pickup', 'completed']);
         }
 
@@ -236,8 +238,10 @@ class PosService
             $finalAmountReceived = $amountReceived !== null ? (float) $amountReceived : $totalAmount;
             $finalChangeAmount = $changeAmount !== null ? (float) $changeAmount : max(0, round($finalAmountReceived - $totalAmount, 2));
 
-            $order->update([
+            $updateData = [
                 'status' => 'completed',
+                'verified_by' => $user->id,
+                'verified_at' => now(),
                 'payment_method' => $paymentMethod,
                 'payment_status' => 'paid',
                 'subtotal' => $subtotal,
@@ -251,7 +255,9 @@ class PosService
                 'change_amount' => $finalChangeAmount,
                 'completed_at' => now(),
                 'picked_up_at' => now(),
-            ]);
+            ];
+
+            $order->update($updateData);
 
             // Notify customer that order is completed
             if ($order->customer && $order->customer->user) {

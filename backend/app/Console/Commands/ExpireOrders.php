@@ -79,16 +79,38 @@ class ExpireOrders extends Command
             ->each(function (Pharmacy $pharmacy) use ($now, &$expiredCount) {
                 $isClosed = $this->isPharmacyCurrentlyClosed($pharmacy, $now);
 
-                $query = Order::withoutGlobalScopes()
-                    ->where('pharmacy_id', $pharmacy->id)
-                    ->whereIn('status', self::EXPIRABLE_STATUSES);
+                $startOfToday = $now->copy()->startOfDay();
+                $endOfToday = $now->copy()->endOfDay();
 
-                if ($isClosed) {
-                    // Closed today: expire all remaining open/pickup orders on or before today
-                    $query->whereDate('created_at', '<=', $now->toDateString());
-                } else {
+                if (!$isClosed) {
                     // Open today: expire open orders with scheduled pickup date strictly before today
-                    $query->whereDate('scheduled_pickup_at', '<', $now->toDateString());
+                    $query = Order::withoutGlobalScopes()
+                        ->where('pharmacy_id', $pharmacy->id)
+                        ->whereIn('status', self::EXPIRABLE_STATUSES)
+                        ->where('scheduled_pickup_at', '<', $startOfToday);
+                } else {
+                    // Closed: verify if closing time has actually passed today
+                    [$closingHour, $closingMinute] = array_map('intval', explode(':', $pharmacy->closing_hour));
+                    $closingMinutes = ($closingHour * 60) + $closingMinute;
+                    if ($closingMinutes === 0) {
+                        $closingMinutes = 1440;
+                    }
+                    $currentMinutes = ($now->hour * 60) + $now->minute;
+
+                    // If it is currently before opening time today, today's closing time has NOT passed yet
+                    $hasClosingPassedToday = $currentMinutes >= $closingMinutes;
+
+                    $query = Order::withoutGlobalScopes()
+                        ->where('pharmacy_id', $pharmacy->id)
+                        ->whereIn('status', self::EXPIRABLE_STATUSES);
+
+                    if ($hasClosingPassedToday) {
+                        // Closing time for today has passed: expire orders created on or before today
+                        $query->where('created_at', '<=', $endOfToday);
+                    } else {
+                        // Before opening hours today: expire orders created on PREVIOUS days only
+                        $query->where('created_at', '<', $startOfToday);
+                    }
                 }
 
                 $orders = $query->with('customer.user')->get();
@@ -131,6 +153,7 @@ class ExpireOrders extends Command
     private function isPharmacyCurrentlyClosed(Pharmacy $pharmacy, Carbon $now): bool
     {
         $closing = $pharmacy->closing_hour;
+        $opening = $pharmacy->opening_hour;
 
         if (!$closing) {
             return false;
@@ -138,21 +161,29 @@ class ExpireOrders extends Command
 
         [$closingHour, $closingMinute] = array_map('intval', explode(':', $closing));
         $closingMinutes = ($closingHour * 60) + $closingMinute;
+        if ($closingMinutes === 0) {
+            $closingMinutes = 1440;
+        }
 
-        $currentMinutes = ($now->hour * 60) + $now->minute;
-
-        $openingMinutes = null;
-        if ($pharmacy->opening_hour) {
-            [$openH, $openM] = array_map('intval', explode(':', $pharmacy->opening_hour));
+        $openingMinutes = 0;
+        if ($opening) {
+            [$openH, $openM] = array_map('intval', explode(':', $opening));
             $openingMinutes = ($openH * 60) + $openM;
         }
 
+        // 24-hour schedule (e.g., 00:00 to 23:59 or 00:00 to 00:00 / 24:00)
+        if ($openingMinutes === 0 && $closingMinutes >= 1439) {
+            return false;
+        }
+
+        $currentMinutes = ($now->hour * 60) + $now->minute;
+
         // Overnight schedule (e.g. 20:00 – 06:00)
-        if ($openingMinutes !== null && $openingMinutes >= $closingMinutes) {
+        if ($openingMinutes >= $closingMinutes) {
             return $currentMinutes >= $closingMinutes && $currentMinutes < $openingMinutes;
         }
 
-        // Normal schedule (e.g. 09:00 – 21:00)
-        return $currentMinutes >= $closingMinutes;
+        // Normal schedule (e.g. 08:00 – 22:00)
+        return $currentMinutes >= $closingMinutes || $currentMinutes < $openingMinutes;
     }
 }
