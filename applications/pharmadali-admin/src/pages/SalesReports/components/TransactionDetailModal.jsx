@@ -7,6 +7,16 @@
 function TransactionDetailModal({ row, onClose }) {
   if (!row) return null;
 
+  const discountLabelMap = {
+    senior: "Senior Citizen",
+    pwd: "PWD (Person With Disability)",
+    employee: "Employee Discount",
+    custom: "Custom Policy Discount",
+  };
+  const discountLabel = discountLabelMap[row.discountType] || "Discount";
+  const hasDiscount = (row.discountAmount && Number(row.discountAmount) > 0) || (row.discountType && row.discountType !== "none");
+  const rawSubtotal = row.subtotal ? Number(row.subtotal) : (hasDiscount ? Number(row.total) + Number(row.discountAmount || 0) : Number(row.total));
+
   return (
     <div
       className="modal d-flex align-items-center justify-content-center"
@@ -20,7 +30,7 @@ function TransactionDetailModal({ row, onClose }) {
       >
         <button className="btn-close position-absolute top-0 end-0 m-3" onClick={onClose} />
 
-        <h2 className="fw-semibold mb-3" style={{ color: "#48AAD9", fontSize: "22px" }}>
+        <h2 className="fw-semibold mb-3" style={{ color: "#2aabe2", fontSize: "22px" }}>
           Transaction Details
         </h2>
         <hr />
@@ -48,9 +58,40 @@ function TransactionDetailModal({ row, onClose }) {
         ))}
 
         <hr />
-        <div className="d-flex justify-content-between fw-bold mb-3" style={{ fontSize: "15px" }}>
-          <span>TOTAL</span>
-          <span>{parseFloat(row.total).toFixed(2)}</span>
+        
+        {/* Financial Statement & Discount Breakdown */}
+        <div className="d-flex justify-content-between mb-1" style={{ fontSize: "14px" }}>
+          <span className="text-secondary">Subtotal</span>
+          <span className="fw-semibold">PHP {rawSubtotal.toFixed(2)}</span>
+        </div>
+
+        {hasDiscount && (
+          <>
+            <div className="d-flex justify-content-between mb-1 text-danger" style={{ fontSize: "14px" }}>
+              <span>
+                Discount ({discountLabel}
+                {row.discountPercentage > 0 ? ` ${row.discountPercentage}%` : ""})
+              </span>
+              <span className="fw-semibold">-PHP {Number(row.discountAmount || 0).toFixed(2)}</span>
+            </div>
+            {row.discountIdNumber && (
+              <div className="d-flex justify-content-between mb-1 text-muted" style={{ fontSize: "12px" }}>
+                <span>ID Card No.</span>
+                <span className="fw-medium">{row.discountIdNumber}</span>
+              </div>
+            )}
+            {row.discountRemarks && (
+              <div className="d-flex justify-content-between mb-1 text-muted" style={{ fontSize: "12px" }}>
+                <span>Remarks</span>
+                <span className="fw-medium">{row.discountRemarks}</span>
+              </div>
+            )}
+          </>
+        )}
+
+        <div className="d-flex justify-content-between fw-bold my-2 pt-2 border-top" style={{ fontSize: "16px", color: "#2aabe2" }}>
+          <span>NET TOTAL</span>
+          <span>PHP {parseFloat(row.total || 0).toFixed(2)}</span>
         </div>
         <hr />
 
