@@ -1,20 +1,27 @@
-import React, { useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import React from 'react'
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 
-import icon from 'leaflet/dist/images/marker-icon.png'
-import iconShadow from 'leaflet/dist/images/marker-shadow.png'
+const createCustomIcon = () => {
+  return L.divIcon({
+    className: 'custom-map-pin-container',
+    html: `
+      <div style="filter: drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.3)); width: 32px; height: 42px; cursor: pointer;">
+        <svg width="32" height="42" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 0C5.37 0 0 5.37 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37 18.63 0 12 0Z" fill="#ef4444"/>
+          <path d="M12 0C5.37 0 0 5.37 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37 18.63 0 12 0Z" stroke="#ffffff" stroke-width="1.5"/>
+          <circle cx="12" cy="11" r="4" fill="#ffffff"/>
+        </svg>
+      </div>
+    `,
+    iconSize: [32, 42],
+    iconAnchor: [16, 42],
+    popupAnchor: [0, -40],
+  })
+}
 
-const DefaultIcon = L.icon({
-  iconUrl: icon,
-  shadowUrl: iconShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-})
-
-L.Marker.prototype.options.icon = DefaultIcon
+const customIcon = createCustomIcon()
 
 const PHARMACIES = [
   { id: 1, name: 'PureMed Pharmacy', lat: 14.0833, lng: 121.1500, city: 'Tanauan City' },
@@ -26,24 +33,24 @@ const mapCenter: [number, number] = [14.0, 121.15]
 
 const PharmacyMap: React.FC = () => {
   return (
-    <div className="w-full h-[500px] rounded-2xl overflow-hidden relative shadow-[0_8px_24px_rgba(0,0,0,0.12)]">
+    <div className="w-full h-[500px] rounded-2xl overflow-hidden relative shadow-[0_8px_24px_rgba(0,0,0,0.15)] border border-[rgba(255,255,255,0.08)]">
       <MapContainer
         center={mapCenter}
         zoom={10}
         scrollWheelZoom={true}
-        style={{ height: '100%', width: '100%', background: '#2b2f37' }}
+        style={{ height: '100%', width: '100%', background: '#e5e7eb' }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
 
         {PHARMACIES.map((pharmacy) => (
-          <Marker key={pharmacy.id} position={[pharmacy.lat, pharmacy.lng]}>
+          <Marker key={pharmacy.id} position={[pharmacy.lat, pharmacy.lng]} icon={customIcon}>
             <Popup className="custom-popup">
-              <div className="font-primary">
-                <strong className="block text-[#48aad9] text-sm">{pharmacy.name}</strong>
-                <span className="text-xs text-gray-600">{pharmacy.city}</span>
+              <div className="p-1">
+                <strong className="block text-[#0f172a] text-sm font-bold">{pharmacy.name}</strong>
+                <span className="text-xs text-[#ef4444] font-medium">{pharmacy.city}</span>
               </div>
             </Popup>
           </Marker>
@@ -51,20 +58,20 @@ const PharmacyMap: React.FC = () => {
       </MapContainer>
 
       <style>{`
+        .custom-map-pin-container {
+          background: transparent !important;
+          border: none !important;
+        }
         .leaflet-popup-content-wrapper {
-          background-color: #8ccfed;
-          color: #22313b;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          background-color: #ffffff;
+          color: #0f172a;
+          border-radius: 10px;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+          border: 1px solid rgba(0, 0, 0, 0.08);
+          padding: 4px;
         }
         .leaflet-popup-tip {
-          background-color: #8ccfed;
-        }
-        .leaflet-popup-content-wrapper .text-\\[\\#48aad9\\] {
-          color: #22313b;
-        }
-        .leaflet-popup-content-wrapper .text-gray-600 {
-          color: rgba(34, 49, 59, 0.7);
+          background-color: #ffffff;
         }
       `}</style>
     </div>
