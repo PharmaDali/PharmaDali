@@ -34,14 +34,17 @@ class GetSalesListService
         $sales = $this->orderRepository->getSalesList($pharmacyId, $startDate, $endDate, $perPage);
 
         $formattedSales = collect($sales->items())->map(function ($order) {
-            $rawSubtotal = (float) ($order->subtotal > 0 ? $order->subtotal : $order->items->sum('line_total'));
+            $itemsLineTotal = (float) $order->items->sum('line_total');
             $discountAmount = (float) ($order->discount_amount ?? 0);
+            $grossSubtotal = $itemsLineTotal > 0 
+                ? $itemsLineTotal 
+                : ((float) $order->total_amount + $discountAmount);
 
             return [
                 'id' => $order->order_number,
                 'items' => $order->items->sum('quantity'),
                 'processedBy' => $order->verifier ? $order->verifier->first_name . ' ' . $order->verifier->last_name : 'N/A',
-                'subtotal' => $rawSubtotal,
+                'subtotal' => $grossSubtotal,
                 'discountType' => $order->discount_type ?? 'none',
                 'discountPercentage' => (float) ($order->discount_percentage ?? 0),
                 'discountAmount' => $discountAmount,

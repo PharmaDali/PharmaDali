@@ -14,8 +14,18 @@ function TransactionDetailModal({ row, onClose }) {
     custom: "Custom Policy Discount",
   };
   const discountLabel = discountLabelMap[row.discountType] || "Discount";
-  const hasDiscount = (row.discountAmount && Number(row.discountAmount) > 0) || (row.discountType && row.discountType !== "none");
-  const rawSubtotal = row.subtotal ? Number(row.subtotal) : (hasDiscount ? Number(row.total) + Number(row.discountAmount || 0) : Number(row.total));
+  const discountAmount = Number(row.discountAmount || 0);
+  const hasDiscount = discountAmount > 0 || (row.discountType && row.discountType !== "none");
+
+  // Sum of original item prices (Gross Subtotal before discount)
+  const itemsSum = row.orderItems?.reduce((sum, item) => sum + Number(item.subtotal || 0), 0) || 0;
+  const grossSubtotal = itemsSum > 0 
+    ? itemsSum 
+    : (row.subtotal && Number(row.subtotal) > Number(row.total) 
+        ? Number(row.subtotal) 
+        : Number(row.total || 0) + discountAmount);
+
+  const netTotal = Number(row.total || 0);
 
   return (
     <div
@@ -61,8 +71,8 @@ function TransactionDetailModal({ row, onClose }) {
         
         {/* Financial Statement & Discount Breakdown */}
         <div className="d-flex justify-content-between mb-1" style={{ fontSize: "14px" }}>
-          <span className="text-secondary">Subtotal</span>
-          <span className="fw-semibold">PHP {rawSubtotal.toFixed(2)}</span>
+          <span className="text-secondary">Subtotal (Actual Price)</span>
+          <span className="fw-semibold">PHP {grossSubtotal.toFixed(2)}</span>
         </div>
 
         {hasDiscount && (
@@ -72,7 +82,7 @@ function TransactionDetailModal({ row, onClose }) {
                 Discount ({discountLabel}
                 {row.discountPercentage > 0 ? ` ${row.discountPercentage}%` : ""})
               </span>
-              <span className="fw-semibold">-PHP {Number(row.discountAmount || 0).toFixed(2)}</span>
+              <span className="fw-semibold">-PHP {discountAmount.toFixed(2)}</span>
             </div>
             {row.discountIdNumber && (
               <div className="d-flex justify-content-between mb-1 text-muted" style={{ fontSize: "12px" }}>
@@ -90,8 +100,8 @@ function TransactionDetailModal({ row, onClose }) {
         )}
 
         <div className="d-flex justify-content-between fw-bold my-2 pt-2 border-top" style={{ fontSize: "16px", color: "#2aabe2" }}>
-          <span>NET TOTAL</span>
-          <span>PHP {parseFloat(row.total || 0).toFixed(2)}</span>
+          <span>DISCOUNTED PRICE (NET TOTAL)</span>
+          <span>PHP {netTotal.toFixed(2)}</span>
         </div>
         <hr />
 
