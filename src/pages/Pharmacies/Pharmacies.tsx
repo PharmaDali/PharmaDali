@@ -44,6 +44,9 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
 
   return (
     <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm">
+      <div className="mb-6">
+        <h1 className="m-0 text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.05] text-white">Pharmacies</h1>
+      </div>
       <div className="w-full mb-4">
         <div className="flex items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -78,45 +81,45 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
         <div className="bg-[#424754] rounded-md overflow-auto max-h-[60vh]">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse table-fixed min-w-[900px] md:min-w-full">
-            <thead>
-              <tr className="bg-[#8ccfed] text-[#22313b]">
-                <th className="py-3 px-5 font-semibold text-xs rounded-tl-md w-1/6">Pharmacy Name</th>
-                <th className="py-3 px-5 font-semibold text-xs w-1/6">Owner Name</th>
-                <th className="py-3 px-5 font-semibold text-xs w-1/6">City</th>
-                <th className="py-3 px-5 font-semibold text-xs w-1/6">Contact Number</th>
-                <th className="py-3 px-5 font-semibold text-xs w-1/6">
-                  <div className="flex items-center gap-2">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="4" y1="6" x2="20" y2="6"></line>
-                      <line x1="8" y1="12" x2="16" y2="12"></line>
-                      <line x1="10" y1="18" x2="14" y2="18"></line>
-                    </svg>
-                    Status
-                  </div>
-                </th>
-                <th className="py-3 px-5 text-center font-semibold text-xs align-middle rounded-tr-md w-1/6">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {MOCK_PHARMACIES.map((p, idx) => (
-                <tr key={p.id + '-' + idx} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0 hover:bg-[rgba(255,255,255,0.01)] align-middle min-h-[64px]">
-                  <td className="py-4 px-5 align-middle text-gray-100 truncate whitespace-nowrap">{p.name}</td>
-                  <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.owner}</td>
-                  <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.city}</td>
-                  <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.contact}</td>
-                  <td className="py-4 px-5 align-middle">
-                    <span className={p.status === 'Active' ? 'text-[#4ade80] font-medium' : 'text-gray-400'}>{p.status}</span>
-                  </td>
-                  <td className="py-4 pr-6 align-middle">
-                    <div className="flex items-center gap-3 justify-end h-full">
-                      <button className="min-w-[72px] h-9 flex items-center justify-center px-3 rounded-[8px] bg-[#60a5fa] text-white text-sm font-medium">View</button>
-                      <button className="min-w-[62px] h-9 flex items-center justify-center px-3 rounded-[8px] border border-[#60a5fa] text-[#bde7ff] text-sm font-medium">Edit</button>
-                      <button className="min-w-[62px] h-9 flex items-center justify-center px-3 rounded-[8px] border border-red-500 text-red-400 text-sm font-medium">Delete</button>
+              <thead>
+                <tr className="bg-[#8ccfed] text-[#22313b]">
+                  <th className="py-3 px-5 font-semibold text-xs rounded-tl-md w-1/6">Pharmacy Name</th>
+                  <th className="py-3 px-5 font-semibold text-xs w-1/6">Owner Name</th>
+                  <th className="py-3 px-5 font-semibold text-xs w-1/6">City</th>
+                  <th className="py-3 px-5 font-semibold text-xs w-1/6">Contact Number</th>
+                  <th className="py-3 px-5 font-semibold text-xs w-1/6">
+                    <div className="flex items-center gap-2">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                        <line x1="10" y1="18" x2="14" y2="18"></line>
+                      </svg>
+                      Status
                     </div>
-                  </td>
+                  </th>
+                  <th className="py-3 px-5 text-center font-semibold text-xs align-middle rounded-tr-md w-1/6">Action</th>
                 </tr>
-              ))}
-            </tbody>
+              </thead>
+              <tbody>
+                {MOCK_PHARMACIES.map((p, idx) => (
+                  <tr key={p.id + '-' + idx} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0 hover:bg-[rgba(255,255,255,0.01)] align-middle min-h-[64px]">
+                    <td className="py-4 px-5 align-middle text-gray-100 truncate whitespace-nowrap">{p.name}</td>
+                    <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.owner}</td>
+                    <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.city}</td>
+                    <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.contact}</td>
+                    <td className="py-4 px-5 align-middle">
+                      <span className={p.status === 'Active' ? 'text-[#4ade80] font-medium' : 'text-gray-400'}>{p.status}</span>
+                    </td>
+                    <td className="py-4 pr-6 align-middle">
+                      <div className="flex items-center gap-3 justify-end h-full">
+                        <button className="min-w-[72px] h-9 flex items-center justify-center px-3 rounded-[8px] bg-[#60a5fa] text-white text-sm font-medium">View</button>
+                        <button className="min-w-[62px] h-9 flex items-center justify-center px-3 rounded-[8px] border border-[#60a5fa] text-[#bde7ff] text-sm font-medium">Edit</button>
+                        <button className="min-w-[62px] h-9 flex items-center justify-center px-3 rounded-[8px] border border-red-500 text-red-400 text-sm font-medium">Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
         </div>

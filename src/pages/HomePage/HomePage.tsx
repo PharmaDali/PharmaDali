@@ -45,12 +45,7 @@ function HomePage() {
           ) : pathname === '/pharmacies' ? (
             <section className="w-full">
               <div className="max-w-[1400px]">
-                <div className="mb-6">
-                  <h2 className="m-0 text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.05] text-white">{title}</h2>
-                </div>
-                <div className="bg-transparent">
-                  <Pharmacies />
-                </div>
+                <Pharmacies />
               </div>
             </section>
           ) : (
