@@ -8,13 +8,46 @@ const MOCK_PHARMACIES = [
   { id: 5, name: 'Puremed Pharmacy', owner: 'Edcel ---', city: 'Tanauan City', contact: '09541790778', status: 'Active' },
 ]
 
-const PharmacyList: React.FC = () => {
+type Props = {
+  compact?: boolean
+}
+
+const PharmacyList: React.FC<Props> = ({ compact }) => {
+  // compact mode: used on Dashboard — render a small 3-column table without actions
+  if (compact) {
+    return (
+      <div className="w-full">
+        <h2 className="text-white text-2xl font-semibold mb-4">Pharmacy List</h2>
+        <div className="bg-[#424754] rounded-[10px] overflow-hidden w-full max-w-[720px] shadow-lg">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#8ccfed] text-[#22313b]">
+                <th className="py-3 px-6 text-sm font-semibold rounded-tl-[10px]">Pharmacy Name</th>
+                <th className="py-3 px-6 text-sm font-semibold">Location</th>
+                <th className="py-3 px-6 text-sm font-semibold text-center rounded-tr-[10px]">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {MOCK_PHARMACIES.slice(0, 5).map((p) => (
+                <tr key={p.id} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0">
+                  <td className="py-4 px-6 text-gray-100 text-base">{p.name}</td>
+                  <td className="py-4 px-6 text-gray-200 text-base">{p.city}</td>
+                  <td className="py-4 px-6 text-[#4ade80] text-base text-center">{p.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm">
       <div className="w-full mb-4">
         <div className="flex items-center justify-between gap-4 w-full">
           <div className="flex items-center gap-4 min-w-0 flex-1">
-            <h2 className="text-white text-xl font-semibold flex-shrink-0">Pharmacy List</h2>
+            <h2 className="text-white text-2xl font-semibold flex-shrink-0">Pharmacy List</h2>
 
             {/* Search input inline with heading on wide screens, stretches to fill available space */}
             <div className="relative flex-1 max-w-none">
