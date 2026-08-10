@@ -73,7 +73,7 @@ function TransactionDetailModal({ row, onClose }) {
         {hasDiscount ? (
           <>
             <div className="d-flex justify-content-between mb-1" style={{ fontSize: "14px" }}>
-              <span className="text-secondary">Subtotal (Original Price)</span>
+              <span className="text-secondary">Subtotal</span>
               <span className="fw-semibold">PHP {grossSubtotal.toFixed(2)}</span>
             </div>
 
