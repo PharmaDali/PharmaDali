@@ -39,6 +39,18 @@ function HomePage() {
                 <PharmacyList />
               </div>
             </div>
+          ) : pathname === '/pharmacies' ? (
+            <section className="w-full">
+              <div className="max-w-[1400px]">
+                <div className="mb-6">
+                  <p className="m-0 mb-2.5 text-[#8ccfed] text-[13px] font-bold tracking-[0.18em] uppercase">PharmaDali</p>
+                  <h1 className="m-0 text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.05] text-white">{title}</h1>
+                </div>
+                <div className="bg-transparent">
+                  <PharmacyList />
+                </div>
+              </div>
+            </section>
           ) : (
             <section className="max-w-[720px] bg-[#424754] border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 md:p-[36px] shadow-lg">
               <p className="m-0 mb-2.5 text-[#8ccfed] text-[13px] font-bold tracking-[0.18em] uppercase">PharmaDali</p>
