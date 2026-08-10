@@ -170,6 +170,17 @@ class PlaceOrderService
     ): Order {
         $timestamp = now();
 
+        $rawScheduledPickup = $payload['scheduled_pickup_at'] ?? null;
+        $scheduledPickupAt = $timestamp;
+        if ($rawScheduledPickup) {
+            try {
+                $parsed = \Illuminate\Support\Carbon::parse($rawScheduledPickup);
+                $scheduledPickupAt = $parsed->isPast() ? $timestamp : $parsed;
+            } catch (\Throwable) {
+                $scheduledPickupAt = $timestamp;
+            }
+        }
+
         $order = Order::query()->create([
             'order_number' => $this->generateOrderNumber(),
             'customer_id' => $customerId,
@@ -180,7 +191,7 @@ class PlaceOrderService
             'subtotal' => 0,
             'discount_amount' => 0,
             'total_amount' => 0,
-            'scheduled_pickup_at' => $payload['scheduled_pickup_at'] ?? null,
+            'scheduled_pickup_at' => $scheduledPickupAt,
             'picked_up_at' => $payload['picked_up_at'] ?? null,
             'note' => $payload['note'] ?? null,
             'placed_at' => $timestamp,
@@ -264,9 +275,21 @@ class PlaceOrderService
         $openingMinutes = $this->timeToMinutes($pharmacy->opening_hour);
         $closingMinutes = $this->timeToMinutes($pharmacy->closing_hour);
 
+        if ($closingMinutes === 0) {
+            $closingMinutes = 1440;
+        }
+
+        // 24-hour continuous schedule (e.g. 00:00 to 23:59 or 00:00 to 00:00 / 24:00)
+        if ($openingMinutes === 0 && $closingMinutes >= 1439) {
+            return true;
+        }
+
         if ($openingMinutes === $closingMinutes) {
             return false;
         }
+
+        $now = now();
+        $currentMinutes = ($now->hour * 60) + $now->minute;
 
         // Normal schedule (e.g., 09:00 - 21:00)
         if ($openingMinutes < $closingMinutes) {
