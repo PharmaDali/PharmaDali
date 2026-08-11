@@ -27,24 +27,25 @@ function SalesReportTable({
               <th>Items</th>
               <th>Processed By</th>
               <th>Total</th>
+              <th>Status</th>
               <th>Date</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} className="text-center py-4 text-secondary">
+                <td colSpan={6} className="text-center py-4 text-secondary">
                   <div className="spinner-border spinner-border-sm me-2" role="status" style={{ color: "#48AAD9" }} />
                   Loading sales...
                 </td>
               </tr>
             ) : error ? (
               <tr>
-                <td colSpan={5} className="text-center py-4 text-danger">{error}</td>
+                <td colSpan={6} className="text-center py-4 text-danger">{error}</td>
               </tr>
             ) : rows.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-4 text-secondary">No transactions found.</td>
+                <td colSpan={6} className="text-center py-4 text-secondary">No transactions found.</td>
               </tr>
             ) : (
               rows.map((row, index) => (
@@ -57,7 +58,18 @@ function SalesReportTable({
                   <td>{row.id}</td>
                   <td>{row.items}</td>
                   <td>{row.processedBy}</td>
-                  <td>{parseFloat(row.total).toFixed(2)}</td>
+                  <td>₱{parseFloat(row.total).toFixed(2)}</td>
+                  <td>
+                    {row.has_exchange || row.status === 'exchanged' ? (
+                      <span className="badge text-white shadow-sm" style={{ backgroundColor: "#2aabe2" }}>
+                        <i className="fa-solid fa-right-left me-1"></i> Exchanged
+                      </span>
+                    ) : (
+                      <span className="badge bg-success shadow-sm">
+                        Completed
+                      </span>
+                    )}
+                  </td>
                   <td>{row.date}</td>
                 </tr>
               ))

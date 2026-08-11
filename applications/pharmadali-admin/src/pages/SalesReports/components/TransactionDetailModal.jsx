@@ -1,10 +1,57 @@
+import { useState, useEffect } from "react";
+import { fetchOrderExchangeEligibility } from "../../../services/itemExchangeService";
+
 /**
  * TransactionDetailModal
  *
  * Displays the details of a single selected sales transaction in an overlay modal.
  * Clicking the backdrop or the close button dismisses it.
  */
-function TransactionDetailModal({ row, onClose }) {
+function TransactionDetailModal({ row, onClose, onOpenExchange }) {
+  const [btnHovered, setBtnHovered] = useState(false);
+  const [eligibilityState, setEligibilityState] = useState(null);
+  const [loadingEligibility, setLoadingEligibility] = useState(false);
+
+  useEffect(() => {
+    if (!row) return;
+
+    if (row.has_exchange || row.status === 'exchanged') {
+      setEligibilityState({ eligible: false, reason: "This order has already been exchanged." });
+      setLoadingEligibility(false);
+      return;
+    }
+
+    let isMounted = true;
+    setLoadingEligibility(true);
+    const orderId = row.order_id || row.id;
+
+    fetchOrderExchangeEligibility(orderId)
+      .then((res) => {
+        if (!isMounted) return;
+        const eligibilityData = res?.data ?? res;
+        const isSuccess = res?.success ?? true;
+        if (isSuccess && eligibilityData?.eligible) {
+          setEligibilityState({ eligible: true });
+        } else {
+          const msg = eligibilityData?.reason || res?.message || "This order is not eligible for an exchange under current store policy.";
+          setEligibilityState({ eligible: false, reason: msg });
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          const msg = err?.message || err?.data?.message || "This order is not eligible for an exchange under current store policy.";
+          setEligibilityState({ eligible: false, reason: msg });
+        }
+      })
+      .finally(() => {
+        if (isMounted) setLoadingEligibility(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [row?.id]);
+
   if (!row) return null;
 
   const discountLabelMap = {
@@ -45,9 +92,22 @@ function TransactionDetailModal({ row, onClose }) {
         </h2>
         <hr />
 
-        <div className="d-flex justify-content-between mb-3">
+        <div className="d-flex justify-content-between mb-2">
           <span className="text-secondary" style={{ fontSize: "13px" }}>Order ID</span>
           <span className="fw-semibold">{row.id}</span>
+        </div>
+
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <span className="text-secondary" style={{ fontSize: "13px" }}>Status</span>
+          {row.has_exchange || row.status === 'exchanged' ? (
+            <span className="badge text-white shadow-sm" style={{ backgroundColor: "#2aabe2", fontSize: "12px" }}>
+              <i className="fa-solid fa-right-left me-1"></i> Item Exchanged
+            </span>
+          ) : (
+            <span className="badge bg-success shadow-sm" style={{ fontSize: "12px" }}>
+              Completed
+            </span>
+          )}
         </div>
 
         {/* Items grid header */}
@@ -57,54 +117,42 @@ function TransactionDetailModal({ row, onClose }) {
           <span>Price</span>
           <span>Subtotal</span>
         </div>
+        <hr className="my-1" />
 
-        {row.orderItems?.map((item, idx) => (
-          <div key={idx} className="report-modal-grid py-2 border-bottom" style={{ fontSize: "13px" }}>
-            <span>{item.name}</span>
-            <span>{item.qty}</span>
-            <span>{parseFloat(item.price).toFixed(2)}</span>
-            <span>{parseFloat(item.subtotal).toFixed(2)}</span>
-          </div>
-        ))}
-
-        <hr />
+        {/* Items list */}
+        <div className="mb-3">
+          {row.orderItems?.map((item, index) => (
+            <div key={index} className="report-modal-grid py-2 border-bottom align-items-center" style={{ fontSize: "13px" }}>
+              <span className="fw-medium text-dark">{item.name}</span>
+              <span>{item.qty}</span>
+              <span>PHP {Number(item.price).toFixed(2)}</span>
+              <span className="fw-semibold">PHP {Number(item.subtotal).toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
         
-        {/* Financial Statement & Discount Breakdown */}
+        {/* Financial calculations */}
         {hasDiscount ? (
           <>
-            <div className="d-flex justify-content-between mb-1" style={{ fontSize: "14px" }}>
-              <span className="text-secondary">Subtotal</span>
-              <span className="fw-semibold">PHP {grossSubtotal.toFixed(2)}</span>
+            <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: "13px" }}>
+              <span>GROSS SUBTOTAL</span>
+              <span>PHP {grossSubtotal.toFixed(2)}</span>
             </div>
-
-            <div className="d-flex justify-content-between mb-1" style={{ fontSize: "13px" }}>
-              <span className="text-secondary">Discount Type</span>
-              <span className="fw-medium text-dark">{discountLabel}</span>
-            </div>
-
-            {row.discountPercentage > 0 && (
-              <div className="d-flex justify-content-between mb-1" style={{ fontSize: "13px" }}>
-                <span className="text-secondary">Discount Rate</span>
-                <span className="fw-medium text-dark">{row.discountPercentage}%</span>
-              </div>
-            )}
-
-            <div className="d-flex justify-content-between mb-1 text-danger" style={{ fontSize: "14px" }}>
-              <span>Discount Amount</span>
-              <span className="fw-semibold">-PHP {discountAmount.toFixed(2)}</span>
+            <div className="d-flex justify-content-between text-success mb-1" style={{ fontSize: "13px" }}>
+              <span>DISCOUNT ({discountLabel})</span>
+              <span>-PHP {discountAmount.toFixed(2)}</span>
             </div>
 
             {row.discountIdNumber && (
-              <div className="d-flex justify-content-between mb-1 text-muted" style={{ fontSize: "12px" }}>
-                <span>ID Card No.</span>
-                <span className="fw-medium">{row.discountIdNumber}</span>
+              <div className="d-flex justify-content-between text-muted mb-1" style={{ fontSize: "12px" }}>
+                <span>ID / SC / PWD NO.</span>
+                <span>{row.discountIdNumber}</span>
               </div>
             )}
-
             {row.discountRemarks && (
-              <div className="d-flex justify-content-between mb-1 text-muted" style={{ fontSize: "12px" }}>
-                <span>Remarks</span>
-                <span className="fw-medium">{row.discountRemarks}</span>
+              <div className="d-flex justify-content-between text-muted mb-1" style={{ fontSize: "12px" }}>
+                <span>DISCOUNT REMARKS</span>
+                <span>{row.discountRemarks}</span>
               </div>
             )}
 
@@ -129,6 +177,56 @@ function TransactionDetailModal({ row, onClose }) {
           <span className="text-secondary" style={{ fontSize: "13px" }}>Date</span>
           <span className="fw-medium" style={{ fontSize: "14px" }}>{row.date}</span>
         </div>
+
+        {/* Exchange Action Button / Ineligible State */}
+        {onOpenExchange && (
+          <>
+            {row.has_exchange || row.status === 'exchanged' || eligibilityState?.eligible === false ? (
+              <div className="mt-3">
+                <button
+                  disabled
+                  className="btn btn-light w-100 d-flex align-items-center justify-content-center text-muted border rounded-3 py-2 fw-medium shadow-none"
+                  style={{ cursor: "not-allowed", backgroundColor: "#f8f9fa", borderColor: "#dee2e6" }}
+                >
+                  <i className="fa-solid fa-ban me-2 text-secondary"></i> Not Eligible for Exchange
+                </button>
+                <div className="small text-muted text-center mt-2" style={{ fontSize: "12px" }}>
+                  <i className="fa-solid fa-circle-info me-1" style={{ color: "#2aabe2" }}></i> 
+                  {row.has_exchange || row.status === 'exchanged' 
+                    ? "This order has already been exchanged." 
+                    : (eligibilityState?.reason || "This order is not eligible for an item exchange.")}{" "}
+                  Exchange rules can be configured in <strong>Settings</strong>.
+                </div>
+              </div>
+            ) : loadingEligibility ? (
+              <div className="mt-3">
+                <button
+                  disabled
+                  className="btn btn-light w-100 d-flex align-items-center justify-content-center text-secondary border rounded-3 py-2 fw-medium shadow-none"
+                  style={{ backgroundColor: "#f8f9fa", borderColor: "#dee2e6", fontSize: "13px" }}
+                >
+                  <div className="spinner-border spinner-border-sm me-2" role="status" style={{ color: "#2aabe2" }} />
+                  Checking Exchange Eligibility...
+                </button>
+              </div>
+            ) : (
+              <button
+                className="btn w-100 mt-3 d-flex align-items-center justify-content-center fw-semibold rounded-3 shadow-sm"
+                style={{
+                  backgroundColor: btnHovered ? "#2aabe2" : "#ffffff",
+                  color: btnHovered ? "#ffffff" : "#2aabe2",
+                  border: "1.5px solid #2aabe2",
+                  transition: "all 0.2s ease-in-out",
+                }}
+                onMouseEnter={() => setBtnHovered(true)}
+                onMouseLeave={() => setBtnHovered(false)}
+                onClick={() => onOpenExchange(row)}
+              >
+                <i className="fa-solid fa-right-left me-2"></i> Process Change Item / Exchange
+              </button>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

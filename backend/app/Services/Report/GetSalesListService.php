@@ -40,8 +40,13 @@ class GetSalesListService
                 ? $itemsLineTotal 
                 : ((float) $order->total_amount + $discountAmount);
 
+            $hasExchange = $order->exchanges && $order->exchanges->isNotEmpty();
+            $status = $hasExchange ? 'exchanged' : strtolower($order->status ?? 'completed');
+
             return [
                 'id' => $order->order_number,
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
                 'items' => $order->items->sum('quantity'),
                 'processedBy' => $order->verifier ? $order->verifier->first_name . ' ' . $order->verifier->last_name : 'N/A',
                 'subtotal' => $grossSubtotal,
@@ -51,6 +56,20 @@ class GetSalesListService
                 'discountIdNumber' => $order->discount_id_number,
                 'discountRemarks' => $order->discount_remarks,
                 'total' => (float) $order->total_amount,
+                'status' => $status,
+                'has_exchange' => $hasExchange,
+                'exchange_count' => $order->exchanges ? $order->exchanges->count() : 0,
+                'exchanges' => $order->exchanges ? $order->exchanges->map(function ($exc) {
+                    return [
+                        'id' => $exc->id,
+                        'exchange_number' => $exc->exchange_number,
+                        'total_returned_value' => (float) $exc->total_returned_value,
+                        'total_replacement_value' => (float) $exc->total_replacement_value,
+                        'additional_payment' => (float) $exc->additional_payment,
+                        'reason' => $exc->reason,
+                        'created_at' => $exc->created_at ? $exc->created_at->format('Y-m-d H:i') : null,
+                    ];
+                }) : [],
                 'date' => $order->completed_at ? $order->completed_at->format('Y-m-d H:i') : null,
                 'orderItems' => $order->items->map(function ($item) {
                     return [

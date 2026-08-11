@@ -185,6 +185,12 @@
   color: #333;
 }
 
+/* Switch Toggle Brand Theme Overrides */
+.form-check-input:checked {
+  background-color: var(--pd-primary-dark, #2aabe2) !important;
+  border-color: var(--pd-primary-dark, #2aabe2) !important;
+}
+
 /* Menu Hub Items */
 .settings-menu-container {
   background: white;

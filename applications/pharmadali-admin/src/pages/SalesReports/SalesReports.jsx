@@ -6,6 +6,8 @@ import SalesSummaryCards from "./components/SalesSummaryCards";
 import SalesReportToolbar from "./components/SalesReportToolbar";
 import SalesReportTable from "./components/SalesReportTable";
 import TransactionDetailModal from "./components/TransactionDetailModal";
+import ItemExchangeModal from "./components/ItemExchangeModal";
+import ExchangeReceiptModal from "./components/ExchangeReceiptModal";
 
 /** Formats a yyyy-mm-dd string to a short readable label, e.g. "Aug 1, 2026". */
 function formatDateLabel(dateStr) {
@@ -16,6 +18,8 @@ function formatDateLabel(dateStr) {
 
 function SalesReports() {
   const [showExportDropdown, setShowExportDropdown] = useState(false);
+  const [exchangeOrder, setExchangeOrder] = useState(null);
+  const [completedExchange, setCompletedExchange] = useState(null);
 
   const {
     selectedRow, setSelectedRow, handleRowClick,
@@ -25,6 +29,22 @@ function SalesReports() {
     handleStartDateChange, handleEndDateChange,
     handleFilter, handleClearFilter,
   } = useSalesReports();
+
+  const handleOpenExchange = (row) => {
+    const orderObj = {
+      id: row.order_id || row.id,
+      order_number: row.orderNumber || row.order_number || row.id,
+    };
+    setSelectedRow(null);
+    setExchangeOrder(orderObj);
+  };
+
+  const handleExchangeSuccess = (exchangeData) => {
+    setExchangeOrder(null);
+    setCompletedExchange(exchangeData);
+    // Reload sales report table
+    loadSales({ start_date: startDate || undefined, end_date: endDate || undefined, page: salesMeta?.currentPage || 1 });
+  };
 
   // Build a human-readable label for the active date filter shown in the export dropdown.
   const activeFilterLabel = (() => {
@@ -104,7 +124,26 @@ function SalesReports() {
         </div>
       </div>
 
-      <TransactionDetailModal row={selectedRow} onClose={() => setSelectedRow(null)} />
+      <TransactionDetailModal
+        row={selectedRow}
+        onClose={() => setSelectedRow(null)}
+        onOpenExchange={handleOpenExchange}
+      />
+
+      {exchangeOrder && (
+        <ItemExchangeModal
+          order={exchangeOrder}
+          onClose={() => setExchangeOrder(null)}
+          onSuccess={handleExchangeSuccess}
+        />
+      )}
+
+      {completedExchange && (
+        <ExchangeReceiptModal
+          exchangeData={completedExchange}
+          onClose={() => setCompletedExchange(null)}
+        />
+      )}
     </section>
   );
 }

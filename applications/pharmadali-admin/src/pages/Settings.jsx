@@ -6,6 +6,7 @@ import { AccountSettings } from "./settings/AccountSettings";
 import { CategoryManagement } from "./settings/CategoryManagement";
 import HardwareAndReceipts from "./settings/HardwareAndReceipts";
 import Operations from "./settings/Operations";
+import ItemExchangeSettings from "./settings/ItemExchangeSettings";
 import BackupAndRestore from "./settings/BackupAndRestore";
 
 const settingsMap = {
@@ -30,6 +31,12 @@ const settingsMap = {
   },
   operations: {
     component: Operations,
+  },
+  item_exchange: {
+    component: ItemExchangeSettings,
+  },
+  exchange: {
+    component: ItemExchangeSettings,
   },
   backup: {
     component: BackupAndRestore,

@@ -25,6 +25,7 @@ use App\Http\Controllers\API\CustomerRecommendationController;
 use App\Http\Controllers\API\AnalyticsController;
 use App\Http\Controllers\API\ProductBatchController;
 use App\Http\Controllers\API\CategoryController;
+use App\Http\Controllers\Api\Pos\ItemExchangeController;
 
 
 // Public routes
@@ -150,6 +151,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('pos/orders', [PosController::class, 'storeOrder']);
         Route::get('pos/pickup-orders', [PosController::class, 'getPickupOrders']);
         Route::patch('pos/pickup-orders/{order}/complete', [PosController::class, 'completePickupOrder']);
+        Route::get('pos/exchanges', [ItemExchangeController::class, 'index']);
+        Route::get('pos/orders/{order}/exchange-eligibility', [ItemExchangeController::class, 'eligibility']);
+        Route::post('pos/exchanges', [ItemExchangeController::class, 'store']);
+        Route::get('pos/exchanges/{id}', [ItemExchangeController::class, 'show']);
 
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
         Route::get('pharmacists', [PharmacyPharmacistController::class, 'index']);

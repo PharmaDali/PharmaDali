@@ -25,6 +25,8 @@ class Pharmacy extends Model
         'shortage_days_threshold',
         'expiry_days_threshold',
         'enable_vat_exemption_discount',
+        'item_exchange_window_days',
+        'allow_item_exchange',
         // BIR / POS receipt compliance fields
         'tin',
         'vat_type',
@@ -38,6 +40,8 @@ class Pharmacy extends Model
 
     protected $casts = [
         'enable_vat_exemption_discount' => 'boolean',
+        'allow_item_exchange'           => 'boolean',
+        'item_exchange_window_days'     => 'integer',
         'permit_issued_at' => 'date',
         'ptu_valid_until'  => 'date',
     ];

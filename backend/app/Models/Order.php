@@ -76,4 +76,19 @@ class Order extends Model
     {
         return $this->hasOne(Conversation::class);
     }
+
+    public function exchanges()
+    {
+        return $this->hasMany(ItemExchange::class);
+    }
+
+    /**
+     * Retrieve the model for a bound value (supports both numeric ID and order_number string).
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        return $this->where('id', $value)
+                    ->orWhere('order_number', $value)
+                    ->firstOrFail();
+    }
 }
