@@ -31,9 +31,9 @@ function HomePage() {
                 <h1 className="m-0 text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.05] text-white">Dashboard</h1>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <KpiCard title="Total Pharmacies" value="3" orderLabel="Order #1028" />
-                <KpiCard title="Total Active Pharmacies" value="2" orderLabel="Order #1028" />
-                <KpiCard title="Total Users" value="24" orderLabel="Order #1028" />
+                <KpiCard title="Total Pharmacies" value="3" />
+                <KpiCard title="Total Active Pharmacies" value="2" />
+                <KpiCard title="Total Users" value="24" />
                 <KpiCard title="KPI 1" value="--" />
                 <KpiCard title="KPI 2" value="--" />
               </div>
