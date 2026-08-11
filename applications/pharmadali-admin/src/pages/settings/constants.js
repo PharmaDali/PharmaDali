@@ -25,6 +25,11 @@ export const settingsList = [
     description: "Set up End-of-Day report preferences and operational inventory rules.",
   },
   {
+    id: "item_exchange",
+    label: "Item Exchange Policy",
+    description: "Manage item change/exchange rules, Same-Day policy, and return window duration.",
+  },
+  {
     id: "backup",
     label: "Backup & Restore",
     description: "Create snapshots and restore pharmacy tenant database backups.",
