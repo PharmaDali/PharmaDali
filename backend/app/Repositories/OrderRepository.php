@@ -46,7 +46,7 @@ class OrderRepository
      */
     public function getSalesList(int $pharmacyId, ?string $startDate, ?string $endDate, int $perPage = 15)
     {
-        $query = Order::with(['items', 'verifier'])
+        $query = Order::with(['items', 'verifier', 'exchanges.returnedItems.pharmacyProduct.product', 'exchanges.replacementItems.pharmacyProduct.product'])
             ->where('pharmacy_id', $pharmacyId)
             ->where('status', 'completed');
 
@@ -66,7 +66,7 @@ class OrderRepository
      */
     public function getSalesListAll(int $pharmacyId, ?string $startDate, ?string $endDate)
     {
-        $query = Order::with(['items', 'verifier'])
+        $query = Order::with(['items', 'verifier', 'exchanges.returnedItems.pharmacyProduct.product', 'exchanges.replacementItems.pharmacyProduct.product'])
             ->where('pharmacy_id', $pharmacyId)
             ->where('status', 'completed');
 
