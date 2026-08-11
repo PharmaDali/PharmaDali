@@ -4,19 +4,18 @@ interface Pharmacy {
   id: number
   name: string
   owner: string
-  location?: string
-  city?: string
+  location: string
   contact: string
   email?: string
   status: string
 }
 
 const INITIAL_PHARMACIES: Pharmacy[] = [
-  { id: 1, name: 'Landicho Drugstore', owner: 'Abigail Barrion', location: 'Lipa City', city: 'Lipa City', contact: '09123456789', status: 'Active' },
-  { id: 2, name: 'Puremed Pharmacy', owner: 'Althea Alvarez', location: 'Tanauan City', city: 'Tanauan City', contact: '09541790778', status: 'Active' },
-  { id: 3, name: 'Generika Drugstore', owner: 'Denmar Redondo', location: 'Batangas City', city: 'Batangas City', contact: '09171234567', status: 'Inactive' },
-  { id: 4, name: 'Mercury Drug', owner: 'James Mercado', location: 'Calamba City', city: 'Calamba City', contact: '09987654321', status: 'Active' },
-  { id: 5, name: 'Southstar Drug', owner: 'James Orlanes', location: 'Santo Tomas', city: 'Santo Tomas', contact: '09223334444', status: 'Pending' },
+  { id: 1, name: 'Landicho Drugstore', owner: 'Abigail Barrion', location: 'Lipa City', contact: '09123456789', status: 'Active' },
+  { id: 2, name: 'Puremed Pharmacy', owner: 'Althea Alvarez', location: 'Tanauan City', contact: '09541790778', status: 'Active' },
+  { id: 3, name: 'Generika Drugstore', owner: 'Denmar Redondo', location: 'Batangas City', contact: '09171234567', status: 'Inactive' },
+  { id: 4, name: 'Mercury Drug', owner: 'James Mercado', location: 'Calamba City', contact: '09987654321', status: 'Active' },
+  { id: 5, name: 'Southstar Drug', owner: 'James Orlanes', location: 'Santo Tomas', contact: '09223334444', status: 'Pending' },
 ]
 
 type Props = {
@@ -53,7 +52,6 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       contact: formData.contact,
       email: formData.email,
       location: formData.location,
-      city: formData.location,
       status: formData.status || 'Active',
     }
 
@@ -65,11 +63,10 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
   const filteredPharmacies = pharmacies.filter((p) => {
     const query = searchTerm.toLowerCase().trim()
     if (!query) return true
-    const pLoc = p.location || p.city || ''
     return (
       p.name.toLowerCase().includes(query) ||
       p.owner.toLowerCase().includes(query) ||
-      pLoc.toLowerCase().includes(query) ||
+      p.location.toLowerCase().includes(query) ||
       p.contact.toLowerCase().includes(query) ||
       p.status.toLowerCase().includes(query)
     )
@@ -84,16 +81,16 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#8ccfed] text-[#22313b]">
-                <th className="py-3 px-6 text-sm font-bold rounded-tl-[10px]">Pharmacy Name</th>
-                <th className="py-3 px-6 text-sm font-bold">Location</th>
-                <th className="py-3 px-6 text-sm font-bold text-center rounded-tr-[10px]">Status</th>
+                <th className="py-3 px-6 text-sm font-semibold rounded-tl-[10px]">Pharmacy Name</th>
+                <th className="py-3 px-6 text-sm font-semibold">Location</th>
+                <th className="py-3 px-6 text-sm font-semibold text-center rounded-tr-[10px]">Status</th>
               </tr>
             </thead>
             <tbody>
               {pharmacies.slice(0, 5).map((p) => (
                 <tr key={p.id} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0">
                   <td className="py-4 px-6 text-gray-100 text-base">{p.name}</td>
-                  <td className="py-4 px-6 text-gray-200 text-base">{p.location || p.city}</td>
+                  <td className="py-4 px-6 text-gray-200 text-base">{p.location}</td>
                   <td className="py-4 px-6 text-[#4ade80] text-base text-center">{p.status}</td>
                 </tr>
               ))}
@@ -166,13 +163,13 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                 <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
                   <thead>
                     <tr className="bg-[#8ccfed] text-[#22313b]">
-                      <th className="py-3 px-5 font-bold text-xs rounded-tl-md w-1/6">Pharmacy Name</th>
-                      <th className="py-3 px-5 font-bold text-xs w-1/6">Owner Name</th>
-                      <th className="py-3 px-5 font-bold text-xs w-1/6">Location</th>
-                      <th className="py-3 px-5 font-bold text-xs w-1/6">Contact Number</th>
-                      <th className="py-3 px-5 font-bold text-xs w-1/6">
+                      <th className="py-3 px-5 font-semibold text-xs rounded-tl-md w-1/6">Pharmacy Name</th>
+                      <th className="py-3 px-5 font-semibold text-xs w-1/6">Owner Name</th>
+                      <th className="py-3 px-5 font-semibold text-xs w-1/6">Location</th>
+                      <th className="py-3 px-5 font-semibold text-xs w-1/6">Contact Number</th>
+                      <th className="py-3 px-5 font-semibold text-xs w-1/6">
                         <div className="flex items-center gap-2">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="4" y1="6" x2="20" y2="6"></line>
                             <line x1="8" y1="12" x2="16" y2="12"></line>
                             <line x1="10" y1="18" x2="14" y2="18"></line>
@@ -180,7 +177,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                           Status
                         </div>
                       </th>
-                      <th className="py-3 px-5 text-center font-bold text-xs align-middle rounded-tr-md w-1/6">Action</th>
+                      <th className="py-3 px-5 text-center font-semibold text-xs align-middle rounded-tr-md w-1/6">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -189,7 +186,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                         <tr key={p.id + '-' + idx} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0 hover:bg-[rgba(255,255,255,0.01)] align-middle min-h-[64px]">
                           <td className="py-4 px-5 align-middle text-gray-100 truncate whitespace-nowrap">{p.name}</td>
                           <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.owner}</td>
-                          <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.location || p.city}</td>
+                          <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.location}</td>
                           <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.contact}</td>
                           <td className="py-4 px-5 align-middle">
                             <span className={p.status === 'Active' ? 'text-[#4ade80] font-medium' : p.status === 'Pending' ? 'text-amber-400 font-medium' : 'text-gray-400'}>{p.status}</span>
@@ -249,7 +246,6 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
               <div className="space-y-2 text-xs text-gray-200">
                 <p><span className="text-gray-300">Pharmacy:</span> {selectedPharmacy.name}</p>
                 <p><span className="text-gray-300">Owner:</span> {selectedPharmacy.owner}</p>
-                <p><span className="text-gray-300">Location:</span> {selectedPharmacy.location || selectedPharmacy.city}</p>
                 <p><span className="text-gray-300">Contact Number:</span> {selectedPharmacy.contact}</p>
               </div>
             </div>
