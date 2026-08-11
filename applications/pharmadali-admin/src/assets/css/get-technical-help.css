@@ -1,265 +1,137 @@
 .tech-help-page {
   min-width: 0;
+  color: #2d3748;
 }
 
-.tech-help-search-wrap {
-  position: relative;
-  max-width: 560px;
+.tech-help-soft-black {
+  color: #2d3748 !important;
 }
 
-.tech-help-search-wrap i {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #9ca3af;
-  font-size: 13px;
+.tech-help-title {
+  color: #2aabe2;
+  font-size: 28px;
+  font-weight: 700;
 }
 
-.tech-help-search {
-  height: 42px;
-  border-radius: var(--pd-radius-md);
-  border: 1px solid #dbe3ec;
-  background: #f4f7fb;
-  color: #374151;
-  font-size: 13px;
-  padding-left: 34px;
+.tech-help-breadcrumb-parent {
+  color: #88d0ee;
+  font-size: 28px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.15s ease;
 }
 
-.tech-help-search::placeholder {
-  color: #9ca3af;
+.tech-help-breadcrumb-parent:hover {
+  color: #2aabe2;
 }
 
-.tech-help-search:focus {
-  border-color: #96d2ee;
-  box-shadow: 0 0 0 0.18rem rgba(150, 210, 238, 0.35);
-  background: #f7fbff;
+.tech-help-breadcrumb-icon {
+  color: #88d0ee;
+  font-size: 16px;
 }
 
-.tech-help-card,
-.tech-help-version-card {
-  border: 1px solid rgba(22, 39, 56, 0.04);
-  border-radius: var(--pd-radius-md);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 6px 16px rgba(31, 41, 55, 0.06);
-  backdrop-filter: blur(2px);
-  padding: 1.05rem 1.12rem;
+.tech-help-subtitle {
+  color: #4a5568;
+  font-size: 15px;
+}
+
+.tech-help-hero-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  padding: 24px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.tech-help-card:hover {
+.tech-help-hero-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 22px rgba(31, 41, 55, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
-.tech-help-home-grid {
-  align-items: stretch;
-}
-
-.tech-help-home-card {
-  min-height: 178px;
-}
-
-.tech-help-home-copy {
-  min-height: 68px;
-}
-
-.tech-help-card-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(145deg, #d4ecf8, #eef8ff);
-  color: #2aabe2;
-  display: inline-flex;
+.tech-help-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background-color: #2aabe2;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
 }
 
-.tech-help-version-card {
-  max-width: 100%;
-  width: fit-content;
-  margin-top: 0.35rem;
-  margin-left: 0;
-  padding: 0.55rem 0.75rem;
-  border-radius: var(--pd-radius-md);
-  box-shadow: 0 2px 6px rgba(31, 41, 55, 0.06);
-}
-
-.tech-help-card-title {
-  color: #1f2937;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.tech-help-card-copy {
-  color: #2e3642;
-  font-size: 13px;
-  line-height: 1.62;
-}
-
-.tech-help-version-label {
-  display: inline-flex;
-  align-items: center;
-  color: #4b5563;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.tech-help-version-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.tech-help-version-item strong {
-  color: #1f2937;
-  font-weight: 700;
-}
-
-.tech-help-version-divider {
-  color: #9ca3af;
-  font-size: 11px;
-}
-
-.tech-help-link {
+.tech-help-card-heading {
   color: #2aabe2;
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
+  font-size: 18px;
+  font-weight: 700;
 }
 
-.tech-help-link:hover {
+.tech-help-card-text {
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.tech-help-circle-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background-color: #2aabe2;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.tech-help-circle-btn:hover {
+  background-color: #2399cb;
+  transform: scale(1.04);
+}
+
+.tech-help-learn-more-link {
+  color: #2aabe2;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.tech-help-learn-more-link:hover {
   color: #2399cb;
+}
+
+/* FAQ Section */
+.tech-help-faq-section-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+}
+
+.tech-help-faq-main-title {
+  color: #2aabe2;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.tech-help-contact-email {
+  color: #2aabe2;
   text-decoration: underline;
 }
 
-.tech-help-back-link {
-  color: #2aabe2;
-  font-size: 13px;
-  text-decoration: none;
-}
-
-.tech-help-back-link:hover {
+.tech-help-contact-email:hover {
   color: #2399cb;
 }
 
-.tech-help-form-label {
-  color: #111827;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.tech-help-input {
-  border-radius: var(--pd-radius-md);
-  border: 1px solid #dbe3ec;
-  background: #eef3fa;
-  font-size: 13px;
-}
-
-.tech-help-input:focus {
-  border-color: #96d2ee;
-  box-shadow: 0 0 0 0.18rem rgba(150, 210, 238, 0.35);
-  background: #f7fbff;
-}
-
-.tech-help-textarea {
-  resize: none;
-}
-
-.tech-help-submit-btn {
-  min-width: 220px;
-  border-radius: 9px;
-  background: #2aabe2;
-  border: 1px solid #2aabe2;
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 0.52rem 0.95rem;
-}
-
-.tech-help-submit-btn:hover {
-  background: #2399cb;
-  border-color: #2399cb;
-  color: #fff;
-}
-
-.tech-help-callback-btn {
-  min-width: 220px;
-  border-radius: 9px;
-  background: #fff;
-  border: 1.5px solid #2aabe2;
-  color: #2aabe2;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 0.52rem 0.95rem;
-}
-
-.tech-help-callback-btn:hover {
-  background: #f1f9fe;
-  color: #2399cb;
-  border-color: #2399cb;
-}
-
-.tech-help-inline-message {
-  color: #0f766e;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.tech-help-live-chat {
+.tech-help-faq-pill {
+  background: #f0f4ff;
   border-radius: 12px;
-  background: #eef3fa;
-  padding: 0.85rem;
+  padding: 14px 18px;
+  transition: background-color 0.2s ease;
 }
 
-.tech-help-live-chat i {
-  color: #1f2937;
-  font-size: 14px;
-  margin-top: 2px;
-}
-
-.tech-help-live-chat h6,
-.tech-help-card h6 {
-  color: #111827;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.tech-help-live-chat p,
-.tech-help-card p {
-  color: #374151;
-  font-size: 12px;
-}
-
-.tech-help-start-chat-btn {
-  border-radius: 9px;
-  background: transparent;
-  border: 1.5px solid #2aabe2;
-  color: #2aabe2;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 0.45rem 0.9rem;
-}
-
-.tech-help-start-chat-btn:hover {
-  background: #f1f9fe;
-  color: #2399cb;
-  border-color: #2399cb;
-}
-
-.tech-help-faq-card {
-  border-radius: 12px;
-  border: 1px solid rgba(22, 39, 56, 0.04);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 4px 12px rgba(31, 41, 55, 0.06);
-  padding: 0.9rem 1rem;
-}
-
-.tech-help-faq-card.open {
-  padding-bottom: 0.95rem;
+.tech-help-faq-pill.open {
+  background: #eef4fe;
 }
 
 .tech-help-faq-header {
@@ -267,57 +139,162 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
   background: transparent;
-  border: 0;
-  text-align: left;
-  color: #1f2937;
-  font-size: 13px;
-  font-weight: 600;
+  border: none;
   padding: 0;
+  cursor: pointer;
+  gap: 12px;
+}
+
+.tech-help-faq-question {
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 14px;
+  text-align: left;
 }
 
 .tech-help-faq-symbol {
-  color: #1f3d8f;
-  font-size: 20px;
-  line-height: 1;
+  color: #4a5568;
+  font-size: 18px;
+  font-weight: 600;
   min-width: 16px;
   text-align: center;
 }
 
-.tech-help-faq-answer {
-  margin-top: 0.65rem;
-  color: #2e3642;
+.tech-help-faq-body {
+  margin-top: 10px;
   font-size: 13px;
   line-height: 1.6;
+  color: #4a5568;
 }
 
-.tech-help-faq-title {
-  font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+/* Version Footer Card */
+.tech-help-version-footer-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
 }
 
-.tech-help-faq-grid-wrap {
-  max-width: 1220px;
-  margin: 0 auto;
+.tech-help-version-title {
+  color: #2aabe2;
+  font-size: 14px;
 }
 
-@media (max-width: 991.98px) {
-  .tech-help-version-card {
-    max-width: 100%;
-    width: 100%;
-    border-radius: 12px;
-  }
+/* Form Styles */
+.tech-help-form-input {
+  border-radius: 8px;
+  border: 1px solid #dbe3ec;
+  background: #f8fafc;
+  color: #2d3748;
+  font-size: 13.5px;
+  padding: 10px 12px;
+}
 
-  .tech-help-home-card {
-    min-height: 0;
-  }
+.tech-help-form-input:focus,
+.tech-help-page .form-control:focus {
+  border-color: #2aabe2;
+  box-shadow: none !important;
+  outline: none;
+  background: #ffffff;
+}
 
-  .tech-help-home-copy {
-    min-height: 0;
-  }
+.tech-help-textarea {
+  resize: vertical;
+}
 
-  .tech-help-submit-btn,
-  .tech-help-callback-btn {
-    width: 100%;
+.tech-help-primary-btn {
+  background: #2aabe2;
+  border: 1px solid #2aabe2;
+  color: #ffffff;
+  border-radius: 9px;
+  font-weight: 600;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.tech-help-primary-btn:hover {
+  background: #2399cb;
+  border-color: #2399cb;
+  color: #ffffff;
+}
+
+/* Custom Modal Dialog Overlay */
+.modal-backdrop-custom {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1050;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content-custom {
+  background-color: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+  animation: fadeInModal 0.2s ease-out;
+}
+
+.modal-sm-ticket {
+  max-width: 440px;
+  width: 90%;
+}
+
+.modal-md {
+  max-width: 560px;
+  width: 90%;
+}
+
+.modal-header-gradient {
+  background: linear-gradient(135deg, #2aabe2 0%, #48AAD9 100%);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffffff;
+}
+
+.modal-title-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #ffffff;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.9;
+  transition: opacity 0.15s ease;
+}
+
+.modal-close-btn:hover {
+  opacity: 1;
+}
+
+.ticket-ref-box {
+  background-color: #f0f7ff;
+  border: 1px dashed #2aabe2;
+}
+
+@keyframes fadeInModal {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
