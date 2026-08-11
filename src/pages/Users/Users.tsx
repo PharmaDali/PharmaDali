@@ -18,9 +18,9 @@ const INITIAL_USERS: User[] = [
   { id: 5, fullName: 'Hev abi', email: 'hevabi@gmail.com', phoneNumber: '09556667777', role: 'Assistant Pharmacist', branchName: 'TGP', status: 'Active' },
 ]
 
-const ROLES = ['All', 'Pharmacist', 'Users', 'Manager(Admin)', 'Assistant Pharmacist']
-const BRANCHES = ['All', 'Landicho Drugstore', 'Puremed', 'TGP']
-const STATUSES = ['All', 'Active', 'Inactive']
+const ROLES = ['All', 'Roles', 'Pharmacist', 'Users', 'Manager(Admin)', 'Assistant Pharmacist']
+const BRANCHES = ['All', 'Branches', 'Landicho Drugstore', 'Puremed', 'TGP']
+const STATUSES = ['All', 'Status', 'Active', 'Inactive']
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>(INITIAL_USERS)
@@ -468,11 +468,13 @@ const Users: React.FC = () => {
       {/* Edit User Modal */}
       {editingUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4">
-          <div className="bg-[#2b2f3a] border border-[rgba(255,255,255,0.06)] rounded-[16px] p-7 w-full max-w-[460px] shadow-2xl text-white">
-            <h2 className="text-2xl font-bold text-center mb-6 text-white tracking-wide">Edit User</h2>
+          <div className="bg-[#2b2f3a] border border-[rgba(255,255,255,0.06)] rounded-[16px] p-7 w-full max-w-[440px] shadow-2xl text-white">
+            <h2 className="text-2xl font-bold text-center mb-6 text-white tracking-wide">
+              Edit User Information
+            </h2>
             <form onSubmit={handleUpdateUser} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-[#8ccfed] mb-1.5">
+                <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
                   Full Name
                 </label>
                 <input
@@ -482,53 +484,93 @@ const Users: React.FC = () => {
                   onChange={(e) =>
                     setEditingUser({ ...editingUser, fullName: e.target.value })
                   }
-                  className="w-full bg-[#404554] text-gray-100 px-4 py-2.5 rounded-[8px] text-sm focus:outline-none focus:ring-1 focus:ring-[#48aad9]"
+                  className="w-full bg-[#404554] text-gray-100 placeholder:text-gray-400 px-4 py-3 rounded-[8px] text-sm focus:outline-none focus:ring-1 focus:ring-[#48aad9] transition-colors"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#8ccfed] mb-1.5">
+                <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
                   Role
                 </label>
-                <select
-                  value={editingUser.role}
-                  onChange={(e) =>
-                    setEditingUser({ ...editingUser, role: e.target.value })
-                  }
-                  className="w-full bg-[#404554] text-gray-100 px-4 py-2.5 rounded-[8px] text-sm focus:outline-none focus:ring-1 focus:ring-[#48aad9]"
-                >
-                  {ROLES.filter((r) => r !== 'All').map((role) => (
-                    <option key={role} value={role} className="bg-[#2b2f3a]">
-                      {role}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={editingUser.role}
+                    onChange={(e) =>
+                      setEditingUser({ ...editingUser, role: e.target.value })
+                    }
+                    className="w-full bg-[#404554] text-gray-100 px-4 py-3 rounded-[8px] text-sm appearance-none pr-10 focus:outline-none focus:ring-1 focus:ring-[#48aad9] cursor-pointer"
+                  >
+                    {ROLES.filter((r) => r !== 'All' && r !== 'Roles').map((role) => (
+                      <option key={role} value={role} className="bg-[#2b2f3a]">
+                        {role}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-gray-300">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#8ccfed] mb-1.5">
+                <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
                   Branch Name
                 </label>
-                <select
-                  value={editingUser.branchName}
-                  onChange={(e) =>
-                    setEditingUser({ ...editingUser, branchName: e.target.value })
-                  }
-                  className="w-full bg-[#404554] text-gray-100 px-4 py-2.5 rounded-[8px] text-sm focus:outline-none focus:ring-1 focus:ring-[#48aad9]"
-                >
-                  {BRANCHES.filter((b) => b !== 'All').map((branch) => (
-                    <option key={branch} value={branch} className="bg-[#2b2f3a]">
-                      {branch}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={editingUser.branchName}
+                    onChange={(e) =>
+                      setEditingUser({ ...editingUser, branchName: e.target.value })
+                    }
+                    className="w-full bg-[#404554] text-gray-100 px-4 py-3 rounded-[8px] text-sm appearance-none pr-10 focus:outline-none focus:ring-1 focus:ring-[#48aad9] cursor-pointer"
+                  >
+                    {BRANCHES.filter((b) => b !== 'All' && b !== 'Branches').map((branch) => (
+                      <option key={branch} value={branch} className="bg-[#2b2f3a]">
+                        {branch}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-gray-300">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
+                  Status
+                </label>
+                <div className="relative">
+                  <select
+                    value={editingUser.status}
+                    onChange={(e) =>
+                      setEditingUser({
+                        ...editingUser,
+                        status: e.target.value as 'Active' | 'Inactive',
+                      })
+                    }
+                    className="w-full bg-[#404554] text-gray-100 px-4 py-3 rounded-[8px] text-sm appearance-none pr-10 focus:outline-none focus:ring-1 focus:ring-[#48aad9] cursor-pointer"
+                  >
+                    <option value="Active" className="bg-[#2b2f3a]">Active</option>
+                    <option value="Inactive" className="bg-[#2b2f3a]">Inactive</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-gray-300">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               <div className="flex items-center gap-4 pt-4">
                 <button
                   type="button"
                   onClick={() => setEditingUser(null)}
-                  className="flex-1 border border-[#48aad9]/50 hover:border-[#48aad9] text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm"
+                  className="flex-1 border border-[#48aad9]/50 hover:border-[#48aad9] hover:bg-[#48aad9]/10 text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm"
                 >
                   Cancel
                 </button>
@@ -536,7 +578,7 @@ const Users: React.FC = () => {
                   type="submit"
                   className="flex-1 bg-[#48aad9] hover:bg-[#3ba0d0] text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm shadow"
                 >
-                  Save
+                  Save Changes
                 </button>
               </div>
             </form>
