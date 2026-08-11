@@ -42,7 +42,7 @@ class ConversationService
 
     public function startConversation(User $user, int $orderId): JsonResponse
     {
-        $order = Order::query()->with(['customer.user', 'pharmacy'])->find($orderId);
+        $order = Order::query()->withoutGlobalScopes()->with(['customer.user', 'pharmacy'])->find($orderId);
 
         if (!$order) {
             return response()->json([
