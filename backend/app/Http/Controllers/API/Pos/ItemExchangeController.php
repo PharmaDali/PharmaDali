@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Api\Pos;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreItemExchangeRequest;
 use App\Models\Order;
-use App\Services\Pos\ItemExchangeService;
+use App\Services\Pos\ItemExchange\ItemExchangeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -21,7 +22,7 @@ class ItemExchangeController extends Controller
     {
         try {
             $user = $request->user();
-            $exchanges = $this->exchangeService->getExchangeHistory($request->all(), $user);
+            $exchanges = $this->exchangeService->getHistory($request->all(), $user);
 
             return response()->json([
                 'success' => true,
@@ -57,7 +58,7 @@ class ItemExchangeController extends Controller
                 }
             }
 
-            $eligibility = $this->exchangeService->getOrderExchangeEligibility($order, $user);
+            $eligibility = $this->exchangeService->getEligibility($order, $user);
 
             return response()->json([
                 'success' => true,
@@ -74,26 +75,11 @@ class ItemExchangeController extends Controller
     /**
      * Store a new item exchange transaction.
      */
-    public function store(Request $request): JsonResponse
+    public function store(StoreItemExchangeRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'order_id' => 'required',
-            'returned_items' => 'required|array|min:1',
-            'returned_items.*.order_item_id' => 'required|exists:order_items,id',
-            'returned_items.*.quantity' => 'required|integer|min:1',
-            'returned_items.*.condition' => 'nullable|string|in:resalable,damaged,expired',
-            'replacement_items' => 'required|array|min:1',
-            'replacement_items.*.pharmacy_product_id' => 'required|exists:pharmacy_products,id',
-            'replacement_items.*.quantity' => 'required|integer|min:1',
-            'payment_method' => 'nullable|string',
-            'amount_received' => 'nullable|numeric|min:0',
-            'reason' => 'required|string|max:255',
-            'notes' => 'nullable|string',
-        ]);
-
         try {
             $user = $request->user();
-            $exchange = $this->exchangeService->processExchange($validated, $user);
+            $exchange = $this->exchangeService->process($request->validated(), $user);
 
             return response()->json([
                 'success' => true,
@@ -115,7 +101,7 @@ class ItemExchangeController extends Controller
     {
         try {
             $user = $request->user();
-            $exchange = $this->exchangeService->getExchangeDetails($id, $user);
+            $exchange = $this->exchangeService->getDetails($id, $user);
 
             return response()->json([
                 'success' => true,
