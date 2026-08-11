@@ -275,7 +275,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4">
           <div className="bg-[#292d37] w-full max-w-[500px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)]">
-            <h2 className="text-white text-2xl font-bold text-center mb-8">Pharmacy Information Form</h2>
+            <h2 className="text-white text-2xl font-bold text-center mb-8">Add New Pharmacy</h2>
 
             <form onSubmit={handleSavePharmacy} className="space-y-4">
               <div>
