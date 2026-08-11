@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;   
+use App\Notifications\OrderStatusNotification;
 
 class CancelCustomerOrderService
 {
@@ -46,7 +47,7 @@ class CancelCustomerOrderService
         ]);
 
         try {
-            $user->notify(new \App\Notifications\OrderStatusNotification($order->fresh()));
+            $user->notify(new OrderStatusNotification($order->fresh()));
         } catch (\Throwable $notifException) {
             Log::warning('Customer cancellation notification dispatch error: ' . $notifException->getMessage());
         }

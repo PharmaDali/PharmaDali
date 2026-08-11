@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Services\Messaging\ConversationService;
 use App\Notifications\OrderStatusNotification;
 use Illuminate\Http\JsonResponse;
+use App\Notifications\OrderRejectedNotification;
+use Illuminate\Support\Facades\Log;
 
 class UpdateOrderStatusByPharmacistService
 {
@@ -93,7 +95,7 @@ class UpdateOrderStatusByPharmacistService
 
         // Notify customer about status change
         if ($action === 'reject') {
-            $order->customer->user->notify(new \App\Notifications\OrderRejectedNotification($order));
+            $order->customer->user->notify(new OrderRejectedNotification($order));
         } else {
             $order->customer->user->notify(new OrderStatusNotification($order));
         }
@@ -118,7 +120,7 @@ class UpdateOrderStatusByPharmacistService
                     'closed_at' => now(),
                 ]);
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to close conversation on pharmacist reject: ' . $e->getMessage());
+                Log::error('Failed to close conversation on pharmacist reject: ' . $e->getMessage());
             }
         }
 
