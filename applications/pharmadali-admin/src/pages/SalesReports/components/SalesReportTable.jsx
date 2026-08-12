@@ -1,9 +1,6 @@
-/**
- * SalesReportTable
- *
- * Renders the paginated sales transactions table, including loading,
- * error and empty states, and the running total footer.
- */
+import React from "react";
+import { TableSkeleton } from "../../../components/loading";
+
 function SalesReportTable({
   rows,
   meta,
@@ -33,12 +30,7 @@ function SalesReportTable({
           </thead>
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={6} className="text-center py-4 text-secondary">
-                  <div className="spinner-border spinner-border-sm me-2" role="status" style={{ color: "#48AAD9" }} />
-                  Loading sales...
-                </td>
-              </tr>
+              <TableSkeleton rows={5} columns={6} showAvatar={false} />
             ) : error ? (
               <tr>
                 <td colSpan={6} className="text-center py-4 text-danger">{error}</td>
@@ -58,7 +50,7 @@ function SalesReportTable({
                   <td>{row.id}</td>
                   <td>{row.items}</td>
                   <td>{row.processedBy}</td>
-                  <td>₱{parseFloat(row.total).toFixed(2)}</td>
+                  <td>PHP {parseFloat(row.total).toFixed(2)}</td>
                   <td>
                     {row.has_exchange || row.status === 'exchanged' ? (
                       <span className="badge text-white shadow-sm" style={{ backgroundColor: "#2aabe2" }}>

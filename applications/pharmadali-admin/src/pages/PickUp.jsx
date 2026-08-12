@@ -7,6 +7,7 @@ import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg"
 import { fetchPickupOrders, completePickupOrder } from "../services/posService";
 import "../assets/css/pospage.css";
 import "../assets/css/inventory.css";
+import { TableSkeleton } from "../components/loading";
 
 function DiscountSelect({ value, onChange }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -303,31 +304,39 @@ function PickUp() {
           </div>
 
           <div className="pickup-card">
-            {loading ? (
-              <div className="p-4 text-center">Loading orders...</div>
-            ) : (
-              <>
-                <table className="pickup-table w-100">
-                <colgroup>
-                  <col style={{ width: "16%" }} />
-                  <col style={{ width: "26%" }} />
-                  <col style={{ width: "12%" }} />
-                  <col style={{ width: "18%" }} />
-                  <col style={{ width: "14%" }} />
-                  <col style={{ width: "14%" }} />
-                </colgroup>
-                <thead>
+            <table className="pickup-table w-100">
+              <colgroup>
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "26%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "14%" }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Order Number</th>
+                  <th>Customer</th>
+                  <th className="pickup-col-center">Items</th>
+                  <th className="pickup-col-center">Total Amount</th>
+                  <th className="pickup-col-center">Status</th>
+                  <th className="pickup-col-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <TableSkeleton rows={5} columns={6} showAvatar={false} />
+                ) : orders.length === 0 ? (
                   <tr>
-                    <th>Order Number</th>
-                    <th>Customer</th>
-                    <th className="pickup-col-center">Items</th>
-                    <th className="pickup-col-center">Total Amount</th>
-                    <th className="pickup-col-center">Status</th>
-                    <th className="pickup-col-center">Action</th>
+                    <td colSpan="6" className="text-center py-5 text-muted">
+                      <div className="py-2">
+                        <i className="fa-solid fa-box-open fs-3 text-muted mb-2 d-block" />
+                        <span>No pickup orders found.</span>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {paginatedOrders.map((order) => (
+                ) : (
+                  paginatedOrders.map((order) => (
                     <tr
                       key={order.id}
                       className={activeOrder?.id === order.id ? "pickup-row-selected" : ""}
@@ -355,13 +364,9 @@ function PickUp() {
                         </button>
                       </td>
                     </tr>
-                  ))}
-                  {orders.length === 0 && (
-                    <tr>
-                      <td colSpan="6" className="text-center py-4 text-muted">No pickup orders found.</td>
-                    </tr>
-                  )}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
               {!loading && orders.length > 0 && (
                 <div className="inventory-pagination-bar">
@@ -452,8 +457,6 @@ function PickUp() {
                   </nav>
                 </div>
               )}
-            </>
-          )}
           </div>
         </div>
         {activeOrder && (

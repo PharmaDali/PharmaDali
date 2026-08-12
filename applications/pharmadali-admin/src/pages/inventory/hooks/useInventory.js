@@ -36,7 +36,8 @@ export function useInventory() {
     expired: 0,
   });
   const [priorityRestocks, setPriorityRestocks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [metricsLoading, setMetricsLoading] = useState(true);
+  const [tableLoading, setTableLoading] = useState(true);
 
   // Selection & Details Modal States
   const [selectedItem, setSelectedItem] = useState(null);
@@ -106,36 +107,57 @@ export function useInventory() {
     needsPrescription: "False",
   });
 
-  // Load main inventory lists and summary metrics
-  const loadData = useCallback(async () => {
-    setCurrentPage(1);
-    setLoading(true);
+  // Load summary metrics and side cards once on mount or when products are modified
+  const loadMetricsAndRestocks = useCallback(async () => {
+    setMetricsLoading(true);
     try {
-      const [products, metricsResult, restocksResult] = await Promise.all([
-        fetchInventoryProducts({
-          search: query,
-          category: categoryFilter,
-          price_range: priceFilter,
-          stock_range: stockFilter,
-          status: statusFilter,
-        }),
+      const [metricsResult, restocksResult] = await Promise.all([
         fetchInventoryMetrics(),
         fetchPriorityRestocks(),
       ]);
-      setInventoryItems(products);
       setMetrics(metricsResult);
       setPriorityRestocks(restocksResult ?? []);
     } catch (err) {
-      console.error("Failed to load inventory data", err);
+      console.error("Failed to load inventory metrics", err);
     } finally {
-      setLoading(false);
+      setMetricsLoading(false);
+    }
+  }, []);
+
+  // Fetch only table products based on search/filter state
+  const loadProducts = useCallback(async () => {
+    setCurrentPage(1);
+    setTableLoading(true);
+    try {
+      const products = await fetchInventoryProducts({
+        search: query,
+        category: categoryFilter,
+        price_range: priceFilter,
+        stock_range: stockFilter,
+        status: statusFilter,
+      });
+      setInventoryItems(products);
+    } catch (err) {
+      console.error("Failed to load inventory products", err);
+    } finally {
+      setTableLoading(false);
     }
   }, [query, categoryFilter, priceFilter, stockFilter, statusFilter]);
 
-  // Trigger loading when filter parameters change
+  // Initial mount: load metrics & restocks once
   useEffect(() => {
-    loadData();
-  }, [categoryFilter, priceFilter, stockFilter, statusFilter]);
+    loadMetricsAndRestocks();
+  }, [loadMetricsAndRestocks]);
+
+  // Filter & Search effect: ONLY re-fetches product table data when search/filters change
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
+
+  // Full reload (called after product additions / stock-out mutations)
+  const loadData = useCallback(async () => {
+    await Promise.all([loadMetricsAndRestocks(), loadProducts()]);
+  }, [loadMetricsAndRestocks, loadProducts]);
 
   // Derived properties: formatting dates to PH format
   const decoratedItems = useMemo(
@@ -771,7 +793,9 @@ export function useInventory() {
     categoryOptions,
 
     // Loading & Core Items
-    loading,
+    loading: metricsLoading || tableLoading,
+    metricsLoading,
+    tableLoading,
     filteredItems,
     paginatedItems,
 

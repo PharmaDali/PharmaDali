@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { SettingForm } from "./SettingForm";
+import { PageLoader } from "../../components/loading";
 import "../../assets/css/settings/common.css";
 import {
   getPharmacySettings,
@@ -131,10 +132,12 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
         ]}
         onNavigate={onNavigate}
       >
-        <div className="text-center py-5 text-muted">
-          <div className="spinner-border spinner-border-sm me-2" style={{ color: "#2aabe2" }} role="status" />
-          Loading item exchange policy...
-        </div>
+        <PageLoader
+          title="Loading exchange policy settings..."
+          subtitle="Please wait a moment while we load pharmacy return rules."
+          iconClass="fa-solid fa-rotate"
+          minHeight={200}
+        />
       </SettingForm>
     );
   }
@@ -171,7 +174,7 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
           <i className="fa-solid fa-shield-halved me-1"></i> No Cash Refund Policy Standard
         </div>
         <div style={{ fontSize: "12px", lineHeight: "1.5" }}>
-          Item exchanges allow returning items in exchange for replacement products of equal or higher value. If replacement value is lower, excess returned credit is non-refundable (₱0.00 cash refund). Each order allows a maximum of 1 item exchange.
+          Item exchanges allow returning items in exchange for replacement products of equal or higher value. If replacement value is lower, excess returned credit is non-refundable (PHP 0.00 cash refund). Each order allows a maximum of 1 item exchange.
         </div>
       </div>
 

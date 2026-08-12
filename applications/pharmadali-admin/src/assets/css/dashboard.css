@@ -53,6 +53,30 @@
   color: #7d8793;
 }
 
+.dashboard-range-select,
+.pd-range-select {
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  color: #334155;
+  font-weight: 500;
+  background-color: #ffffff;
+  transition: border-color 0.15s ease-in-out;
+}
+
+.dashboard-range-select:focus,
+.dashboard-range-select:active,
+.pd-range-select:focus,
+.pd-range-select:active {
+  border-color: var(--pd-primary, #2aabe2) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.dashboard-range-select:hover,
+.pd-range-select:hover {
+  border-color: var(--pd-primary, #2aabe2) !important;
+}
+
 .dashboard-chart-wrap {
   height: 240px;
 }

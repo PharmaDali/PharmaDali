@@ -1,5 +1,5 @@
 .inventory-page {
-  color: #1f2937;
+  color: var(--pd-soft-black);
 }
 
 .inventory-breadcrumbs {
@@ -65,13 +65,13 @@
 }
 
 .inventory-metric-label {
-  color: #4b5563;
+  color: var(--pd-text-medium, #475569);
   font-size: 12px;
   font-weight: 600;
 }
 
 .inventory-metric-value {
-  color: #111827;
+  color: var(--pd-soft-black, #334155);
   font-size: clamp(1.4rem, 2vw, 1.7rem);
   font-weight: 700;
 }
@@ -86,6 +86,14 @@
   align-items: end;
   margin-bottom: 1rem;
   box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  position: relative;
+  z-index: 15;
+}
+
+.inventory-select-open {
+  border-color: var(--pd-primary, #2aabe2) !important;
+  background-color: #ffffff !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M14 12l-4-4-4 4' stroke='%232aabe2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
 }
 
 .inventory-logs-filter-bar {
@@ -141,13 +149,6 @@
   color: #9ab6d6;
 }
 
-.inventory-input:focus,
-.inventory-select:focus {
-  border-color: #6eb5ea;
-  box-shadow: 0 0 0 0.18rem rgba(110, 181, 234, 0.28);
-  background: #f7faff;
-}
-
 .inventory-search-action {
   display: flex;
   align-items: flex-end;
@@ -165,24 +166,28 @@
 
 .inventory-search-btn:hover {
   background: #eef6ff;
+  border-color: var(--pd-primary, #2aabe2);
 }
 
 .inventory-select,
 .inventory-table-filter {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%235aa7e5' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%232aabe2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   background-size: 14px;
   padding-right: 2.2rem;
 }
 
+
+.inventory-input:focus,
 .inventory-select:focus,
-.inventory-table-filter:focus {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M6 8l4 4 4-4' stroke='%235aa7e5' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 14px;
+.inventory-table-filter:focus,
+.inventory-search-btn:focus {
+  border-color: var(--pd-primary, #2aabe2) !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background-color: #ffffff;
 }
 
 .inventory-table-card,
@@ -197,6 +202,13 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 600px;
+}
+
+.inventory-table-scroll {
+  overflow: auto;
+  flex: 1;
+  min-height: 450px;
 }
 
 .inventory-table-actions {
@@ -414,7 +426,7 @@
 }
 
 .inventory-item-name {
-  color: #1f2937;
+  color: var(--pd-soft-black);
   font-size: 14px;
   font-weight: 600;
 }
@@ -539,7 +551,7 @@
 }
 
 .inventory-side-name {
-  color: #1f2937;
+  color: var(--pd-soft-black);
   font-size: 13px;
   font-weight: 600;
 }
@@ -618,7 +630,7 @@
 .inventory-log-detail-value {
   font-size: 0.9rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--pd-soft-black);
   margin: 0;
 }
 
@@ -878,18 +890,51 @@ select.inventory-modal-input {
 
 
 
-.inventory-table-scroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Custom Scrollbars matching PharmaDali Brand System */
+.inventory-table-scroll::-webkit-scrollbar,
+.inventory-side-table::-webkit-scrollbar,
+.inventory-dropdown-popover::-webkit-scrollbar,
+.inventory-side-card-body::-webkit-scrollbar,
+.inventory-modal-body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.inventory-table-scroll::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: #7dc0ea;
+.inventory-table-scroll::-webkit-scrollbar-track,
+.inventory-side-table::-webkit-scrollbar-track,
+.inventory-dropdown-popover::-webkit-scrollbar-track,
+.inventory-side-card-body::-webkit-scrollbar-track,
+.inventory-modal-body::-webkit-scrollbar-track {
+  background: #f0f4f8;
+  border-radius: 10px;
 }
 
-.inventory-table-scroll::-webkit-scrollbar-track {
-  background: #e5edf4;
+.inventory-table-scroll::-webkit-scrollbar-thumb,
+.inventory-side-table::-webkit-scrollbar-thumb,
+.inventory-dropdown-popover::-webkit-scrollbar-thumb,
+.inventory-side-card-body::-webkit-scrollbar-thumb,
+.inventory-modal-body::-webkit-scrollbar-thumb {
+  background: var(--pd-primary, #2aabe2);
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.inventory-table-scroll::-webkit-scrollbar-thumb:hover,
+.inventory-side-table::-webkit-scrollbar-thumb:hover,
+.inventory-dropdown-popover::-webkit-scrollbar-thumb:hover,
+.inventory-side-card-body::-webkit-scrollbar-thumb:hover,
+.inventory-modal-body::-webkit-scrollbar-thumb:hover {
+  background: #1b8ec2;
+}
+
+/* Firefox standard scrollbar rules */
+.inventory-table-scroll,
+.inventory-side-table,
+.inventory-dropdown-popover,
+.inventory-side-card-body,
+.inventory-modal-body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pd-primary, #2aabe2) #f0f4f8;
 }
 
 @media (max-width: 1199.98px) {
@@ -1269,7 +1314,7 @@ select.inventory-modal-input {
 
 .inventory-batch-num {
   font-weight: 600;
-  color: #1f2937;
+  color: var(--pd-soft-black);
 }
 
 .inventory-batch-stock-input {

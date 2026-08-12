@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
+import { ListSkeleton } from "../components/loading";
 
 // ─── Alert Category Configurations ─────────────────────────────────────────────
 const TYPE_META = {
@@ -396,10 +397,7 @@ function Notifications() {
       {/* Notifications Card List Container */}
       <div className="d-flex flex-column gap-3">
         {loading ? (
-          <div className="text-center py-5 bg-white rounded-4 border shadow-sm">
-            <div className="spinner-border spinner-border-sm text-primary me-2" role="status" />
-            <span className="text-muted small">Loading notifications…</span>
-          </div>
+          <ListSkeleton count={4} />
         ) : filteredNotifications.length === 0 ? (
           <div className="card border-0 shadow-sm rounded-4 text-center py-5">
             <div className="card-body py-4">

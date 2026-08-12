@@ -281,7 +281,7 @@
 }
 
 .pickup-details-row strong {
-  color: #1f2937;
+  color: var(--pd-soft-black, #334155);
 }
 
 .pickup-details-row strong.pickup-status-ready {

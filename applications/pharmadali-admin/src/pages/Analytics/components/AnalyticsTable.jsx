@@ -1,5 +1,6 @@
 import arrowDropDownIcon from "../../../assets/icons/analytics-and-forecasting/arrow_drop_down.svg";
 import TrendArrow from "../icons/TrendArrow";
+import { TableSkeleton } from "../../../components/loading";
 
 export default function AnalyticsTable({ 
   data, 
@@ -73,27 +74,25 @@ export default function AnalyticsTable({
       </div>
 
       <div className="analytics-table-wrapper flex-grow-1">
-        {loading ? (
-          <div className="d-flex justify-content-center align-items-center h-100 py-4">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        ) : data.length === 0 ? (
-          <div className="d-flex justify-content-center align-items-center h-100 py-4 text-muted">
-            No data available for the selected timeframe.
-          </div>
-        ) : (
-          <table className="table analytics-table table-borderless mb-0">
-            <thead>
+        <table className="table analytics-table table-borderless mb-0">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th className="text-end">{columnLabel}</th>
+              <th className="text-end" style={{width: '90px'}}>Trend</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <TableSkeleton rows={5} columns={3} showAvatar={false} />
+            ) : data.length === 0 ? (
               <tr>
-                <th>Product Name</th>
-                <th className="text-end">{columnLabel}</th>
-                <th className="text-end" style={{width: '90px'}}>Trend</th>
+                <td colSpan={3} className="text-center py-4 text-muted">
+                  No data available for the selected timeframe.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {data.map((item, index) => {
+            ) : (
+              data.map((item, index) => {
                 let direction = "stable";
                 let color = "#ffc107"; // yellow for stable
                 let sign = "";
@@ -116,10 +115,9 @@ export default function AnalyticsTable({
                     </td>
                   </tr>
                 );
-              })}
+              }))}
             </tbody>
           </table>
-        )}
       </div>
     </div>
   );

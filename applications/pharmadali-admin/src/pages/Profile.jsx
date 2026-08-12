@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getAdminProfile, updateAdminProfile, updateAdminPharmacy } from "../services/profileService";
 import "../assets/css/profile.css";
+import { PageLoader } from "../components/loading";
 import emailIcon from "../assets/icons/profile/email.svg";
 import phoneIcon from "../assets/icons/profile/phone-number.svg";
 import adminIdIcon from "../assets/icons/profile/admin-id.svg";
@@ -177,11 +178,12 @@ function Profile() {
 
   if (loading) {
     return (
-      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 300 }}>
-        <div className="spinner-border text-primary" role="status">
-          <span className="visually-hidden">Loading…</span>
-        </div>
-      </div>
+      <PageLoader
+        title="Loading admin profile..."
+        subtitle="Please wait a moment while we retrieve your profile and pharmacy information."
+        iconClass="fa-solid fa-user-gear"
+        minHeight={360}
+      />
     );
   }
 

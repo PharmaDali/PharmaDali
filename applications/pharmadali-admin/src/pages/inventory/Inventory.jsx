@@ -30,6 +30,8 @@ export function Inventory() {
 
     // Loading & Core Items
     loading,
+    metricsLoading,
+    tableLoading,
     filteredItems,
     paginatedItems,
 
@@ -116,6 +118,7 @@ export function Inventory() {
       </header>
 
       <InventoryMetrics
+        loading={metricsLoading}
         totalItems={totalItems}
         lowStockCount={lowStockCount}
         expiringSoonCount={expiringSoonCount}
@@ -140,7 +143,7 @@ export function Inventory() {
       <div className="row g-4 inventory-content-row">
         <div className="col-12 col-xl-8">
           <InventoryTable
-            loading={loading}
+            loading={tableLoading}
             filteredItems={filteredItems}
             paginatedItems={paginatedItems}
             selectedItem={selectedItem}
