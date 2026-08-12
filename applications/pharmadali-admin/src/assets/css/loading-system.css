@@ -1,0 +1,109 @@
+/* ==========================================
+   PharmaDali Admin Loading & Skeleton CSS
+   ========================================== */
+
+@keyframes pd-shimmer-pulse {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes pd-pulse-fade {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.pd-skeleton {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    #e2e8f0 0%,
+    #f1f5f9 25%,
+    #e8f0fe 50%,
+    #f1f5f9 75%,
+    #e2e8f0 100%
+  );
+  background-size: 200% 100%;
+  animation: pd-shimmer-pulse 1.8s infinite ease-in-out;
+  border-radius: var(--pd-radius-sm, 6px);
+  vertical-align: middle;
+}
+
+.pd-skeleton-text {
+  height: 1em;
+  width: 100%;
+  border-radius: 4px;
+}
+
+.pd-skeleton-circular {
+  border-radius: 50% !important;
+}
+
+.pd-skeleton-rectangular {
+  border-radius: var(--pd-radius-md, 8px);
+}
+
+.pd-skeleton-pill {
+  border-radius: 9999px !important;
+}
+
+/* Stat card skeleton container */
+.pd-stat-card-skeleton {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  min-height: 98px;
+}
+
+/* Friendly Page & Section Loader */
+.pd-page-loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  width: 100%;
+}
+
+.pd-loader-pulse-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(42, 171, 226, 0.12);
+  color: var(--pd-primary, #2aabe2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  margin-bottom: 1rem;
+  animation: pd-pulse-fade 1.5s infinite ease-in-out;
+}
+
+.pd-page-loader-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.pd-page-loader-sub {
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Skeleton Chart Container */
+.pd-chart-skeleton-wrap {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}

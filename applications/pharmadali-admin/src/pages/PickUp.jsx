@@ -7,6 +7,7 @@ import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg"
 import { fetchPickupOrders, completePickupOrder } from "../services/posService";
 import "../assets/css/pospage.css";
 import "../assets/css/inventory.css";
+import { TableSkeleton } from "../components/loading";
 
 function DiscountSelect({ value, onChange }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -303,31 +304,29 @@ function PickUp() {
           </div>
 
           <div className="pickup-card">
-            {loading ? (
-              <div className="p-4 text-center">Loading orders...</div>
-            ) : (
-              <>
-                <table className="pickup-table w-100">
-                <colgroup>
-                  <col style={{ width: "16%" }} />
-                  <col style={{ width: "26%" }} />
-                  <col style={{ width: "12%" }} />
-                  <col style={{ width: "18%" }} />
-                  <col style={{ width: "14%" }} />
-                  <col style={{ width: "14%" }} />
-                </colgroup>
-                <thead>
-                  <tr>
-                    <th>Order Number</th>
-                    <th>Customer</th>
-                    <th className="pickup-col-center">Items</th>
-                    <th className="pickup-col-center">Total Amount</th>
-                    <th className="pickup-col-center">Status</th>
-                    <th className="pickup-col-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedOrders.map((order) => (
+            <table className="pickup-table w-100">
+              <colgroup>
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "26%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "18%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "14%" }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Order Number</th>
+                  <th>Customer</th>
+                  <th className="pickup-col-center">Items</th>
+                  <th className="pickup-col-center">Total Amount</th>
+                  <th className="pickup-col-center">Status</th>
+                  <th className="pickup-col-center">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <TableSkeleton rows={5} columns={6} showAvatar={false} />
+                ) : paginatedOrders.map((order) => (
                     <tr
                       key={order.id}
                       className={activeOrder?.id === order.id ? "pickup-row-selected" : ""}
@@ -452,8 +451,6 @@ function PickUp() {
                   </nav>
                 </div>
               )}
-            </>
-          )}
           </div>
         </div>
         {activeOrder && (

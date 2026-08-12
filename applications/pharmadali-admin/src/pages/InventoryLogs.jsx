@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import "../assets/css/inventory.css";
 import Modal from "../components/Modal";
 import { useInventoryLogs } from "./inventory/hooks/useInventoryLogs";
+import { TableSkeleton } from "../components/loading";
 
 const ACTION_FILTERS = ["All", "Stock In", "Stock Out", "Adjustment", "Waste"];
 
@@ -141,16 +142,7 @@ function InventoryLogs() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={6}>
-                    <div className="inventory-empty-state">
-                      <div className="spinner-border text-primary mb-2" role="status">
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                      <p className="mb-0">Loading inventory logs...</p>
-                    </div>
-                  </td>
-                </tr>
+                <TableSkeleton rows={6} columns={6} showAvatar={false} />
               ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan={6}>

@@ -24,6 +24,9 @@ ChartJS.register(
   Legend,
   Filler
 );
+import React from "react";
+import arrowDropDownIcon from "../../../assets/icons/analytics-and-forecasting/arrow_drop_down.svg";
+import { ChartSkeleton } from "../../../components/loading";
 import aiIcon from "../../../assets/icons/analytics-and-forecasting/AI.svg";
 
 export default function AnalyticsChart({ chartData, chartTitle, insights, isCurrency, timeframe, onTimeframeChange, timeframeOptions, loading, chartType = "line" }) {
@@ -125,10 +128,7 @@ export default function AnalyticsChart({ chartData, chartTitle, insights, isCurr
         <div className="col-lg-8 mb-4 mb-lg-0">
           <div className="chart-container" style={{ position: 'relative', height: '100%', minHeight: '280px' }}>
             {loading ? (
-              <div className="text-secondary h-100 d-flex align-items-center justify-content-center">
-                <div className="spinner-border spinner-border-sm me-2" role="status" style={{ color: "#48AAD9" }} />
-                Loading chart...
-              </div>
+              <ChartSkeleton height={280} />
             ) : values.length === 0 ? (
               <div className="text-secondary h-100 d-flex align-items-center justify-content-center">No data available for this timeframe.</div>
             ) : chartType === "bar" ? (

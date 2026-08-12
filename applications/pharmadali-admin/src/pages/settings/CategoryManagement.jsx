@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Breadcrumb } from "./Breadcrumb";
+import { ListSkeleton } from "../../components/loading";
 import "../../assets/css/settings/common.css";
 import "../../assets/css/settings/product-config.css";
 import "../../assets/css/settings/overlays.css";
@@ -183,10 +184,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
         </div>
 
         {loading ? (
-          <div className="text-center py-5 text-muted">
-            <div className="spinner-border spinner-border-sm me-2" style={{ color: "#2aabe2" }} role="status" />
-            Loading categories...
-          </div>
+          <ListSkeleton count={4} />
         ) : (
           <div className="custom-scrollbar" style={{ maxHeight: "480px", overflowY: "auto", paddingRight: "10px" }}>
             {filteredData.map((cat) => (

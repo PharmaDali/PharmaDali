@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { SettingForm } from "./SettingForm";
+import { PageLoader } from "../../components/loading";
 import "../../assets/css/settings/common.css";
 import {
   getPharmacySettings,
@@ -173,10 +174,12 @@ export const Operations = ({ onNavigate }) => {
         ]}
         onNavigate={onNavigate}
       >
-        <div className="text-center py-5 text-muted">
-          <div className="spinner-border spinner-border-sm me-2" style={{ color: "#2aabe2" }} role="status" />
-          Loading threshold settings...
-        </div>
+        <PageLoader
+          title="Loading operations settings..."
+          subtitle="Please wait a moment while we fetch threshold configurations."
+          iconClass="fa-solid fa-gears"
+          minHeight={200}
+        />
       </SettingForm>
     );
   }

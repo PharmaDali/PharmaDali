@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { SettingForm } from "./SettingForm";
+import { PageLoader } from "../../components/loading";
 import "../../assets/css/settings/common.css";
 import {
   getPharmacySettings,
@@ -131,10 +132,12 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
         ]}
         onNavigate={onNavigate}
       >
-        <div className="text-center py-5 text-muted">
-          <div className="spinner-border spinner-border-sm me-2" style={{ color: "#2aabe2" }} role="status" />
-          Loading item exchange policy...
-        </div>
+        <PageLoader
+          title="Loading exchange policy settings..."
+          subtitle="Please wait a moment while we load pharmacy return rules."
+          iconClass="fa-solid fa-rotate"
+          minHeight={200}
+        />
       </SettingForm>
     );
   }

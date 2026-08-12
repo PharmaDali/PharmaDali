@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { fetchPharmacists, createPharmacist, updatePharmacist, deletePharmacist } from "../services/pharmacistService";
 import "../assets/css/pharmacists.css";
+import { TableSkeleton } from "../components/loading";
 
 const calculateAge = (birthdate) => {
 	const today = new Date();
@@ -313,11 +314,7 @@ function Pharmacists() {
 						</thead>
 						<tbody>
 							{loading ? (
-								<tr>
-									<td colSpan={6} className="text-center text-muted py-4">
-										Loading pharmacists...
-									</td>
-								</tr>
+								<TableSkeleton rows={5} columns={6} showAvatar={false} />
 							) : tableError ? (
 								<tr>
 									<td colSpan={6} className="text-center text-danger py-4">

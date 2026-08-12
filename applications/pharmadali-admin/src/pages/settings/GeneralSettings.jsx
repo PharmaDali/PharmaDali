@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { SettingForm } from "./SettingForm";
+import { PageLoader } from "../../components/loading";
 import {
   getPharmacySettings,
   updatePharmacySettings,
@@ -245,10 +246,12 @@ export const GeneralSettings = ({ onNavigate }) => {
         ]}
         onNavigate={onNavigate}
       >
-        <div className="text-center py-5 text-muted">
-          <div className="spinner-border spinner-border-sm me-2" style={{ color: "#2aabe2" }} role="status" />
-          Loading settings...
-        </div>
+        <PageLoader
+          title="Loading pharmacy settings..."
+          subtitle="Please wait a moment while we fetch your pharmacy details."
+          iconClass="fa-solid fa-sliders"
+          minHeight={200}
+        />
       </SettingForm>
     );
   }
