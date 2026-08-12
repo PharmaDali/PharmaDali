@@ -3,6 +3,7 @@ import { useState } from 'react'
 import dashboardIcon from '../../assets/dashboard-icon.svg'
 import pharmaciesIcon from '../../assets/pharmacies-icon.svg'
 import sidebarLogo from '../../assets/side-bar-logo.svg'
+import collapsedLogo from '../../assets/icon-collapsed-sidebar.svg'
 import ticketsIcon from '../../assets/tickets-icon.svg'
 import usersIcon from '../../assets/users-icon.svg'
 import notificationsIcon from '../../assets/notifications-icon.svg'
@@ -20,10 +21,10 @@ function Sidebar() {
 
   return (
     <aside className={`relative z-20 min-h-screen bg-[#2b2f37] border-r border-[rgba(255, 255, 255, 0.04)] shadow-[8px_0_24px_rgba(0,0,0,0.12)] p-0 shrink-0 transition-[width] duration-300 ${isCollapsed ? 'w-[80px]' : 'w-[240px]'}`}>
-      <div className="flex items-center justify-center min-h-[72px] bg-[#48aad9] px-4 py-3 overflow-hidden">
+      <div className="flex items-center justify-center min-h-[68px] bg-[#48aad9] px-4 py-3 overflow-hidden">
         <img
-          className={`block transition-opacity duration-300 ${isCollapsed ? 'opacity-0 w-0' : 'w-[170px] max-w-[200px] opacity-100'}`}
-          src={sidebarLogo}
+          className={`block transition-all duration-300 ${isCollapsed ? 'w-[36px] h-[36px]' : 'w-[170px] max-w-[200px]'}`}
+          src={isCollapsed ? collapsedLogo : sidebarLogo}
           alt="PharmaDali"
         />
       </div>
