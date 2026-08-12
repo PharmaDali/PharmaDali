@@ -5,12 +5,14 @@ import KpiCard from '../../components/Dashboard/KpiCard'
 import PharmacyMap from '../../components/Dashboard/PharmacyMap'
 import Pharmacies from '../Pharmacies/Pharmacies'
 import Users from '../Users/Users'
+import Notifications from '../Notifications/Notifications'
 
 const PAGE_TITLES: Record<string, string> = {
   '/homepage': 'Dashboard',
   '/pharmacies': 'Pharmacies',
   '/users': 'Users',
   '/tickets': 'Tickets',
+  '/notifications': 'Notifications',
 }
 
 function HomePage() {
@@ -53,6 +55,12 @@ function HomePage() {
             <section className="w-full">
               <div className="max-w-[1400px]">
                 <Users />
+              </div>
+            </section>
+          ) : pathname === '/notifications' ? (
+            <section className="w-full">
+              <div className="max-w-[1400px]">
+                <Notifications />
               </div>
             </section>
           ) : (

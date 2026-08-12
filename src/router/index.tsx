@@ -20,6 +20,10 @@ const router = createBrowserRouter([
     element: <HomePage />,
   },
   {
+    path: '/notifications',
+    element: <HomePage />,
+  },
+  {
     path: '/',
     element: <Login />,
   },
