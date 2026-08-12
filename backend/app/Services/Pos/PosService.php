@@ -31,10 +31,14 @@ class PosService
             ->where('is_available', true);
 
         if ($search) {
-            $query->whereHas('product', function ($q) use ($search) {
-                $q->where('product_name', 'like', "%{$search}%")
+            $query->whereHas('product', function ($pq) use ($search) {
+                $pq->where('product_name', 'like', "%{$search}%")
                   ->orWhere('generic_name', 'like', "%{$search}%")
-                  ->orWhere('brand_name', 'like', "%{$search}%");
+                  ->orWhere('brand_name', 'like', "%{$search}%")
+                  ->orWhere('strength', 'like', "%{$search}%")
+                  ->orWhere('form', 'like', "%{$search}%")
+                  ->orWhere('size', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
             });
         }
 

@@ -8,6 +8,7 @@ import Modal from "../components/Modal";
 import "../assets/css/pospage.css";
 import { fetchPosProducts, createPosOrder } from "../services/posService";
 import { toTitleCase } from "../utils/stringUtils";
+import { TableSkeleton } from "../components/loading";
 
 function EmptyState({ minHeight = 260, iconWidth = 150, className = "", message = "Search for items" }) {
   return (
@@ -23,37 +24,43 @@ function EmptyState({ minHeight = 260, iconWidth = 150, className = "", message 
   );
 }
 
-const COL_WIDTHS = ["40%", "30%", "30%"];
+const COL_WIDTHS = ["25%", "20%", "25%", "15%", "15%"];
 
 function ProductTable({ results, selectedId, onSelect, onScroll, loadingMore }) {
-  const getFullProductName = (product) => {
+  const getGenericName = (product) => {
     if (!product) return "---";
-    const parts = [
-      product.product_name,
-      product.generic_name,
-      product.brand_name ? `(${product.brand_name})` : null,
-      product.form,
-      product.strength,
-      product.size,
-    ];
-    return toTitleCase(parts.filter(Boolean).join(" "));
+    return toTitleCase(product.generic_name || product.product_name || "---");
+  };
+
+  const getBrandName = (product) => {
+    if (!product) return "Generic";
+    return toTitleCase(product.brand_name || "Generic");
+  };
+
+  const getStrength = (product) => {
+    if (!product) return "---";
+    const parts = [product.strength, product.form, product.size].filter(Boolean);
+    return parts.length > 0 ? parts.join(" ") : "---";
   };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-      
-      <table className="table mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
-        <colgroup>
-          {COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
-        </colgroup>
-        <thead>
-          <tr style={{ background: "#96D2EE" }}>
-            <th className="px-3 py-2 fw-semibold border-0 text-center" style={{ color: "#555", background: "#96D2EE" }}>Product Name</th>
-            <th className="px-3 py-2 fw-semibold border-0 text-end" style={{ color: "#555", background: "#96D2EE" }}>Price (PHP)</th>
-            <th className="px-3 py-2 fw-semibold border-0 text-center" style={{ color: "#555", background: "#96D2EE" }}>Stocks</th>
-          </tr>
-        </thead>
-      </table>
+      <div className="rounded-top-3 overflow-hidden" style={{ background: "#48AAD9" }}>
+        <table className="table mb-0 align-middle" style={{ fontSize: 13, tableLayout: "fixed" }}>
+          <colgroup>
+            {COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
+          </colgroup>
+          <thead>
+            <tr style={{ background: "#48AAD9" }}>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "#ffffff", background: "#48AAD9" }}>Generic Name</th>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "#ffffff", background: "#48AAD9" }}>Brand Name</th>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "#ffffff", background: "#48AAD9" }}>Strength</th>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-end" style={{ color: "#ffffff", background: "#48AAD9" }}>Price (PHP)</th>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-center" style={{ color: "#ffffff", background: "#48AAD9" }}>Stocks</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
       
       <div className="pos-scroll" onScroll={onScroll} style={{ flex: 1, minHeight: 0, overflowY: "auto" }}>
         <table className="table table-hover mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
@@ -61,40 +68,37 @@ function ProductTable({ results, selectedId, onSelect, onScroll, loadingMore }) 
             {COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
           </colgroup>
           <tbody>
-            {results.map((item) => (
-              <tr
-                key={item.id}
-                className="pos-row"
-                onClick={() => onSelect(item)}
-                style={{
-                  cursor: "pointer",
-                  background: selectedId === item.id ? "#e8f0fe" : "white",
-                }}
-              >
-                <td className="py-3 border-0 border-bottom text-start" style={{ color: "#333", borderLeft: selectedId === item.id ? "4px solid #96D2EE" : "4px solid transparent", paddingLeft: 12, paddingRight: 12 }}>
-                  <div className="d-flex align-items-center gap-2">
-                    {item.product?.image_url ? (
-                      <img
-                        src={item.product.image_url}
-                        alt={item.product?.product_name || "Product"}
-                        className="rounded border flex-shrink-0"
-                        style={{ width: "32px", height: "32px", objectFit: "cover", backgroundColor: "#f9fafb" }}
-                      />
-                    ) : (
-                      <div
-                        className="rounded border d-flex align-items-center justify-content-center text-secondary flex-shrink-0"
-                        style={{ width: "32px", height: "32px", backgroundColor: "#f3f4f6" }}
-                      >
-                        <i className="fa-solid fa-pills" style={{ fontSize: "13px", color: "#9ca3af" }} />
-                      </div>
-                    )}
-                    <span style={{ fontSize: 13, fontWeight: 500 }}>{getFullProductName(item.product)}</span>
-                  </div>
-                </td>
-                <td className="px-3 py-3 border-0 border-bottom text-end" style={{ color: "#333" }}>{parseFloat(item.selling_price).toFixed(2)}</td>
-                <td className="px-3 py-3 border-0 border-bottom text-center" style={{ color: "#333" }}>{item.stock}</td>
-              </tr>
-            ))}
+            {results.map((item) => {
+              const isSelected = selectedId === item.id;
+              return (
+                <tr
+                  key={item.id}
+                  className="pos-row"
+                  onClick={() => onSelect(item)}
+                  style={{
+                    cursor: "pointer",
+                    background: isSelected ? "#d9d9d9" : "transparent",
+                    transition: "background-color 0.15s ease",
+                  }}
+                >
+                  <td className="px-3 py-3 border-0 border-bottom text-start" style={{ color: "var(--pd-soft-black, #334155)", fontWeight: 500 }}>
+                    {getGenericName(item.product)}
+                  </td>
+                  <td className="px-3 py-3 border-0 border-bottom text-start" style={{ color: "var(--pd-soft-black, #334155)" }}>
+                    {getBrandName(item.product)}
+                  </td>
+                  <td className="px-3 py-3 border-0 border-bottom text-start" style={{ color: "var(--pd-soft-black, #334155)" }}>
+                    {getStrength(item.product)}
+                  </td>
+                  <td className="px-3 py-3 border-0 border-bottom text-end" style={{ color: "var(--pd-soft-black, #334155)" }}>
+                    {parseFloat(item.selling_price).toFixed(2)}
+                  </td>
+                  <td className="px-3 py-3 border-0 border-bottom text-center" style={{ color: "var(--pd-soft-black, #334155)" }}>
+                    {item.stock}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         {loadingMore && <div className="text-center py-2" style={{ fontSize: 12, color: "#888" }}>Loading more products...</div>}
@@ -410,7 +414,7 @@ function PosPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
-    }, 500);
+    }, 250);
     return () => clearTimeout(timer);
   }, [search]);
 
@@ -420,11 +424,11 @@ function PosPage() {
 
     try {
       const response = await fetchPosProducts({ search: searchQuery, page: targetPage });
-      const newProducts = response.data;
+      const newProducts = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
       
       setProducts(prev => isInitial ? newProducts : [...prev, ...newProducts]);
-      setHasMore(response.current_page < response.last_page);
-      setPage(response.current_page);
+      setHasMore(response?.current_page < response?.last_page);
+      setPage(response?.current_page || 1);
     } catch (error) {
       console.error("Failed to fetch products:", error);
     } finally {
@@ -549,33 +553,33 @@ function PosPage() {
         <div className="card border-0 shadow-md pos-card pos-product-card">
           <div className="card-header bg-white border-0 d-flex align-items-center gap-3 flex-wrap pt-3 pb-2 px-3">
             <h6
-              className="fw-semibold mb-0 flex-shrink-0 pos-title"
-              style={{ color: "#222", fontSize: 20 }}
+              className="fw-bold mb-0 flex-shrink-0 pos-title"
+              style={{ color: "var(--pd-soft-black-dark, #1e293b)", fontSize: 20 }}
             >
               Product List
             </h6>
             <div
-              className="d-flex align-items-center gap-3 px-3 py-2 flex-grow-1 flex-md-grow-0 pos-search"
+              className="d-flex align-items-center gap-2 px-3 py-2 flex-grow-1 pos-search"
               style={{
-                background: "#f4f7fb",
-                border: "1.5px solid #dde3ec",
-                borderRadius: "var(--pd-radius-md)",
-                width: 300,
+                background: "#e8f0fe",
+                border: "1px solid #d0deee",
+                borderRadius: "8px",
+                maxWidth: "500px",
               }}
             >
               <i
                 className="fa-solid fa-magnifying-glass"
-                style={{ color: "#9ca3af", fontSize: 13 }}
+                style={{ color: "#64748b", fontSize: 14 }}
               />
               <input
                 type="text"
                 className="border-0 bg-transparent w-100"
-                placeholder="Search for Medicine name or brand"
+                placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
                   fontSize: 13,
-                  color: "#374151",
+                  color: "var(--pd-soft-black, #334155)",
                   outline: "none",
                   boxShadow: "none",
                 }}
@@ -586,10 +590,12 @@ function PosPage() {
             <div className="card border-1 shadow-md" style={{ height: "100%", overflow: "hidden" }}>
               <div className="card-body d-flex flex-column p-0" style={{ flex: 1, minHeight: 0 }}>
                 {loading && products.length === 0 ? (
-                  <div className="d-flex justify-content-center align-items-center h-100">
-                    <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
+                  <div className="table-responsive p-3">
+                    <table className="table pos-table align-middle mb-0">
+                      <tbody>
+                        <TableSkeleton rows={6} columns={5} showAvatar={true} />
+                      </tbody>
+                    </table>
                   </div>
                 ) : products.length > 0 ? (
                   <ProductTable
