@@ -328,7 +328,7 @@ function InventoryLogs() {
                 <div>
                   <p className="inventory-modal-label">Selling Price</p>
                   <p className="inventory-log-detail-value">
-                    {selectedLog.sellingPrice ? `₱${selectedLog.sellingPrice.toFixed(2)}` : "—"}
+                    {selectedLog.sellingPrice ? `PHP ${selectedLog.sellingPrice.toFixed(2)}` : "—"}
                   </p>
                 </div>
               </div>

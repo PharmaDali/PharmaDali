@@ -50,7 +50,7 @@ function SalesReportTable({
                   <td>{row.id}</td>
                   <td>{row.items}</td>
                   <td>{row.processedBy}</td>
-                  <td>₱{parseFloat(row.total).toFixed(2)}</td>
+                  <td>PHP {parseFloat(row.total).toFixed(2)}</td>
                   <td>
                     {row.has_exchange || row.status === 'exchanged' ? (
                       <span className="badge text-white shadow-sm" style={{ backgroundColor: "#2aabe2" }}>

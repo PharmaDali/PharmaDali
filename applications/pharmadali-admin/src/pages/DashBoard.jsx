@@ -145,7 +145,7 @@ function SalesTrend({ initialTrend, loading }) {
         cornerRadius: 8,
         displayColors: false,
         callbacks: {
-          label: (ctx) => ` ₱ ${Number(ctx.parsed.y).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+          label: (ctx) => ` PHP ${Number(ctx.parsed.y).toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
         },
       },
     },

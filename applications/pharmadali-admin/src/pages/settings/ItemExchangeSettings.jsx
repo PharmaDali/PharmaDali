@@ -174,7 +174,7 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
           <i className="fa-solid fa-shield-halved me-1"></i> No Cash Refund Policy Standard
         </div>
         <div style={{ fontSize: "12px", lineHeight: "1.5" }}>
-          Item exchanges allow returning items in exchange for replacement products of equal or higher value. If replacement value is lower, excess returned credit is non-refundable (₱0.00 cash refund). Each order allows a maximum of 1 item exchange.
+          Item exchanges allow returning items in exchange for replacement products of equal or higher value. If replacement value is lower, excess returned credit is non-refundable (PHP 0.00 cash refund). Each order allows a maximum of 1 item exchange.
         </div>
       </div>
 

@@ -161,7 +161,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                                     <option value="expired">Expired</option>
                                   </select>
                                 </td>
-                                <td className="text-end fw-bold text-dark">₱{subtotal.toFixed(2)}</td>
+                                <td className="text-end fw-bold text-dark">PHP {subtotal.toFixed(2)}</td>
                               </tr>
                             );
                           })}
@@ -171,7 +171,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
 
                     <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded-3">
                       <span className="fw-medium text-muted small">Total Return Credit Available:</span>
-                      <span className="fw-bold fs-6 text-dark" style={{ color: "#2aabe2" }}>₱{returnedTotal.toFixed(2)}</span>
+                      <span className="fw-bold fs-6 text-dark" style={{ color: "#2aabe2" }}>PHP {returnedTotal.toFixed(2)}</span>
                     </div>
                   </div>
                 )}
@@ -211,7 +211,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                                 <div key={prod.id} className="d-flex justify-content-between align-items-center p-2 border-bottom hover-bg-light rounded-2">
                                   <div>
                                     <div className="fw-semibold text-dark small">{name}</div>
-                                    <div className="text-muted" style={{ fontSize: "11px" }}>₱{Number(prod.selling_price).toFixed(2)} | Stock: {prod.stock}</div>
+                                    <div className="text-muted" style={{ fontSize: "11px" }}>PHP {Number(prod.selling_price).toFixed(2)} | Stock: {prod.stock}</div>
                                   </div>
                                   <button
                                     type="button"
@@ -240,7 +240,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                               <div key={item.id} className="d-flex justify-content-between align-items-center p-2 border-bottom">
                                 <div>
                                   <div className="fw-medium text-dark small">{item.product_name}</div>
-                                  <div className="text-muted" style={{ fontSize: "11px" }}>₱{item.selling_price.toFixed(2)} x {item.qty}</div>
+                                  <div className="text-muted" style={{ fontSize: "11px" }}>PHP {item.selling_price.toFixed(2)} x {item.qty}</div>
                                 </div>
                                 <div className="d-flex align-items-center gap-2">
                                   <input
@@ -267,7 +267,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
 
                         <div className="d-flex justify-content-between align-items-center bg-light p-2 rounded-3">
                           <span className="small text-muted fw-medium">Replacement Total:</span>
-                          <span className="fw-bold text-dark">₱{replacementTotal.toFixed(2)}</span>
+                          <span className="fw-bold text-dark">PHP {replacementTotal.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>
@@ -283,11 +283,11 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                     <div className="card border-0 bg-light p-3 rounded-3 mb-3">
                       <div className="d-flex justify-content-between mb-2">
                         <span className="text-muted small">Returned Total Value (Credit):</span>
-                        <span className="fw-semibold text-dark">₱{returnedTotal.toFixed(2)}</span>
+                        <span className="fw-semibold text-dark">PHP {returnedTotal.toFixed(2)}</span>
                       </div>
                       <div className="d-flex justify-content-between mb-2">
                         <span className="text-muted small">Replacement Total Value:</span>
-                        <span className="fw-semibold text-dark">₱{replacementTotal.toFixed(2)}</span>
+                        <span className="fw-semibold text-dark">PHP {replacementTotal.toFixed(2)}</span>
                       </div>
 
                       <hr className="my-2" />
@@ -298,14 +298,14 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                             <i className="fa-solid fa-shield-halved me-1"></i> No Cash Refund Policy Notice
                           </div>
                           <div>
-                            Replacement cost is ₱{Math.abs(financialSummary.netDifference).toFixed(2)} lower than returned value. Excess credit is non-refundable (₱0.00 cash refund).
+                            Replacement cost is PHP {Math.abs(financialSummary.netDifference).toFixed(2)} lower than returned value. Excess credit is non-refundable (PHP 0.00 cash refund).
                           </div>
                         </div>
                       ) : (
                         <div>
                           <div className="d-flex justify-content-between fw-bold text-dark mb-2">
                             <span>Additional Payment Due:</span>
-                            <span style={{ color: "#2aabe2" }}>₱{financialSummary.additionalPaymentRequired.toFixed(2)}</span>
+                            <span style={{ color: "#2aabe2" }}>PHP {financialSummary.additionalPaymentRequired.toFixed(2)}</span>
                           </div>
 
                           {financialSummary.additionalPaymentRequired > 0 && (
@@ -322,7 +322,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                                 </select>
                               </div>
                               <div className="col-md-6">
-                                <label className="form-label small text-muted mb-1">Amount Tendered (₱)</label>
+                                <label className="form-label small text-muted mb-1">Amount Tendered (PHP)</label>
                                 <input
                                   type="number"
                                   className="form-control form-control-sm"
@@ -333,7 +333,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                               </div>
                               {financialSummary.changeAmount > 0 && (
                                 <div className="col-12 text-end text-success fw-bold small mt-1">
-                                  Change Due: ₱{financialSummary.changeAmount.toFixed(2)}
+                                  Change Due: PHP {financialSummary.changeAmount.toFixed(2)}
                                 </div>
                               )}
                             </div>
