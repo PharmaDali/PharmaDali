@@ -482,7 +482,7 @@
 .pharmacists-btn-cancel:hover {
   background: #e5e7eb;
   border-color: #9ca3af;
-  color: #1f2937;
+  color: var(--pd-soft-black, #334155);
 }
 
 .pharmacists-btn-save {
@@ -560,7 +560,7 @@
 
 .pharmacists-details-value {
   font-size: 15px;
-  color: #1f2937;
+  color: var(--pd-soft-black, #334155);
   margin: 0;
   padding: 0;
   font-weight: 500;
