@@ -307,25 +307,6 @@ const Notifications: React.FC = () => {
                                         >
                                             {item.read ? 'Mark as unread' : 'Mark as read'}
                                         </button>
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleSelectNotification(item);
-                                            }}
-                                            className="min-w-[54px] h-8 flex items-center justify-center px-3 rounded-[6px] bg-[#2aa6e0] hover:bg-[#35b3f0] text-white text-xs font-medium transition-colors cursor-pointer"
-                                        >
-                                            View
-                                        </button>
-                                        <button
-                                            onClick={(e) => handleClear(item.id, e)}
-                                            className="text-gray-400 hover:text-red-400 transition-colors p-1.5 rounded-md hover:bg-red-500/10 cursor-pointer"
-                                            title="Dismiss notification"
-                                        >
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <line x1="18" y1="6" x2="6" y2="18" />
-                                                <line x1="6" y1="6" x2="18" y2="18" />
-                                            </svg>
-                                        </button>
                                     </div>
                                 </div>
                             ))
