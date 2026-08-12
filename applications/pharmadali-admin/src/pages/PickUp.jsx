@@ -326,7 +326,17 @@ function PickUp() {
               <tbody>
                 {loading ? (
                   <TableSkeleton rows={5} columns={6} showAvatar={false} />
-                ) : paginatedOrders.map((order) => (
+                ) : orders.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="text-center py-5 text-muted">
+                      <div className="py-2">
+                        <i className="fa-solid fa-box-open fs-3 text-muted mb-2 d-block" />
+                        <span>No pickup orders found.</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedOrders.map((order) => (
                     <tr
                       key={order.id}
                       className={activeOrder?.id === order.id ? "pickup-row-selected" : ""}
@@ -354,13 +364,9 @@ function PickUp() {
                         </button>
                       </td>
                     </tr>
-                  ))}
-                  {orders.length === 0 && (
-                    <tr>
-                      <td colSpan="6" className="text-center py-4 text-muted">No pickup orders found.</td>
-                    </tr>
-                  )}
-                </tbody>
+                  ))
+                )}
+              </tbody>
               </table>
               {!loading && orders.length > 0 && (
                 <div className="inventory-pagination-bar">
