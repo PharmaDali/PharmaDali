@@ -18,16 +18,23 @@ const INITIAL_USERS: User[] = [
   { id: 5, fullName: 'Hev abi', email: 'hevabi@gmail.com', phoneNumber: '09556667777', role: 'Assistant Pharmacist', branchName: 'TGP', status: 'Active' },
 ]
 
-const ROLES = ['All', 'Roles', 'Pharmacist', 'Users', 'Manager(Admin)', 'Assistant Pharmacist']
+const ROLES = ['All', 'Pharmacist', 'Users', 'Manager(Admin)', 'Assistant Pharmacist']
 const BRANCHES = ['All', 'Branches', 'Landicho Drugstore', 'Puremed', 'TGP']
 const STATUSES = ['All', 'Status', 'Active', 'Inactive']
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>(INITIAL_USERS)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [appliedSearchTerm, setAppliedSearchTerm] = useState('')
+
   const [selectedRole, setSelectedRole] = useState('All')
+  const [appliedRole, setAppliedRole] = useState('All')
+
   const [selectedBranch, setSelectedBranch] = useState('All')
+  const [appliedBranch, setAppliedBranch] = useState('All')
+
   const [selectedStatus, setSelectedStatus] = useState('All')
+  const [appliedStatus, setAppliedStatus] = useState('All')
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [formData, setFormData] = useState({
@@ -42,11 +49,25 @@ const Users: React.FC = () => {
 
   const [editingUser, setEditingUser] = useState<User | null>(null)
 
+  const handleSearch = () => {
+    setAppliedSearchTerm(searchInput)
+    setAppliedRole(selectedRole)
+    setAppliedBranch(selectedBranch)
+    setAppliedStatus(selectedStatus)
+  }
+
   const handleResetFilters = () => {
-    setSearchTerm('')
+    setSearchInput('')
+    setAppliedSearchTerm('')
+
     setSelectedRole('All')
+    setAppliedRole('All')
+
     setSelectedBranch('All')
+    setAppliedBranch('All')
+
     setSelectedStatus('All')
+    setAppliedStatus('All')
   }
 
   const handleToggleStatus = (id: number) => {
@@ -97,11 +118,11 @@ const Users: React.FC = () => {
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      !searchTerm ||
-      user.fullName.toLowerCase().includes(searchTerm.toLowerCase().trim())
-    const matchesRole = selectedRole === 'All' || user.role === selectedRole
-    const matchesBranch = selectedBranch === 'All' || user.branchName === selectedBranch
-    const matchesStatus = selectedStatus === 'All' || user.status === selectedStatus
+      !appliedSearchTerm ||
+      user.fullName.toLowerCase().includes(appliedSearchTerm.toLowerCase().trim())
+    const matchesRole = appliedRole === 'All' || appliedRole === 'Roles' || user.role === appliedRole
+    const matchesBranch = appliedBranch === 'All' || appliedBranch === 'Branches' || user.branchName === appliedBranch
+    const matchesStatus = appliedStatus === 'All' || appliedStatus === 'Status' || user.status === appliedStatus
 
     return matchesSearch && matchesRole && matchesBranch && matchesStatus
   })
@@ -147,8 +168,11 @@ const Users: React.FC = () => {
               </div>
               <input
                 type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearch()
+                }}
                 placeholder=""
                 className="w-full bg-[#6a6a6a] text-white pl-10 pr-4 py-2 rounded-[8px] border border-transparent focus:outline-none focus:bg-[#7a7a7a] transition-colors text-sm"
               />
@@ -206,7 +230,7 @@ const Users: React.FC = () => {
           {/* Action Buttons: Search & Reset */}
           <div className="md:col-span-2 flex items-center gap-3">
             <button
-              onClick={() => { }}
+              onClick={handleSearch}
               className="flex-1 bg-[#48aad9] hover:bg-[#3ca0d0] text-white font-medium py-2 rounded-[8px] transition-colors cursor-pointer text-center text-sm"
             >
               Search
