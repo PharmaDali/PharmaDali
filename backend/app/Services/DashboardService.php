@@ -230,14 +230,18 @@ class DashboardService
         $lowStockItems = collect($priorityRestocks)
             ->take(5)
             ->map(function ($item) {
-                $name = $item['name'] ?? 'Unknown Product';
-                $dos  = $item['days_of_stock'] ?? 0;
+                $name  = $item['name'] ?? 'Unknown Product';
+                $dos   = $item['days_of_stock'] ?? 0;
                 $stock = $item['quantity'] ?? 0;
-                $note  = $dos <= 1 ? "less than 1 day of supply ({$stock} left)" : "{$dos} days supply ({$stock} left)";
+                $weeks = max(1, (int) ceil($dos / 7));
+                $wosLabel = $dos <= 7 ? "< 1 week" : "{$weeks} weeks";
+                $note  = $dos <= 7 ? "less than 1 week of supply ({$stock} left)" : "{$weeks} weeks of supply ({$stock} left)";
 
                 return [
-                    'name' => $name,
-                    'note' => $note,
+                    'name'  => $name,
+                    'stock' => $stock,
+                    'weeks' => $wosLabel,
+                    'note'  => $note,
                 ];
             })
             ->values()
@@ -248,11 +252,16 @@ class DashboardService
             $lowStockItems = $this->dashboardRepository
                 ->getFallbackLowStockProducts($pharmacyId, 50, 5)
                 ->map(function ($bp) {
-                    $name = $bp->product->product_name ?? 'Unknown Product';
+                    $name  = $bp->product->product_name ?? 'Unknown Product';
                     $stock = $bp->stock;
-                    $note = $stock <= 5 ? "less than 1 day of supply ({$stock} left)" : "{$stock} units remaining";
+                    $note  = "less than 1 week of supply ({$stock} left)";
 
-                    return ['name' => $name, 'note' => $note];
+                    return [
+                        'name'  => $name,
+                        'stock' => $stock,
+                        'weeks' => "< 1 week",
+                        'note'  => $note,
+                    ];
                 })
                 ->values()
                 ->toArray();
@@ -262,12 +271,17 @@ class DashboardService
         $expiringItems = $this->dashboardRepository
             ->getExpiringSoonBatches($pharmacyId, $today->toDateString(), $today->copy()->addDays(30)->toDateString(), 5)
             ->map(function ($batch) use ($today) {
-                $name = $batch->pharmacyProduct->product->product_name ?? 'Unknown Product';
-                $days = (int) $today->diffInDays($batch->expiry_date, false);
+                $name  = $batch->pharmacyProduct->product->product_name ?? 'Unknown Product';
+                $stock = $batch->stock;
+                $days  = (int) $today->diffInDays($batch->expiry_date, false);
+                $weeks = max(1, (int) ceil($days / 7));
+                $daysLabel = $weeks === 1 ? "1 week left" : "{$weeks} weeks left";
 
                 return [
-                    'name' => $name,
-                    'days' => "{$days} days",
+                    'name'  => $name,
+                    'stock' => $stock,
+                    'weeks' => $daysLabel,
+                    'days'  => $daysLabel,
                 ];
             })
             ->values()
