@@ -5,12 +5,14 @@ import pharmaciesIcon from '../../assets/pharmacies-icon.svg'
 import sidebarLogo from '../../assets/side-bar-logo.svg'
 import ticketsIcon from '../../assets/tickets-icon.svg'
 import usersIcon from '../../assets/users-icon.svg'
+import notificationsIcon from '../../assets/notifications-icon.svg'
 
 const SIDEBAR_ITEMS = [
   { to: '/homepage', label: 'Dashboard', icon: dashboardIcon, end: true },
   { to: '/pharmacies', label: 'Pharmacies', icon: pharmaciesIcon },
   { to: '/users', label: 'Users', icon: usersIcon },
   { to: '/tickets', label: 'Tickets', icon: ticketsIcon },
+  { to: '/notifications', label: 'Notifications', icon: notificationsIcon },
 ]
 
 function Sidebar() {
