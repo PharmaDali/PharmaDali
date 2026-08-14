@@ -13,7 +13,7 @@ import { useNavigate, useOutletContext, Navigate } from "react-router-dom";
 import { fetchDashboardOverview, fetchSalesTrend } from "../services/dashboardService";
 import { maxChartValue } from "../utils/dashboardUtils";
 import "../assets/css/dashboard.css";
-import { SingleStatCardSkeleton, QuickInsightSkeleton, ChartSkeleton } from "../components/loading";
+import { SingleStatCardSkeleton, QuickInsightSkeleton, ChartSkeleton, WavingDots } from "../components/loading";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
@@ -25,10 +25,6 @@ const EMPTY_QUICK_INSIGHTS = [
 ];
 
 function StatCard({ label, value, prefix, bg, loading }) {
-  if (loading) {
-    return <SingleStatCardSkeleton bg={bg} />;
-  }
-
   return (
     <div
       className="rounded-3 p-3 h-100 dashboard-stat-card"
@@ -36,8 +32,14 @@ function StatCard({ label, value, prefix, bg, loading }) {
     >
       <div style={{ fontSize: 13, color: "#334155", marginBottom: 4 }}>{label}</div>
       <div className="dashboard-stat-value" style={{ fontWeight: 900, lineHeight: 2, color: "#334155", fontSize: 32 }}>
-        {prefix && <span style={{ fontSize: 18, fontWeight: 900, verticalAlign: "middle", marginRight: 5 }}>{prefix}</span>}
-        {value}
+        {loading ? (
+          <WavingDots />
+        ) : (
+          <>
+            {prefix && <span style={{ fontSize: 18, fontWeight: 900, verticalAlign: "middle", marginRight: 5 }}>{prefix}</span>}
+            {value}
+          </>
+        )}
       </div>
     </div>
   );
@@ -101,24 +103,27 @@ function SalesTrend({ initialTrend, loading }) {
     datasets: [
       {
         data: values,
-        borderColor: "#229ad6",
-        borderWidth: 3,
-        pointBackgroundColor: "#229ad6",
-        pointBorderColor: "#ffffff",
-        pointBorderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7,
+        borderColor: "#2aabe2",
+        borderWidth: 2.5,
+        pointBackgroundColor: "#ffffff",
+        pointBorderColor: "#2aabe2",
+        pointBorderWidth: 2.5,
+        pointRadius: 5.5,
+        pointHoverRadius: 7.5,
+        pointHoverBackgroundColor: "#ffffff",
+        pointHoverBorderColor: "#2aabe2",
+        pointHoverBorderWidth: 3,
         fill: true,
         backgroundColor: (context) => {
           const chart = context.chart;
           const { ctx, chartArea } = chart;
-          if (!chartArea) return "rgba(34, 154, 214, 0.15)";
+          if (!chartArea) return "rgba(42, 171, 226, 0.12)";
           const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, "rgba(34, 154, 214, 0.35)");
-          gradient.addColorStop(1, "rgba(34, 154, 214, 0.0)");
+          gradient.addColorStop(0, "rgba(42, 171, 226, 0.22)");
+          gradient.addColorStop(1, "rgba(42, 171, 226, 0.01)");
           return gradient;
         },
-        tension: 0.35,
+        tension: 0,
         clip: false,
       },
     ],
@@ -151,12 +156,12 @@ function SalesTrend({ initialTrend, loading }) {
     },
     scales: {
       x: {
-        grid: { display: false },
+        grid: { color: "rgba(241, 245, 249, 0.8)", drawBorder: false },
         ticks: { color: "#888888", font: { size: 12, weight: "500" } },
       },
       y: {
-        border: { dash: [4, 4], color: "#e2e8f0" },
-        grid: { color: "#f1f5f9" },
+        border: { display: false },
+        grid: { color: "rgba(241, 245, 249, 0.8)", drawBorder: false },
         min: 0,
         max: maxChartValue(values),
         ticks: {
@@ -222,13 +227,13 @@ function parseLowStock(item) {
 
   if (!weeks && item.note) {
     if (item.note.includes("less than 1 day") || item.note.includes("less than 1 week")) {
-      weeks = "< 1 week";
+      weeks = "Less than 1 week";
     } else {
       const matchDays = item.note.match(/(\d+)\s+days?\s+supply/);
       if (matchDays) {
         const d = parseInt(matchDays[1], 10);
         const w = Math.max(1, Math.ceil(d / 7));
-        weeks = w === 1 ? "< 1 week" : `${w} weeks`;
+        weeks = w === 1 ? "Less than 1 week" : `${w} weeks`;
       }
     }
   }
@@ -237,10 +242,12 @@ function parseLowStock(item) {
     weeks = weeks.replace(/\s+supply/, "").trim();
   }
 
+  let finalWeeksText = weeks ? weeks.replace(/<\s*/g, "Less than ") : "Less than 1 week";
+
   return {
     name,
     stockText: stock !== undefined ? `${stock} left` : "Low stock",
-    weeksText: weeks || "< 1 week",
+    weeksText: finalWeeksText,
   };
 }
 
@@ -459,12 +466,10 @@ function DashBoard() {
         bg: "#96D2EE",
       },
       {
-        label: "Inventory Value",
-        value: cards
-          ? Number(cards.inventory_value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-          : "0.00",
-        prefix: "PHP",
-        bg: "#96D2EE",
+        label: "Expiring Items",
+        value: cards ? Number(cards.expiring_count ?? 0).toLocaleString() : "0",
+        prefix: null,
+        bg: "#F9C784",
       },
       {
         label: "Low Stock Items",
