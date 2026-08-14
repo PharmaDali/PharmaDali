@@ -46,6 +46,7 @@ class DashboardService
         // Reuse existing InventoryService metrics for stock levels
         $inventoryMetrics = $this->inventoryService->getInventoryMetrics();
         $lowStockCount = $inventoryMetrics['low_stocks'] ?? 0;
+        $expiringCount = $inventoryMetrics['expiring'] ?? 0;
 
         // Reuse existing RestockPredictorService for risk assessment
         $priorityRestocks = $this->restockService->getPriorityRestocks($pharmacyId);
@@ -57,6 +58,7 @@ class DashboardService
             'sales_today'             => $salesToday,
             'orders_today'            => $ordersToday,
             'inventory_value'         => $inventoryValue,
+            'expiring_count'          => $expiringCount,
             'low_stock_count'         => $lowStockCount,
             'predicted_stockout_risk' => $riskLevel,
         ];
