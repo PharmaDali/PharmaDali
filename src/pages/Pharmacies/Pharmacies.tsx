@@ -37,6 +37,8 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
   })
 
   const [editingPharmacy, setEditingPharmacy] = useState<Pharmacy | null>(null)
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
   const [editFormData, setEditFormData] = useState({
     name: '',
     owner: '',
@@ -71,6 +73,11 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
   const handleUpdatePharmacy = (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingPharmacy || !editFormData.name.trim()) return
+    setIsConfirmModalOpen(true)
+  }
+
+  const handleConfirmSave = () => {
+    if (!editingPharmacy) return
 
     const updated: Pharmacy = {
       ...editingPharmacy,
@@ -86,7 +93,9 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     if (selectedPharmacy?.id === editingPharmacy.id) {
       setSelectedPharmacy(updated)
     }
+    setIsConfirmModalOpen(false)
     setEditingPharmacy(null)
+    setIsSuccessModalOpen(true)
   }
 
   const handleSavePharmacy = (e: React.FormEvent) => {
@@ -512,6 +521,64 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Changes Modal */}
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
+          <div className="bg-[#292d37] w-full max-w-[440px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
+            <div className="w-16 h-16 rounded-full border-2 border-white flex items-center justify-center mx-auto mb-5 text-white">
+              <span className="text-3xl font-light leading-none">?</span>
+            </div>
+            <h2 className="text-white text-2xl font-bold mb-3">Confirm Changes</h2>
+            <p className="text-gray-300 text-sm mb-8 leading-relaxed">
+              Are you sure you want to save these changes?<br />
+              The pharmacy's information will be updated accordingly.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setIsConfirmModalOpen(false)}
+                className="w-full py-3 px-4 rounded-[10px] border border-gray-500/60 text-gray-200 hover:bg-white/5 font-semibold transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSave}
+                className="w-full py-3 px-4 rounded-[10px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors text-sm"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Changes Saved Successfully Modal */}
+      {isSuccessModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
+          <div className="bg-[#292d37] w-full max-w-[440px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
+            <div className="w-16 h-16 rounded-full bg-[#00c853]/20 border-2 border-[#00c853] flex items-center justify-center mx-auto mb-5 text-[#00c853]">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h2 className="text-white text-2xl font-bold mb-3">Changes Saved Successfully</h2>
+            <p className="text-gray-300 text-sm mb-8">
+              The information has been recorded successfully
+            </p>
+            <div>
+              <button
+                type="button"
+                onClick={() => setIsSuccessModalOpen(false)}
+                className="w-full py-3 px-4 rounded-[10px] bg-[#00c853] hover:bg-[#00b048] text-white font-semibold transition-colors text-sm"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
