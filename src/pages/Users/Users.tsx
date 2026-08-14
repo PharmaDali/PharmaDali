@@ -83,15 +83,6 @@ const Users: React.FC = () => {
     setAppliedStatus('All')
   }
 
-  const handleToggleStatus = (id: number) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id
-          ? { ...user, status: user.status === 'Active' ? 'Inactive' : 'Active' }
-          : user
-      )
-    )
-  }
 
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault()
@@ -633,9 +624,7 @@ const Users: React.FC = () => {
               </div>
             ) : (
               <div className="w-16 h-16 rounded-full border-2 border-[#4ade80] flex items-center justify-center mx-auto mb-4 text-[#4ade80]">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"></polyline>
-                </svg>
+                <span className="text-3xl font-bold leading-none">?</span>
               </div>
             )}
 
