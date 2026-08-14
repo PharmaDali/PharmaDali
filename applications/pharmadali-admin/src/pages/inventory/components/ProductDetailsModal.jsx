@@ -345,23 +345,25 @@ export function ProductDetailsModal({
               </span>
             </div>
 
-            {batchLoading ? (
-              <div className="inventory-batch-loading">
-                <div className="spinner-border spinner-border-sm" style={{ color: "#1f2937" }} role="status" />
-                <span>Loading batches...</span>
-              </div>
-            ) : batches.length === 0 ? (
-              <p className="inventory-batch-empty">No batches recorded for this product.</p>
-            ) : (
-              <div className="inventory-batch-table">
-                <div className="inventory-batch-head">
-                  <span>Batch No.</span>
-                  <span>Stock</span>
-                  <span>Manufactured</span>
-                  <span>Expiry Date</span>
-                  <span>Status</span>
+            {(() => {
+              const displayBatches = isModalEditing ? batches : batches.filter((b) => (b.stock ?? 0) > 0);
+              return batchLoading ? (
+                <div className="inventory-batch-loading">
+                  <div className="spinner-border spinner-border-sm" style={{ color: "#1f2937" }} role="status" />
+                  <span>Loading batches...</span>
                 </div>
-                {batches.map((batch) => (
+              ) : displayBatches.length === 0 ? (
+                <p className="inventory-batch-empty">No active batches recorded for this product.</p>
+              ) : (
+                <div className="inventory-batch-table">
+                  <div className="inventory-batch-head">
+                    <span>Batch No.</span>
+                    <span>Stock</span>
+                    <span>Manufactured</span>
+                    <span>Expiry Date</span>
+                    <span>Status</span>
+                  </div>
+                  {displayBatches.map((batch) => (
                   <div key={batch.id} className="inventory-batch-row">
                     <span className="inventory-batch-num">
                       {batch.batch_number || <em className="text-muted">—</em>}
@@ -425,7 +427,8 @@ export function ProductDetailsModal({
                   </div>
                 ))}
               </div>
-            )}
+            );
+          })()}
 
             {isModalEditing && !isPharmacist && (
               <div className="inventory-batch-add-area">                
