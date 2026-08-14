@@ -25,18 +25,6 @@ class InventoryController extends Controller
         ]);
     }
 
-    public function getTotalProductCount(Request $request)
-    {
-        $count = $this->inventoryService->getTotalProductCount();
-
-        return response()->json([
-            'status' => 'success',
-            'data' => [
-                'total_products' => $count,
-            ],
-        ]);
-    }
-
     public function getInventoryProducts(Request $request)
     {
         $filters = $request->only(['search', 'category', 'price_range', 'stock_range', 'status']);
