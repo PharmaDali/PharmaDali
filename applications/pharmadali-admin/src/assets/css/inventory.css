@@ -152,6 +152,7 @@
 .inventory-search-action {
   display: flex;
   align-items: flex-end;
+  gap: 8px;
 }
 
 .inventory-search-btn {
@@ -167,6 +168,23 @@
 .inventory-search-btn:hover {
   background: #eef6ff;
   border-color: var(--pd-primary, #2aabe2);
+}
+
+.inventory-reset-btn {
+  border-radius: var(--pd-radius-md);
+  background: #fff5f5;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  font-weight: 600;
+  padding: 0.45rem 1rem;
+  font-size: 13px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.inventory-reset-btn:hover {
+  background: #fee2e2;
+  border-color: #ef4444;
+  color: #b91c1c;
 }
 
 .inventory-select,

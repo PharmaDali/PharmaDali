@@ -111,6 +111,7 @@ export function Inventory() {
 
     navigate,
     loadData,
+    resetFilters,
   } = useInventory();
 
   return (
@@ -143,6 +144,7 @@ export function Inventory() {
         setStatusFilter={setStatusFilter}
         categoryOptions={categoryOptions}
         loadData={loadData}
+        onReset={resetFilters}
       />
 
       <div className="row g-4 inventory-content-row">

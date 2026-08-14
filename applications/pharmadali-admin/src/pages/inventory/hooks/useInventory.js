@@ -159,6 +159,15 @@ export function useInventory() {
     await Promise.all([loadMetricsAndRestocks(), loadProducts()]);
   }, [loadMetricsAndRestocks, loadProducts]);
 
+  // Reset all filters to defaults and reload
+  const resetFilters = useCallback(() => {
+    setQuery("");
+    setCategoryFilter("All");
+    setPriceFilter("All");
+    setStockFilter("All");
+    setStatusFilter("All");
+  }, []);
+
   // Derived properties: formatting dates to PH format
   const decoratedItems = useMemo(
     () =>
@@ -870,5 +879,6 @@ export function useInventory() {
 
     navigate,
     loadData,
+    resetFilters,
   };
 }

@@ -109,7 +109,15 @@ export function InventoryFilterBar({
   setStatusFilter,
   categoryOptions,
   loadData,
+  onReset,
 }) {
+  const isFiltered =
+    query !== "" ||
+    categoryFilter !== "All" ||
+    priceFilter !== "All" ||
+    stockFilter !== "All" ||
+    statusFilter !== "All";
+
   return (
     <div className="inventory-filter-bar">
       <div className="inventory-field inventory-search-field">
@@ -170,6 +178,17 @@ export function InventoryFilterBar({
         <button type="button" className="btn inventory-search-btn" onClick={loadData}>
           Search
         </button>
+        {isFiltered && (
+          <button
+            type="button"
+            className="btn inventory-reset-btn"
+            onClick={onReset}
+            title="Reset all filters"
+          >
+            <i className="fa-solid fa-xmark me-1" aria-hidden="true" />
+            Reset
+          </button>
+        )}
       </div>
     </div>
   );
