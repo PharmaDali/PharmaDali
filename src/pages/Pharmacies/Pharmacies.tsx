@@ -158,7 +158,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                 <tr key={p.id} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0">
                   <td className="py-4 px-6 text-gray-100 text-base">{p.name}</td>
                   <td className="py-4 px-6 text-gray-200 text-base">{p.location}</td>
-                  <td className="py-4 px-6 text-[#4ade80] text-base text-center">{p.status}</td>
+                  <td className={`py-4 px-6 text-base text-center ${p.status === 'Active' ? 'text-[#4ade80]' : p.status === 'Pending' ? 'text-amber-400' : 'text-gray-400'}`}>{p.status}</td>
                 </tr>
               ))}
             </tbody>
