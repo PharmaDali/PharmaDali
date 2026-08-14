@@ -105,8 +105,9 @@ class ExpireOrders extends Command
                         ->whereIn('status', self::EXPIRABLE_STATUSES);
 
                     if ($hasClosingPassedToday) {
-                        // Closing time for today has passed: expire orders created on or before today
-                        $query->where('created_at', '<=', $endOfToday);
+                        // Closing time for today has passed: expire orders created BEFORE or AT closing time today
+                        $todayClosingTimestamp = $now->copy()->setTime($closingHour, $closingMinute, 0);
+                        $query->where('created_at', '<=', $todayClosingTimestamp);
                     } else {
                         // Before opening hours today: expire orders created on PREVIOUS days only
                         $query->where('created_at', '<', $startOfToday);
