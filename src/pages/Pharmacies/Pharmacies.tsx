@@ -37,6 +37,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
   })
 
   const [editingPharmacy, setEditingPharmacy] = useState<Pharmacy | null>(null)
+  const [deletingPharmacy, setDeletingPharmacy] = useState<Pharmacy | null>(null)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
   const [editFormData, setEditFormData] = useState({
@@ -96,6 +97,15 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     setIsConfirmModalOpen(false)
     setEditingPharmacy(null)
     setIsSuccessModalOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (!deletingPharmacy) return
+    setPharmacies((prev) => prev.filter((p) => p.id !== deletingPharmacy.id))
+    if (selectedPharmacy?.id === deletingPharmacy.id) {
+      setSelectedPharmacy(null)
+    }
+    setDeletingPharmacy(null)
   }
 
   const handleSavePharmacy = (e: React.FormEvent) => {
@@ -262,7 +272,10 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                               >
                                 Edit
                               </button>
-                              <button className="min-w-[60px] h-8 flex items-center justify-center px-2.5 rounded-[6px] border border-red-500 text-red-400 hover:bg-red-500/10 text-xs font-medium transition-colors">
+                              <button
+                                onClick={() => setDeletingPharmacy(p)}
+                                className="min-w-[60px] h-8 flex items-center justify-center px-2.5 rounded-[6px] border border-red-500 text-red-400 hover:bg-red-500/10 text-xs font-medium transition-colors"
+                              >
                                 Delete
                               </button>
                             </div>
@@ -577,6 +590,62 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                 className="w-full py-3 px-4 rounded-[10px] bg-[#00c853] hover:bg-[#00b048] text-white font-semibold transition-colors text-sm"
               >
                 Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Pharmacy Confirmation Modal */}
+      {deletingPharmacy && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
+          <div className="bg-[#262933] w-full max-w-[420px] rounded-[20px] p-7 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
+            <div className="w-16 h-16 rounded-full border-2 border-[#ff4d4d] flex items-center justify-center mx-auto mb-4 text-[#ff4d4d]">
+              <span className="text-3xl font-bold leading-none">!</span>
+            </div>
+            <h2 className="text-[#ff4d4d] text-2xl font-bold mb-2">Delete Pharmacy</h2>
+            <p className="text-gray-300 text-xs mb-5 leading-relaxed">
+              Are you sure you want to delete this pharmacy?<br />
+              This action cannot be undone.
+            </p>
+
+            {/* Selected Pharmacy Info Box */}
+            <div className="bg-[#383d4a] rounded-[14px] p-4 text-left mb-6 flex items-start gap-3 border border-white/5">
+              <div className="text-[#38bdf8] pt-0.5 flex-shrink-0">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 21h18M3 7v1a3 3 0 0 0 6 0V7m0 0v1a3 3 0 0 0 6 0V7m0 0v1a3 3 0 0 0 6 0V7M4 7l2-4h12l2 4M5 21V10.8M19 21V10.8" />
+                </svg>
+              </div>
+              <div className="space-y-1 text-xs">
+                <div>
+                  <span className="text-gray-400 block text-[10px]">Pharmacy</span>
+                  <span className="text-white font-semibold text-xs">{deletingPharmacy.name}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block text-[10px]">Owner</span>
+                  <span className="text-gray-200 text-xs">{deletingPharmacy.owner || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block text-[10px]">City</span>
+                  <span className="text-gray-200 text-xs">{deletingPharmacy.location || '—'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setDeletingPharmacy(null)}
+                className="w-full py-3 px-4 rounded-[10px] border border-gray-500/60 text-gray-200 hover:bg-white/5 font-semibold transition-colors text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="w-full py-3 px-4 rounded-[10px] bg-[#ff4d4d] hover:bg-[#e03e3e] text-white font-semibold shadow transition-colors text-xs"
+              >
+                Delete Pharmacy
               </button>
             </div>
           </div>
