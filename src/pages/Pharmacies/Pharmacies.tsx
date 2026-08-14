@@ -36,9 +36,76 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     status: 'Active',
   })
 
+  const [editingPharmacy, setEditingPharmacy] = useState<Pharmacy | null>(null)
+  const [deletingPharmacy, setDeletingPharmacy] = useState<Pharmacy | null>(null)
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    owner: '',
+    contact: '',
+    email: '',
+    location: '',
+    status: 'Active',
+  })
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleOpenEdit = (p: Pharmacy) => {
+    setEditingPharmacy(p)
+    setEditFormData({
+      name: p.name || '',
+      owner: p.owner || '',
+      contact: p.contact || '',
+      email: p.email || '',
+      location: p.location || '',
+      status: p.status || 'Active',
+    })
+  }
+
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setEditFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleUpdatePharmacy = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingPharmacy || !editFormData.name.trim()) return
+    setIsConfirmModalOpen(true)
+  }
+
+  const handleConfirmSave = () => {
+    if (!editingPharmacy) return
+
+    const updated: Pharmacy = {
+      ...editingPharmacy,
+      name: editFormData.name,
+      owner: editFormData.owner,
+      contact: editFormData.contact,
+      email: editFormData.email,
+      location: editFormData.location,
+      status: editFormData.status,
+    }
+
+    setPharmacies((prev) => prev.map((p) => (p.id === editingPharmacy.id ? updated : p)))
+    if (selectedPharmacy?.id === editingPharmacy.id) {
+      setSelectedPharmacy(updated)
+    }
+    setIsConfirmModalOpen(false)
+    setEditingPharmacy(null)
+    setIsSuccessModalOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (!deletingPharmacy) return
+    setPharmacies((prev) => prev.filter((p) => p.id !== deletingPharmacy.id))
+    if (selectedPharmacy?.id === deletingPharmacy.id) {
+      setSelectedPharmacy(null)
+    }
+    setDeletingPharmacy(null)
   }
 
   const handleSavePharmacy = (e: React.FormEvent) => {
@@ -199,10 +266,16 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                               >
                                 View
                               </button>
-                              <button className="min-w-[54px] h-8 flex items-center justify-center px-2.5 rounded-[6px] border border-[#2aa6e0] text-[#8ccfed] hover:bg-[#2aa6e0]/10 text-xs font-medium transition-colors">
+                              <button
+                                onClick={() => handleOpenEdit(p)}
+                                className="min-w-[54px] h-8 flex items-center justify-center px-2.5 rounded-[6px] border border-[#2aa6e0] text-[#8ccfed] hover:bg-[#2aa6e0]/10 text-xs font-medium transition-colors"
+                              >
                                 Edit
                               </button>
-                              <button className="min-w-[60px] h-8 flex items-center justify-center px-2.5 rounded-[6px] border border-red-500 text-red-400 hover:bg-red-500/10 text-xs font-medium transition-colors">
+                              <button
+                                onClick={() => setDeletingPharmacy(p)}
+                                className="min-w-[60px] h-8 flex items-center justify-center px-2.5 rounded-[6px] border border-red-500 text-red-400 hover:bg-red-500/10 text-xs font-medium transition-colors"
+                              >
                                 Delete
                               </button>
                             </div>
@@ -364,6 +437,217 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Pharmacy Modal */}
+      {editingPharmacy && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 animate-fade-in">
+          <div className="bg-[#292d37] w-full max-w-[500px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)]">
+            <h2 className="text-white text-2xl font-bold text-center mb-8">Edit Pharmacy Information</h2>
+
+            <form onSubmit={handleUpdatePharmacy} className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  name="name"
+                  value={editFormData.name}
+                  onChange={handleEditInputChange}
+                  placeholder="Pharmacy Name"
+                  required
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  name="owner"
+                  value={editFormData.owner}
+                  onChange={handleEditInputChange}
+                  placeholder="Owner Name"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="contact"
+                  value={editFormData.contact}
+                  onChange={handleEditInputChange}
+                  placeholder="Contact Number"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  value={editFormData.email}
+                  onChange={handleEditInputChange}
+                  placeholder="Email"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="location"
+                  value={editFormData.location}
+                  onChange={handleEditInputChange}
+                  placeholder="Location"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+                <div className="relative">
+                  <select
+                    name="status"
+                    value={editFormData.status}
+                    onChange={handleEditInputChange}
+                    className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] appearance-none transition-colors cursor-pointer"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Pending">Pending</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-300">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => setEditingPharmacy(null)}
+                  className="w-full py-3.5 px-4 rounded-[12px] border border-[#2aa6e0] text-[#38bdf8] hover:bg-[#2aa6e0]/10 font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-full py-3.5 px-4 rounded-[12px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Changes Modal */}
+      {isConfirmModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
+          <div className="bg-[#292d37] w-full max-w-[440px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
+            <div className="w-16 h-16 rounded-full border-2 border-white flex items-center justify-center mx-auto mb-5 text-white">
+              <span className="text-3xl font-light leading-none">?</span>
+            </div>
+            <h2 className="text-white text-2xl font-bold mb-3">Confirm Changes</h2>
+            <p className="text-gray-300 text-sm mb-8 leading-relaxed">
+              Are you sure you want to save these changes?<br />
+              The pharmacy's information will be updated accordingly.
+            </p>
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => setIsConfirmModalOpen(false)}
+                className="w-full py-3 px-4 rounded-[10px] border border-gray-500/60 text-gray-200 hover:bg-white/5 font-semibold transition-colors text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSave}
+                className="w-full py-3 px-4 rounded-[10px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors text-sm"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Changes Saved Successfully Modal */}
+      {isSuccessModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
+          <div className="bg-[#292d37] w-full max-w-[440px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
+            <div className="w-16 h-16 rounded-full bg-[#00c853]/20 border-2 border-[#00c853] flex items-center justify-center mx-auto mb-5 text-[#00c853]">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h2 className="text-white text-2xl font-bold mb-3">Changes Saved Successfully</h2>
+            <p className="text-gray-300 text-sm mb-8">
+              The information has been recorded successfully
+            </p>
+            <div>
+              <button
+                type="button"
+                onClick={() => setIsSuccessModalOpen(false)}
+                className="w-full py-3 px-4 rounded-[10px] bg-[#00c853] hover:bg-[#00b048] text-white font-semibold transition-colors text-sm"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Pharmacy Confirmation Modal */}
+      {deletingPharmacy && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
+          <div className="bg-[#262933] w-full max-w-[420px] rounded-[20px] p-7 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
+            <div className="w-16 h-16 rounded-full border-2 border-[#ff4d4d] flex items-center justify-center mx-auto mb-4 text-[#ff4d4d]">
+              <span className="text-3xl font-bold leading-none">!</span>
+            </div>
+            <h2 className="text-[#ff4d4d] text-2xl font-bold mb-2">Delete Pharmacy</h2>
+            <p className="text-gray-300 text-xs mb-5 leading-relaxed">
+              Are you sure you want to delete this pharmacy?<br />
+              This action cannot be undone.
+            </p>
+
+            {/* Selected Pharmacy Info Box */}
+            <div className="bg-[#383d4a] rounded-[14px] p-4 text-left mb-6 flex items-start gap-3 border border-white/5">
+              <div className="text-[#38bdf8] pt-0.5 flex-shrink-0">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 21h18M3 7v1a3 3 0 0 0 6 0V7m0 0v1a3 3 0 0 0 6 0V7m0 0v1a3 3 0 0 0 6 0V7M4 7l2-4h12l2 4M5 21V10.8M19 21V10.8" />
+                </svg>
+              </div>
+              <div className="space-y-1 text-xs">
+                <div>
+                  <span className="text-gray-400 block text-[10px]">Pharmacy</span>
+                  <span className="text-white font-semibold text-xs">{deletingPharmacy.name}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block text-[10px]">Owner</span>
+                  <span className="text-gray-200 text-xs">{deletingPharmacy.owner || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block text-[10px]">City</span>
+                  <span className="text-gray-200 text-xs">{deletingPharmacy.location || '—'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setDeletingPharmacy(null)}
+                className="w-full py-3 px-4 rounded-[10px] border border-gray-500/60 text-gray-200 hover:bg-white/5 font-semibold transition-colors text-xs"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="w-full py-3 px-4 rounded-[10px] bg-[#ff4d4d] hover:bg-[#e03e3e] text-white font-semibold shadow transition-colors text-xs"
+              >
+                Delete Pharmacy
+              </button>
+            </div>
           </div>
         </div>
       )}
