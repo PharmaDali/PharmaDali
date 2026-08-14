@@ -14,18 +14,21 @@ export function InventoryTable({
   handlePageChange,
   setIsAddModalOpen,
   navigate,
+  isPharmacist = false,
 }) {
   return (
     <article className="inventory-table-card h-100">
       <div className="inventory-table-actions">
         <div className="inventory-action-group">
-          <button
-            type="button"
-            className="btn inventory-action-btn inventory-action-primary"
-            onClick={() => setIsAddModalOpen(true)}
-          >
-            + Add New Product
-          </button>
+          {!isPharmacist && (
+            <button
+              type="button"
+              className="btn inventory-action-btn inventory-action-primary"
+              onClick={() => setIsAddModalOpen(true)}
+            >
+              + Add New Product
+            </button>
+          )}
           <button
             type="button"
             className="btn inventory-action-btn inventory-action-muted"
