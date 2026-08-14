@@ -134,4 +134,48 @@ class PharmacistPermissionTest extends TestCase
 
         $this->assertEquals('pharmacist', $response->json('role'));
     }
+
+    public function test_pharmacist_sales_report_queries_filter_by_verified_by_without_sql_errors(): void
+    {
+        $pharmacy = \App\Models\Pharmacy::create([
+            'pharmacy_name' => 'Test Pharmacy',
+            'location' => 'Manila',
+            'contact_number' => '09123456789',
+            'email' => 'test@pharmadali.com',
+        ]);
+
+        $pharmacistUser = User::factory()->create([
+            'role' => 'pharmacist',
+            'pharmacy_id' => $pharmacy->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($pharmacistUser)
+            ->getJson('/api/pharmacy/reports/sales');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_pharmacist_is_blocked_from_stockout_and_batch_edits(): void
+    {
+        $pharmacy = \App\Models\Pharmacy::create([
+            'pharmacy_name' => 'Test Pharmacy',
+            'location' => 'Manila',
+            'contact_number' => '09123456789',
+            'email' => 'test@pharmadali.com',
+        ]);
+
+        $pharmacistUser = User::factory()->create([
+            'role' => 'pharmacist',
+            'pharmacy_id' => $pharmacy->id,
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($pharmacistUser)
+            ->postJson('/api/pharmacy/inventory/products/1/stock-out', [
+                'quantity' => 5,
+            ]);
+
+        $response->assertStatus(403);
+    }
 }

@@ -13,15 +13,7 @@ class ExportSalesPdfService
     {
         $this->orderRepository = $orderRepository;
     }
-
-    /**
-     * Execute the service and return structured data for PDF export.
-     * The frontend is responsible for rendering and printing the PDF.
-     *
-     * @param string|null $startDate
-     * @param string|null $endDate
-     * @return array
-     */
+    
     public function execute(?string $startDate, ?string $endDate): array
     {
         $user = Auth::user();
@@ -31,7 +23,7 @@ class ExportSalesPdfService
             throw new \Exception("User is not associated with a pharmacy.");
         }
 
-        $orders = $this->orderRepository->getSalesListAll($pharmacyId, $startDate, $endDate);
+        $orders = $this->orderRepository->getSalesListAll($pharmacyId, $startDate, $endDate, $user);
 
         $dateRange = 'All Time';
         if ($startDate && $endDate) {

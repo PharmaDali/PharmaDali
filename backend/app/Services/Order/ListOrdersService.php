@@ -58,11 +58,7 @@ class ListOrdersService
             $query->where('customer_id', $user->customer->id);
         } elseif (in_array($user->role, ['pharmacy_admin', 'pharmacist'], true)) {
             if ($user->role === 'pharmacist' && request('scope_my_sales')) {
-                $query->where(function ($q) use ($user) {
-                    $q->where('processed_by_user_id', $user->id)
-                      ->orWhere('verifier_id', $user->id)
-                      ->orWhere('user_id', $user->id);
-                });
+                $query->where('verified_by', $user->id);
             }
         } else {
             return response()->json([

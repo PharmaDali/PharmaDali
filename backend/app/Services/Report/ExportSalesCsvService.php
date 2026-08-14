@@ -14,14 +14,6 @@ class ExportSalesCsvService
         $this->orderRepository = $orderRepository;
     }
 
-    /**
-     * Execute the service and return structured data for CSV export.
-     * The frontend is responsible for generating the actual CSV file.
-     *
-     * @param string|null $startDate
-     * @param string|null $endDate
-     * @return array
-     */
     public function execute(?string $startDate, ?string $endDate): array
     {
         $user = Auth::user();
@@ -31,7 +23,7 @@ class ExportSalesCsvService
             throw new \Exception("User is not associated with a pharmacy.");
         }
 
-        $orders = $this->orderRepository->getSalesListAll($pharmacyId, $startDate, $endDate);
+        $orders = $this->orderRepository->getSalesListAll($pharmacyId, $startDate, $endDate, $user);
 
         $dateRange = 'All Time';
         if ($startDate && $endDate) {

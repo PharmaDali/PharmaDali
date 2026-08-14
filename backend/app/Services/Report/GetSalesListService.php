@@ -14,14 +14,6 @@ class GetSalesListService
         $this->orderRepository = $orderRepository;
     }
 
-    /**
-     * Execute the service and return structured, formatted sales data with metadata.
-     * 
-     * @param string|null $startDate
-     * @param string|null $endDate
-     * @param int $perPage
-     * @return array
-     */
     public function execute(?string $startDate, ?string $endDate, int $perPage = 15)
     {
         $user = Auth::user();
@@ -31,7 +23,7 @@ class GetSalesListService
             throw new \Exception("User is not associated with a pharmacy.");
         }
 
-        $sales = $this->orderRepository->getSalesList($pharmacyId, $startDate, $endDate, $perPage);
+        $sales = $this->orderRepository->getSalesList($pharmacyId, $startDate, $endDate, $perPage, $user);
 
         $formattedSales = collect($sales->items())->map(function ($order) {
             $itemsLineTotal = (float) $order->items->sum('line_total');

@@ -28,6 +28,6 @@ class GetSalesSummaryService
             throw new \Exception("User is not associated with a pharmacy.");
         }
 
-        return $this->orderRepository->getSalesSummary($pharmacyId);
+        return $this->orderRepository->getSalesSummary($pharmacyId, $user);
     }
 }
