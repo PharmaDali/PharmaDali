@@ -15,9 +15,7 @@ class DashboardController extends Controller
 
     public function overview(Request $request): JsonResponse
     {
-        if ($request->user()->role === 'pharmacist') {
-            return $this->errorResponse('Pharmacists are not authorized to view the dashboard.', 403);
-        }
+        $this->authorizePermission(null, 'Unauthorized Access');
 
         $pharmacyId = $request->user()->pharmacy_id;
 
@@ -32,9 +30,7 @@ class DashboardController extends Controller
 
     public function salesTrend(Request $request): JsonResponse
     {
-        if ($request->user()->role === 'pharmacist') {
-            return $this->errorResponse('Pharmacists are not authorized to view the dashboard.', 403);
-        }
+        $this->authorizePermission(null, 'Unauthorized Access');
 
         $pharmacyId = $request->user()->pharmacy_id;
         $range = $request->input('range', 'Weekly');

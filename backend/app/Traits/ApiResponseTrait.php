@@ -3,21 +3,15 @@
 namespace App\Traits;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Exceptions\HttpResponseException;
 
 trait ApiResponseTrait
 {
-    /**
-     * Return a standardized success JSON response.
-     *
-     * @param  mixed  $data
-     * @param  string  $message
-     * @param  int  $code
-     * @return JsonResponse
-     */
     protected function successResponse($data = null, string $message = 'Success', int $code = 200): JsonResponse
     {
         $payload = [
             'success' => true,
+            'status'  => 'success',
             'message' => $message,
         ];
 
@@ -28,18 +22,11 @@ trait ApiResponseTrait
         return response()->json($payload, $code);
     }
 
-    /**
-     * Return a standardized error JSON response.
-     *
-     * @param  string  $message
-     * @param  int  $code
-     * @param  mixed  $errors
-     * @return JsonResponse
-     */
     protected function errorResponse(string $message = 'Error', int $code = 400, $errors = null): JsonResponse
     {
         $payload = [
             'success' => false,
+            'status'  => 'error',
             'message' => $message,
         ];
 
@@ -48,5 +35,16 @@ trait ApiResponseTrait
         }
 
         return response()->json($payload, $code);
+    }
+
+    protected function authorizePermission(?string $permission = null, string $message = 'Unauthorized Access'): void
+    {
+        $user = request()->user();
+
+        if (!$user || ($user->role === 'pharmacist' && ($permission === null || !$user->hasPermission($permission)))) {
+            throw new HttpResponseException(
+                $this->errorResponse($message, 403)
+            );
+        }
     }
 }

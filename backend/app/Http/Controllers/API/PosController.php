@@ -19,14 +19,9 @@ class PosController extends Controller
         $this->receiptService = $receiptService;
     }
 
-    /**
-     * Get products for POS with infinite scroll and search functionality.
-     */
     public function getProducts(Request $request)
     {
-        if (!$request->user()->hasPermission('access_pos')) {
-            return $this->errorResponse('Unauthorized to access POS counter.', 403);
-        }
+        $this->authorizePermission('access_pos', 'Unauthorized to access POS counter.');
 
         $products = $this->posService->getProducts($request->all());
 
@@ -38,14 +33,9 @@ class PosController extends Controller
         ], 'POS products fetched successfully.');
     }
 
-    /**
-     * Store a new POS order.
-     */
     public function storeOrder(Request $request)
     {
-        if (!$request->user()->hasPermission('access_pos')) {
-            return $this->errorResponse('Unauthorized to process POS orders.', 403);
-        }
+        $this->authorizePermission('access_pos', 'Unauthorized to process POS orders.');
 
         $request->validate([
             'items' => 'required|array|min:1',
@@ -71,14 +61,9 @@ class PosController extends Controller
         }
     }
 
-    /**
-     * Get pickup orders for the pharmacy with search and status filtering.
-     */
     public function getPickupOrders(Request $request)
     {
-        if (!$request->user()->hasPermission('access_pickup')) {
-            return $this->errorResponse('Unauthorized to view pickup orders.', 403);
-        }
+        $this->authorizePermission('access_pickup', 'Unauthorized to view pickup orders.');
 
         try {
             $orders = $this->posService->getPickupOrders($request->all(), $request->user());
@@ -88,14 +73,9 @@ class PosController extends Controller
         }
     }
 
-    /**
-     * Complete a pickup order.
-     */
     public function completePickupOrder(Request $request, Order $order)
     {
-        if (!$request->user()->hasPermission('access_pickup')) {
-            return $this->errorResponse('Unauthorized to complete pickup orders.', 403);
-        }
+        $this->authorizePermission('access_pickup', 'Unauthorized to complete pickup orders.');
 
         $request->validate([
             'payment_method' => 'required|string|in:cash,gcash,card,maya',
@@ -124,14 +104,6 @@ class PosController extends Controller
         }
     }
 
-    /**
-     * Generate a receipt payload for a completed POS or pickup order.
-     *
-     * Returns both structured JSON data and a plain-text ESC/POS receipt string
-     * suitable for direct streaming to a thermal printer.
-     *
-     * GET /pos/orders/{order}/receipt
-     */
     public function getReceipt(Request $request, Order $order)
     {
         $user = $request->user();
