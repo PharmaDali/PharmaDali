@@ -69,6 +69,24 @@ class User extends Authenticatable
         return $this->role === $role;
     }
 
+    /**
+     * Check if the user has a given permission.
+     * Admin roles always return true.
+     * Pharmacists defer to their Pharmacist profile permissions.
+     */
+    public function hasPermission(string $permission): bool
+    {
+        if (in_array($this->role, ['pharmacy_admin', 'admin', 'super_admin', 'system_admin'], true)) {
+            return true;
+        }
+
+        if ($this->role === 'pharmacist') {
+            return $this->pharmacist?->hasPermission($permission) ?? false;
+        }
+
+        return false;
+    }
+
     public function customer(): HasOne
     {
         return $this->hasOne(Customer::class);
