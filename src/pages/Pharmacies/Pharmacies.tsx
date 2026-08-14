@@ -36,9 +36,57 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     status: 'Active',
   })
 
+  const [editingPharmacy, setEditingPharmacy] = useState<Pharmacy | null>(null)
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    owner: '',
+    contact: '',
+    email: '',
+    location: '',
+    status: 'Active',
+  })
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleOpenEdit = (p: Pharmacy) => {
+    setEditingPharmacy(p)
+    setEditFormData({
+      name: p.name || '',
+      owner: p.owner || '',
+      contact: p.contact || '',
+      email: p.email || '',
+      location: p.location || '',
+      status: p.status || 'Active',
+    })
+  }
+
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    setEditFormData((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleUpdatePharmacy = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingPharmacy || !editFormData.name.trim()) return
+
+    const updated: Pharmacy = {
+      ...editingPharmacy,
+      name: editFormData.name,
+      owner: editFormData.owner,
+      contact: editFormData.contact,
+      email: editFormData.email,
+      location: editFormData.location,
+      status: editFormData.status,
+    }
+
+    setPharmacies((prev) => prev.map((p) => (p.id === editingPharmacy.id ? updated : p)))
+    if (selectedPharmacy?.id === editingPharmacy.id) {
+      setSelectedPharmacy(updated)
+    }
+    setEditingPharmacy(null)
   }
 
   const handleSavePharmacy = (e: React.FormEvent) => {
@@ -199,7 +247,10 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                               >
                                 View
                               </button>
-                              <button className="min-w-[54px] h-8 flex items-center justify-center px-2.5 rounded-[6px] border border-[#2aa6e0] text-[#8ccfed] hover:bg-[#2aa6e0]/10 text-xs font-medium transition-colors">
+                              <button
+                                onClick={() => handleOpenEdit(p)}
+                                className="min-w-[54px] h-8 flex items-center justify-center px-2.5 rounded-[6px] border border-[#2aa6e0] text-[#8ccfed] hover:bg-[#2aa6e0]/10 text-xs font-medium transition-colors"
+                              >
                                 Edit
                               </button>
                               <button className="min-w-[60px] h-8 flex items-center justify-center px-2.5 rounded-[6px] border border-red-500 text-red-400 hover:bg-red-500/10 text-xs font-medium transition-colors">
@@ -352,6 +403,103 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
+                  className="w-full py-3.5 px-4 rounded-[12px] border border-[#2aa6e0] text-[#38bdf8] hover:bg-[#2aa6e0]/10 font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="w-full py-3.5 px-4 rounded-[12px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Pharmacy Modal */}
+      {editingPharmacy && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 animate-fade-in">
+          <div className="bg-[#292d37] w-full max-w-[500px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)]">
+            <h2 className="text-white text-2xl font-bold text-center mb-8">Edit Pharmacy Information</h2>
+
+            <form onSubmit={handleUpdatePharmacy} className="space-y-4">
+              <div>
+                <input
+                  type="text"
+                  name="name"
+                  value={editFormData.name}
+                  onChange={handleEditInputChange}
+                  placeholder="Pharmacy Name"
+                  required
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  name="owner"
+                  value={editFormData.owner}
+                  onChange={handleEditInputChange}
+                  placeholder="Owner Name"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="contact"
+                  value={editFormData.contact}
+                  onChange={handleEditInputChange}
+                  placeholder="Contact Number"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+                <input
+                  type="email"
+                  name="email"
+                  value={editFormData.email}
+                  onChange={handleEditInputChange}
+                  placeholder="Email"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  name="location"
+                  value={editFormData.location}
+                  onChange={handleEditInputChange}
+                  placeholder="Location"
+                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                />
+                <div className="relative">
+                  <select
+                    name="status"
+                    value={editFormData.status}
+                    onChange={handleEditInputChange}
+                    className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] appearance-none transition-colors cursor-pointer"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                    <option value="Pending">Pending</option>
+                  </select>
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-300">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-6">
+                <button
+                  type="button"
+                  onClick={() => setEditingPharmacy(null)}
                   className="w-full py-3.5 px-4 rounded-[12px] border border-[#2aa6e0] text-[#38bdf8] hover:bg-[#2aa6e0]/10 font-semibold transition-colors"
                 >
                   Cancel
