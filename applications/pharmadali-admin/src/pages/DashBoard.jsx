@@ -227,13 +227,13 @@ function parseLowStock(item) {
 
   if (!weeks && item.note) {
     if (item.note.includes("less than 1 day") || item.note.includes("less than 1 week")) {
-      weeks = "< 1 week";
+      weeks = "Less than 1 week";
     } else {
       const matchDays = item.note.match(/(\d+)\s+days?\s+supply/);
       if (matchDays) {
         const d = parseInt(matchDays[1], 10);
         const w = Math.max(1, Math.ceil(d / 7));
-        weeks = w === 1 ? "< 1 week" : `${w} weeks`;
+        weeks = w === 1 ? "Less than 1 week" : `${w} weeks`;
       }
     }
   }
@@ -242,10 +242,12 @@ function parseLowStock(item) {
     weeks = weeks.replace(/\s+supply/, "").trim();
   }
 
+  let finalWeeksText = weeks ? weeks.replace(/<\s*/g, "Less than ") : "Less than 1 week";
+
   return {
     name,
     stockText: stock !== undefined ? `${stock} left` : "Low stock",
-    weeksText: weeks || "< 1 week",
+    weeksText: finalWeeksText,
   };
 }
 
