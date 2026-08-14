@@ -338,9 +338,12 @@ function Pharmacists() {
 									</td>
 								</tr>
 							) : rows.length === 0 ? (
-								<tr>
-									<td colSpan={6} className="text-center text-muted py-4">
-										No pharmacist found.
+								<tr className="pharmacists-empty-row" style={{ cursor: "default" }}>
+									<td colSpan={6} className="text-center py-5">
+										<div className="d-flex flex-column align-items-center justify-content-center py-4">
+											<i className="fa-solid fa-user-slash mb-3" style={{ fontSize: "3.5rem", color: "#94a3b8" }} />
+											<span className="fw-medium" style={{ fontSize: "15px", color: "#64748b" }}>No pharmacist records found.</span>
+										</div>
 									</td>
 								</tr>
 							) : (

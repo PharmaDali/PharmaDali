@@ -195,7 +195,7 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOr
                       }
                     >
                       <img src={item.icon} alt="" className="menu-icon" aria-hidden="true" />
-                      <span>{item.label}</span>
+                      <span>{item.to === "/sales-reports" && user?.role === "pharmacist" ? "Transaction History" : item.label}</span>
                       {badgeValue && (
                         <span className="menu-badge position-absolute rounded-pill fw-semibold">
                           {badgeValue}

@@ -23,7 +23,7 @@ const AVAILABLE_PERMISSIONS = [
   },
   {
     key: "view_sales_reports",
-    label: "Scoped Sales & Reports",
+    label: "Transaction History",
     description: "Allow viewing sales transaction history for orders processed by this pharmacist.",
     icon: "fa-solid fa-receipt",
   },
