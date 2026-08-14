@@ -236,9 +236,15 @@ const Notifications: React.FC = () => {
                                 </div>
                                 <h3 className="text-xl font-bold text-white m-0">Confirm Deletion</h3>
                                 <p className="text-gray-300 text-xs leading-relaxed m-0">
-                                    {deleteTarget === 'ALL'
-                                        ? 'Are you sure you want to delete all notifications? This action cannot be undone.'
-                                        : 'Are you sure you want to delete this notification?'}
+                                    {deleteTarget === 'ALL' ? (
+                                        <>
+                                            Are you sure you want to delete all notifications?
+                                            <br />
+                                            This action cannot be undone.
+                                        </>
+                                    ) : (
+                                        'Are you sure you want to delete this notification?'
+                                    )}
                                 </p>
                             </div>
 
@@ -393,9 +399,15 @@ const Notifications: React.FC = () => {
                             </div>
                             <h3 className="text-xl font-bold text-white m-0">Confirm Deletion</h3>
                             <p className="text-gray-300 text-xs leading-relaxed m-0">
-                                {deleteTarget === 'ALL'
-                                    ? 'Are you sure you want to delete all notifications? This action cannot be undone.'
-                                    : 'Are you sure you want to delete this notification?'}
+                                {deleteTarget === 'ALL' ? (
+                                    <>
+                                        Are you sure you want to delete all notifications?
+                                        <br />
+                                        This action cannot be undone.
+                                    </>
+                                ) : (
+                                    'Are you sure you want to delete this notification?'
+                                )}
                             </p>
                         </div>
 
