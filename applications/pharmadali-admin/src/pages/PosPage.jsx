@@ -598,6 +598,11 @@ function PosPage() {
           </div>
           <div className="card-body p-3 pt-3 overflow-hidden pos-product-body" style={{ flex: 1, minHeight: 0 }}>
             <div className="card border-1 shadow-md" style={{ height: "100%", overflow: "hidden" }}>
+              <div className="card-header bg-white border-bottom py-2.5 px-3">
+                <h6 className="fw-bold mb-0" style={{ color: "var(--pd-soft-black-dark, #1e293b)", fontSize: 16 }}>
+                  Product List
+                </h6>
+              </div>
               <div className="card-body d-flex flex-column p-0" style={{ flex: 1, minHeight: 0 }}>
                 {loading && products.length === 0 ? (
                   <div className="table-responsive p-3">
