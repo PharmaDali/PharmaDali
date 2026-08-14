@@ -122,7 +122,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
 
-    Route::middleware(['ability:pharmacy_admin'])->group(function () {
+    Route::middleware(['ability:pharmacy_admin,pharmacist,super_admin,admin,system_admin'])->group(function () {
         Route::get('pharmacy/dashboard/overview', [DashboardController::class, 'overview']);
         Route::get('pharmacy/dashboard/sales-trend', [DashboardController::class, 'salesTrend']);
         Route::get(
@@ -159,6 +159,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
         Route::get('pharmacists', [PharmacyPharmacistController::class, 'index']);
         Route::put('pharmacists/{pharmacist}', [PharmacyPharmacistController::class, 'update']);
+        Route::put('pharmacists/{pharmacist}/permissions', [PharmacyPharmacistController::class, 'updatePermissions']);
         Route::delete('pharmacists/{pharmacist}', [PharmacyPharmacistController::class, 'destroy']);
 
         Route::post('products', [PharmacyProductController::class, 'store']);

@@ -57,7 +57,13 @@ class ListOrdersService
 
             $query->where('customer_id', $user->customer->id);
         } elseif (in_array($user->role, ['pharmacy_admin', 'pharmacist'], true)) {
-            // Auto-scoped by BelongsToTenant
+            if ($user->role === 'pharmacist' && request('scope_my_sales')) {
+                $query->where(function ($q) use ($user) {
+                    $q->where('processed_by_user_id', $user->id)
+                      ->orWhere('verifier_id', $user->id)
+                      ->orWhere('user_id', $user->id);
+                });
+            }
         } else {
             return response()->json([
                 'status'  => 'error',

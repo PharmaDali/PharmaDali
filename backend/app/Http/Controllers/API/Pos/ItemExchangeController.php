@@ -22,17 +22,15 @@ class ItemExchangeController extends Controller
     {
         try {
             $user = $request->user();
+            if (!$user->hasPermission('process_item_exchange') && !$user->hasPermission('view_sales_reports')) {
+                return $this->errorResponse('Unauthorized to view item exchange records.', 403);
+            }
+
             $exchanges = $this->exchangeService->getHistory($request->all(), $user);
 
-            return response()->json([
-                'success' => true,
-                'data' => $exchanges,
-            ]);
+            return $this->successResponse($exchanges, 'Item exchanges retrieved successfully.');
         } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 
@@ -43,32 +41,31 @@ class ItemExchangeController extends Controller
     {
         try {
             $user = $request->user();
+            if (!$user->hasPermission('process_item_exchange')) {
+                return $this->successResponse([
+                    'eligible' => false,
+                    'reason' => 'You do not have permission to process item exchanges or returns.',
+                    'items' => [],
+                ], 'Item exchange permission restricted.');
+            }
+
             $userPharmacyId = $user->pharmacy_id ?? $user->pharmacy?->id ?? $order->pharmacy_id;
 
             if ($order->pharmacy_id && $userPharmacyId && (int) $order->pharmacy_id !== (int) $userPharmacyId) {
                 if (!in_array($user->role, ['admin', 'super_admin', 'system_admin'], true)) {
-                    return response()->json([
-                        'success' => true,
-                        'data' => [
-                            'eligible' => false,
-                            'reason' => 'Order does not belong to your assigned pharmacy branch.',
-                            'items' => [],
-                        ],
-                    ]);
+                    return $this->successResponse([
+                        'eligible' => false,
+                        'reason' => 'Order does not belong to your assigned pharmacy branch.',
+                        'items' => [],
+                    ], 'Pharmacy branch mismatch.');
                 }
             }
 
             $eligibility = $this->exchangeService->getEligibility($order, $user);
 
-            return response()->json([
-                'success' => true,
-                'data' => $eligibility,
-            ]);
+            return $this->successResponse($eligibility, 'Eligibility retrieved successfully.');
         } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 
@@ -79,18 +76,15 @@ class ItemExchangeController extends Controller
     {
         try {
             $user = $request->user();
+            if (!$user->hasPermission('process_item_exchange')) {
+                return $this->errorResponse('You do not have permission to process item exchanges or returns.', 403);
+            }
+
             $exchange = $this->exchangeService->process($request->validated(), $user);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Item exchange completed successfully.',
-                'data' => $exchange,
-            ], 201);
+            return $this->successResponse($exchange, 'Item exchange completed successfully.', 201);
         } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 
@@ -101,17 +95,16 @@ class ItemExchangeController extends Controller
     {
         try {
             $user = $request->user();
+            if (!$user->hasPermission('process_item_exchange') && !$user->hasPermission('view_sales_reports')) {
+                return $this->errorResponse('Unauthorized to view item exchange details.', 403);
+            }
+
             $exchange = $this->exchangeService->getDetails($id, $user);
 
-            return response()->json([
-                'success' => true,
-                'data' => $exchange,
-            ]);
+            return $this->successResponse($exchange, 'Item exchange details retrieved successfully.');
         } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], 404);
+            return $this->errorResponse($e->getMessage(), 404);
         }
     }
 }
+

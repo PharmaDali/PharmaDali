@@ -24,14 +24,18 @@ class PosController extends Controller
      */
     public function getProducts(Request $request)
     {
+        if (!$request->user()->hasPermission('access_pos')) {
+            return $this->errorResponse('Unauthorized to access POS counter.', 403);
+        }
+
         $products = $this->posService->getProducts($request->all());
 
-        return response()->json([
+        return $this->successResponse([
             'data' => $products->items(),
             'current_page' => $products->currentPage(),
             'last_page' => $products->lastPage(),
             'total' => $products->total(),
-        ]);
+        ], 'POS products fetched successfully.');
     }
 
     /**
@@ -39,6 +43,10 @@ class PosController extends Controller
      */
     public function storeOrder(Request $request)
     {
+        if (!$request->user()->hasPermission('access_pos')) {
+            return $this->errorResponse('Unauthorized to process POS orders.', 403);
+        }
+
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|exists:pharmacy_products,id',
@@ -57,16 +65,9 @@ class PosController extends Controller
         try {
             $order = $this->posService->createOrder($request->all(), $request->user());
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Order completed successfully',
-                'data' => $order
-            ], 201);
+            return $this->successResponse($order, 'Order completed successfully', 201);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 
@@ -75,17 +76,15 @@ class PosController extends Controller
      */
     public function getPickupOrders(Request $request)
     {
+        if (!$request->user()->hasPermission('access_pickup')) {
+            return $this->errorResponse('Unauthorized to view pickup orders.', 403);
+        }
+
         try {
             $orders = $this->posService->getPickupOrders($request->all(), $request->user());
-            return response()->json([
-                'status' => 'success',
-                'data' => $orders
-            ]);
+            return $this->successResponse($orders, 'Pickup orders retrieved successfully.');
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 
@@ -94,6 +93,10 @@ class PosController extends Controller
      */
     public function completePickupOrder(Request $request, Order $order)
     {
+        if (!$request->user()->hasPermission('access_pickup')) {
+            return $this->errorResponse('Unauthorized to complete pickup orders.', 403);
+        }
+
         $request->validate([
             'payment_method' => 'required|string|in:cash,gcash,card,maya',
             'discount_type' => 'nullable|string',
@@ -115,16 +118,9 @@ class PosController extends Controller
                 $request->only(['discount_type', 'discount_percentage', 'discount_amount', 'discount_id_number', 'discount_remarks'])
             );
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Pickup order completed successfully',
-                'data' => $order
-            ]);
+            return $this->successResponse($order, 'Pickup order completed successfully');
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => $e->getMessage()
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 
@@ -142,18 +138,12 @@ class PosController extends Controller
 
         // Ensure the order belongs to the authenticated user's pharmacy
         if ($order->pharmacy_id !== $user->pharmacy_id) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Unauthorized: This order does not belong to your pharmacy.',
-            ], 403);
+            return $this->errorResponse('Unauthorized: This order does not belong to your pharmacy.', 403);
         }
 
         // Only allow printing receipts for completed orders
         if ($order->status !== 'completed') {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'A receipt can only be generated for completed orders.',
-            ], 422);
+            return $this->errorResponse('A receipt can only be generated for completed orders.', 422);
         }
 
         try {
@@ -167,15 +157,10 @@ class PosController extends Controller
 
             $receiptData = $this->receiptService->buildReceiptData($order);
 
-            return response()->json([
-                'status' => 'success',
-                'data'   => $receiptData,
-            ]);
+            return $this->successResponse($receiptData, 'Receipt payload generated successfully.');
         } catch (\Exception $e) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => $e->getMessage(),
-            ], 400);
+            return $this->errorResponse($e->getMessage(), 400);
         }
     }
 }
+
