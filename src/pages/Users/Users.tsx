@@ -48,6 +48,19 @@ const Users: React.FC = () => {
 
 
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [togglingStatusUser, setTogglingStatusUser] = useState<User | null>(null)
+
+  const handleConfirmToggleStatus = () => {
+    if (!togglingStatusUser) return
+    setUsers((prev) =>
+      prev.map((user) =>
+        user.id === togglingStatusUser.id
+          ? { ...user, status: user.status === 'Active' ? 'Inactive' : 'Active' }
+          : user
+      )
+    )
+    setTogglingStatusUser(null)
+  }
 
   const handleSearch = () => {
     setAppliedSearchTerm(searchInput)
@@ -312,7 +325,7 @@ const Users: React.FC = () => {
                           Edit
                         </button>
                         <button
-                          onClick={() => handleToggleStatus(user.id)}
+                          onClick={() => setTogglingStatusUser(user)}
                           className={`min-w-[70px] h-8 flex items-center justify-center px-2.5 rounded-[6px] border text-xs font-medium transition-colors cursor-pointer ${user.status === 'Active'
                             ? 'border-red-500 text-red-400 hover:bg-red-500/10'
                             : 'border-green-500 text-green-400 hover:bg-green-500/10'
@@ -606,6 +619,88 @@ const Users: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Deactivate / Activate User Confirmation Modal */}
+      {togglingStatusUser && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
+          <div className="bg-[#262933] w-full max-w-[420px] rounded-[20px] p-7 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
+            {togglingStatusUser.status === 'Active' ? (
+              <div className="w-16 h-16 rounded-full border-2 border-[#ff4d4d] flex items-center justify-center mx-auto mb-4 text-[#ff4d4d]">
+                <span className="text-3xl font-bold leading-none">!</span>
+              </div>
+            ) : (
+              <div className="w-16 h-16 rounded-full border-2 border-[#4ade80] flex items-center justify-center mx-auto mb-4 text-[#4ade80]">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+            )}
+
+            <h2 className={`text-2xl font-bold mb-2 ${togglingStatusUser.status === 'Active' ? 'text-[#ff4d4d]' : 'text-[#4ade80]'}`}>
+              {togglingStatusUser.status === 'Active' ? 'Deactivate User' : 'Activate User'}
+            </h2>
+
+            {togglingStatusUser.status === 'Active' ? (
+              <p className="text-gray-300 text-xs mb-5 leading-relaxed">
+                Are you sure you want to deactivate this user?<br />
+                The user will no longer be able to log in or<br />
+                access the system.<br />
+                You can reactivate the user anytime.
+              </p>
+            ) : (
+              <p className="text-gray-300 text-xs mb-5 leading-relaxed">
+                Are you sure you want to activate this user?<br />
+                The user will regain access to log in and<br />
+                access the system.
+              </p>
+            )}
+
+            {/* Selected User Info Box */}
+            <div className="bg-[#383d4a] rounded-[14px] p-4 text-left mb-6 flex items-start gap-3.5 border border-white/5">
+              <div className="text-[#38bdf8] pt-0.5 flex-shrink-0">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="7" r="4" />
+                  <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                </svg>
+              </div>
+              <div className="space-y-1 text-xs">
+                <div>
+                  <span className="text-gray-400 block text-[10px]">Full Name</span>
+                  <span className="text-white font-semibold text-xs">{togglingStatusUser.fullName}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block text-[10px]">Role</span>
+                  <span className="text-gray-200 text-xs">{togglingStatusUser.role}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block text-[10px]">Pharmacy</span>
+                  <span className="text-gray-200 text-xs">{togglingStatusUser.branchName || '—'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setTogglingStatusUser(null)}
+                className="w-full py-3 px-4 rounded-[10px] border border-gray-500/60 text-gray-200 hover:bg-white/5 font-semibold transition-colors text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmToggleStatus}
+                className={`w-full py-3 px-4 rounded-[10px] text-white font-semibold shadow transition-colors text-xs cursor-pointer ${togglingStatusUser.status === 'Active'
+                  ? 'bg-[#ff4d4d] hover:bg-[#e03e3e]'
+                  : 'bg-[#4ade80] hover:bg-[#3bbd68] text-slate-900 font-bold'
+                  }`}
+              >
+                {togglingStatusUser.status === 'Active' ? 'Deactivate User' : 'Activate User'}
+              </button>
+            </div>
           </div>
         </div>
       )}
