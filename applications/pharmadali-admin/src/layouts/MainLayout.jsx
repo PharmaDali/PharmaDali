@@ -37,7 +37,7 @@ function MainLayout() {
       <main
         className={`main-content${sidebarOpen ? " sidebar-open" : ""}`}
       >
-        <Outlet context={{ notifications }} />
+        <Outlet context={{ notifications, user }} />
       </main>
     </div>
   );

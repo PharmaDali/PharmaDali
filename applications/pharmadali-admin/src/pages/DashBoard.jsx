@@ -9,7 +9,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext, Navigate } from "react-router-dom";
 import { fetchDashboardOverview, fetchSalesTrend } from "../services/dashboardService";
 import { maxChartValue } from "../utils/dashboardUtils";
 import "../assets/css/dashboard.css";
@@ -393,6 +393,13 @@ function InventoryHealth({ data, onKnowMore }) {
 
 function DashBoard() {
   const navigate = useNavigate();
+  const context = useOutletContext() || {};
+  const user = context.user;
+
+  if (user?.role === "pharmacist") {
+    return <Navigate to="/pos" replace />;
+  }
+
   const [overviewData, setOverviewData] = useState(null);
   const [loading, setLoading] = useState(true);
 

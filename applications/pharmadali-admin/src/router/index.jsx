@@ -15,6 +15,18 @@ import Pharmacists from "../pages/Pharmacists";
 import GetTechnicalHelp from "../pages/GetTechnicalHelp";
 import Profile from "../pages/Profile";
 
+import PermissionGuard from "../components/PermissionGuard";
+import { useOutletContext } from "react-router-dom";
+
+function RouteGuard({ permission, element }) {
+  const context = useOutletContext() || {};
+  return (
+    <PermissionGuard user={context.user} permission={permission}>
+      {element}
+    </PermissionGuard>
+  );
+}
+
 function AppRouter() {
   return (
     <BrowserRouter>
@@ -26,15 +38,15 @@ function AppRouter() {
           </ProtectedRoute>
         }>
           <Route index element={<DashBoard />} />
-          <Route path="sales-reports" element={<SalesReports />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="pos" element={<PosPage />} />
-          <Route path="pick-up" element={<PickUp />} />
+          <Route path="sales-reports" element={<RouteGuard permission="view_sales_reports" element={<SalesReports />} />} />
+          <Route path="settings" element={<RouteGuard permission="manage_settings" element={<Settings />} />} />
+          <Route path="pos" element={<RouteGuard permission="access_pos" element={<PosPage />} />} />
+          <Route path="pick-up" element={<RouteGuard permission="access_pickup" element={<PickUp />} />} />
           <Route path="notifications" element={<Notifications />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="inventory" element={<Inventory />} />
-          <Route path="inventory/logs" element={<InventoryLogs />} />
-          <Route path="pharmacists" element={<Pharmacists />} />
+          <Route path="analytics" element={<RouteGuard permission="view_analytics" element={<Analytics />} />} />
+          <Route path="inventory" element={<RouteGuard permission="view_inventory" element={<Inventory />} />} />
+          <Route path="inventory/logs" element={<RouteGuard permission="view_inventory" element={<InventoryLogs />} />} />
+          <Route path="pharmacists" element={<RouteGuard permission="manage_pharmacists" element={<Pharmacists />} />} />
           <Route path="get-technical-help" element={<GetTechnicalHelp />} />
           <Route path="profile" element={<Profile />} />
         </Route>
