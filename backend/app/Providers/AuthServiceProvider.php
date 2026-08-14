@@ -7,10 +7,14 @@ use App\Models\Pharmacy;
 use App\Models\Conversation;
 use App\Models\Cart;
 use App\Models\Pharmacist;
+use App\Models\Order;
+use App\Models\PharmacyProduct;
 use App\Policies\PharmacyPolicy;
 use App\Policies\ConversationPolicy;
 use App\Policies\CartPolicy;
 use App\Policies\PharmacistPolicy;
+use App\Policies\OrderPolicy;
+use App\Policies\PharmacyProductPolicy;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -19,6 +23,8 @@ class AuthServiceProvider extends ServiceProvider
         Cart::class => CartPolicy::class,
         Conversation::class => ConversationPolicy::class,
         Pharmacist::class => PharmacistPolicy::class,
+        Order::class => OrderPolicy::class,
+        PharmacyProduct::class => PharmacyProductPolicy::class,
     ];
 
     /**

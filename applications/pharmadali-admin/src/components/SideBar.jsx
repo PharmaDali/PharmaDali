@@ -1,3 +1,4 @@
+import { checkUserPermission } from "./PermissionGuard";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../services/loginService";
@@ -11,6 +12,17 @@ import pharmacistsIcon from "../assets/icons/sidebar-icons/pharmacists.svg";
 import notificationsIcon from "../assets/icons/sidebar-icons/notifications.svg";
 import settingsIcon from "../assets/icons/sidebar-icons/settings.svg";
 import getTechnicalHelpIcon from "../assets/icons/sidebar-icons/get-technical-help.svg";
+
+const ROUTE_PERMISSION_MAP = {
+  "/": "view_dashboard",
+  "/pos": "access_pos",
+  "/pick-up": "access_pickup",
+  "/inventory": "view_inventory",
+  "/analytics": "view_analytics",
+  "/sales-reports": "view_sales_reports",
+  "/pharmacists": "manage_pharmacists",
+  "/settings": "manage_settings",
+};
 
 const formatUnreadBadge = (count) => {
   const numericCount = Number(count);
@@ -154,38 +166,47 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOr
         </div>
 
         <nav className="p-0">
-          {MENU_SECTIONS.map((section, sIdx) => (
-            <div key={sIdx}>
-              {sIdx > 0 && <div className="sidebar-divider" />}
-              {section.items.map((item) => {
-                const badgeValue =
-                  item.badgeKey === "notifications"
-                    ? notificationsBadge
-                    : item.badgeKey === "pickup"
-                    ? pickupBadge
-                    : null;
+          {MENU_SECTIONS.map((section, sIdx) => {
+            const visibleItems = section.items.filter((item) => {
+              const reqPerm = ROUTE_PERMISSION_MAP[item.to];
+              return !reqPerm || checkUserPermission(user, reqPerm);
+            });
 
-                return (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  end={item.to === "/"}
-                  className={({ isActive }) =>
-                    `menu-item d-flex align-items-center gap-3 position-relative text-decoration-none${isActive ? " active" : ""}`
-                  }
-                >
-                  <img src={item.icon} alt="" className="menu-icon" aria-hidden="true" />
-                  <span>{item.label}</span>
-                  {badgeValue && (
-                    <span className="menu-badge position-absolute rounded-pill fw-semibold">
-                      {badgeValue}
-                    </span>
-                  )}
-                </NavLink>
-                );
-              })}
-            </div>
-          ))}
+            if (visibleItems.length === 0) return null;
+
+            return (
+              <div key={sIdx}>
+                {sIdx > 0 && <div className="sidebar-divider" />}
+                {visibleItems.map((item) => {
+                  const badgeValue =
+                    item.badgeKey === "notifications"
+                      ? notificationsBadge
+                      : item.badgeKey === "pickup"
+                      ? pickupBadge
+                      : null;
+
+                  return (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      end={item.to === "/"}
+                      className={({ isActive }) =>
+                        `menu-item d-flex align-items-center gap-3 position-relative text-decoration-none${isActive ? " active" : ""}`
+                      }
+                    >
+                      <img src={item.icon} alt="" className="menu-icon" aria-hidden="true" />
+                      <span>{item.to === "/sales-reports" && user?.role === "pharmacist" ? "Transaction History" : item.label}</span>
+                      {badgeValue && (
+                        <span className="menu-badge position-absolute rounded-pill fw-semibold">
+                          {badgeValue}
+                        </span>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            );
+          })}
         </nav>
       </div>
 

@@ -30,6 +30,7 @@ export function ProductDetailsModal({
   setShowStockOutModal,
   setStockOutForm,
   inputErrors = {},
+  isPharmacist = false,
 }) {
   const isMedicine = selectedItem?.product_type === "medicine";
   const fileInputRef = React.useRef(null);
@@ -45,39 +46,41 @@ export function ProductDetailsModal({
       className="inventory-details-modal"
       showCloseButton={true}
       footer={
-        <div className={`inventory-modal-actions${isModalEditing ? " is-editing" : ""}`}>
-          {!isModalEditing && (
-            <>
+        !isPharmacist ? (
+          <div className={`inventory-modal-actions${isModalEditing ? " is-editing" : ""}`}>
+            {!isModalEditing && (
+              <>
+                <button
+                  type="button"
+                  className="btn inventory-modal-btn btn-outline-warning"
+                  onClick={() => {
+                    setStockOutForm({ quantity: "" });
+                    setShowStockOutModal(true);
+                  }}
+                >
+                  Stock Out
+                </button>
+                <button
+                  type="button"
+                  className="btn inventory-modal-btn inventory-modal-btn-outline"
+                  onClick={() => setIsModalEditing(true)}
+                >
+                  Edit
+                </button>
+              </>
+            )}
+            {isModalEditing && (
               <button
                 type="button"
-                className="btn inventory-modal-btn btn-outline-warning"
-                onClick={() => {
-                  setStockOutForm({ quantity: "" });
-                  setShowStockOutModal(true);
-                }}
+                className="btn inventory-modal-btn inventory-modal-btn-primary"
+                onClick={handleRequestSave}
+                disabled={Object.keys(inputErrors).length > 0}
               >
-                Stock Out
+                Save Changes
               </button>
-              <button
-                type="button"
-                className="btn inventory-modal-btn inventory-modal-btn-outline"
-                onClick={() => setIsModalEditing(true)}
-              >
-                Edit
-              </button>
-            </>
-          )}
-          {isModalEditing && (
-            <button
-              type="button"
-              className="btn inventory-modal-btn inventory-modal-btn-primary"
-              onClick={handleRequestSave}
-              disabled={Object.keys(inputErrors).length > 0}
-            >
-              Save Changes
-            </button>
-          )}
-        </div>
+            )}
+          </div>
+        ) : null
       }
     >
       {selectedItem && modalDraft && (
@@ -87,9 +90,9 @@ export function ProductDetailsModal({
             <h6 className="inventory-modal-section-title mb-2">Product Image</h6>
             <div className="d-flex align-items-center gap-3">
               <div
-                className={`inventory-image-container ${isModalEditing ? "is-editable" : ""}`}
-                onClick={() => isModalEditing && fileInputRef.current?.click()}
-                title={isModalEditing ? "Click to change product image" : ""}
+                className={`inventory-image-container ${isModalEditing && !isPharmacist ? "is-editable" : ""}`}
+                onClick={() => isModalEditing && !isPharmacist && fileInputRef.current?.click()}
+                title={isModalEditing && !isPharmacist ? "Click to change product image" : ""}
               >
                 {displayImage ? (
                   <img
@@ -104,7 +107,7 @@ export function ProductDetailsModal({
                   </div>
                 )}
 
-                {isModalEditing && (
+                {isModalEditing && !isPharmacist && (
                   <div className="inventory-image-overlay">
                     <i className="fa-solid fa-camera" />
                   </div>
@@ -342,23 +345,25 @@ export function ProductDetailsModal({
               </span>
             </div>
 
-            {batchLoading ? (
-              <div className="inventory-batch-loading">
-                <div className="spinner-border spinner-border-sm" style={{ color: "#1f2937" }} role="status" />
-                <span>Loading batches...</span>
-              </div>
-            ) : batches.length === 0 ? (
-              <p className="inventory-batch-empty">No batches recorded for this product.</p>
-            ) : (
-              <div className="inventory-batch-table">
-                <div className="inventory-batch-head">
-                  <span>Batch No.</span>
-                  <span>Stock</span>
-                  <span>Manufactured</span>
-                  <span>Expiry Date</span>
-                  <span>Status</span>
+            {(() => {
+              const displayBatches = isModalEditing ? batches : batches.filter((b) => (b.stock ?? 0) > 0);
+              return batchLoading ? (
+                <div className="inventory-batch-loading">
+                  <div className="spinner-border spinner-border-sm" style={{ color: "#1f2937" }} role="status" />
+                  <span>Loading batches...</span>
                 </div>
-                {batches.map((batch) => (
+              ) : displayBatches.length === 0 ? (
+                <p className="inventory-batch-empty">No active batches recorded for this product.</p>
+              ) : (
+                <div className="inventory-batch-table">
+                  <div className="inventory-batch-head">
+                    <span>Batch No.</span>
+                    <span>Stock</span>
+                    <span>Manufactured</span>
+                    <span>Expiry Date</span>
+                    <span>Status</span>
+                  </div>
+                  {displayBatches.map((batch) => (
                   <div key={batch.id} className="inventory-batch-row">
                     <span className="inventory-batch-num">
                       {batch.batch_number || <em className="text-muted">—</em>}
@@ -422,10 +427,12 @@ export function ProductDetailsModal({
                   </div>
                 ))}
               </div>
-            )}
+            );
+          })()}
 
-            {isModalEditing && (
-              <div className="inventory-batch-add-area">                {!showAddBatch ? (
+            {isModalEditing && !isPharmacist && (
+              <div className="inventory-batch-add-area">                
+              {!showAddBatch ? (
                   <button
                     type="button"
                     className="inventory-batch-add-trigger"

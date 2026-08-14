@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useOutletContext } from "react-router-dom";
 import { exportSalesCsv, exportSalesPdf } from "../../services/salesReportService";
 import { useSalesReports } from "./hooks/useSalesReports";
 import { downloadSalesCsv, openSalesPdf } from "./salesReportsUtils";
@@ -17,6 +18,10 @@ function formatDateLabel(dateStr) {
 }
 
 function SalesReports() {
+  const context = useOutletContext() || {};
+  const user = context.user;
+  const isPharmacist = user?.role === "pharmacist";
+
   const [showExportDropdown, setShowExportDropdown] = useState(false);
   const [exchangeOrder, setExchangeOrder] = useState(null);
   const [completedExchange, setCompletedExchange] = useState(null);
@@ -83,11 +88,17 @@ function SalesReports() {
   return (
     <section>
       <header className="admin-page-header">
-        <h4 className="fw-bold mb-1 admin-page-title">Sales &amp; Report</h4>
-        <p className="admin-page-subtitle">Sales and reports related to the pharmacy.</p>
+        <h4 className="fw-bold mb-1 admin-page-title">
+          {isPharmacist ? "Transaction History" : "Sales & Report"}
+        </h4>
+        <p className="admin-page-subtitle">
+          {isPharmacist ? "Sales transaction history processed by you." : "Sales and reports related to the pharmacy."}
+        </p>
       </header>
 
-      <SalesSummaryCards loading={summaryLoading} cards={SUMMARY_CARDS} />
+      {!isPharmacist && (
+        <SalesSummaryCards loading={summaryLoading} cards={SUMMARY_CARDS} />
+      )}
 
       <div className="mt-4">
         <div className="card border rounded-3 shadow-sm">

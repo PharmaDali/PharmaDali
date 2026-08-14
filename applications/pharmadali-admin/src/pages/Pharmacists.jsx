@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { fetchPharmacists, createPharmacist, updatePharmacist, deletePharmacist } from "../services/pharmacistService";
 import "../assets/css/pharmacists.css";
 import { TableSkeleton } from "../components/loading";
+import PharmacistPermissionsModal from "./PharmacistPermissionsModal";
 
 const calculateAge = (birthdate) => {
 	const today = new Date();
@@ -38,6 +39,19 @@ function Pharmacists() {
 	const [showModal, setShowModal] = useState(false);
 	const [showDetailsModal, setShowDetailsModal] = useState(false);
 	const [viewingPharmacist, setViewingPharmacist] = useState(null);
+	const [showPermissionsModal, setShowPermissionsModal] = useState(false);
+	const [permissionsPharmacist, setPermissionsPharmacist] = useState(null);
+
+	const handleOpenPermissionsModal = (pharmacist) => {
+		setPermissionsPharmacist(pharmacist);
+		setShowPermissionsModal(true);
+	};
+
+	const handlePermissionsUpdated = (updatedUser) => {
+		setPharmacists((prev) =>
+			prev.map((item) => (item.id === updatedUser.id ? { ...item, ...updatedUser } : item))
+		);
+	};
 	const [formData, setFormData] = useState({
 		firstName: "",
 		lastName: "",
@@ -83,13 +97,14 @@ function Pharmacists() {
 	}, []);
 
 	const rows = useMemo(() => {
+		const list = Array.isArray(pharmacists) ? pharmacists : (pharmacists?.data || []);
 		const q = search.trim().toLowerCase();
 
 		if (!q) {
-			return pharmacists;
+			return list;
 		}
 
-		return pharmacists.filter((item) => {
+		return list.filter((item) => {
 			const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
 			const empNumber = item.pharmacist?.employee_number?.toLowerCase() || "";
 			return fullName.includes(q) || empNumber.includes(q) || (item.mobile_number || "").includes(q);
@@ -323,9 +338,12 @@ function Pharmacists() {
 									</td>
 								</tr>
 							) : rows.length === 0 ? (
-								<tr>
-									<td colSpan={6} className="text-center text-muted py-4">
-										No pharmacist found.
+								<tr className="pharmacists-empty-row" style={{ cursor: "default" }}>
+									<td colSpan={6} className="text-center py-5">
+										<div className="d-flex flex-column align-items-center justify-content-center py-4">
+											<i className="fa-solid fa-user-slash mb-3" style={{ fontSize: "3.5rem", color: "#94a3b8" }} />
+											<span className="fw-medium" style={{ fontSize: "15px", color: "#64748b" }}>No pharmacist records found.</span>
+										</div>
 									</td>
 								</tr>
 							) : (
@@ -341,13 +359,25 @@ function Pharmacists() {
 											</span>
 										</td>
 										<td>
-											<button
-												type="button"
-												className="btn btn-sm pharmacists-btn-details"
-												onClick={() => handleOpenDetailsModal(item)}
-											>
-												View Details
-											</button>
+											<div className="d-flex align-items-center gap-2">
+												<button
+													type="button"
+													className="btn btn-sm pharmacists-btn-details"
+													onClick={() => handleOpenDetailsModal(item)}
+												>
+													View Details
+												</button>
+												<button
+													type="button"
+													className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 py-1 px-2 rounded-2"
+													style={{ borderColor: "#2aabe2", color: "#2aabe2", fontSize: "0.8rem" }}
+													onClick={() => handleOpenPermissionsModal(item)}
+													title="Manage Staff Permissions"
+												>
+													<i className="fa-solid fa-key" />
+													Permissions
+												</button>
+											</div>
 										</td>
 									</tr>
 								))
@@ -646,6 +676,14 @@ function Pharmacists() {
 					</div>
 				</div>
 			)}
+
+			{/* Permissions Modal */}
+			<PharmacistPermissionsModal
+				isOpen={showPermissionsModal}
+				onClose={() => setShowPermissionsModal(false)}
+				pharmacist={permissionsPharmacist}
+				onSuccess={handlePermissionsUpdated}
+			/>
 		</section>
 	);
 }

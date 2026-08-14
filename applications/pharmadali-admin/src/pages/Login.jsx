@@ -18,10 +18,16 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      await login(credentials);
+      const data = await login(credentials);
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("tokenExpiry", String(Date.now() + 8 * 60 * 60 * 1000));
-      navigate("/", { replace: true });
+
+      const role = data?.role || data?.user?.role;
+      if (role === "pharmacist") {
+        navigate("/pos", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (err) {
       setError(err?.message || "Invalid email or password.");
       localStorage.removeItem("isAuthenticated");

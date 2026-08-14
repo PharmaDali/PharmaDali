@@ -150,9 +150,10 @@ function PickUp() {
         search,
         status: statusFilter
       });
-      if (response.status === "success") {
-        setOrders(response.data);
-      }
+      const dataArray = Array.isArray(response?.data) 
+        ? response.data 
+        : (Array.isArray(response) ? response : []);
+      setOrders(dataArray);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
     } finally {
@@ -271,11 +272,14 @@ function PickUp() {
   };
 
   return (
-    <>
+    <section>
+      <header className="admin-page-header mb-4">
+        <h4 className="fw-bold mb-1 admin-page-title">Pickup Orders</h4>
+        <p className="admin-page-subtitle">View and fulfill customer online pickup orders.</p>
+      </header>
       <div className="pickup-layout">
         <div className="pickup-outer-card">
-          <div className="d-flex align-items-center justify-content-between gap-3 mb-3 flex-wrap">
-            <h1 className="fw-bold m-0 pickup-title">Pickup Orders</h1>
+          <div className="d-flex align-items-center justify-content-end gap-3 mb-3 flex-wrap">
             <div className="pickup-toolbar-actions">
               <div className="position-relative pickup-search-wrap">
                 <i className="fa-solid fa-magnifying-glass pickup-search-icon" />
@@ -327,11 +331,11 @@ function PickUp() {
                 {loading ? (
                   <TableSkeleton rows={5} columns={6} showAvatar={false} />
                 ) : orders.length === 0 ? (
-                  <tr>
-                    <td colSpan="6" className="text-center py-5 text-muted">
-                      <div className="py-2">
-                        <i className="fa-solid fa-box-open fs-3 text-muted mb-2 d-block" />
-                        <span>No pickup orders found.</span>
+                  <tr className="pickup-empty-row" style={{ cursor: "default" }}>
+                    <td colSpan="6" className="text-center py-5">
+                      <div className="d-flex flex-column align-items-center justify-content-center py-4">
+                        <i className="fa-solid fa-box-open mb-3" style={{ fontSize: "3.5rem", color: "#94a3b8" }} />
+                        <span className="fw-medium" style={{ fontSize: "15px", color: "#64748b" }}>No pickup orders found.</span>
                       </div>
                     </td>
                   </tr>
@@ -749,7 +753,7 @@ function PickUp() {
           </p>
         </div>
       </Modal>
-    </>
+    </section>
   );
 }
 

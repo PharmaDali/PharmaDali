@@ -3,70 +3,58 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UpdatePharmacistPermissionsRequest;
 use App\Http\Requests\UpdatePharmacistRequest;
-use App\Models\User;
+use App\Services\Pharmacist\PharmacistService;
 use Illuminate\Http\JsonResponse;
 
 class PharmacyPharmacistController extends Controller
 {
+    public function __construct(
+        private readonly PharmacistService $pharmacistService
+    ) {}
+
     public function index(): JsonResponse
     {
-        /** @var User $admin */
-        $admin = request()->user();
+        $pharmacists = $this->pharmacistService->getPharmacists(request()->user());
 
-        $pharmacists = User::where('pharmacy_id', $admin->pharmacy_id)
-            ->where('role', 'pharmacist')
-            ->with('pharmacist')
-            ->get();
-
-        return response()->json($pharmacists);
+        return $this->successResponse($pharmacists, 'Pharmacists fetched successfully.');
     }
 
     public function update(UpdatePharmacistRequest $request, int $pharmacist): JsonResponse
     {
-        /** @var User $admin */
-        $admin = $request->user();
+        $user = $this->pharmacistService->updatePharmacist(
+            $request->user(),
+            $pharmacist,
+            $request->validated()
+        );
 
-        $user = User::where('id', $pharmacist)
-            ->where('pharmacy_id', $admin->pharmacy_id)
-            ->where('role', 'pharmacist')
-            ->firstOrFail();
+        return $this->successResponse($user, 'Pharmacist details updated successfully.');
+    }
 
-        $data = $request->validated();
+    /**
+     * Update permissions for a specific pharmacist profile.
+     */
+    public function updatePermissions(UpdatePharmacistPermissionsRequest $request, int $pharmacist): JsonResponse
+    {
+        $user = $this->pharmacistService->updatePermissions(
+            $request->user(),
+            $pharmacist,
+            $request->validated()['permissions']
+        );
 
-        $user->fill(array_filter([
-            'first_name'    => $data['first_name'] ?? null,
-            'last_name'     => $data['last_name'] ?? null,
-            'email'         => $data['email'] ?? null,
-            'mobile_number' => $data['mobile_number'] ?? null,
-            'date_of_birth' => $data['date_of_birth'] ?? null,
-            'address'       => $data['address'] ?? null,
-            'is_active'     => $data['is_active'] ?? null,
-        ], fn ($value) => !is_null($value)));
-
-        $user->save();
-
-        if (array_key_exists('license_number', $data)) {
-            $user->pharmacist()->update([
-                'license_number' => $data['license_number'],
-            ]);
-        }
-
-        return response()->json($user->load('pharmacist'));
+        return $this->successResponse(
+            $user,
+            'Pharmacist permissions updated successfully.'
+        );
     }
 
     public function destroy(int $pharmacist): JsonResponse
     {
-        /** @var User $admin */
-        $admin = request()->user();
+        $this->pharmacistService->deletePharmacist(request()->user(), $pharmacist);
 
-        $user = User::where('id', $pharmacist)
-            ->where('pharmacy_id', $admin->pharmacy_id)
-            ->where('role', 'pharmacist')
-            ->firstOrFail();
-
-        $user->delete();
-
-        return response()->json(['message' => 'Pharmacist deleted successfully.']);
+        return $this->successResponse(null, 'Pharmacist deleted successfully.');
     }
 }
+
+

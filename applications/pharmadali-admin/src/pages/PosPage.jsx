@@ -424,11 +424,16 @@ function PosPage() {
 
     try {
       const response = await fetchPosProducts({ search: searchQuery, page: targetPage });
-      const newProducts = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
-      
+      const dataPayload = response?.data || response;
+      const newProducts = Array.isArray(dataPayload?.data)
+        ? dataPayload.data
+        : (Array.isArray(dataPayload) ? dataPayload : (Array.isArray(response) ? response : []));
+      const currentPage = dataPayload?.current_page || response?.current_page || 1;
+      const lastPage = dataPayload?.last_page || response?.last_page || 1;
+
       setProducts(prev => isInitial ? newProducts : [...prev, ...newProducts]);
-      setHasMore(response?.current_page < response?.last_page);
-      setPage(response?.current_page || 1);
+      setHasMore(currentPage < lastPage);
+      setPage(currentPage);
     } catch (error) {
       console.error("Failed to fetch products:", error);
     } finally {
@@ -548,7 +553,12 @@ function PosPage() {
   };
 
   return (
-    <div className="d-flex flex-column flex-md-row gap-4 pos-page">
+    <section>
+      <header className="admin-page-header mb-4">
+        <h4 className="fw-bold mb-1 admin-page-title">Point of Sale (POS)</h4>
+        <p className="admin-page-subtitle">Process over-the-counter sales transactions and issue receipts.</p>
+      </header>
+      <div className="d-flex flex-column flex-md-row gap-4 pos-page">
       <div className="d-flex flex-column flex-grow-1 pos-pane" style={{ minWidth: 0 }}>
         <div className="card border-0 shadow-md pos-card pos-product-card">
           <div className="card-header bg-white border-0 d-flex align-items-center gap-3 flex-wrap pt-3 pb-2 px-3">
@@ -783,7 +793,8 @@ function PosPage() {
           </p>
         </div>
       </Modal>
-    </div>
+      </div>
+    </section>
   );
 }
 

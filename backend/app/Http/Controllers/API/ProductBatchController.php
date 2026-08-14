@@ -37,6 +37,8 @@ class ProductBatchController extends Controller
      */
     public function store(Request $request, int $pharmacyProductId)
     {
+        $this->authorizePermission(null, 'Unauthorized Access');
+
         $pharmacyProduct = PharmacyProduct::where('pharmacy_id', $request->user()->pharmacy_id)
             ->findOrFail($pharmacyProductId);
 
@@ -62,6 +64,8 @@ class ProductBatchController extends Controller
      */
     public function update(Request $request, int $batchId)
     {
+        $this->authorizePermission(null, 'Unauthorized Access');
+
         $batch = ProductBatch::findOrFail($batchId);
 
         $pharmacyProduct = PharmacyProduct::where('pharmacy_id', $request->user()->pharmacy_id)
@@ -86,6 +90,8 @@ class ProductBatchController extends Controller
      */
     public function stockOut(Request $request, int $pharmacyProductId)
     {
+        $this->authorizePermission(null, 'Unauthorized Access');
+
         $pharmacyProduct = PharmacyProduct::where('pharmacy_id', $request->user()->pharmacy_id)
             ->findOrFail($pharmacyProductId);
 

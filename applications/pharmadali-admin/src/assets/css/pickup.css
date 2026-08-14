@@ -156,6 +156,12 @@
   background: #f4f6f8;
 }
 
+.pickup-table tbody tr.pickup-empty-row,
+.pickup-table tbody tr.pickup-empty-row:hover {
+  background: transparent !important;
+  cursor: default !important;
+}
+
 .pickup-row-selected td {
   background: #e4eaf0 !important;
 }

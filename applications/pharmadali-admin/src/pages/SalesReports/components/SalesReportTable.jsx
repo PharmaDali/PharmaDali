@@ -36,8 +36,13 @@ function SalesReportTable({
                 <td colSpan={6} className="text-center py-4 text-danger">{error}</td>
               </tr>
             ) : rows.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center py-4 text-secondary">No transactions found.</td>
+              <tr style={{ cursor: "default" }}>
+                <td colSpan={6} className="text-center py-5">
+                  <div className="d-flex flex-column align-items-center justify-content-center py-4">
+                    <i className="fa-solid fa-file-invoice-dollar mb-3" style={{ fontSize: "3.5rem", color: "#94a3b8" }} />
+                    <span className="fw-medium" style={{ fontSize: "15px", color: "#64748b" }}>No sales transactions found.</span>
+                  </div>
+                </td>
               </tr>
             ) : (
               rows.map((row, index) => (

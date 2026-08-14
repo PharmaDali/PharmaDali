@@ -15,40 +15,32 @@ class DashboardController extends Controller
 
     public function overview(Request $request): JsonResponse
     {
+        $this->authorizePermission(null, 'Unauthorized Access');
+
         $pharmacyId = $request->user()->pharmacy_id;
 
         if (!$pharmacyId) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Pharmacy context required.',
-            ], 400);
+            return $this->errorResponse('Pharmacy context required.', 400);
         }
 
         $data = $this->dashboardService->getDashboardOverview($pharmacyId);
 
-        return response()->json([
-            'status' => 'success',
-            'data'   => $data,
-        ]);
+        return $this->successResponse($data, 'Dashboard overview fetched successfully.');
     }
 
     public function salesTrend(Request $request): JsonResponse
     {
+        $this->authorizePermission(null, 'Unauthorized Access');
+
         $pharmacyId = $request->user()->pharmacy_id;
         $range = $request->input('range', 'Weekly');
 
         if (!$pharmacyId) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Pharmacy context required.',
-            ], 400);
+            return $this->errorResponse('Pharmacy context required.', 400);
         }
 
         $data = $this->dashboardService->getSalesTrend($pharmacyId, $range);
 
-        return response()->json([
-            'status' => 'success',
-            'data'   => $data,
-        ]);
+        return $this->successResponse($data, 'Sales trend fetched successfully.');
     }
 }

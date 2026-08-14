@@ -1,4 +1,5 @@
 import React from "react";
+import { useOutletContext } from "react-router-dom";
 import { useInventory } from "./hooks/useInventory";
 import InventoryMetrics from "./components/InventoryMetrics";
 import InventoryFilterBar from "./components/InventoryFilterBar";
@@ -14,6 +15,10 @@ import errorIcon from "../../assets/icons/modal-icons/error.svg";
 import "../../assets/css/inventory.css";
 
 export function Inventory() {
+  const context = useOutletContext() || {};
+  const user = context.user;
+  const isPharmacist = user?.role === "pharmacist";
+
   const {
     // Search/Filter State
     query,
@@ -106,10 +111,11 @@ export function Inventory() {
 
     navigate,
     loadData,
+    resetFilters,
   } = useInventory();
 
   return (
-    <section className="inventory-page">
+    <section className="inventory-page" aria-label="Pharmacy Inventory Management">
       <header className="admin-page-header">
         <h4 className="fw-bold mb-1 admin-page-title">Inventory</h4>
         <p className="admin-page-subtitle">
@@ -138,6 +144,7 @@ export function Inventory() {
         setStatusFilter={setStatusFilter}
         categoryOptions={categoryOptions}
         loadData={loadData}
+        onReset={resetFilters}
       />
 
       <div className="row g-4 inventory-content-row">
@@ -154,6 +161,7 @@ export function Inventory() {
             handlePageChange={handlePageChange}
             setIsAddModalOpen={setIsAddModalOpen}
             navigate={navigate}
+            isPharmacist={isPharmacist}
           />
         </div>
 
@@ -191,6 +199,7 @@ export function Inventory() {
         setShowStockOutModal={setShowStockOutModal}
         setStockOutForm={setStockOutForm}
         inputErrors={inputErrors}
+        isPharmacist={isPharmacist}
       />
 
       <StockOutModal
