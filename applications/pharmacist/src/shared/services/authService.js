@@ -29,3 +29,34 @@ export async function logoutPharmacist() {
     }
   }
 }
+
+export async function sendPharmacistChangePasswordOtp(email) {
+  return apiRequest('/pharmacist/change-password/send-otp', {
+    method: 'POST',
+    body: {
+      email: email.trim(),
+    },
+  });
+}
+
+export async function verifyPharmacistChangePasswordOtp(email, otp) {
+  return apiRequest('/pharmacist/change-password/verify-otp', {
+    method: 'POST',
+    body: {
+      email: email.trim(),
+      otp: otp.trim(),
+    },
+  });
+}
+
+export async function resetPharmacistPassword({ email, resetToken, password, passwordConfirmation }) {
+  return apiRequest('/pharmacist/change-password/reset-password', {
+    method: 'POST',
+    body: {
+      email: email.trim(),
+      reset_token: resetToken,
+      password,
+      password_confirmation: passwordConfirmation,
+    },
+  });
+}
