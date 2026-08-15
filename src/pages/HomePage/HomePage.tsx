@@ -7,6 +7,7 @@ import Pharmacies from '../Pharmacies/Pharmacies'
 import Users from '../Users/Users'
 import Notifications from '../Notifications/Notifications'
 import Tickets from '../Tickets/Tickets'
+import TicketDetailsPage from '../Tickets/TicketDetailsPage'
 import { usePharmacies } from '../../context/PharmacyContext'
 
 const PAGE_TITLES: Record<string, string> = {
@@ -64,6 +65,12 @@ function HomePage() {
             <section className="w-full">
               <div className="max-w-[1400px]">
                 <Tickets />
+              </div>
+            </section>
+          ) : pathname.startsWith('/tickets/') ? (
+            <section className="w-full">
+              <div className="max-w-[1400px]">
+                <TicketDetailsPage />
               </div>
             </section>
           ) : pathname === '/notifications' ? (
