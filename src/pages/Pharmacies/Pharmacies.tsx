@@ -119,30 +119,32 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     )
   })
 
-  // compact mode: used on Dashboard — render a small 3-column table without actions
+  // compact mode: used on Dashboard — render a 3-column table without actions (scrollable if > 7 items)
   if (compact) {
     return (
       <div className="w-full">
         <h2 className="text-white text-2xl font-semibold mb-4">Pharmacy List</h2>
         <div className="bg-[#424754] rounded-[10px] overflow-hidden w-full max-w-[720px] shadow-lg">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#8ccfed] text-[#22313b]">
-                <th className="py-3 px-6 text-sm font-semibold rounded-tl-[10px]">Pharmacy Name</th>
-                <th className="py-3 px-6 text-sm font-semibold">Location</th>
-                <th className="py-3 px-6 text-sm font-semibold text-center rounded-tr-[10px]">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pharmacies.slice(0, 5).map((p) => (
-                <tr key={p.id} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0">
-                  <td className="py-4 px-6 text-gray-100 text-base">{p.name}</td>
-                  <td className="py-4 px-6 text-gray-200 text-base">{p.location}</td>
-                  <td className={`py-4 px-6 text-base text-center ${p.status === 'Active' ? 'text-[#4ade80]' : p.status === 'Pending' ? 'text-amber-400' : 'text-gray-400'}`}>{p.status}</td>
+          <div className="max-h-[440px] overflow-y-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-[#8ccfed] text-[#22313b]">
+                  <th className="py-3 px-6 text-sm font-semibold rounded-tl-[10px]">Pharmacy Name</th>
+                  <th className="py-3 px-6 text-sm font-semibold">Location</th>
+                  <th className="py-3 px-6 text-sm font-semibold text-center rounded-tr-[10px]">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {pharmacies.map((p) => (
+                  <tr key={p.id} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0">
+                    <td className="py-4 px-6 text-gray-100 text-base">{p.name}</td>
+                    <td className="py-4 px-6 text-gray-200 text-base">{p.location}</td>
+                    <td className={`py-4 px-6 text-base text-center ${p.status === 'Active' ? 'text-[#4ade80]' : p.status === 'Pending' ? 'text-amber-400' : 'text-gray-400'}`}>{p.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     )
