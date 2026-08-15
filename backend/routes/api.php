@@ -18,6 +18,7 @@ use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\ReportController;
 use App\Http\Controllers\API\DashboardController;
 use App\Http\Controllers\API\CustomerForgotPasswordController;
+use App\Http\Controllers\API\PharmacistChangePasswordController;
 use App\Http\Controllers\API\PharmacySettingsController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
@@ -38,6 +39,11 @@ Route::post('admin/login', [AuthController::class, 'adminLogin']);
 Route::post('customer/forgot-password/send-otp', [CustomerForgotPasswordController::class, 'sendOtp']);
 Route::post('customer/forgot-password/verify-otp', [CustomerForgotPasswordController::class, 'verifyOtp']);
 Route::post('customer/forgot-password/reset-password', [CustomerForgotPasswordController::class, 'resetPassword']);
+
+// Pharmacist Change Password routes (Email OTP stored in Redis)
+Route::post('pharmacist/change-password/send-otp', [PharmacistChangePasswordController::class, 'sendOtp']);
+Route::post('pharmacist/change-password/verify-otp', [PharmacistChangePasswordController::class, 'verifyOtp']);
+Route::post('pharmacist/change-password/reset-password', [PharmacistChangePasswordController::class, 'changePassword']);
 
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
 
