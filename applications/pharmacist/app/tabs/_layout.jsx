@@ -6,6 +6,8 @@ import BottomBar from './BottomBar';
 import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { configureForegroundNotifications, syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
+import FirstTimePasswordModal from '@src/shared/components/FirstTimePasswordModal';
+import { useFirstTimePasswordCheck } from '@src/shared/hooks/useFirstTimePasswordCheck';
 
 // Configure foreground notification presentation at module level
 configureForegroundNotifications();
@@ -14,7 +16,9 @@ function LayoutContent() {
   const pathname = usePathname();
   const router = useRouter();
   const isChatRoute = pathname?.startsWith('/tabs/chat');
+  const isChangePasswordRoute = pathname?.startsWith('/tabs/account/ChangePassword');
   const notificationResponseListener = useRef();
+  const { showFirstTimeModal, closeModal } = useFirstTimePasswordCheck();
 
   useEffect(() => {
     // Register device and sync the Expo Push Token to the backend
@@ -56,6 +60,17 @@ function LayoutContent() {
       {!isChatRoute && <TopBar />}
       <Slot />
       {!isChatRoute && <BottomBar />}
+
+      {!isChangePasswordRoute && (
+        <FirstTimePasswordModal
+          visible={showFirstTimeModal}
+          onClose={closeModal}
+          onChangePassword={() => {
+            closeModal();
+            router.push('/tabs/account/ChangePassword');
+          }}
+        />
+      )}
     </View>
   );
 }

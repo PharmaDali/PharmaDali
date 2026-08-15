@@ -8,6 +8,7 @@ import {
   ScrollView,
   SafeAreaView,
   BackHandler,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,12 @@ import ChangePassHeroIcon from '@assets/icons/account/change-password/change_pas
 import SuccessIcon from '@assets/icons/account/change-password/success.svg';
 import PasswordInput from '@src/shared/components/PasswordInput';
 import OtpVerifiedModal from '@src/shared/components/OtpVerifiedModal';
+import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
+import {
+  sendPharmacistChangePasswordOtp,
+  verifyPharmacistChangePasswordOtp,
+  resetPharmacistPassword,
+} from '@shared/services/authService';
 
 const ChangePassword = () => {
   const router = useRouter();
@@ -23,7 +30,10 @@ const ChangePassword = () => {
   const [step, setStep] = useState(1);
   
   // Step 1 State
-  const [email] = useState('sampleemail@gmail.com');
+  const [email, setEmail] = useState('');
+  const [emailLoading, setEmailLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState('');
 
   // Step 2 State (OTP 6 digits)
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
@@ -31,11 +41,34 @@ const ChangePassword = () => {
   const [resendTimer, setResendTimer] = useState(45);
   const [isResendDisabled, setIsResendDisabled] = useState(true);
   const [showVerifiedModal, setShowVerifiedModal] = useState(false);
+  const [resetToken, setResetToken] = useState('');
 
   // Step 4 State (New Password)
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+
+  const displayEmail = email || (emailLoading ? 'Loading registered email...' : 'Email Not Provided');
+
+  // Load logged-in pharmacist profile email on mount
+  useEffect(() => {
+    let isMounted = true;
+    getPharmacistProfile()
+      .then((res) => {
+        if (isMounted && res?.data?.user?.email) {
+          setEmail(res.data.user.email);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) {
+          setEmailLoading(false);
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Block back navigation for Step 4 & Step 5
   useEffect(() => {
@@ -67,13 +100,27 @@ const ChangePassword = () => {
     return () => clearInterval(interval);
   }, [step, isResendDisabled, resendTimer]);
 
-  const handleSendOtp = () => {
-    setStep(2);
-    setResendTimer(45);
-    setIsResendDisabled(true);
+  const handleSendOtp = async () => {
+    setApiError('');
+    if (!email) {
+      setApiError('No registered email address found for this account.');
+      return;
+    }
+    setLoading(true);
+    try {
+      await sendPharmacistChangePasswordOtp(email);
+      setStep(2);
+      setResendTimer(45);
+      setIsResendDisabled(true);
+    } catch (err) {
+      setApiError(err?.message || 'Failed to send OTP. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOtpChange = (text, index) => {
+    setApiError('');
     const newOtp = [...otp];
     newOtp[index] = text;
     setOtp(newOtp);
@@ -90,14 +137,48 @@ const ChangePassword = () => {
     }
   };
 
-  const handleResendOtp = () => {
+  const handleResendOtp = async () => {
+    setApiError('');
+    if (!email) {
+      setApiError('No registered email address found.');
+      return;
+    }
     setResendTimer(45);
     setIsResendDisabled(true);
+    try {
+      await sendPharmacistChangePasswordOtp(email);
+    } catch (err) {
+      setApiError(err?.message || 'Failed to resend OTP.');
+    }
   };
 
-  const handleVerifyOtp = () => {
-    // Open OTP Verified Modal
-    setShowVerifiedModal(true);
+  const handleVerifyOtp = async () => {
+    setApiError('');
+    if (!email) {
+      setApiError('No registered email address found.');
+      return;
+    }
+    const otpCode = otp.join('');
+    if (otpCode.length < 6) {
+      setApiError('Please enter the complete 6-digit OTP code.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await verifyPharmacistChangePasswordOtp(email, otpCode);
+      const token = res?.reset_token || res?.data?.reset_token;
+      if (token) {
+        setResetToken(token);
+        setShowVerifiedModal(true);
+      } else {
+        setApiError('Failed to retrieve reset token.');
+      }
+    } catch (err) {
+      setApiError(err?.message || 'Invalid or expired OTP code.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVerifiedModalContinue = () => {
@@ -105,7 +186,7 @@ const ChangePassword = () => {
     setStep(4);
   };
 
-  const handleUpdatePassword = () => {
+  const handleUpdatePassword = async () => {
     setPasswordError('');
     if (!newPassword || !confirmPassword) {
       setPasswordError('Please fill out all password fields.');
@@ -120,8 +201,20 @@ const ChangePassword = () => {
       return;
     }
 
-    // Transition directly to Step 5 (Password Updated View Tab)
-    setStep(5);
+    setLoading(true);
+    try {
+      await resetPharmacistPassword({
+        email,
+        resetToken,
+        password: newPassword,
+        passwordConfirmation: confirmPassword,
+      });
+      setStep(5);
+    } catch (err) {
+      setPasswordError(err?.message || 'Failed to update password.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const formatTimer = (seconds) => {
@@ -179,19 +272,27 @@ const ChangePassword = () => {
             </View>
 
             <Text className="text-xs text-center leading-5 mb-6" style={styles.descriptionText}>
-              For your security, we will send a One-Time Password (OTP) to your registered mobile number
+              For your security, we will send a One-Time Password (OTP) to your registered email address
             </Text>
 
-            <View className="w-full flex-row items-center border border-[#E2E8F0] rounded-2xl p-4 mb-8 bg-white">
+            <View className="w-full flex-row items-center border border-[#E2E8F0] rounded-2xl p-4 mb-4 bg-white">
               <Ionicons name="mail-outline" size={24} color="#333333" className="mr-3" />
               <View className="flex-1 ml-2">
-                <Text className="text-base" style={styles.emailText}>{email}</Text>
+                <Text className="text-base" style={styles.emailText}>{displayEmail}</Text>
                 <Text className="text-[11px] mt-0.5" style={styles.emailSubtext}>Registered email address</Text>
               </View>
             </View>
 
-            <TouchableOpacity className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center" onPress={handleSendOtp}>
-              <Text className="text-base" style={styles.primaryButtonText}>Send OTP</Text>
+            {!!apiError && (
+              <Text className="text-xs mb-4 text-center" style={styles.errorText}>{apiError}</Text>
+            )}
+
+            <TouchableOpacity className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center" onPress={handleSendOtp} disabled={loading || emailLoading}>
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text className="text-base" style={styles.primaryButtonText}>Send OTP</Text>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -200,7 +301,7 @@ const ChangePassword = () => {
         {step === 2 && (
           <View className="items-center w-full">
             <Text className="text-sm mb-1" style={styles.otpDescriptionLabel}>We sent an OTP to</Text>
-            <Text className="text-base mb-8" style={styles.otpEmailText}>{email}</Text>
+            <Text className="text-base mb-8" style={styles.otpEmailText}>{displayEmail}</Text>
 
             {/* 6-Digit PIN input boxes */}
             <View className="flex-row justify-between w-full mb-6">
@@ -219,6 +320,10 @@ const ChangePassword = () => {
               ))}
             </View>
 
+            {!!apiError && (
+              <Text className="text-xs mb-4 text-center" style={styles.errorText}>{apiError}</Text>
+            )}
+
             <View className="flex-row items-center mb-8">
               <Text className="text-xs" style={styles.resendText}>Didn’t receive the code? </Text>
               <TouchableOpacity onPress={handleResendOtp} disabled={isResendDisabled}>
@@ -228,8 +333,12 @@ const ChangePassword = () => {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center" onPress={handleVerifyOtp}>
-              <Text className="text-base" style={styles.primaryButtonText}>Verify OTP</Text>
+            <TouchableOpacity className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center" onPress={handleVerifyOtp} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text className="text-base" style={styles.primaryButtonText}>Verify OTP</Text>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -241,7 +350,7 @@ const ChangePassword = () => {
               label="New Password *"
               value={newPassword}
               onChangeText={setNewPassword}
-              helperText="Use at least 15 alphanumeric characters and symbols."
+              helperText="Use at least 8 alphanumeric characters and symbols."
             />
 
             <PasswordInput
@@ -254,8 +363,12 @@ const ChangePassword = () => {
               <Text className="text-xs mb-3 self-start" style={styles.errorText}>{passwordError}</Text>
             )}
 
-            <TouchableOpacity className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center mt-6" onPress={handleUpdatePassword}>
-              <Text className="text-base" style={styles.primaryButtonText}>Update Password</Text>
+            <TouchableOpacity className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center mt-6" onPress={handleUpdatePassword} disabled={loading}>
+              {loading ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text className="text-base" style={styles.primaryButtonText}>Update Password</Text>
+              )}
             </TouchableOpacity>
           </View>
         )}
@@ -272,7 +385,7 @@ const ChangePassword = () => {
             </Text>
 
             <Text className="text-sm text-center leading-6 mb-6" style={styles.successSubtext}>
-              You can now use your new password to log in.
+              Your password has been updated. You can continue using your account.
             </Text>
 
             {/* Organized Security Note Box */}
@@ -308,8 +421,8 @@ const ChangePassword = () => {
               </Text>
             </View>
 
-            <TouchableOpacity className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center mt-6" onPress={() => router.replace('/tabs/account/Account')}>
-              <Text className="text-base" style={styles.primaryButtonText}>Back to Profile</Text>
+            <TouchableOpacity className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center mt-6" onPress={() => router.replace('/tabs/Home')}>
+              <Text className="text-base" style={styles.primaryButtonText}>Back to Home</Text>
             </TouchableOpacity>
           </View>
         )}

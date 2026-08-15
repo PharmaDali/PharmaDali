@@ -13,6 +13,8 @@ import { toTitleCase } from '@shared/utils/stringUtils';
 import LogoutConfirmationOverlay from '@shared/components/LogoutConfirmationOverlay';
 import FirstTimePasswordModal from '@src/shared/components/FirstTimePasswordModal';
 
+import { useFirstTimePasswordCheck } from '@src/shared/hooks/useFirstTimePasswordCheck';
+
 const Account = () => {
   const router = useRouter();
 
@@ -21,7 +23,7 @@ const Account = () => {
   const [loading, setLoading] = useState(true);
   const [isLogoutOverlayVisible, setIsLogoutOverlayVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
+  const { showFirstTimeModal, closeModal } = useFirstTimePasswordCheck();
 
   useEffect(() => {
     let isMounted = true;
@@ -35,11 +37,6 @@ const Account = () => {
         if (isMounted) {
           const userProfile = response?.data ?? null;
           setProfile(userProfile);
-          
-          // Show first time password modal if user is flagged for password reset/new account
-          if (userProfile?.user?.requires_password_change || userProfile?.requires_password_change) {
-            setShowFirstTimeModal(true);
-          }
         }
       } catch (error) {
         if (isMounted) {
@@ -147,9 +144,9 @@ const Account = () => {
 
       <FirstTimePasswordModal
         visible={showFirstTimeModal}
-        onClose={() => setShowFirstTimeModal(false)}
+        onClose={closeModal}
         onChangePassword={() => {
-          setShowFirstTimeModal(false);
+          closeModal();
           router.push('/tabs/account/ChangePassword');
         }}
       />

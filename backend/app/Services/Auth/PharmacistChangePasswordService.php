@@ -2,7 +2,7 @@
 
 namespace App\Services\Auth;
 
-use App\Notifications\CustomerForgotPasswordOtpNotification;
+use App\Notifications\PharmacistChangePasswordOtpNotification;
 use App\Repositories\UserRepository;
 use App\Services\Auth\Actions\ResetPassword;
 use App\Services\Auth\Actions\SendPasswordOtp;
@@ -10,7 +10,7 @@ use App\Services\Auth\Actions\VerifyPasswordOtp;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
 
-class ForgotPasswordService
+class PharmacistChangePasswordService
 {
     use ApiResponseTrait;
 
@@ -23,43 +23,43 @@ class ForgotPasswordService
 
     public function sendOtp(string $email): JsonResponse
     {
-        $user = $this->userRepository->findCustomerByEmail($email);
+        $user = $this->userRepository->findPharmacistByEmail($email);
 
         if (!$user) {
-            return $this->errorResponse('No customer account found with this email address.', 404);
+            return $this->errorResponse('No pharmacist account found with this email address.', 404);
         }
 
         return $this->sendPasswordOtp->execute(
             $user,
-            "otp:customer:forgot_password:{$email}",
-            "otp:customer:rate_limit:{$email}",
-            fn (string $otp) => new CustomerForgotPasswordOtpNotification($otp)
+            "otp:pharmacist:change_password:{$email}",
+            "otp:pharmacist:rate_limit:{$email}",
+            fn (string $otp) => new PharmacistChangePasswordOtpNotification($otp)
         );
     }
 
     public function verifyOtp(string $email, string $otp): JsonResponse
     {
         return $this->verifyPasswordOtp->execute(
-            "otp:customer:forgot_password:{$email}",
-            "password_reset_token:{$email}",
+            "otp:pharmacist:change_password:{$email}",
+            "password_reset_token:pharmacist:{$email}",
             $otp
         );
     }
 
-    public function resetPassword(string $email, string $resetToken, string $newPassword): JsonResponse
+    public function changePassword(string $email, string $resetToken, string $newPassword): JsonResponse
     {
-        $user = $this->userRepository->findCustomerByEmail($email);
+        $user = $this->userRepository->findPharmacistByEmail($email);
 
         if (!$user) {
-            return $this->errorResponse('Customer account not found.', 404);
+            return $this->errorResponse('Pharmacist account not found.', 404);
         }
 
         return $this->resetPassword->execute(
             $user,
-            "password_reset_token:{$email}",
+            "password_reset_token:pharmacist:{$email}",
             $resetToken,
             $newPassword,
-            'Your password has been reset successfully. You may now log in.'
+            'Your password has been changed successfully. You may now log in.'
         );
     }
 }

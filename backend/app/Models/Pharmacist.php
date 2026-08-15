@@ -20,10 +20,12 @@ class Pharmacist extends Model
         'employee_number',
         'license_number',
         'permissions',
+        'requires_password_change',
     ];
 
     protected $casts = [
         'permissions' => 'array',
+        'requires_password_change' => 'boolean',
     ];
 
     public function user(): BelongsTo
