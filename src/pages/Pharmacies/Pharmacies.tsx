@@ -60,7 +60,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     setIsConfirmModalOpen(true)
   }
 
-  const handleConfirmSave = () => {
+  const handleConfirmSave = async () => {
     if (!editingPharmacy) return
 
     const updated: Pharmacy = {
@@ -73,7 +73,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       status: editFormData.status,
     }
 
-    updatePharmacy(updated)
+    await updatePharmacy(updated)
     if (selectedPharmacy?.id === editingPharmacy.id) {
       setSelectedPharmacy(updated)
     }
@@ -91,11 +91,11 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     setDeletingPharmacy(null)
   }
 
-  const handleSavePharmacy = (e: React.FormEvent) => {
+  const handleSavePharmacy = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name.trim()) return
 
-    addPharmacy({
+    await addPharmacy({
       name: formData.name,
       owner: formData.owner,
       contact: formData.contact,
