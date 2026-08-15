@@ -6,6 +6,7 @@ import PharmacyMap from '../../components/Dashboard/PharmacyMap'
 import Pharmacies from '../Pharmacies/Pharmacies'
 import Users from '../Users/Users'
 import Notifications from '../Notifications/Notifications'
+import Tickets from '../Tickets/Tickets'
 import { usePharmacies } from '../../context/PharmacyContext'
 
 const PAGE_TITLES: Record<string, string> = {
@@ -57,6 +58,12 @@ function HomePage() {
             <section className="w-full">
               <div className="max-w-[1400px]">
                 <Users />
+              </div>
+            </section>
+          ) : pathname === '/tickets' ? (
+            <section className="w-full">
+              <div className="max-w-[1400px]">
+                <Tickets />
               </div>
             </section>
           ) : pathname === '/notifications' ? (
