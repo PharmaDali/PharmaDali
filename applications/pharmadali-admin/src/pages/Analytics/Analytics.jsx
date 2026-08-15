@@ -4,12 +4,14 @@ import TabBar from "./components/TabBar";
 import InsightsBox from "./components/InsightsBox";
 import AnalyticsTable from "./components/AnalyticsTable";
 import AnalyticsChart from "./components/AnalyticsChart";
+import AnalyticsMetrics from "./components/AnalyticsMetrics";
 import "../../assets/css/analytics.css";
 
 export default function Analytics() {
   const {
     activeTab,
     setActiveTab,
+    currentMetrics,
     tableTimeframe,
     setTableTimeframe,
     demandData,
@@ -37,6 +39,8 @@ export default function Analytics() {
       </header>
 
       <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+
+      <AnalyticsMetrics metrics={currentMetrics} loading={tableLoading} />
 
       <div className="row g-4 mb-4">
         <div className="col-lg-3">

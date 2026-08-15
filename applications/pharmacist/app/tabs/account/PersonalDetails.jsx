@@ -1,12 +1,15 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useMemo, useState } from 'react'
-import { colors } from '@src/shared/theme/colorPalette'
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
 import { toTitleCase } from '@shared/utils/stringUtils';
 
 const PersonalDetails = () => {
+  const router = useRouter();
   const [profile, setProfile] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -14,6 +17,7 @@ const PersonalDetails = () => {
     const loadProfile = async () => {
       try {
         setErrorMessage('');
+        setLoading(true);
         const response = await getPharmacistProfile();
 
         if (isMounted) {
@@ -23,6 +27,10 @@ const PersonalDetails = () => {
         if (isMounted) {
           setProfile(null);
           setErrorMessage(error?.message || 'Failed to load personal details.');
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
         }
       }
     };
@@ -34,62 +42,84 @@ const PersonalDetails = () => {
     };
   }, []);
 
-  const birthday = useMemo(() => {
-    const value = profile?.user?.date_of_birth;
-    return value || 'Not set';
-  }, [profile?.user?.date_of_birth]);
+  const fallbackText = loading ? 'Loading...' : 'Not Provided';
 
-  const contactNumber = profile?.user?.mobile_number || 'Not set';
+  const firstName = profile?.user?.first_name ? toTitleCase(profile.user.first_name) : fallbackText;
+  const lastName = profile?.user?.last_name ? toTitleCase(profile.user.last_name) : fallbackText;
+  const birthday = profile?.user?.date_of_birth || fallbackText;
+  const contactNumber = profile?.user?.mobile_number || fallbackText;
+  const email = profile?.user?.email || fallbackText;
+  const employeeNumber = profile?.user?.employee_number || profile?.employee_number || fallbackText;
+
+  const detailsList = [
+    { label: 'First Name', value: firstName },
+    { label: 'Last Name', value: lastName },
+    { label: 'Birthday', value: birthday },
+    { label: 'Contact Number', value: contactNumber },
+    { label: 'Email Address', value: email },
+    { label: 'Employee Number', value: employeeNumber },
+  ];
 
   return (
-    <View style={styles.container}>
-      <View className="items-center justify-center mt-10 bg-white border border-gray-300 rounded-xl px-4 py-6 mx-4">
-        <Text style={styles.title} className="mb-2 text-2xl">Personal Details</Text>
-        <View className="flex-row justify-between mt-4">
-          <View>
-            <Text style={styles.labelText}>First Name: </Text>
-            <Text style={styles.labelText}>Last Name: </Text>
-            <Text style={styles.labelText}>Birthday: </Text>
-            <Text style={styles.labelText}>Contact Number: </Text>
+    <SafeAreaView className="flex-1 bg-white">
+      {/* Header Bar */}
+      <View className="flex-row items-center justify-between px-4 py-3 border-b border-[#F0F0F0]">
+        <TouchableOpacity className="p-1" onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={24} color="#48AAD9" />
+        </TouchableOpacity>
+        <Text className="text-lg" style={styles.headerTitle}>
+          Personal Details
+        </Text>
+        <View className="w-6" />
+      </View>
+
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 }}>
+        {detailsList.map((item, idx) => (
+          <View
+            key={idx}
+            className="w-full bg-white border border-[#D0D5DD] rounded-xl px-4 py-4 mb-3.5 flex-row justify-between items-center"
+          >
+            <Text className="text-sm" style={styles.labelStyle}>
+              {item.label}
+            </Text>
+            <Text className="text-sm text-right flex-1 ml-4" style={styles.valueStyle}>
+              {item.value}
+            </Text>
           </View>
-          <View>
-            <Text style={styles.text}>{toTitleCase(profile?.user?.first_name) || '-'}</Text>
-            <Text style={styles.text}>{toTitleCase(profile?.user?.last_name) || '-'}</Text>
-            <Text style={styles.text}>{birthday}</Text>
-            <Text style={styles.text}>{contactNumber}</Text>
-          </View>
-        </View>
+        ))}
 
         {!!errorMessage && (
-          <Text style={styles.errorText} className="mt-4 text-xs text-center">{errorMessage}</Text>
+          <Text className="mt-2 text-xs text-center" style={styles.errorText}>
+            {errorMessage}
+          </Text>
         )}
-      </View>
-    </View>
-  )
-}
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
 
-export default PersonalDetails
+export default PersonalDetails;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F1F4FF',
+  headerTitle: {
+    fontFamily: 'Poppins-Bold',
+    color: '#48AAD9',
+    includeFontPadding: false,
   },
-  text: {
-    fontFamily: 'Poppins-Medium',
-    color: colors.textColor,
-  },
-  title:{
-    fontFamily: 'Poppins-SemiBold',
-    color: colors.buttonColor,
-  },
-  labelText: {
+  labelStyle: {
     fontFamily: 'Poppins-Medium',
     color: '#888888',
+    includeFontPadding: false,
+  },
+  valueStyle: {
+    fontFamily: 'Poppins-Medium',
+    color: '#444444',
+    includeFontPadding: false,
   },
   errorText: {
     fontFamily: 'Poppins-Medium',
-    color: '#CC3A3A',
+    color: '#E53935',
+    includeFontPadding: false,
   },
-})
+});
 

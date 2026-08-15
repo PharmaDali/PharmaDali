@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { fetchDemandAnalytics, fetchSalesAnalytics } from "../../../services/analyticsService";
 import { formatCurrency, formatNumber } from "../../../utils/formatUtils";
 
@@ -198,10 +198,50 @@ export function useAnalyticsData() {
     };
   }, [activeTab, chartDemandTimeframe, chartSalesTimeframe, isDemand]);
 
+  // Compute BI Metrics
+  const demandMetrics = useMemo(() => {
+    const totalVolume = demandData.reduce((acc, item) => {
+      const val = parseFloat(String(item.value).replace(/,/g, "")) || 0;
+      return acc + val;
+    }, 0);
+    const topItem = demandData[0]?.product || "N/A";
+    const avgDaily = (totalVolume / 30).toFixed(1);
+    const trendingUp = demandData.filter((item) => (item.delta || 0) > 0).length;
+
+    return [
+      { label: "Total Demand Volume", value: totalVolume.toLocaleString(), subtitle: "Total units in period" },
+      { label: "Peak Demand Item", value: topItem, subtitle: "Highest volume product" },
+      { label: "Avg. Daily Consumption", value: `${avgDaily} units/day`, subtitle: "Stock velocity rate" },
+      { label: "High Growth Items", value: `${trendingUp} items`, subtitle: "Products with rising demand" },
+    ];
+  }, [demandData]);
+
+  const salesMetrics = useMemo(() => {
+    const totalRevenue = salesData.reduce((acc, item) => {
+      const num = parseFloat(String(item.value).replace(/[^\d.]/g, "")) || 0;
+      return acc + num;
+    }, 0);
+    const topItem = salesData[0]?.product || "N/A";
+    const avgRevenue = salesData.length > 0 ? totalRevenue / salesData.length : 0;
+    const growthCount = salesData.filter((item) => (item.delta || 0) > 0).length;
+
+    return [
+      { label: "Total Sales Revenue", prefix: "PHP", value: totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 }), subtitle: "Total revenue in period" },
+      { label: "Top Grossing Product", value: topItem, subtitle: "Highest revenue generator" },
+      { label: "Avg. Revenue / Product", prefix: "PHP", value: avgRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 }), subtitle: "Average product performance" },
+      { label: "Revenue Growth Items", value: `${growthCount} items`, subtitle: "Products with sales increase" },
+    ];
+  }, [salesData]);
+
+  const currentMetrics = isDemand ? demandMetrics : salesMetrics;
+
   return {
     activeTab,
     setActiveTab,
     
+    // BI Metrics
+    currentMetrics,
+
     // Table props
     tableTimeframe: activeTableTimeframe,
     setTableTimeframe: handleSetTableTimeframe,

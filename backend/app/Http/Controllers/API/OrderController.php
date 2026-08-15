@@ -70,13 +70,6 @@ class OrderController extends Controller
         );
     }
 
-    public function countTotalOrders(): JsonResponse
-    {
-        return response()->json([
-            'total_orders' => $this->orderService->countTotalOrders(),
-        ]);
-    }
-
     public function getTodayStats(): JsonResponse
     {
         return response()->json($this->orderService->getTodayStats());

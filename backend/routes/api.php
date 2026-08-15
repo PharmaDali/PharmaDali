@@ -69,10 +69,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('pharmacies/{pharmacyId}/categories', [PharmacyProductController::class, 'showPharmacyCategories']);
 
     Route::middleware('ability:customer')->group(function () {
-        Route::get('customer/dashboard', function () {
-            return response()->json(['message' => 'Customer dashboard access granted']);
-        });
-
         // chats
         Route::get('customer/messages/pharmacists', [ConversationController::class, 'customerPharmacists']);
         Route::get('customer/messages/conversations', [ConversationController::class, 'index']);
@@ -100,9 +96,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware(['ability:pharmacist,pharmacy_admin'])->group(function () {
-        Route::get('pharmacist/dashboard', function () {
-            return response()->json(['message' => 'Pharmacist dashboard access granted']);
-        });
 
         Route::get('pharmacist/messages/customers', [ConversationController::class, 'pharmacistCustomers']);
         Route::get('pharmacist/messages/conversations', [ConversationController::class, 'index']);
@@ -125,11 +118,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['ability:pharmacy_admin,pharmacist,super_admin,admin,system_admin'])->group(function () {
         Route::get('pharmacy/dashboard/overview', [DashboardController::class, 'overview']);
         Route::get('pharmacy/dashboard/sales-trend', [DashboardController::class, 'salesTrend']);
-        Route::get(
-            'pharmacy/dashboard',
-            fn() =>
-            response()->json(['message' => 'Pharmacy Admin dashboard'])
-        );
 
         Route::get('admin/profile', [AdminProfileController::class, 'show']);
         Route::patch('admin/profile', [AdminProfileController::class, 'update']);
@@ -169,13 +157,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('products/{id}/image', [PharmacyProductController::class, 'uploadImage']);
 
 
-        Route::get('pharmacy/orders/count', [OrderController::class, 'countTotalOrders']);
         Route::get('pharmacy/orders/stats', [OrderController::class, 'getTodayStats']);
         Route::get('pharmacy/orders', [OrderController::class, 'index']);
         Route::get('pharmacy/orders/{order}', [OrderController::class, 'show']);
 
         // inventory
-        Route::get('pharmacy/inventory/total-products', [InventoryController::class, 'getTotalProductCount']);
         Route::get('pharmacy/inventory/metrics', [InventoryController::class, 'getInventoryMetrics']);
         Route::get('pharmacy/inventory/priority-restocks', [InventoryController::class, 'getPriorityRestocks']);
         Route::get('pharmacy/inventory/products', [InventoryController::class, 'getInventoryProducts']);
@@ -200,12 +186,6 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {
-        Route::get(
-            'admin/dashboard',
-            fn() =>
-            response()->json(['message' => 'Super Admin dashboard'])
-        );
-
         Route::post('admin/register', [AuthController::class, 'adminRegister']);
 
         Route::apiResource('pharmacies', PharmacyController::class)->except(['index', 'show']);

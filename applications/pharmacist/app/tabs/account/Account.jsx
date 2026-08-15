@@ -1,15 +1,17 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
-import React, { useEffect, useMemo, useState } from 'react'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { colors } from '@src/shared/theme/colorPalette'
-import AccountIcon from '@assets/icons/account_icon.svg'
-import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
-import EditIcon from '@assets/icons/edit_icon.svg'
+import { Ionicons } from '@expo/vector-icons';
+import { colors } from '@src/shared/theme/colorPalette';
+import PersonalDetailsIcon from '@assets/icons/account/personal_details.svg';
+import ChangePassIcon from '@assets/icons/account/change-password/change_pass.svg';
+import LogoutIcon from '@assets/icons/account/logout.svg';
+import EditIcon from '@assets/icons/edit_icon.svg';
 import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
 import { logoutPharmacist } from '@shared/services/authService';
 import { toTitleCase } from '@shared/utils/stringUtils';
 import LogoutConfirmationOverlay from '@shared/components/LogoutConfirmationOverlay';
+import FirstTimePasswordModal from '@src/shared/components/FirstTimePasswordModal';
 
 const Account = () => {
   const router = useRouter();
@@ -19,6 +21,7 @@ const Account = () => {
   const [loading, setLoading] = useState(true);
   const [isLogoutOverlayVisible, setIsLogoutOverlayVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showFirstTimeModal, setShowFirstTimeModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -30,7 +33,13 @@ const Account = () => {
         const response = await getPharmacistProfile();
 
         if (isMounted) {
-          setProfile(response?.data ?? null);
+          const userProfile = response?.data ?? null;
+          setProfile(userProfile);
+          
+          // Show first time password modal if user is flagged for password reset/new account
+          if (userProfile?.user?.requires_password_change || userProfile?.requires_password_change) {
+            setShowFirstTimeModal(true);
+          }
         }
       } catch (error) {
         if (isMounted) {
@@ -78,14 +87,13 @@ const Account = () => {
   const displayContact = loading ? 'Loading contact...' : contactNumber;
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card} className="m-4 p-6 my-10 rounded-xl border border-gray-200 items-center">
-        <Text style={styles.textSemiBold} className="text-2xl">My Profile</Text>
+    <View className="flex-1 bg-[#F1F4FF]">
+      <View className="m-4 p-6 my-10 rounded-2xl border border-gray-200 bg-white items-center">
+        <Text className="text-2xl" style={styles.textSemiBold}>My Profile</Text>
 
         <View className="items-center mt-4">
-          <View className="w-20 h-20 rounded-full items-center justify-center overflow-hidden"
-            style={styles.defaultPicture}>
-            <Text style={styles.textBold} className="text-3xl">
+          <View className="w-20 h-20 rounded-full items-center justify-center overflow-hidden bg-[#48AAD9]">
+            <Text className="text-3xl" style={styles.textBold}>
               {initial}
             </Text>
           </View>
@@ -94,82 +102,97 @@ const Account = () => {
           </TouchableOpacity>
         </View>
 
-        <Text style={styles.textSemiBoldDark} className="text-lg mt-2">{toTitleCase(displayName)}</Text>
-        <Text style={styles.textLight} className="text-sm">{displayContact}</Text>
+        <Text className="text-lg mt-2" style={styles.textSemiBoldDark}>{toTitleCase(displayName)}</Text>
+        <Text className="text-sm" style={styles.textLight}>{displayContact}</Text>
         {!!errorMessage && (
-          <Text style={styles.errorText} className="text-xs mt-2 text-center">{errorMessage}</Text>
+          <Text className="text-xs mt-2 text-center" style={styles.errorText}>{errorMessage}</Text>
         )}
       </View>
 
+      {/* Action Cards matching attached design */}
       <TouchableOpacity
-        style={styles.card}
-        className="mx-4 px-4 py-4 rounded-xl border border-gray-200 flex-row items-center"
+        className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
         onPress={() => router.push('/tabs/account/PersonalDetails')}
       >
-        <AccountIcon width={28} height={28} />
-        <Text style={styles.textMedium} className="flex-1 text-base ml-3">Personal Details</Text>
-        <ArrowForwardIcon width={18} height={18} />
+        <PersonalDetailsIcon width={26} height={26} />
+        <Text className="flex-1 text-base ml-3.5" style={styles.actionCardText}>Personal Details</Text>
+        <Ionicons name="chevron-forward" size={20} color="#48AAD9" />
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.card}
-        className="mx-4 mt-3 px-4 py-4 rounded-xl border border-red-200 flex-row items-center bg-red-50/20"
-        onPress={() => setIsLogoutOverlayVisible(true)}
+        className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
+        onPress={() => router.push('/tabs/account/ChangePassword')}
       >
-        <View className="w-7 h-7 rounded-full bg-red-100 items-center justify-center">
-          <MaterialCommunityIcons name="logout" size={18} color="#EF4444" />
-        </View>
-        <Text className="flex-1 text-base ml-3 text-red-500 font-semibold" style={{ fontFamily: 'Poppins-Medium' }}>
-          Log Out
-        </Text>
-        <ArrowForwardIcon width={18} height={18} />
+        <ChangePassIcon width={26} height={26} />
+        <Text className="flex-1 text-base ml-3.5" style={styles.actionCardText}>Change Password</Text>
+        <Ionicons name="chevron-forward" size={20} color="#48AAD9" />
       </TouchableOpacity>
 
+      <TouchableOpacity
+        className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
+        onPress={() => setIsLogoutOverlayVisible(true)}
+      >
+        <LogoutIcon width={26} height={26} />
+        <Text className="flex-1 text-base ml-3.5" style={styles.actionCardText}>Logout</Text>
+        <Ionicons name="chevron-forward" size={20} color="#48AAD9" />
+      </TouchableOpacity>
+
+      {/* Modals */}
       <LogoutConfirmationOverlay
         visible={isLogoutOverlayVisible}
         loading={isLoggingOut}
         onClose={() => setIsLogoutOverlayVisible(false)}
         onConfirm={handleConfirmLogout}
       />
-    </View>
-  )
-}
 
-export default Account
+      <FirstTimePasswordModal
+        visible={showFirstTimeModal}
+        onClose={() => setShowFirstTimeModal(false)}
+        onChangePassword={() => {
+          setShowFirstTimeModal(false);
+          router.push('/tabs/account/ChangePassword');
+        }}
+      />
+    </View>
+  );
+};
+
+export default Account;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F1F4FF',
-  },
   textMedium: {
     fontFamily: 'Poppins-Medium',
     color: colors.textColor,
+    includeFontPadding: false,
   },
   textBold: {
     fontFamily: 'Poppins-Bold',
     color: colors.textColor,
+    includeFontPadding: false,
   },
   textSemiBold: {
     fontFamily: 'Poppins-SemiBold',
     color: colors.buttonColor,
+    includeFontPadding: false,
   },
   textSemiBoldDark: {
     fontFamily: 'Poppins-SemiBold',
     color: colors.textColor,
+    includeFontPadding: false,
   },
   textLight: {
     fontFamily: 'Poppins-Medium',
     color: '#999',
+    includeFontPadding: false,
   },
   errorText: {
     fontFamily: 'Poppins-Medium',
     color: '#CC3A3A',
+    includeFontPadding: false,
   },
-  card: {
-    backgroundColor: '#fff',
+  actionCardText: {
+    fontFamily: 'Poppins-Medium',
+    color: '#333333',
+    includeFontPadding: false,
   },
-  defaultPicture: {
-    backgroundColor: colors.primary,
-  },
-})
+});

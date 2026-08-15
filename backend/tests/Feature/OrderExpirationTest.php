@@ -146,4 +146,44 @@ class OrderExpirationTest extends TestCase
             OrderExpiredNotification::class
         );
     }
+
+    public function test_orders_placed_after_closing_hour_are_not_expired_immediately(): void
+    {
+        Notification::fake();
+
+        $pharmacy = Pharmacy::create([
+            'pharmacy_name'  => 'Central Pharmacy',
+            'location'       => 'Main Street',
+            'contact_number' => '09123456789',
+            'is_active'      => true,
+            'opening_hour'   => '08:00:00',
+            'closing_hour'   => '18:00:00',
+        ]);
+
+        $user = User::factory()->create(['role' => 'customer']);
+        $customer = Customer::create(['user_id' => $user->id, 'mobile_number' => '09123456789']);
+
+        // Set current time to 19:00 (after 18:00 closing hour)
+        Carbon::setTestNow(Carbon::parse('2026-07-25 19:00:00'));
+
+        // Customer places an order at 19:00 (after closing)
+        $lateOrder = Order::create([
+            'order_number'   => 'ORD-LATE-1',
+            'pharmacy_id'    => $pharmacy->id,
+            'customer_id'    => $customer->id,
+            'status'         => 'pending',
+            'payment_method' => 'cash',
+            'payment_status' => 'unpaid',
+            'subtotal'       => 50.00,
+            'total_amount'   => 50.00,
+        ]);
+
+        // Run the expire command at 19:01
+        Carbon::setTestNow(Carbon::parse('2026-07-25 19:01:00'));
+        $this->artisan('orders:expire')->assertExitCode(0);
+
+        // Verify order remains pending and is NOT marked overdue
+        $freshOrder = Order::withoutGlobalScopes()->find($lateOrder->id);
+        $this->assertEquals('pending', $freshOrder->status);
+    }
 }

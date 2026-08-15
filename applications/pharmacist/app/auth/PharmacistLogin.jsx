@@ -4,7 +4,7 @@ import { Link, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
 import theme from '@src/shared/theme/inputTheme';
-import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
+import PasswordInput from '@src/shared/components/PasswordInput';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
@@ -17,7 +17,6 @@ const PharmacistLogin = () => {
 
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const passwordToggleIcon = useConfirmPasswordToggle();
   const [employeeNumber, setEmployeeNumber] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -51,10 +50,6 @@ const PharmacistLogin = () => {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color="#48AAD9" />
         </TouchableOpacity>
-        <TouchableOpacity className="flex-row items-center">
-          <Text style={styles.tagalogText}>Tagalog</Text>
-          <Ionicons name="caret-down" size={12} color="#48AAD9" />
-        </TouchableOpacity>
       </View>
 
       <View className="items-center mt-2">
@@ -69,14 +64,8 @@ const PharmacistLogin = () => {
         value={employeeNumber}
         onChangeText={setEmployeeNumber}
       />
-      <TextInput
+      <PasswordInput
         label="Password"
-        mode="outlined"
-        secureTextEntry={!passwordToggleIcon.showPassword}
-        autoCapitalize="none"
-        theme={theme}
-        style={styles.input}
-        right={passwordToggleIcon.icon}
         value={password}
         onChangeText={setPassword}
       />  
@@ -85,10 +74,6 @@ const PharmacistLogin = () => {
       <View style={{ alignItems: 'center' }}>
         <Button mode="contained" style={styles.loginButton} onPress={handleLogin} loading={isSubmitting} disabled={isSubmitting}>
           Mag-Login
-        </Button>
-        <Text style={styles.noAccountText}>Wala pang account?</Text>
-        <Button mode="outlined" style={styles.registerButton} labelStyle={styles.registerButtonLabel} onPress={() => router.push('')}>
-          Mag-Register
         </Button>
       </View>
     </View>
