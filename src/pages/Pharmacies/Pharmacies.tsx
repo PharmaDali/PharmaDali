@@ -1,29 +1,12 @@
 import React, { useState } from 'react'
-
-interface Pharmacy {
-  id: number
-  name: string
-  owner: string
-  location: string
-  contact: string
-  email?: string
-  status: string
-}
-
-const INITIAL_PHARMACIES: Pharmacy[] = [
-  { id: 1, name: 'Landicho Drugstore', owner: 'Abigail Barrion', location: 'Lipa City', contact: '09123456789', status: 'Active' },
-  { id: 2, name: 'Puremed Pharmacy', owner: 'Althea Alvarez', location: 'Tanauan City', contact: '09541790778', status: 'Active' },
-  { id: 3, name: 'Generika Drugstore', owner: 'Denmar Redondo', location: 'Batangas City', contact: '09171234567', status: 'Inactive' },
-  { id: 4, name: 'Mercury Drug', owner: 'James Mercado', location: 'Calamba City', contact: '09987654321', status: 'Active' },
-  { id: 5, name: 'Southstar Drug', owner: 'James Orlanes', location: 'Santo Tomas', contact: '09223334444', status: 'Pending' },
-]
+import { usePharmacies, type Pharmacy } from '../../context/PharmacyContext'
 
 type Props = {
   compact?: boolean
 }
 
 const PharmacyList: React.FC<Props> = ({ compact }) => {
-  const [pharmacies, setPharmacies] = useState<Pharmacy[]>(INITIAL_PHARMACIES)
+  const { pharmacies, addPharmacy, updatePharmacy, deletePharmacy } = usePharmacies()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -77,7 +60,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     setIsConfirmModalOpen(true)
   }
 
-  const handleConfirmSave = () => {
+  const handleConfirmSave = async () => {
     if (!editingPharmacy) return
 
     const updated: Pharmacy = {
@@ -90,7 +73,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       status: editFormData.status,
     }
 
-    setPharmacies((prev) => prev.map((p) => (p.id === editingPharmacy.id ? updated : p)))
+    await updatePharmacy(updated)
     if (selectedPharmacy?.id === editingPharmacy.id) {
       setSelectedPharmacy(updated)
     }
@@ -101,28 +84,25 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
 
   const handleConfirmDelete = () => {
     if (!deletingPharmacy) return
-    setPharmacies((prev) => prev.filter((p) => p.id !== deletingPharmacy.id))
+    deletePharmacy(deletingPharmacy.id)
     if (selectedPharmacy?.id === deletingPharmacy.id) {
       setSelectedPharmacy(null)
     }
     setDeletingPharmacy(null)
   }
 
-  const handleSavePharmacy = (e: React.FormEvent) => {
+  const handleSavePharmacy = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formData.name.trim()) return
 
-    const newPharmacy: Pharmacy = {
-      id: Date.now(),
+    await addPharmacy({
       name: formData.name,
       owner: formData.owner,
       contact: formData.contact,
       email: formData.email,
       location: formData.location,
       status: formData.status || 'Active',
-    }
-
-    setPharmacies((prev) => [newPharmacy, ...prev])
+    })
     setFormData({ name: '', owner: '', contact: '', email: '', location: '', status: 'Active' })
     setIsAddModalOpen(false)
   }
@@ -139,30 +119,32 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     )
   })
 
-  // compact mode: used on Dashboard — render a small 3-column table without actions
+  // compact mode: used on Dashboard — render a 3-column table without actions (scrollable if > 7 items)
   if (compact) {
     return (
       <div className="w-full">
         <h2 className="text-white text-2xl font-semibold mb-4">Pharmacy List</h2>
         <div className="bg-[#424754] rounded-[10px] overflow-hidden w-full max-w-[720px] shadow-lg">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-[#8ccfed] text-[#22313b]">
-                <th className="py-3 px-6 text-sm font-semibold rounded-tl-[10px]">Pharmacy Name</th>
-                <th className="py-3 px-6 text-sm font-semibold">Location</th>
-                <th className="py-3 px-6 text-sm font-semibold text-center rounded-tr-[10px]">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pharmacies.slice(0, 5).map((p) => (
-                <tr key={p.id} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0">
-                  <td className="py-4 px-6 text-gray-100 text-base">{p.name}</td>
-                  <td className="py-4 px-6 text-gray-200 text-base">{p.location}</td>
-                  <td className={`py-4 px-6 text-base text-center ${p.status === 'Active' ? 'text-[#4ade80]' : p.status === 'Pending' ? 'text-amber-400' : 'text-gray-400'}`}>{p.status}</td>
+          <div className="max-h-[440px] overflow-y-auto custom-scrollbar">
+            <table className="w-full text-left border-collapse">
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-[#8ccfed] text-[#22313b]">
+                  <th className="py-3 px-6 text-sm font-semibold rounded-tl-[10px]">Pharmacy Name</th>
+                  <th className="py-3 px-6 text-sm font-semibold">Location</th>
+                  <th className="py-3 px-6 text-sm font-semibold text-center rounded-tr-[10px]">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {pharmacies.map((p) => (
+                  <tr key={p.id} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0">
+                    <td className="py-4 px-6 text-gray-100 text-base">{p.name}</td>
+                    <td className="py-4 px-6 text-gray-200 text-base">{p.location}</td>
+                    <td className={`py-4 px-6 text-base text-center ${p.status === 'Active' ? 'text-[#4ade80]' : p.status === 'Pending' ? 'text-amber-400' : 'text-red-400 font-medium'}`}>{p.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     )
@@ -256,7 +238,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                           <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.location}</td>
                           <td className="py-4 px-5 align-middle text-gray-200 truncate whitespace-nowrap">{p.contact}</td>
                           <td className="py-4 px-5 align-middle">
-                            <span className={p.status === 'Active' ? 'text-[#4ade80] font-medium' : p.status === 'Pending' ? 'text-amber-400 font-medium' : 'text-gray-400'}>{p.status}</span>
+                            <span className={p.status === 'Active' ? 'text-[#4ade80] font-medium' : p.status === 'Pending' ? 'text-amber-400 font-medium' : 'text-red-400 font-medium'}>{p.status}</span>
                           </td>
                           <td className="py-4 pr-6 align-middle">
                             <div className="flex items-center gap-2 justify-end h-full">

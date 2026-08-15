@@ -309,7 +309,7 @@ const Users: React.FC = () => {
                         className={
                           user.status === 'Active'
                             ? 'text-[#4ade80]'
-                            : 'text-gray-400'
+                            : 'text-red-400'
                         }
                       >
                         {user.status}
