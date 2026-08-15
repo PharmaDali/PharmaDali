@@ -1,29 +1,12 @@
 import React, { useState } from 'react'
-
-interface Pharmacy {
-  id: number
-  name: string
-  owner: string
-  location: string
-  contact: string
-  email?: string
-  status: string
-}
-
-const INITIAL_PHARMACIES: Pharmacy[] = [
-  { id: 1, name: 'Landicho Drugstore', owner: 'Abigail Barrion', location: 'Lipa City', contact: '09123456789', status: 'Active' },
-  { id: 2, name: 'Puremed Pharmacy', owner: 'Althea Alvarez', location: 'Tanauan City', contact: '09541790778', status: 'Active' },
-  { id: 3, name: 'Generika Drugstore', owner: 'Denmar Redondo', location: 'Batangas City', contact: '09171234567', status: 'Inactive' },
-  { id: 4, name: 'Mercury Drug', owner: 'James Mercado', location: 'Calamba City', contact: '09987654321', status: 'Active' },
-  { id: 5, name: 'Southstar Drug', owner: 'James Orlanes', location: 'Santo Tomas', contact: '09223334444', status: 'Pending' },
-]
+import { usePharmacies, type Pharmacy } from '../../context/PharmacyContext'
 
 type Props = {
   compact?: boolean
 }
 
 const PharmacyList: React.FC<Props> = ({ compact }) => {
-  const [pharmacies, setPharmacies] = useState<Pharmacy[]>(INITIAL_PHARMACIES)
+  const { pharmacies, addPharmacy, updatePharmacy, deletePharmacy } = usePharmacies()
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
@@ -90,7 +73,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       status: editFormData.status,
     }
 
-    setPharmacies((prev) => prev.map((p) => (p.id === editingPharmacy.id ? updated : p)))
+    updatePharmacy(updated)
     if (selectedPharmacy?.id === editingPharmacy.id) {
       setSelectedPharmacy(updated)
     }
@@ -101,7 +84,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
 
   const handleConfirmDelete = () => {
     if (!deletingPharmacy) return
-    setPharmacies((prev) => prev.filter((p) => p.id !== deletingPharmacy.id))
+    deletePharmacy(deletingPharmacy.id)
     if (selectedPharmacy?.id === deletingPharmacy.id) {
       setSelectedPharmacy(null)
     }
@@ -112,17 +95,14 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     e.preventDefault()
     if (!formData.name.trim()) return
 
-    const newPharmacy: Pharmacy = {
-      id: Date.now(),
+    addPharmacy({
       name: formData.name,
       owner: formData.owner,
       contact: formData.contact,
       email: formData.email,
       location: formData.location,
       status: formData.status || 'Active',
-    }
-
-    setPharmacies((prev) => [newPharmacy, ...prev])
+    })
     setFormData({ name: '', owner: '', contact: '', email: '', location: '', status: 'Active' })
     setIsAddModalOpen(false)
   }

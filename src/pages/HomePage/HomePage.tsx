@@ -6,6 +6,7 @@ import PharmacyMap from '../../components/Dashboard/PharmacyMap'
 import Pharmacies from '../Pharmacies/Pharmacies'
 import Users from '../Users/Users'
 import Notifications from '../Notifications/Notifications'
+import { usePharmacies } from '../../context/PharmacyContext'
 
 const PAGE_TITLES: Record<string, string> = {
   '/homepage': 'Dashboard',
@@ -18,6 +19,7 @@ const PAGE_TITLES: Record<string, string> = {
 function HomePage() {
   const { pathname } = useLocation()
   const title = PAGE_TITLES[pathname] ?? 'Dashboard'
+  const { totalPharmacies, totalActivePharmacies } = usePharmacies()
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-[#323642] text-[#e2e8f0] font-[var(--font-primary)]">
@@ -33,8 +35,8 @@ function HomePage() {
                 <h1 className="m-0 text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.05] text-white">Dashboard</h1>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <KpiCard title="Total Pharmacies" value="3" />
-                <KpiCard title="Total Active Pharmacies" value="2" />
+                <KpiCard title="Total Pharmacies" value={String(totalPharmacies)} />
+                <KpiCard title="Total Active Pharmacies" value={String(totalActivePharmacies)} />
                 <KpiCard title="Total Users" value="24" />
                 <KpiCard title="KPI 1" value="--" />
                 <KpiCard title="KPI 2" value="--" />
