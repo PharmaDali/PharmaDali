@@ -16,6 +16,7 @@ export interface Ticket {
   affectedModule: string
   contactNumber: string
   preferredContactMethod: string
+  resolutionDetails?: string
 }
 
 const INITIAL_TICKETS: Ticket[] = [
@@ -154,6 +155,7 @@ const Tickets: React.FC = () => {
   const [assigneeForm, setAssigneeForm] = useState('')
   const [statusForm, setStatusForm] = useState<Ticket['status']>('Open')
   const [priorityForm, setPriorityForm] = useState<Ticket['priority']>('High')
+  const [resolutionDetailsForm, setResolutionDetailsForm] = useState('')
   const [updateSuccess, setUpdateSuccess] = useState(false)
 
   // Calculate dynamic counts for KPI cards
@@ -168,6 +170,10 @@ const Tickets: React.FC = () => {
     setAssigneeForm(ticket.assignee)
     setStatusForm(ticket.status)
     setPriorityForm(ticket.priority)
+    setResolutionDetailsForm(
+      ticket.resolutionDetails ||
+        'The reported issue has been reviewed and addressed. The necessary actions have been taken to resolve the concern. The issue has been resolved accordingly.'
+    )
     setUpdateSuccess(false)
   }
 
@@ -180,6 +186,7 @@ const Tickets: React.FC = () => {
       assignee: assigneeForm,
       status: statusForm,
       priority: priorityForm,
+      resolutionDetails: statusForm === 'Resolved' ? resolutionDetailsForm : selectedTicketForDetails.resolutionDetails,
     }
 
     setTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
@@ -417,6 +424,19 @@ const Tickets: React.FC = () => {
             >
               Update ticket
             </button>
+
+            {t.status === 'Resolved' && (
+              <div className="col-span-1 sm:col-span-2 lg:col-span-4 mt-2">
+                <label className="text-gray-300 text-xs font-semibold block mb-2">Resolution Details</label>
+                <textarea
+                  rows={4}
+                  value={resolutionDetailsForm}
+                  onChange={(e) => setResolutionDetailsForm(e.target.value)}
+                  placeholder="Enter resolution details..."
+                  className="w-full bg-[#525766] text-gray-100 placeholder-gray-400 p-4 rounded-[14px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors text-xs leading-relaxed resize-none"
+                />
+              </div>
+            )}
           </form>
         </div>
 
