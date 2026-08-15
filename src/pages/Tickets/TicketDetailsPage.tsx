@@ -14,6 +14,7 @@ const TicketDetailsPage: React.FC = () => {
   const [statusForm, setStatusForm] = useState<Ticket['status']>('Open')
   const [priorityForm, setPriorityForm] = useState<Ticket['priority']>('High')
   const [resolutionDetailsForm, setResolutionDetailsForm] = useState('')
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
   const [updateSuccess, setUpdateSuccess] = useState(false)
 
   useEffect(() => {
@@ -75,8 +76,13 @@ const TicketDetailsPage: React.FC = () => {
     }
   }
 
-  const handleSaveTicketManagement = (e: React.FormEvent) => {
+  const handleOpenUpdateModal = (e: React.FormEvent) => {
     e.preventDefault()
+    setIsUpdateModalOpen(true)
+  }
+
+  const handleConfirmUpdateTicket = () => {
+    if (!ticket) return
 
     const updated: Ticket = {
       ...ticket,
@@ -88,6 +94,7 @@ const TicketDetailsPage: React.FC = () => {
 
     updateTicket(updated)
     setTicket(updated)
+    setIsUpdateModalOpen(false)
     setUpdateSuccess(true)
     setTimeout(() => setUpdateSuccess(false), 3000)
   }
@@ -190,7 +197,7 @@ const TicketDetailsPage: React.FC = () => {
           Assignment and Status Management
         </div>
 
-        <form onSubmit={handleSaveTicketManagement} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+        <form onSubmit={handleOpenUpdateModal} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
           <div>
             <label className="text-gray-300 text-xs font-medium block mb-1.5">Assignee</label>
             <div className="relative">
@@ -412,6 +419,37 @@ const TicketDetailsPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Update Ticket Confirmation Modal */}
+      {isUpdateModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
+          <div className="bg-[#292d37] w-full max-w-[380px] rounded-[20px] p-7 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
+            <div className="w-16 h-16 rounded-full border-2 border-white/80 flex items-center justify-center mx-auto mb-4 text-white">
+              <span className="text-3xl font-light leading-none">!</span>
+            </div>
+            <h2 className="text-white text-xl font-bold mb-2">Update Ticket</h2>
+            <p className="text-gray-300 text-xs mb-7 leading-relaxed">
+              Are you sure you want to update this ticket?
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setIsUpdateModalOpen(false)}
+                className="w-full py-2.5 px-4 rounded-[10px] border border-gray-400/50 text-gray-200 hover:bg-white/5 font-medium transition-colors text-xs cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmUpdateTicket}
+                className="w-full py-2.5 px-4 rounded-[10px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-medium shadow transition-colors text-xs cursor-pointer"
+              >
+                Update
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
