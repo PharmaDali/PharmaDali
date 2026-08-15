@@ -34,6 +34,7 @@ class DisplayPharmacistProfile
 				'id' => $pharmacist->id,
 				'employee_number' => $pharmacist->employee_number,
 				'license_number' => $pharmacist->license_number,
+				'requires_password_change' => (bool) $pharmacist->requires_password_change,
 				'user' => [
 					'id' => $pharmacist->user?->id,
 					'first_name' => $pharmacist->user?->first_name,
@@ -43,6 +44,7 @@ class DisplayPharmacistProfile
 					'mobile_number' => $pharmacist->user?->mobile_number,
 					'address' => $pharmacist->user?->address,
 					'date_of_birth' => $pharmacist->user?->date_of_birth,
+					'requires_password_change' => (bool) $pharmacist->requires_password_change,
 				],
 				'pharmacy' => [
 					'id' => $pharmacist->user?->pharmacy?->id,

@@ -37,14 +37,15 @@ class PharmacistRegisterService
                 'date_of_birth' => $data['date_of_birth'] ?? null,
                 'address'       => $data['address'] ?? null,
                 'role'          => 'pharmacist',
-                'pharmacy_id'     => $createdBy->pharmacy_id,
+                'pharmacy_id'   => $createdBy->pharmacy_id,
             ]);
 
             $employeeNumber = 'PHAR-' . $user->id . '-' . $createdBy->pharmacy_id;
 
             $user->pharmacist()->create([
-                'employee_number' => $employeeNumber,
-                'license_number'  => $data['license_number'] ?? null,
+                'employee_number'          => $employeeNumber,
+                'license_number'           => $data['license_number'] ?? null,
+                'requires_password_change' => true,
             ]);
 
             return $user;
