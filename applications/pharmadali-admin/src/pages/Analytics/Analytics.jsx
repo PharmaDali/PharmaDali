@@ -1,5 +1,5 @@
 import { useAnalyticsData } from "./hooks/useAnalyticsData";
-import { DEMAND_INSIGHTS, SALES_INSIGHTS, demandOptions, salesOptions } from "./constants";
+import { demandOptions, salesOptions } from "./constants";
 import TabBar from "./components/TabBar";
 import InsightsBox from "./components/InsightsBox";
 import AnalyticsTable from "./components/AnalyticsTable";
@@ -24,12 +24,11 @@ export default function Analytics() {
     setChartTimeframe,
     chartTimeseries,
     chartLoading,
+    insightText,
+    insightLoading,
+    insightSource,
     isDemand,
   } = useAnalyticsData();
-
-  const insightText = isDemand 
-    ? "Demand for common OTC and maintenance medications typically peaks on weekends. Use the top demand chart below to allocate stock appropriately."
-    : "Sales revenue tends to align with high foot traffic periods. Monitor the top sales products to optimize your primary inventory investments.";
 
   return (
     <section className="analytics-page" aria-label="Analytics overview">
@@ -44,7 +43,7 @@ export default function Analytics() {
 
       <div className="row g-4 mb-4">
         <div className="col-lg-3">
-          <InsightsBox text={insightText} />
+          <InsightsBox text={insightText} loading={insightLoading} source={insightSource} />
         </div>
         <div className="col-lg-9">
           <AnalyticsTable
@@ -64,8 +63,7 @@ export default function Analytics() {
 
       <AnalyticsChart
         chartData={chartTimeseries}
-        chartTitle={isDemand ? "Demand Chart & Insights" : "Sales Chart & Insights"}
-        insights={isDemand ? DEMAND_INSIGHTS : SALES_INSIGHTS}
+        chartTitle={isDemand ? "Demand Trend Chart" : "Sales Trend Chart"}
         isCurrency={!isDemand}
         timeframe={chartTimeframe}
         onTimeframeChange={setChartTimeframe}
