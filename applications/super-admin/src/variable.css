@@ -1,0 +1,37 @@
+@font-face {
+  font-family: 'Poppins';
+  src: url('./assets/fonts/Poppins-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./assets/fonts/Poppins-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('./assets/fonts/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+:root {
+  /* Core Colors */
+  --color-bg-dark: #1E1E1E;
+  --color-primary-blue: #48AAD9;
+  --color-danger-red: #FF4242;
+  --color-text-white: #FFFFFF;
+  
+  /* Form & Input Colors */
+  --color-input-bg: #6a6a6a;
+  --color-input-bg-focus: #7a7a7a;
+  --color-input-border: #4a4a4a;
+  --color-placeholder: #b0b0b0;
+
+  /* Typography */
+  --font-primary: 'Poppins', sans-serif;
+}
