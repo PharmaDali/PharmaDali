@@ -41,10 +41,56 @@
   min-width: min(100%, 420px);
 }
 
-.pickup-filter-wrap {
-  position: relative;
-  width: 130px;
-  flex: 0 0 130px;
+/* Pickup Tab Navigation Pills */
+.pickup-nav-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pickup-nav-pills .nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--pd-radius-md, 10px);
+  font-size: 13px;
+  font-weight: 500;
+  color: #475569;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pickup-nav-pills .nav-link:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.pickup-nav-pills .nav-link.active {
+  background: var(--pd-primary, #2aabe2);
+  color: #ffffff;
+  border-color: var(--pd-primary, #2aabe2);
+  box-shadow: 0 2px 8px rgba(42, 171, 226, 0.25);
+}
+
+.pickup-nav-pills .nav-link .badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.pickup-nav-pills .nav-link.active .badge {
+  background: rgba(255, 255, 255, 0.25) !important;
+  color: #ffffff !important;
+}
+
+.pickup-nav-pills .nav-link:not(.active) .badge {
+  background: #cbd5e1 !important;
+  color: #334155 !important;
 }
 
 .pickup-filter-select,

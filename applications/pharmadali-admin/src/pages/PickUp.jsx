@@ -101,11 +101,17 @@ function DiscountSelect({ value, onChange }) {
   );
 }
 
+const PICKUP_TABS = [
+  { id: "Ready", label: "Ready Orders", icon: "fa-box-archive" },
+  { id: "Completed", label: "Completed Orders", icon: "fa-circle-check" },
+  { id: "All", label: "All Orders", icon: "fa-boxes-stacked" },
+];
+
 function PickUp() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("Ready");
   const [activeOrder, setActiveOrder] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -120,13 +126,35 @@ function PickUp() {
   const [discountPercentage, setDiscountPercentage] = useState("");
   const [discountIdNumber, setDiscountIdNumber] = useState("");
 
+  // Tab count metrics
+  const tabCounts = useMemo(() => {
+    const ready = orders.filter((o) => o.status === "ready_for_pickup").length;
+    const completed = orders.filter((o) => o.status === "completed").length;
+    return {
+      Ready: ready,
+      Completed: completed,
+      All: orders.length,
+    };
+  }, [orders]);
+
+  // Filter orders by active status tab
+  const filteredOrders = useMemo(() => {
+    if (statusFilter === "Ready") {
+      return orders.filter((o) => o.status === "ready_for_pickup");
+    }
+    if (statusFilter === "Completed") {
+      return orders.filter((o) => o.status === "completed");
+    }
+    return orders;
+  }, [orders, statusFilter]);
+
   const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
 
-  const totalPages = Math.max(1, Math.ceil(orders.length / itemsPerPage));
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / itemsPerPage));
   const paginatedOrders = useMemo(
-    () => orders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
-    [orders, currentPage]
+    () => filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
+    [filteredOrders, currentPage]
   );
   const visiblePageNumbers = useMemo(() => {
     if (totalPages <= 5) {
@@ -143,12 +171,17 @@ function PickUp() {
     setCurrentPage(Math.min(Math.max(page, 1), totalPages));
   };
 
+  const handleTabChange = (tabId) => {
+    setStatusFilter(tabId);
+    setCurrentPage(1);
+  };
+
   const loadOrders = useCallback(async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
       const response = await fetchPickupOrders({
         search,
-        status: statusFilter
+        status: "all"
       });
       const dataArray = Array.isArray(response?.data) 
         ? response.data 
@@ -159,7 +192,7 @@ function PickUp() {
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, [search, statusFilter]);
+  }, [search]);
 
   useEffect(() => {
     loadOrders();
@@ -279,31 +312,36 @@ function PickUp() {
       </header>
       <div className="pickup-layout">
         <div className="pickup-outer-card">
-          <div className="d-flex align-items-center justify-content-end gap-3 mb-3 flex-wrap">
-            <div className="pickup-toolbar-actions">
-              <div className="position-relative pickup-search-wrap">
-                <i className="fa-solid fa-magnifying-glass pickup-search-icon" />
-                <input
-                  type="text"
-                  className="pickup-search-input"
-                  placeholder="Search an order by order ID or Customer Name"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-              <div className="pickup-filter-wrap">
-                <select
-                  className="pickup-filter-select"
-                  value={statusFilter}
-                  onChange={(event) => setStatusFilter(event.target.value)}
-                  aria-label="Filter pickup orders by status"
-                >
-                  <option value="All">All</option>
-                  <option value="Ready">Ready</option>
-                  <option value="Completed">Completed</option>
-                </select>
-                <i className="fa-solid fa-chevron-down pickup-filter-chevron" aria-hidden="true" />
-              </div>
+          {/* Toolbar Header: Tab Navigation Pills & Search Input */}
+          <div className="d-flex align-items-center justify-content-between gap-3 mb-4 flex-wrap">
+            <div className="nav nav-pills pickup-nav-pills">
+              {PICKUP_TABS.map((tab) => {
+                const isActive = statusFilter === tab.id;
+                const count = tabCounts[tab.id] ?? 0;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    className={`nav-link ${isActive ? "active" : ""}`}
+                    onClick={() => handleTabChange(tab.id)}
+                  >
+                    <i className={`fa-solid ${tab.icon}`} />
+                    <span>{tab.label}</span>
+                    <span className="badge rounded-pill ms-1">{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="position-relative pickup-search-wrap">
+              <i className="fa-solid fa-magnifying-glass pickup-search-icon" />
+              <input
+                type="text"
+                className="pickup-search-input"
+                placeholder="Search order ID or Customer Name..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
           </div>
 
@@ -330,12 +368,18 @@ function PickUp() {
               <tbody>
                 {loading ? (
                   <TableSkeleton rows={5} columns={6} showAvatar={false} />
-                ) : orders.length === 0 ? (
+                ) : filteredOrders.length === 0 ? (
                   <tr className="pickup-empty-row" style={{ cursor: "default" }}>
                     <td colSpan="6" className="text-center py-5">
                       <div className="d-flex flex-column align-items-center justify-content-center py-4">
                         <i className="fa-solid fa-box-open mb-3" style={{ fontSize: "3.5rem", color: "#94a3b8" }} />
-                        <span className="fw-medium" style={{ fontSize: "15px", color: "#64748b" }}>No pickup orders found.</span>
+                        <span className="fw-medium" style={{ fontSize: "15px", color: "#64748b" }}>
+                          {statusFilter === "Ready"
+                            ? "No pickup orders ready for pickup."
+                            : statusFilter === "Completed"
+                            ? "No completed pickup orders found."
+                            : "No pickup orders found."}
+                        </span>
                       </div>
                     </td>
                   </tr>
@@ -372,11 +416,11 @@ function PickUp() {
                 )}
               </tbody>
               </table>
-              {!loading && orders.length > 0 && (
+              {!loading && filteredOrders.length > 0 && (
                 <div className="inventory-pagination-bar">
                   <span className="inventory-pagination-info">
                     Showing {(currentPage - 1) * itemsPerPage + 1}–
-                    {Math.min(currentPage * itemsPerPage, orders.length)} of {orders.length}
+                    {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length}
                   </span>
 
                   <nav aria-label="Pickup order table pagination">
