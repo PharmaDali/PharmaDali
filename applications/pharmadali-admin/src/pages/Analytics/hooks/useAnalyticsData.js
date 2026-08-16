@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { fetchDemandAnalytics, fetchSalesAnalytics } from "../../../services/analyticsService";
+import { fetchDemandAnalytics, fetchSalesAnalytics, fetchAnalyticsInsights } from "../../../services/analyticsService";
 import { formatCurrency, formatNumber } from "../../../utils/formatUtils";
 
 function getPeriodInfo(timeframe, offset = 0) {
@@ -71,6 +71,11 @@ export function useAnalyticsData() {
   
   const [tableLoading, setTableLoading] = useState(false);
   const [chartLoading, setChartLoading] = useState(false);
+
+  // Gemini AI Insight state
+  const [insightText, setInsightText] = useState("");
+  const [insightLoading, setInsightLoading] = useState(false);
+  const [insightSource, setInsightSource] = useState("gemini");
 
   const isDemand = activeTab === "demand";
 
@@ -198,6 +203,33 @@ export function useAnalyticsData() {
     };
   }, [activeTab, chartDemandTimeframe, chartSalesTimeframe, isDemand]);
 
+  // Load Gemini AI Insight independently
+  useEffect(() => {
+    let mounted = true;
+
+    const loadInsight = async () => {
+      setInsightLoading(true);
+      try {
+        const type = isDemand ? "demand" : "sales";
+        const res = await fetchAnalyticsInsights(type);
+        if (mounted && res) {
+          setInsightText(res.insight || res.data?.insight || "");
+          setInsightSource(res.source || res.data?.source || "gemini");
+        }
+      } catch (err) {
+        console.error("Failed to load Gemini AI insight:", err);
+      } finally {
+        if (mounted) setInsightLoading(false);
+      }
+    };
+
+    loadInsight();
+
+    return () => {
+      mounted = false;
+    };
+  }, [activeTab, isDemand]);
+
   // Compute BI Metrics
   const demandMetrics = useMemo(() => {
     const totalVolume = demandData.reduce((acc, item) => {
@@ -257,6 +289,11 @@ export function useAnalyticsData() {
     setChartTimeframe: handleSetChartTimeframe,
     chartTimeseries,
     chartLoading,
+
+    // Gemini Insight props
+    insightText,
+    insightLoading,
+    insightSource,
 
     isDemand
   };

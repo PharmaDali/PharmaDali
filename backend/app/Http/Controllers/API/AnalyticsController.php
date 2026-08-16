@@ -5,6 +5,7 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use App\Services\AnalyticsService;
 use App\Services\AprioriService;
+use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -12,7 +13,8 @@ class AnalyticsController extends Controller
 {
     public function __construct(
         protected AnalyticsService $analyticsService,
-        protected AprioriService $aprioriService
+        protected AprioriService $aprioriService,
+        protected GeminiService $geminiService
     ) {}
 
     /**
@@ -28,8 +30,6 @@ class AnalyticsController extends Controller
 
         $pharmacyId = $request->user()->pharmacy_id;
         
-        // If the user doesn't have a pharmacy_id (e.g. SuperAdmin), we might need to handle it,
-        // but typically analytics is viewed per pharmacy.
         if (!$pharmacyId && $request->has('pharmacy_id')) {
             $pharmacyId = $request->input('pharmacy_id');
         }
@@ -38,7 +38,7 @@ class AnalyticsController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
-        $data = $this->analyticsService->getSales($pharmacyId, $timeframe, $startDate, $endDate);
+        $data = $this->analyticsService->getSales((int)$pharmacyId, $timeframe, $startDate, $endDate);
 
         return response()->json($data);
     }
@@ -63,7 +63,7 @@ class AnalyticsController extends Controller
         $endDate = $request->input('end_date');
         $limit = $request->input('limit', 10);
 
-        $data = $this->analyticsService->getDemand($pharmacyId, $startDate, $endDate, $limit);
+        $data = $this->analyticsService->getDemand((int)$pharmacyId, $startDate, $endDate, $limit);
 
         return response()->json($data);
     }
@@ -84,11 +84,31 @@ class AnalyticsController extends Controller
             $pharmacyId = $request->input('pharmacy_id');
         }
 
-        $months = $request->input('months', 6); // Default 6 months based on user preference
+        $months = $request->input('months', 6);
         $minSupport = $request->input('min_support', 0.05);
         $minConfidence = $request->input('min_confidence', 0.2);
 
-        $data = $this->aprioriService->generateFrequentlyBoughtTogether($pharmacyId, $months, $minSupport, $minConfidence);
+        $data = $this->aprioriService->generateFrequentlyBoughtTogether((int)$pharmacyId, $months, $minSupport, $minConfidence);
+
+        return response()->json($data);
+    }
+
+    /**
+     * Get Gemini AI Insights for Demand or Sales
+     */
+    public function insights(Request $request): JsonResponse
+    {
+        $request->validate([
+            'type' => 'sometimes|string|in:demand,sales',
+        ]);
+
+        $pharmacyId = $request->user()->pharmacy_id;
+        if (!$pharmacyId && $request->has('pharmacy_id')) {
+            $pharmacyId = $request->input('pharmacy_id');
+        }
+
+        $type = $request->input('type', 'demand');
+        $data = $this->geminiService->getAnalyticsInsights((int)$pharmacyId, $type);
 
         return response()->json($data);
     }
