@@ -177,6 +177,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacy/analytics/sales', [AnalyticsController::class, 'sales']);
         Route::get('pharmacy/analytics/demand', [AnalyticsController::class, 'demand']);
         Route::get('pharmacy/analytics/apriori', [AnalyticsController::class, 'apriori']);
+        Route::get('pharmacy/analytics/insights', [AnalyticsController::class, 'insights']);
 
         // sales and reports
         Route::get('pharmacy/reports/sales/summary', [ReportController::class, 'getSalesSummary']);
