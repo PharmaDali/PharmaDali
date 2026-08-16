@@ -25,33 +25,42 @@ ChartJS.register(
   Filler
 );
 import React from "react";
-import arrowDropDownIcon from "../../../assets/icons/analytics-and-forecasting/arrow_drop_down.svg";
 import { ChartSkeleton } from "../../../components/loading";
-import aiIcon from "../../../assets/icons/analytics-and-forecasting/AI.svg";
 
-export default function AnalyticsChart({ chartData, chartTitle, insights, isCurrency, timeframe, onTimeframeChange, timeframeOptions, loading, chartType = "line" }) {
+export default function AnalyticsChart({
+  chartData,
+  chartTitle,
+  isCurrency,
+  timeframe,
+  onTimeframeChange,
+  timeframeOptions,
+  loading,
+  chartType = "line",
+}) {
   const labels = chartData?.labels || [];
   const values = chartData?.values || [];
 
   const data = useMemo(
     () => ({
       labels,
-      datasets: [{
-        data: values,
-        borderColor: "#2aabe2",
-        borderWidth: 2.5,
-        backgroundColor: chartType === "bar" ? "#2aabe2" : "rgba(42, 171, 226, 0.14)",
-        fill: true,
-        tension: 0,
-        pointBackgroundColor: "#ffffff",
-        pointBorderColor: "#2aabe2",
-        pointBorderWidth: 2.5,
-        pointRadius: 5.5,
-        pointHoverRadius: 7.5,
-        pointHoverBackgroundColor: "#ffffff",
-        pointHoverBorderColor: "#2aabe2",
-        borderRadius: chartType === "bar" ? 4 : 0,
-      }],
+      datasets: [
+        {
+          data: values,
+          borderColor: "#2aabe2",
+          borderWidth: 2.5,
+          backgroundColor: chartType === "bar" ? "#2aabe2" : "rgba(42, 171, 226, 0.14)",
+          fill: true,
+          tension: 0.15,
+          pointBackgroundColor: "#ffffff",
+          pointBorderColor: "#2aabe2",
+          pointBorderWidth: 2.5,
+          pointRadius: 5,
+          pointHoverRadius: 7,
+          pointHoverBackgroundColor: "#ffffff",
+          pointHoverBorderColor: "#2aabe2",
+          borderRadius: chartType === "bar" ? 4 : 0,
+        },
+      ],
     }),
     [labels, values, chartType]
   );
@@ -79,14 +88,14 @@ export default function AnalyticsChart({ chartData, chartTitle, insights, isCurr
                 label = `${label.toLocaleString()} units`;
               }
               return label;
-            }
-          }
-        }
+            },
+          },
+        },
       },
       scales: {
         x: {
           grid: { display: false, drawBorder: false },
-          ticks: { font: { size: 12 }, color: "#a0aabe" }
+          ticks: { font: { size: 12 }, color: "#a0aabe" },
         },
         y: {
           border: { display: false },
@@ -98,61 +107,51 @@ export default function AnalyticsChart({ chartData, chartTitle, insights, isCurr
             callback: function (value) {
               if (value >= 1000) return value / 1000 + "k";
               return value;
-            }
-          }
-        }
-      }
+            },
+          },
+        },
+      },
     }),
     [isCurrency]
   );
 
   return (
-    <div className="analytics-panel p-4 h-100 d-flex flex-column">
+    <div className="analytics-panel p-4 w-100 d-flex flex-column">
       <div className="analytics-table-header mb-4">
         <h5 className="analytics-table-title">{chartTitle}</h5>
 
         <div className="analytics-filter ms-auto d-flex align-items-center">
-          <span className="analytics-filter-label text-muted me-2" style={{ fontSize: '13px' }}>View:</span>
+          <span className="analytics-filter-label text-muted me-2" style={{ fontSize: "13px" }}>
+            View:
+          </span>
           <select
             className="form-select form-select-sm"
-            style={{ width: 'auto', minWidth: '100px', borderColor: '#e9ecef', color: '#495057' }}
+            style={{ width: "auto", minWidth: "110px", borderColor: "#e9ecef", color: "#495057" }}
             value={timeframe}
             onChange={(e) => onTimeframeChange(e.target.value)}
             disabled={loading}
           >
-            {timeframeOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            {timeframeOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
-      <div className="row flex-grow-1 min-h-0">
-        <div className="col-lg-8 mb-4 mb-lg-0">
-          <div className="chart-container" style={{ position: 'relative', height: '100%', minHeight: '280px' }}>
-            {loading ? (
-              <ChartSkeleton height={280} />
-            ) : values.length === 0 ? (
-              <div className="text-secondary h-100 d-flex align-items-center justify-content-center">No data available for this timeframe.</div>
-            ) : chartType === "bar" ? (
-              <Bar data={data} options={options} />
-            ) : (
-              <Line data={data} options={options} />
-            )}
+      <div className="w-100" style={{ position: "relative", height: "320px" }}>
+        {loading ? (
+          <ChartSkeleton height={320} />
+        ) : values.length === 0 ? (
+          <div className="text-secondary h-100 d-flex align-items-center justify-content-center">
+            No data available for this timeframe.
           </div>
-        </div>
-        <div className="col-lg-4">
-          <div className="h-100 p-4 rounded d-flex flex-column justify-content-center" style={{ backgroundColor: '#f4f7fe' }}>
-            {insights.map((insight, idx) => (
-              <div key={idx} className="d-flex align-items-center" style={{ marginBottom: idx === insights.length - 1 ? 0 : '24px' }}>
-                <img src={aiIcon} alt="" width="24" height="24" className="me-3 flex-shrink-0" />
-                <span style={{ fontSize: '13.5px', color: '#5f6d7a', lineHeight: '1.5', fontWeight: '500' }}>
-                  {insight}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
+        ) : chartType === "bar" ? (
+          <Bar data={data} options={options} />
+        ) : (
+          <Line data={data} options={options} />
+        )}
       </div>
     </div>
   );
