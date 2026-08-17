@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../services/loginService";
 import logo from '../../assets/log-in-logo.svg';
+import { Input } from "../../components/common";
 
 function Login() {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ function Login() {
           <form onSubmit={handleLogin} className="bg-transparent border border-[var(--color-input-border)] rounded-xl p-10 flex flex-col gap-5">
             <h2 className="text-[var(--color-primary-blue)] text-2xl font-semibold m-0 mb-2.5 text-center">Log In</h2>
 
-            <input
+            <Input
               type="text"
               name="email"
               placeholder="Admin ID"
@@ -53,7 +54,7 @@ function Login() {
               required
             />
 
-            <input
+            <Input
               type="password"
               name="password"
               placeholder="Password"

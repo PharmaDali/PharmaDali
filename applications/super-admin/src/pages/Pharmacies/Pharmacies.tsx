@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { usePharmacies, type Pharmacy } from '../../context/PharmacyContext'
+import { Modal, ConfirmModal, Input, Select } from '../../components/common'
 
 type Props = {
   compact?: boolean
@@ -327,271 +328,212 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       </div>
 
       {/* Add New Pharmacy Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4">
-          <div className="bg-[#292d37] w-full max-w-[500px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)]">
-            <h2 className="text-white text-2xl font-bold text-center mb-8">Add New Pharmacy</h2>
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        maxWidth="max-w-[500px]"
+        animate={false}
+      >
+        <h2 className="text-white text-2xl font-bold text-center mb-8">Add New Pharmacy</h2>
 
-            <form onSubmit={handleSavePharmacy} className="space-y-4">
-              <div>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Pharmacy Name"
-                  required
-                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
-                />
-              </div>
+        <form onSubmit={handleSavePharmacy} className="space-y-4">
+          <Input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            placeholder="Pharmacy Name"
+            required
+          />
 
-              <div>
-                <input
-                  type="text"
-                  name="owner"
-                  value={formData.owner}
-                  onChange={handleInputChange}
-                  placeholder="Owner Name"
-                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
-                />
-              </div>
+          <Input
+            type="text"
+            name="owner"
+            value={formData.owner}
+            onChange={handleInputChange}
+            placeholder="Owner Name"
+          />
 
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="contact"
-                  value={formData.contact}
-                  onChange={handleInputChange}
-                  placeholder="Contact Number"
-                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
-                />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="Email"
-                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  placeholder="Location"
-                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
-                />
-                <div className="relative">
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] appearance-none transition-colors cursor-pointer"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Pending">Pending</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-300">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-6">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="w-full py-3.5 px-4 rounded-[12px] border border-[#2aa6e0] text-[#38bdf8] hover:bg-[#2aa6e0]/10 font-semibold transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="w-full py-3.5 px-4 rounded-[12px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              type="text"
+              name="contact"
+              value={formData.contact}
+              onChange={handleInputChange}
+              placeholder="Contact Number"
+            />
+            <Input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="Email"
+            />
           </div>
-        </div>
-      )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleInputChange}
+              placeholder="Location"
+            />
+            <Select
+              name="status"
+              value={formData.status}
+              onChange={handleInputChange}
+              options={['Active', 'Inactive', 'Pending']}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 pt-6">
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(false)}
+              className="w-full py-3.5 px-4 rounded-[12px] border border-[#2aa6e0] text-[#38bdf8] hover:bg-[#2aa6e0]/10 font-semibold transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="w-full py-3.5 px-4 rounded-[12px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors cursor-pointer"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Edit Pharmacy Modal */}
-      {editingPharmacy && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 animate-fade-in">
-          <div className="bg-[#292d37] w-full max-w-[500px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)]">
-            <h2 className="text-white text-2xl font-bold text-center mb-8">Edit Pharmacy Information</h2>
+      <Modal
+        isOpen={Boolean(editingPharmacy)}
+        onClose={() => setEditingPharmacy(null)}
+        maxWidth="max-w-[500px]"
+        animate={true}
+      >
+        <h2 className="text-white text-2xl font-bold text-center mb-8">Edit Pharmacy Information</h2>
 
-            <form onSubmit={handleUpdatePharmacy} className="space-y-4">
-              <div>
-                <input
-                  type="text"
-                  name="name"
-                  value={editFormData.name}
-                  onChange={handleEditInputChange}
-                  placeholder="Pharmacy Name"
-                  required
-                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
-                />
-              </div>
+        <form onSubmit={handleUpdatePharmacy} className="space-y-4">
+          <Input
+            type="text"
+            name="name"
+            value={editFormData.name}
+            onChange={handleEditInputChange}
+            placeholder="Pharmacy Name"
+            required
+          />
 
-              <div>
-                <input
-                  type="text"
-                  name="owner"
-                  value={editFormData.owner}
-                  onChange={handleEditInputChange}
-                  placeholder="Owner Name"
-                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
-                />
-              </div>
+          <Input
+            type="text"
+            name="owner"
+            value={editFormData.owner}
+            onChange={handleEditInputChange}
+            placeholder="Owner Name"
+          />
 
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="contact"
-                  value={editFormData.contact}
-                  onChange={handleEditInputChange}
-                  placeholder="Contact Number"
-                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
-                />
-                <input
-                  type="email"
-                  name="email"
-                  value={editFormData.email}
-                  onChange={handleEditInputChange}
-                  placeholder="Email"
-                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  name="location"
-                  value={editFormData.location}
-                  onChange={handleEditInputChange}
-                  placeholder="Location"
-                  className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
-                />
-                <div className="relative">
-                  <select
-                    name="status"
-                    value={editFormData.status}
-                    onChange={handleEditInputChange}
-                    className="w-full bg-[#404552] text-gray-100 placeholder-gray-400 px-4 py-3.5 rounded-[12px] border border-transparent focus:outline-none focus:border-[#2aa6e0] appearance-none transition-colors cursor-pointer"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Pending">Pending</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-300">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-6">
-                <button
-                  type="button"
-                  onClick={() => setEditingPharmacy(null)}
-                  className="w-full py-3.5 px-4 rounded-[12px] border border-[#2aa6e0] text-[#38bdf8] hover:bg-[#2aa6e0]/10 font-semibold transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="w-full py-3.5 px-4 rounded-[12px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              type="text"
+              name="contact"
+              value={editFormData.contact}
+              onChange={handleEditInputChange}
+              placeholder="Contact Number"
+            />
+            <Input
+              type="email"
+              name="email"
+              value={editFormData.email}
+              onChange={handleEditInputChange}
+              placeholder="Email"
+            />
           </div>
-        </div>
-      )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              type="text"
+              name="location"
+              value={editFormData.location}
+              onChange={handleEditInputChange}
+              placeholder="Location"
+            />
+            <Select
+              name="status"
+              value={editFormData.status}
+              onChange={handleEditInputChange}
+              options={['Active', 'Inactive', 'Pending']}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 pt-6">
+            <button
+              type="button"
+              onClick={() => setEditingPharmacy(null)}
+              className="w-full py-3.5 px-4 rounded-[12px] border border-[#2aa6e0] text-[#38bdf8] hover:bg-[#2aa6e0]/10 font-semibold transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="w-full py-3.5 px-4 rounded-[12px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors cursor-pointer"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Confirm Changes Modal */}
-      {isConfirmModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
-          <div className="bg-[#292d37] w-full max-w-[440px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
-            <div className="w-16 h-16 rounded-full border-2 border-white flex items-center justify-center mx-auto mb-5 text-white">
-              <span className="text-3xl font-light leading-none">?</span>
-            </div>
-            <h2 className="text-white text-2xl font-bold mb-3">Confirm Changes</h2>
-            <p className="text-gray-300 text-sm mb-8 leading-relaxed">
-              Are you sure you want to save these changes?<br />
-              The pharmacy's information will be updated accordingly.
-            </p>
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                onClick={() => setIsConfirmModalOpen(false)}
-                className="w-full py-3 px-4 rounded-[10px] border border-gray-500/60 text-gray-200 hover:bg-white/5 font-semibold transition-colors text-sm"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmSave}
-                className="w-full py-3 px-4 rounded-[10px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors text-sm"
-              >
-                Save Changes
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        icon="question"
+        title="Confirm Changes"
+        description={
+          <>
+            Are you sure you want to save these changes?<br />
+            The pharmacy's information will be updated accordingly.
+          </>
+        }
+        cancelLabel="Cancel"
+        confirmLabel="Save Changes"
+        onConfirm={handleConfirmSave}
+        confirmButtonVariant="blue"
+        maxWidth="max-w-[440px]"
+        zIndex="z-[60]"
+      />
 
       {/* Changes Saved Successfully Modal */}
-      {isSuccessModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
-          <div className="bg-[#292d37] w-full max-w-[440px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
-            <div className="w-16 h-16 rounded-full bg-[#00c853]/20 border-2 border-[#00c853] flex items-center justify-center mx-auto mb-5 text-[#00c853]">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-            <h2 className="text-white text-2xl font-bold mb-3">Changes Saved Successfully</h2>
-            <p className="text-gray-300 text-sm mb-8">
-              The information has been recorded successfully
-            </p>
-            <div>
-              <button
-                type="button"
-                onClick={() => setIsSuccessModalOpen(false)}
-                className="w-full py-3 px-4 rounded-[10px] bg-[#00c853] hover:bg-[#00b048] text-white font-semibold transition-colors text-sm"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        icon="success"
+        title="Changes Saved Successfully"
+        description="The information has been recorded successfully"
+        confirmLabel="Done"
+        onConfirm={() => setIsSuccessModalOpen(false)}
+        confirmButtonVariant="green"
+        singleButton
+        maxWidth="max-w-[440px]"
+        zIndex="z-[60]"
+      />
 
       {/* Delete Pharmacy Confirmation Modal */}
-      {deletingPharmacy && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
-          <div className="bg-[#262933] w-full max-w-[420px] rounded-[20px] p-7 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
-            <div className="w-16 h-16 rounded-full border-2 border-[#ff4d4d] flex items-center justify-center mx-auto mb-4 text-[#ff4d4d]">
-              <span className="text-3xl font-bold leading-none">!</span>
-            </div>
-            <h2 className="text-[#ff4d4d] text-2xl font-bold mb-2">Delete Pharmacy</h2>
-            <p className="text-gray-300 text-xs mb-5 leading-relaxed">
-              Are you sure you want to delete this pharmacy?<br />
-              This action cannot be undone.
-            </p>
-
-            {/* Selected Pharmacy Info Box */}
+      <ConfirmModal
+        isOpen={Boolean(deletingPharmacy)}
+        onClose={() => setDeletingPharmacy(null)}
+        icon="danger"
+        iconColor="#ff4d4d"
+        title="Delete Pharmacy"
+        titleColor="text-[#ff4d4d]"
+        description={
+          <>
+            Are you sure you want to delete this pharmacy?<br />
+            This action cannot be undone.
+          </>
+        }
+        extraContent={
+          deletingPharmacy ? (
             <div className="bg-[#383d4a] rounded-[14px] p-4 text-left mb-6 flex items-start gap-3 border border-white/5">
               <div className="text-[#38bdf8] pt-0.5 flex-shrink-0">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -613,26 +555,18 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                 </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setDeletingPharmacy(null)}
-                className="w-full py-3 px-4 rounded-[10px] border border-gray-500/60 text-gray-200 hover:bg-white/5 font-semibold transition-colors text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDelete}
-                className="w-full py-3 px-4 rounded-[10px] bg-[#ff4d4d] hover:bg-[#e03e3e] text-white font-semibold shadow transition-colors text-xs"
-              >
-                Delete Pharmacy
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          ) : null
+        }
+        cancelLabel="Cancel"
+        confirmLabel="Delete Pharmacy"
+        onConfirm={handleConfirmDelete}
+        confirmButtonVariant="danger"
+        containerBgClass="bg-[#262933]"
+        paddingClass="p-7"
+        buttonTextSize="text-xs"
+        maxWidth="max-w-[420px]"
+        zIndex="z-[60]"
+      />
     </div>
   )
 }
