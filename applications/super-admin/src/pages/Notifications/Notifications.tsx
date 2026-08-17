@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { ConfirmModal } from '../../components/common';
 
 export interface NotificationItem {
     id: number
@@ -126,51 +127,34 @@ const Notifications: React.FC = () => {
 
     // Render modal based on target type
     const renderDeleteModal = () => {
-        if (deleteTarget === null) return null
-
         const isDeleteAll = deleteTarget === 'ALL'
 
         return (
-            <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
-                <div className="bg-[#292d37] w-full max-w-[380px] rounded-[20px] p-7 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center text-white">
-                    {/* Circle exclamation icon */}
-                    <div className="w-16 h-16 rounded-full border-2 border-[#ff4d4d] text-[#ff4d4d] flex items-center justify-center mx-auto mb-4 text-3xl font-light">
-                        !
-                    </div>
-
-                    {/* Modal Title */}
-                    <h2 className="text-[#ff4d4d] text-xl font-bold mb-2">
-                        {isDeleteAll ? 'Delete All Notifications?' : 'Delete Notification?'}
-                    </h2>
-
-                    {/* Modal Text */}
-                    <p className="text-gray-300 text-xs mb-7 leading-relaxed">
+            <ConfirmModal
+                isOpen={deleteTarget !== null}
+                onClose={() => setDeleteTarget(null)}
+                icon="danger"
+                iconColor="#ff4d4d"
+                title={isDeleteAll ? 'Delete All Notifications?' : 'Delete Notification?'}
+                titleColor="text-[#ff4d4d]"
+                description={
+                    <>
                         {isDeleteAll
                             ? 'Are you sure you want to delete all the notifications?'
                             : 'Are you sure you want to delete this notification?'}
                         <br />
                         This action cannot be undone.
-                    </p>
-
-                    {/* Action Buttons */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <button
-                            type="button"
-                            onClick={() => setDeleteTarget(null)}
-                            className="w-full py-2.5 px-4 rounded-[10px] border border-gray-400/50 text-gray-200 hover:bg-white/5 font-medium transition-colors text-xs cursor-pointer"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleConfirmDelete}
-                            className="w-full py-2.5 px-4 rounded-[10px] bg-[#ff4d4d] hover:bg-red-600 text-white font-semibold shadow transition-colors text-xs cursor-pointer"
-                        >
-                            {isDeleteAll ? 'Delete All' : 'Delete'}
-                        </button>
-                    </div>
-                </div>
-            </div>
+                    </>
+                }
+                cancelLabel="Cancel"
+                confirmLabel={isDeleteAll ? 'Delete All' : 'Delete'}
+                onConfirm={handleConfirmDelete}
+                confirmButtonVariant="danger"
+                maxWidth="max-w-[380px]"
+                paddingClass="p-7"
+                buttonTextSize="text-xs"
+                zIndex="z-[70]"
+            />
         )
     }
 

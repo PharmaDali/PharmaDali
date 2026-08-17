@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTickets, type Ticket } from '../../context/TicketContext'
+import { ConfirmModal, Select } from '../../components/common'
 
 const ASSIGNEES = ['James Mercado', 'Abigail Barrion', 'Althea Alvarez', 'Denmar Redondo', 'James Orlanes']
 
@@ -198,68 +199,35 @@ const TicketDetailsPage: React.FC = () => {
         </div>
 
         <form onSubmit={handleOpenUpdateModal} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-          <div>
-            <label className="text-gray-300 text-xs font-medium block mb-1.5">Assignee</label>
-            <div className="relative">
-              <select
-                value={assigneeForm}
-                onChange={(e) => setAssigneeForm(e.target.value)}
-                className="w-full bg-[#525766] text-white px-3.5 py-2.5 rounded-[10px] border border-transparent focus:outline-none focus:border-[#2aa6e0] cursor-pointer text-xs appearance-none pr-9"
-              >
-                {ASSIGNEES.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-300">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </div>
-            </div>
-          </div>
+          <Select
+            label="Assignee"
+            labelClassName="text-gray-300 text-xs font-medium block mb-1.5"
+            value={assigneeForm}
+            onChange={(e) => setAssigneeForm(e.target.value)}
+            className="bg-[#525766] px-3.5 py-2.5 rounded-[10px] text-xs"
+            iconSize={14}
+            options={ASSIGNEES}
+          />
 
-          <div>
-            <label className="text-gray-300 text-xs font-medium block mb-1.5">Status</label>
-            <div className="relative">
-              <select
-                value={statusForm}
-                onChange={(e) => setStatusForm(e.target.value as Ticket['status'])}
-                className="w-full bg-[#525766] text-white px-3.5 py-2.5 rounded-[10px] border border-transparent focus:outline-none focus:border-[#2aa6e0] cursor-pointer text-xs appearance-none pr-9"
-              >
-                <option value="Open">Open</option>
-                <option value="In progress">In progress</option>
-                <option value="Resolved">Resolved</option>
-                <option value="Closed">Closed</option>
-              </select>
-              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-300">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </div>
-            </div>
-          </div>
+          <Select
+            label="Status"
+            labelClassName="text-gray-300 text-xs font-medium block mb-1.5"
+            value={statusForm}
+            onChange={(e) => setStatusForm(e.target.value as Ticket['status'])}
+            className="bg-[#525766] px-3.5 py-2.5 rounded-[10px] text-xs"
+            iconSize={14}
+            options={['Open', 'In progress', 'Resolved', 'Closed']}
+          />
 
-          <div>
-            <label className="text-gray-300 text-xs font-medium block mb-1.5">Priority</label>
-            <div className="relative">
-              <select
-                value={priorityForm}
-                onChange={(e) => setPriorityForm(e.target.value as Ticket['priority'])}
-                className="w-full bg-[#525766] text-white px-3.5 py-2.5 rounded-[10px] border border-transparent focus:outline-none focus:border-[#2aa6e0] cursor-pointer text-xs appearance-none pr-9"
-              >
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-              </select>
-              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-300">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </div>
-            </div>
-          </div>
+          <Select
+            label="Priority"
+            labelClassName="text-gray-300 text-xs font-medium block mb-1.5"
+            value={priorityForm}
+            onChange={(e) => setPriorityForm(e.target.value as Ticket['priority'])}
+            className="bg-[#525766] px-3.5 py-2.5 rounded-[10px] text-xs"
+            iconSize={14}
+            options={['High', 'Medium', 'Low']}
+          />
 
           <button
             type="submit"
@@ -421,35 +389,23 @@ const TicketDetailsPage: React.FC = () => {
       </div>
 
       {/* Update Ticket Confirmation Modal */}
-      {isUpdateModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
-          <div className="bg-[#292d37] w-full max-w-[380px] rounded-[20px] p-7 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
-            <div className="w-16 h-16 rounded-full border-2 border-white/80 flex items-center justify-center mx-auto mb-4 text-white">
-              <span className="text-3xl font-light leading-none">!</span>
-            </div>
-            <h2 className="text-white text-xl font-bold mb-2">Update Ticket</h2>
-            <p className="text-gray-300 text-xs mb-7 leading-relaxed">
-              Are you sure you want to update this ticket?
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setIsUpdateModalOpen(false)}
-                className="w-full py-2.5 px-4 rounded-[10px] border border-gray-400/50 text-gray-200 hover:bg-white/5 font-medium transition-colors text-xs cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmUpdateTicket}
-                className="w-full py-2.5 px-4 rounded-[10px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-medium shadow transition-colors text-xs cursor-pointer"
-              >
-                Update
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        icon="danger"
+        iconColor="rgba(255, 255, 255, 0.8)"
+        title="Update Ticket"
+        titleColor="text-white"
+        description="Are you sure you want to update this ticket?"
+        cancelLabel="Cancel"
+        confirmLabel="Update"
+        onConfirm={handleConfirmUpdateTicket}
+        confirmButtonVariant="blue"
+        maxWidth="max-w-[380px]"
+        paddingClass="p-7"
+        buttonTextSize="text-xs"
+        zIndex="z-[60]"
+      />
     </div>
   )
 }

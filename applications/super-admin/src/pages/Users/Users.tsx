@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { Modal, ConfirmModal, Input, Select } from '../../components/common'
 
 export interface User {
   id: number
@@ -349,371 +350,297 @@ const Users: React.FC = () => {
       </div>
 
       {/* Add User Modal */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4">
-          <div className="bg-[#2b2f3a] border border-[rgba(255,255,255,0.06)] rounded-[16px] p-7 w-full max-w-[460px] shadow-2xl text-white">
-            <h2 className="text-2xl font-bold text-center mb-6 text-white tracking-wide">
-              Add New User
-            </h2>
+      <Modal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        maxWidth="max-w-[460px]"
+        animate={false}
+        className="bg-[#2b2f3a] border border-[rgba(255,255,255,0.06)] rounded-[16px] p-7 text-white"
+      >
+        <h2 className="text-2xl font-bold text-center mb-6 text-white tracking-wide">
+          Add New User
+        </h2>
 
-            <form onSubmit={handleAddUser} className="space-y-6">
-              {/* Section 1: Basic Info */}
-              <div>
-                <h3 className="text-[#48aad9] font-bold text-base mb-3">
-                  Basic Info
-                </h3>
-                <div className="space-y-3">
-                  <input
-                    type="text"
-                    required
-                    value={formData.fullName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, fullName: e.target.value })
-                    }
-                    placeholder="Full Name"
-                    className="w-full bg-[#404554] text-gray-100 placeholder:text-gray-400 px-4 py-3 rounded-[8px] text-sm focus:outline-none focus:ring-1 focus:ring-[#48aad9] transition-colors"
-                  />
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    placeholder="Email"
-                    className="w-full bg-[#404554] text-gray-100 placeholder:text-gray-400 px-4 py-3 rounded-[8px] text-sm focus:outline-none focus:ring-1 focus:ring-[#48aad9] transition-colors"
-                  />
-                  <input
-                    type="tel"
-                    value={formData.phoneNumber}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phoneNumber: e.target.value })
-                    }
-                    placeholder="Phone Number"
-                    className="w-full bg-[#404554] text-gray-100 placeholder:text-gray-400 px-4 py-3 rounded-[8px] text-sm focus:outline-none focus:ring-1 focus:ring-[#48aad9] transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="border-t border-[rgba(255,255,255,0.08)] pt-5">
-                {/* Section 2: Permissions */}
-                <h3 className="text-[#48aad9] font-bold text-base mb-3">
-                  Permissions
-                </h3>
-                <div className="space-y-3">
-                  <div className="relative">
-                    <select
-                      value={formData.role}
-                      onChange={(e) =>
-                        setFormData({ ...formData, role: e.target.value })
-                      }
-                      className="w-full bg-[#404554] text-gray-100 px-4 py-3 rounded-[8px] text-sm appearance-none pr-10 focus:outline-none focus:ring-1 focus:ring-[#48aad9] cursor-pointer"
-                    >
-                      <option value="" disabled hidden>
-                        Role
-                      </option>
-                      {ROLES.filter((r) => r !== 'All').map((role) => (
-                        <option key={role} value={role} className="bg-[#2b2f3a]">
-                          {role}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </div>
-                  </div>
-
-                  <div className="relative">
-                    <select
-                      value={formData.branchName}
-                      onChange={(e) =>
-                        setFormData({ ...formData, branchName: e.target.value })
-                      }
-                      className="w-full bg-[#404554] text-gray-100 px-4 py-3 rounded-[8px] text-sm appearance-none pr-10 focus:outline-none focus:ring-1 focus:ring-[#48aad9] cursor-pointer"
-                    >
-                      <option value="" disabled hidden>
-                        Branch Name
-                      </option>
-                      {BRANCHES.filter((b) => b !== 'All').map((branch) => (
-                        <option key={branch} value={branch} className="bg-[#2b2f3a]">
-                          {branch}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-[rgba(255,255,255,0.08)] pt-5">
-                {/* Section 3: Account */}
-                <h3 className="text-[#48aad9] font-bold text-base mb-3">
-                  Account
-                </h3>
-                <div className="relative mb-6">
-                  <select
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        status: e.target.value as 'Active' | 'Inactive',
-                      })
-                    }
-                    className="w-full bg-[#404554] text-gray-100 px-4 py-3 rounded-[8px] text-sm appearance-none pr-10 focus:outline-none focus:ring-1 focus:ring-[#48aad9] cursor-pointer"
-                  >
-                    <option value="" disabled hidden>
-                      Status
-                    </option>
-                    <option value="Active" className="bg-[#2b2f3a]">Active</option>
-                    <option value="Inactive" className="bg-[#2b2f3a]">Inactive</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-4 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="flex-1 border border-[#48aad9]/50 hover:border-[#48aad9] hover:bg-[#48aad9]/10 text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 bg-[#48aad9] hover:bg-[#3ba0d0] text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm shadow"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
+        <form onSubmit={handleAddUser} className="space-y-6">
+          {/* Section 1: Basic Info */}
+          <div>
+            <h3 className="text-[#48aad9] font-bold text-base mb-3">
+              Basic Info
+            </h3>
+            <div className="space-y-3">
+              <Input
+                type="text"
+                required
+                value={formData.fullName}
+                onChange={(e) =>
+                  setFormData({ ...formData, fullName: e.target.value })
+                }
+                placeholder="Full Name"
+                className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+              />
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                placeholder="Email"
+                className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+              />
+              <Input
+                type="tel"
+                value={formData.phoneNumber}
+                onChange={(e) =>
+                  setFormData({ ...formData, phoneNumber: e.target.value })
+                }
+                placeholder="Phone Number"
+                className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+              />
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="border-t border-[rgba(255,255,255,0.08)] pt-5">
+            {/* Section 2: Permissions */}
+            <h3 className="text-[#48aad9] font-bold text-base mb-3">
+              Permissions
+            </h3>
+            <div className="space-y-3">
+              <Select
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                iconSize={12}
+                iconColor="text-gray-400"
+                className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+                options={[
+                  { value: '', label: 'Role', disabled: true, hidden: true },
+                  ...ROLES.filter((r) => r !== 'All').map((role) => ({
+                    value: role,
+                    label: role,
+                    className: 'bg-[#2b2f3a]',
+                  })),
+                ]}
+              />
+
+              <Select
+                value={formData.branchName}
+                onChange={(e) =>
+                  setFormData({ ...formData, branchName: e.target.value })
+                }
+                iconSize={12}
+                iconColor="text-gray-400"
+                className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+                options={[
+                  { value: '', label: 'Branch Name', disabled: true, hidden: true },
+                  ...BRANCHES.filter((b) => b !== 'All').map((branch) => ({
+                    value: branch,
+                    label: branch,
+                    className: 'bg-[#2b2f3a]',
+                  })),
+                ]}
+              />
+            </div>
+          </div>
+
+          <div className="border-t border-[rgba(255,255,255,0.08)] pt-5">
+            {/* Section 3: Account */}
+            <h3 className="text-[#48aad9] font-bold text-base mb-3">
+              Account
+            </h3>
+            <div className="mb-6">
+              <Select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    status: e.target.value as 'Active' | 'Inactive',
+                  })
+                }
+                iconSize={12}
+                iconColor="text-gray-400"
+                className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+                options={[
+                  { value: '', label: 'Status', disabled: true, hidden: true },
+                  { value: 'Active', label: 'Active', className: 'bg-[#2b2f3a]' },
+                  { value: 'Inactive', label: 'Inactive', className: 'bg-[#2b2f3a]' },
+                ]}
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-4 pt-2">
+            <button
+              type="button"
+              onClick={() => setIsAddModalOpen(false)}
+              className="flex-1 border border-[#48aad9]/50 hover:border-[#48aad9] hover:bg-[#48aad9]/10 text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 bg-[#48aad9] hover:bg-[#3ba0d0] text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm shadow"
+            >
+              Save
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Edit User Modal */}
-      {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4">
-          <div className="bg-[#2b2f3a] border border-[rgba(255,255,255,0.06)] rounded-[16px] p-7 w-full max-w-[440px] shadow-2xl text-white">
-            <h2 className="text-2xl font-bold text-center mb-6 text-white tracking-wide">
-              Edit User Information
-            </h2>
-            <form onSubmit={handleUpdateUser} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editingUser.fullName}
-                  onChange={(e) =>
-                    setEditingUser({ ...editingUser, fullName: e.target.value })
-                  }
-                  className="w-full bg-[#404554] text-gray-100 placeholder:text-gray-400 px-4 py-3 rounded-[8px] text-sm focus:outline-none focus:ring-1 focus:ring-[#48aad9] transition-colors"
-                />
-              </div>
+      <Modal
+        isOpen={Boolean(editingUser)}
+        onClose={() => setEditingUser(null)}
+        maxWidth="max-w-[440px]"
+        animate={false}
+        className="bg-[#2b2f3a] border border-[rgba(255,255,255,0.06)] rounded-[16px] p-7 text-white"
+      >
+        <h2 className="text-2xl font-bold text-center mb-6 text-white tracking-wide">
+          Edit User Information
+        </h2>
+        {editingUser && (
+          <form onSubmit={handleUpdateUser} className="space-y-4">
+            <Input
+              label="Full Name"
+              type="text"
+              required
+              value={editingUser.fullName}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, fullName: e.target.value })
+              }
+              className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+            />
 
-              <div>
-                <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
-                  Role
-                </label>
-                <div className="relative">
-                  <select
-                    value={editingUser.role}
-                    onChange={(e) =>
-                      setEditingUser({ ...editingUser, role: e.target.value })
-                    }
-                    className="w-full bg-[#404554] text-gray-100 px-4 py-3 rounded-[8px] text-sm appearance-none pr-10 focus:outline-none focus:ring-1 focus:ring-[#48aad9] cursor-pointer"
-                  >
-                    {ROLES.filter((r) => r !== 'All' && r !== 'Roles').map((role) => (
-                      <option key={role} value={role} className="bg-[#2b2f3a]">
-                        {role}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-gray-300">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </div>
-                </div>
-              </div>
+            <Select
+              label="Role"
+              value={editingUser.role}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, role: e.target.value })
+              }
+              iconSize={14}
+              iconColor="text-gray-300"
+              className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+              options={ROLES.filter((r) => r !== 'All' && r !== 'Roles').map((role) => ({
+                value: role,
+                label: role,
+                className: 'bg-[#2b2f3a]',
+              }))}
+            />
 
-              <div>
-                <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
-                  Branch Name
-                </label>
-                <div className="relative">
-                  <select
-                    value={editingUser.branchName}
-                    onChange={(e) =>
-                      setEditingUser({ ...editingUser, branchName: e.target.value })
-                    }
-                    className="w-full bg-[#404554] text-gray-100 px-4 py-3 rounded-[8px] text-sm appearance-none pr-10 focus:outline-none focus:ring-1 focus:ring-[#48aad9] cursor-pointer"
-                  >
-                    {BRANCHES.filter((b) => b !== 'All' && b !== 'Branches').map((branch) => (
-                      <option key={branch} value={branch} className="bg-[#2b2f3a]">
-                        {branch}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-gray-300">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </div>
-                </div>
-              </div>
+            <Select
+              label="Branch Name"
+              value={editingUser.branchName}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, branchName: e.target.value })
+              }
+              iconSize={14}
+              iconColor="text-gray-300"
+              className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+              options={BRANCHES.filter((b) => b !== 'All' && b !== 'Branches').map((branch) => ({
+                value: branch,
+                label: branch,
+                className: 'bg-[#2b2f3a]',
+              }))}
+            />
 
-              <div>
-                <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
-                  Status
-                </label>
-                <div className="relative">
-                  <select
-                    value={editingUser.status}
-                    onChange={(e) =>
-                      setEditingUser({
-                        ...editingUser,
-                        status: e.target.value as 'Active' | 'Inactive',
-                      })
-                    }
-                    className="w-full bg-[#404554] text-gray-100 px-4 py-3 rounded-[8px] text-sm appearance-none pr-10 focus:outline-none focus:ring-1 focus:ring-[#48aad9] cursor-pointer"
-                  >
-                    <option value="Active" className="bg-[#2b2f3a]">Active</option>
-                    <option value="Inactive" className="bg-[#2b2f3a]">Inactive</option>
-                  </select>
-                  <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none text-gray-300">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </div>
-                </div>
-              </div>
+            <Select
+              label="Status"
+              value={editingUser.status}
+              onChange={(e) =>
+                setEditingUser({
+                  ...editingUser,
+                  status: e.target.value as 'Active' | 'Inactive',
+                })
+              }
+              iconSize={14}
+              iconColor="text-gray-300"
+              className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+              options={[
+                { value: 'Active', label: 'Active', className: 'bg-[#2b2f3a]' },
+                { value: 'Inactive', label: 'Inactive', className: 'bg-[#2b2f3a]' },
+              ]}
+            />
 
-              <div className="flex items-center gap-4 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setEditingUser(null)}
-                  className="flex-1 border border-[#48aad9]/50 hover:border-[#48aad9] hover:bg-[#48aad9]/10 text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-1 bg-[#48aad9] hover:bg-[#3ba0d0] text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm shadow"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Confirm Changes Modal */}
-      {isConfirmModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
-          <div className="bg-[#292d37] w-full max-w-[440px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
-            <div className="w-16 h-16 rounded-full border-2 border-white flex items-center justify-center mx-auto mb-5 text-white">
-              <span className="text-3xl font-light leading-none">?</span>
-            </div>
-            <h2 className="text-white text-2xl font-bold mb-3">Confirm Changes</h2>
-            <p className="text-gray-300 text-sm mb-8 leading-relaxed">
-              Are you sure you want to save these changes?<br />
-              The user's information will be updated accordingly.
-            </p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="flex items-center gap-4 pt-4">
               <button
                 type="button"
-                onClick={() => setIsConfirmModalOpen(false)}
-                className="w-full py-3 px-4 rounded-[10px] border border-gray-500/60 text-gray-200 hover:bg-white/5 font-semibold transition-colors text-sm cursor-pointer"
+                onClick={() => setEditingUser(null)}
+                className="flex-1 border border-[#48aad9]/50 hover:border-[#48aad9] hover:bg-[#48aad9]/10 text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm"
               >
                 Cancel
               </button>
               <button
-                type="button"
-                onClick={handleConfirmSave}
-                className="w-full py-3 px-4 rounded-[10px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors text-sm cursor-pointer"
+                type="submit"
+                className="flex-1 bg-[#48aad9] hover:bg-[#3ba0d0] text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm shadow"
               >
                 Save Changes
               </button>
             </div>
-          </div>
-        </div>
-      )}
+          </form>
+        )}
+      </Modal>
+
+      {/* Confirm Changes Modal */}
+      <ConfirmModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        icon="question"
+        title="Confirm Changes"
+        description={
+          <>
+            Are you sure you want to save these changes?<br />
+            The user's information will be updated accordingly.
+          </>
+        }
+        cancelLabel="Cancel"
+        confirmLabel="Save Changes"
+        onConfirm={handleConfirmSave}
+        confirmButtonVariant="blue"
+        maxWidth="max-w-[440px]"
+        zIndex="z-[60]"
+      />
 
       {/* Changes Saved Successfully Modal */}
-      {isSuccessModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
-          <div className="bg-[#292d37] w-full max-w-[440px] rounded-[20px] p-8 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
-            <div className="w-16 h-16 rounded-full bg-[#00c853]/20 border-2 border-[#00c853] flex items-center justify-center mx-auto mb-5 text-[#00c853]">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-            </div>
-            <h2 className="text-white text-2xl font-bold mb-3">Changes Saved Successfully</h2>
-            <p className="text-gray-300 text-sm mb-8">
-              The information has been recorded successfully
-            </p>
-            <div>
-              <button
-                type="button"
-                onClick={() => setIsSuccessModalOpen(false)}
-                className="w-full py-3 px-4 rounded-[10px] bg-[#00c853] hover:bg-[#00b048] text-white font-semibold transition-colors text-sm cursor-pointer"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        icon="success"
+        title="Changes Saved Successfully"
+        description="The information has been recorded successfully"
+        confirmLabel="Done"
+        onConfirm={() => setIsSuccessModalOpen(false)}
+        confirmButtonVariant="green"
+        singleButton
+        maxWidth="max-w-[440px]"
+        zIndex="z-[60]"
+      />
 
       {/* Deactivate / Activate User Confirmation Modal */}
-      {togglingStatusUser && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/65 p-4 animate-fade-in">
-          <div className="bg-[#262933] w-full max-w-[420px] rounded-[20px] p-7 shadow-2xl border border-[rgba(255,255,255,0.05)] text-center">
-            {togglingStatusUser.status === 'Active' ? (
-              <div className="w-16 h-16 rounded-full border-2 border-[#ff4d4d] flex items-center justify-center mx-auto mb-4 text-[#ff4d4d]">
-                <span className="text-3xl font-bold leading-none">!</span>
-              </div>
-            ) : (
-              <div className="w-16 h-16 rounded-full border-2 border-[#4ade80] flex items-center justify-center mx-auto mb-4 text-[#4ade80]">
-                <span className="text-3xl font-bold leading-none">?</span>
-              </div>
-            )}
-
-            <h2 className={`text-2xl font-bold mb-2 ${togglingStatusUser.status === 'Active' ? 'text-[#ff4d4d]' : 'text-[#4ade80]'}`}>
-              {togglingStatusUser.status === 'Active' ? 'Deactivate User' : 'Activate User'}
-            </h2>
-
-            {togglingStatusUser.status === 'Active' ? (
-              <p className="text-gray-300 text-xs mb-5 leading-relaxed">
-                Are you sure you want to deactivate this user?<br />
-                The user will no longer be able to log in or<br />
-                access the system.<br />
-                You can reactivate the user anytime.
-              </p>
-            ) : (
-              <p className="text-gray-300 text-xs mb-5 leading-relaxed">
-                Are you sure you want to activate this user?<br />
-                The user will regain access to log in and<br />
-                access the system.
-              </p>
-            )}
-
-            {/* Selected User Info Box */}
+      <ConfirmModal
+        isOpen={Boolean(togglingStatusUser)}
+        onClose={() => setTogglingStatusUser(null)}
+        icon={togglingStatusUser?.status === 'Active' ? 'danger' : 'success-question'}
+        title={togglingStatusUser?.status === 'Active' ? 'Deactivate User' : 'Activate User'}
+        titleColor={togglingStatusUser?.status === 'Active' ? 'text-[#ff4d4d]' : 'text-[#4ade80]'}
+        description={
+          togglingStatusUser?.status === 'Active' ? (
+            <>
+              Are you sure you want to deactivate this user?<br />
+              The user will no longer be able to log in or<br />
+              access the system.<br />
+              You can reactivate the user anytime.
+            </>
+          ) : (
+            <>
+              Are you sure you want to activate this user?<br />
+              The user will regain access to log in and<br />
+              access the system.
+            </>
+          )
+        }
+        extraContent={
+          togglingStatusUser ? (
             <div className="bg-[#383d4a] rounded-[14px] p-4 text-left mb-6 flex items-start gap-3.5 border border-white/5">
               <div className="text-[#38bdf8] pt-0.5 flex-shrink-0">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -736,29 +663,18 @@ const Users: React.FC = () => {
                 </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setTogglingStatusUser(null)}
-                className="w-full py-3 px-4 rounded-[10px] border border-gray-500/60 text-gray-200 hover:bg-white/5 font-semibold transition-colors text-xs cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmToggleStatus}
-                className={`w-full py-3 px-4 rounded-[10px] text-white font-semibold shadow transition-colors text-xs cursor-pointer ${togglingStatusUser.status === 'Active'
-                  ? 'bg-[#ff4d4d] hover:bg-[#e03e3e]'
-                  : 'bg-[#4ade80] hover:bg-[#3bbd68] text-slate-900 font-bold'
-                  }`}
-              >
-                {togglingStatusUser.status === 'Active' ? 'Deactivate User' : 'Activate User'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          ) : null
+        }
+        cancelLabel="Cancel"
+        confirmLabel={togglingStatusUser?.status === 'Active' ? 'Deactivate User' : 'Activate User'}
+        onConfirm={handleConfirmToggleStatus}
+        confirmButtonVariant={togglingStatusUser?.status === 'Active' ? 'danger' : 'green'}
+        containerBgClass="bg-[#262933]"
+        paddingClass="p-7"
+        buttonTextSize="text-xs"
+        maxWidth="max-w-[420px]"
+        zIndex="z-[60]"
+      />
     </div>
   )
 }
