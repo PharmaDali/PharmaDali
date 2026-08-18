@@ -1,18 +1,18 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Customer;
 
-use App\Models\Pharmacist;
+use App\Models\Cart;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdatePharmacistPermissionsRequest extends FormRequest
+class AddToCartRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()?->can('managePermissions', Pharmacist::class) ?? false;
+        return (bool) $this->user()?->can('create', Cart::class);
     }
 
     /**
@@ -23,8 +23,9 @@ class UpdatePharmacistPermissionsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'permissions' => 'required|array',
-            'permissions.*' => 'string',
+            'pharmacy_id' => ['required', 'integer', 'exists:pharmacies,id'],
+            'pharmacy_product_id' => ['required', 'integer', 'exists:pharmacy_products,id'],
+            'quantity' => ['sometimes', 'integer', 'min:1'],
         ];
     }
 }
