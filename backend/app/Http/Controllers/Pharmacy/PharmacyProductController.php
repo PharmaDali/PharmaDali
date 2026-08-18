@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Pharmacy;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ImportPharmacyProductsRequest;
+use App\Http\Requests\Pharmacy\ImportPharmacyProductsRequest;
 use App\Imports\PharmacyProductsImport;
 use App\Models\Products;
 use App\Models\PharmacyProduct;
-use App\Http\Requests\CreatePharmacyProductRequest;
+use App\Http\Requests\Pharmacy\CreatePharmacyProductRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use App\Http\Requests\UpdatePharmacyProductsRequest;
-use App\Http\Requests\ShowPharmacyProductRequest;
+use App\Http\Requests\Pharmacy\UpdatePharmacyProductsRequest;
+use App\Http\Requests\Pharmacy\ShowPharmacyProductRequest;
 use App\Services\PharmacyProduct\ShowPharmacyProductService;
 use App\Services\PharmacyProduct\ShowPharmacyCategoriesService;
 use App\Services\PharmacyProduct\SearchPharmacyProductService;

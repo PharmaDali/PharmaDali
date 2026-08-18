@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Pharmacy;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdatePharmacySettingsRequest;
+use App\Http\Requests\Pharmacy\UpdatePharmacySettingsRequest;
 use App\Services\Pharmacy\PharmacySettingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\CancelOrderRequest;
-use App\Http\Requests\StoreOrderRequest;
-use App\Http\Requests\UpdatePharmacistOrderStatusRequest;
-use App\Http\Requests\UpdateOrderRequest;
+use App\Http\Requests\Order\CancelOrderRequest;
+use App\Http\Requests\Order\StoreOrderRequest;
+use App\Http\Requests\Order\UpdateOrderRequest;
+use App\Http\Requests\Order\UpdatePharmacistOrderStatusRequest;
 use App\Models\Order;
 use App\Services\Order\OrderService;
 use Illuminate\Http\JsonResponse;

@@ -1,32 +1,32 @@
 <?php
 
-use App\Http\Controllers\API\PharmacyController;
-use App\Http\Controllers\API\AuthController;
-use App\Http\Controllers\API\AdminProfileController;
-use App\Http\Controllers\API\PharmacyProductController;
-use App\Http\Controllers\API\ConversationController;
-use App\Http\Controllers\API\CustomerCartController;
-use App\Http\Controllers\API\OrderController;
-use App\Http\Controllers\API\OrderItemPrescription;
-use App\Http\Controllers\API\PharmacistProfileController;
-use App\Http\Controllers\API\PharmacyPharmacistController;
-use App\Http\Controllers\API\CustomerProfileController;
-use App\Http\Controllers\API\FcmTokenController;
-use App\Http\Controllers\API\NotificationController;
-use App\Http\Controllers\API\PosController;
-use App\Http\Controllers\API\InventoryController;
-use App\Http\Controllers\API\ReportController;
-use App\Http\Controllers\API\DashboardController;
-use App\Http\Controllers\API\CustomerForgotPasswordController;
-use App\Http\Controllers\API\PharmacistChangePasswordController;
-use App\Http\Controllers\API\PharmacySettingsController;
+use App\Http\Controllers\Analytics\AnalyticsController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\CustomerForgotPasswordController;
+use App\Http\Controllers\Auth\PharmacistChangePasswordController;
+use App\Http\Controllers\Customer\CustomerCartController;
+use App\Http\Controllers\Customer\CustomerProfileController;
+use App\Http\Controllers\Customer\CustomerRecommendationController;
+use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Inventory\CategoryController;
+use App\Http\Controllers\Inventory\InventoryController;
+use App\Http\Controllers\Inventory\ProductBatchController;
+use App\Http\Controllers\Notification\ConversationController;
+use App\Http\Controllers\Notification\FcmTokenController;
+use App\Http\Controllers\Notification\NotificationController;
+use App\Http\Controllers\Order\OrderController;
+use App\Http\Controllers\Order\OrderItemPrescriptionController;
+use App\Http\Controllers\Pharmacist\PharmacistProfileController;
+use App\Http\Controllers\Pharmacy\PharmacyController;
+use App\Http\Controllers\Pharmacy\PharmacyPharmacistController;
+use App\Http\Controllers\Pharmacy\PharmacyProductController;
+use App\Http\Controllers\Pharmacy\PharmacySettingsController;
+use App\Http\Controllers\Pos\ItemExchangeController;
+use App\Http\Controllers\Pos\PosController;
+use App\Http\Controllers\Report\ReportController;
+use App\Http\Controllers\User\AdminProfileController;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\CustomerRecommendationController;
-use App\Http\Controllers\API\AnalyticsController;
-use App\Http\Controllers\API\ProductBatchController;
-use App\Http\Controllers\API\CategoryController;
-use App\Http\Controllers\Api\Pos\ItemExchangeController;
 
 
 // Public routes
@@ -98,7 +98,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('customer/orders/{order}/review', [OrderController::class, 'review']);
         Route::put('customer/orders/{order}', [OrderController::class, 'update']);
         Route::patch('customer/orders/{order}/cancel', [OrderController::class, 'cancel']);
-        Route::post('customer/order-items/{orderItem}/prescription', [OrderItemPrescription::class, 'upload']);
+        Route::post('customer/order-items/{orderItem}/prescription', [OrderItemPrescriptionController::class, 'upload']);
     });
 
     Route::middleware(['ability:pharmacist,pharmacy_admin'])->group(function () {

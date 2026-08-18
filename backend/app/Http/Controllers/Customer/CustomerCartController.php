@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AddToCartRequest;
+use App\Http\Requests\Customer\AddToCartRequest;
 use App\Models\Cart;
 use App\Services\Cart\CustomerCartService;
 use App\Services\Cart\ViewCustomerCart;

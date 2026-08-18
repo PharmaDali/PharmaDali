@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api\Pos;
+namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreItemExchangeRequest;
+use App\Http\Requests\Pos\StoreItemExchangeRequest;
 use App\Models\Order;
 use App\Services\Pos\ItemExchange\ItemExchangeService;
 use Illuminate\Http\JsonResponse;

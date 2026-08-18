@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Notification;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreConversationMessageRequest;
-use App\Http\Requests\StoreConversationRequest;
+use App\Http\Requests\Notification\StoreConversationMessageRequest;
+use App\Http\Requests\Notification\StoreConversationRequest;
 use App\Models\Conversation;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Http\JsonResponse;

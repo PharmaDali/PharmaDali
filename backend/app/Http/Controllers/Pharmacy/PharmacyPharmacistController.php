@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Pharmacy;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UpdatePharmacistPermissionsRequest;
-use App\Http\Requests\UpdatePharmacistRequest;
+use App\Http\Requests\Pharmacy\UpdatePharmacistPermissionsRequest;
+use App\Http\Requests\Pharmacy\UpdatePharmacistRequest;
 use App\Services\Pharmacist\PharmacistService;
 use Illuminate\Http\JsonResponse;
 

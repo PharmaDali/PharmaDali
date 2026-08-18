@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Order;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\UploadOrderItemPrescriptionRequest;
+use App\Http\Requests\Order\UploadOrderItemPrescriptionRequest;
 use App\Services\OrderItemPrescription\UploadOrderItemPrescriptionService;
 use Illuminate\Http\JsonResponse;
 
-class OrderItemPrescription extends Controller
+class OrderItemPrescriptionController extends Controller
 {
 	public function __construct(
 		private readonly UploadOrderItemPrescriptionService $uploadOrderItemPrescriptionService,

@@ -1,14 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\AdminRegisterRequest;
-use App\Http\Requests\CustomerRegisterRequest;
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\PharmacistLoginRequest;
-use App\Http\Requests\PharmacistRegisterRequest;
+use App\Http\Requests\Auth\AdminLoginRequest;
+use App\Http\Requests\Auth\AdminRegisterRequest;
+use App\Http\Requests\Auth\CustomerRegisterRequest;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\PharmacistLoginRequest;
+use App\Http\Requests\Auth\PharmacistRegisterRequest;
 use App\Models\User;
+use App\Services\Auth\AdminLoginService;
 use App\Services\Auth\AdminRegisterService;
 use App\Services\Auth\CustomerRegisterService;
 use App\Services\Auth\LoginService;
@@ -16,8 +18,6 @@ use App\Services\Auth\PharmacistLoginService;
 use App\Services\Auth\PharmacistRegisterService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Http\Requests\AdminLoginRequest;
-use App\Services\Auth\AdminLoginService;
 
 class AuthController extends Controller
 {
