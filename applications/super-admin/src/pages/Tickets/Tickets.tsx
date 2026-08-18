@@ -81,7 +81,7 @@ const Tickets: React.FC = () => {
     <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="m-0 text-[clamp(1.8rem,3vw,2.8rem)] font-bold leading-[1.05] text-white">Tickets</h1>
+        <h1 className="m-0 text-[clamp(1.8rem,3vw,2.8rem)] font-normal leading-[1.05] text-white">Tickets</h1>
       </div>
 
       {/* KPI Cards (5 Cards) */}
