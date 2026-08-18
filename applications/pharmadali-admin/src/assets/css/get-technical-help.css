@@ -184,11 +184,11 @@
 /* Form Styles */
 .tech-help-form-input {
   border-radius: 8px;
-  border: 1px solid #dbe3ec;
-  background: #f8fafc;
+  border: 1px solid transparent;
+  background: #f0f3ff;
   color: #2d3748;
-  font-size: 13.5px;
-  padding: 10px 12px;
+  font-size: 12px;
+  padding: 9px 12px;
 }
 
 .tech-help-form-input:focus,
@@ -201,6 +201,214 @@
 
 .tech-help-textarea {
   resize: vertical;
+}
+
+.tech-help-ticket-card,
+.tech-help-availability-card {
+  background: #ffffff;
+  border: 1px solid #edf0f5;
+  border-radius: 9px;
+  box-shadow: 0 3px 12px rgba(50, 75, 110, 0.04);
+}
+
+.tech-help-ticket-card {
+  padding: 20px;
+}
+
+.tech-help-form-section {
+  padding-bottom: 13px;
+  margin-bottom: 13px;
+  border-bottom: 1px solid #e9edf3;
+}
+
+.tech-help-form-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.tech-help-form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 3px;
+  color: #43a9db;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tech-help-form-section-title i {
+  font-size: 15px;
+}
+
+.tech-help-form-section-title small {
+  color: #4a5568;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.tech-help-form-label {
+  display: block;
+  margin: 8px 0 4px;
+  color: #3c414b;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.tech-help-form-label span {
+  color: #3c414b;
+}
+
+.tech-help-form-hint {
+  margin: 0 0 5px 2px;
+  color: #8a93a1;
+  font-size: 8px;
+}
+
+.tech-help-form-input::placeholder {
+  color: #8c95a5;
+  opacity: 1;
+}
+
+.tech-help-form-input.form-select {
+  color: #8c95a5;
+  appearance: auto;
+}
+
+.tech-help-form-input.form-select:valid {
+  color: #2d3748;
+}
+
+.tech-help-upload-box {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 6px;
+  background: #f0f3ff;
+  color: #43a9db;
+  cursor: pointer;
+}
+
+.tech-help-upload-box > i {
+  font-size: 23px;
+}
+
+.tech-help-upload-box span {
+  display: flex;
+  flex-direction: column;
+  color: #3c414b;
+  font-size: 10px;
+}
+
+.tech-help-upload-box small {
+  color: #8a93a1;
+  font-size: 8px;
+}
+
+.tech-help-selected-files {
+  margin: 5px 0 0;
+  color: #43a9db;
+  font-size: 10px;
+  text-align: center;
+}
+
+.tech-help-form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 7px;
+}
+
+.tech-help-form-actions .tech-help-primary-btn,
+.tech-help-cancel-btn {
+  min-width: 132px;
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+.tech-help-form-actions .tech-help-primary-btn i {
+  margin-right: 6px;
+}
+
+.tech-help-cancel-btn {
+  background: #d8d8d8;
+  border: 1px solid #d8d8d8;
+  border-radius: 9px;
+  color: #3c414b;
+}
+
+.tech-help-cancel-btn:hover {
+  background: #c9c9c9;
+  border-color: #c9c9c9;
+  color: #3c414b;
+}
+
+.tech-help-availability-card {
+  padding: 20px;
+}
+
+.tech-help-availability-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 19px;
+  color: #43a9db;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.tech-help-availability-title i {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 3px solid #43a9db;
+  border-radius: 50%;
+  font-size: 15px;
+}
+
+.tech-help-availability-item {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 27px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  margin-top: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f0f3ff;
+}
+
+.tech-help-availability-item > i {
+  color: #83d2f4;
+  font-size: 19px;
+  text-align: center;
+}
+
+.tech-help-availability-item div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tech-help-availability-item strong {
+  color: #3c414b;
+  font-size: 11px;
+}
+
+.tech-help-availability-item small {
+  overflow: hidden;
+  color: #8a93a1;
+  font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tech-help-availability-item span {
+  color: #22bd85;
+  font-size: 8px;
+  white-space: nowrap;
 }
 
 .tech-help-primary-btn {
@@ -216,6 +424,31 @@
   background: #2399cb;
   border-color: #2399cb;
   color: #ffffff;
+}
+
+@media (max-width: 575.98px) {
+  .tech-help-ticket-card,
+  .tech-help-availability-card {
+    padding: 15px;
+  }
+
+  .tech-help-form-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .tech-help-form-actions .tech-help-primary-btn,
+  .tech-help-cancel-btn {
+    width: 100%;
+  }
+
+  .tech-help-availability-item {
+    grid-template-columns: 27px minmax(0, 1fr);
+  }
+
+  .tech-help-availability-item span {
+    grid-column: 2;
+  }
 }
 
 /* Custom Modal Dialog Overlay */

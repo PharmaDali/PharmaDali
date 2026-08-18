@@ -66,7 +66,11 @@ function GetTechnicalHelp() {
     const [ticketRefId, setTicketRefId] = useState("");
     const [userEmail, setUserEmail] = useState("user email");
     const [issueSummary, setIssueSummary] = useState("");
+    const [issueCategory, setIssueCategory] = useState("");
+    const [issuePriority, setIssuePriority] = useState("");
     const [issueProblem, setIssueProblem] = useState("");
+    const [issueSteps, setIssueSteps] = useState("");
+    const [issueAttachments, setIssueAttachments] = useState([]);
 
     const splitIndex = Math.ceil(FAQ_ITEMS.length / 2);
     const leftColumn = useMemo(() => FAQ_ITEMS.slice(0, splitIndex), [splitIndex]);
@@ -99,7 +103,11 @@ function GetTechnicalHelp() {
     const handleDoneModal = () => {
         setShowSuccessModal(false);
         setIssueSummary("");
+        setIssueCategory("");
+        setIssuePriority("");
         setIssueProblem("");
+        setIssueSteps("");
+        setIssueAttachments([]);
         setView("home");
     };
 
@@ -148,85 +156,96 @@ function GetTechnicalHelp() {
                     </p>
                 </header>
 
-                <div className="row g-4">
-                    {/* Left Column: Ticket Form */}
+                <div className="row g-4 align-items-start">
                     <div className="col-12 col-xl-8">
-                        <article className="card shadow-sm border-0 rounded-4 p-4">
+                        <article className="tech-help-ticket-card">
                             <form onSubmit={handleReportSubmit}>
-                                <div className="mb-3">
-                                    <label htmlFor="issueSummary" className="form-label fw-bold tech-help-soft-black" style={{ fontSize: "14px" }}>
-                                        Issue Summary <span className="text-danger">*</span>
+                                <div className="tech-help-form-section">
+                                    <h3 className="tech-help-form-section-title">
+                                        <i className="fa-regular fa-file-lines" aria-hidden="true" />
+                                        Ticket Information
+                                    </h3>
+                                    <label htmlFor="issueSummary" className="tech-help-form-label">
+                                        Subject <span>*</span>
                                     </label>
                                     <input
                                         id="issueSummary"
                                         type="text"
                                         className="form-control tech-help-form-input"
-                                        placeholder="Brief summary of the issue"
+                                        placeholder="What issue are you experiencing?"
                                         value={issueSummary}
                                         onChange={(e) => setIssueSummary(e.target.value)}
                                         required
                                     />
+                                    <div className="row g-2 mt-1">
+                                        <div className="col-12 col-md-6">
+                                            <label htmlFor="issueCategory" className="tech-help-form-label">Category <span>*</span></label>
+                                            <select id="issueCategory" className="form-select tech-help-form-input" value={issueCategory} onChange={(e) => setIssueCategory(e.target.value)} required>
+                                                <option value="">Select a category</option>
+                                                <option value="account">Account and access</option>
+                                                <option value="inventory">Inventory and products</option>
+                                                <option value="sales">Sales and reports</option>
+                                                <option value="technical">Technical problem</option>
+                                            </select>
+                                        </div>
+                                        <div className="col-12 col-md-6">
+                                            <label htmlFor="issuePriority" className="tech-help-form-label">Priority <span>*</span></label>
+                                            <select id="issuePriority" className="form-select tech-help-form-input" value={issuePriority} onChange={(e) => setIssuePriority(e.target.value)} required>
+                                                <option value="">Select a priority level</option>
+                                                <option value="low">Low</option>
+                                                <option value="normal">Normal</option>
+                                                <option value="high">High</option>
+                                                <option value="urgent">Urgent</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="mb-4">
-                                    <label htmlFor="issueProblem" className="form-label fw-bold tech-help-soft-black" style={{ fontSize: "14px" }}>
-                                        Describe the Problem <span className="text-danger">*</span>
+                                <div className="tech-help-form-section">
+                                    <h3 className="tech-help-form-section-title"><i className="fa-regular fa-file-lines" aria-hidden="true" />Description</h3>
+                                    <p className="tech-help-form-hint">Please provide a detailed description of the issue you are experiencing.</p>
+                                    <textarea id="issueProblem" rows="4" className="form-control tech-help-form-input tech-help-textarea" placeholder="Describe your issue in detail..." value={issueProblem} onChange={(e) => setIssueProblem(e.target.value)} required />
+                                </div>
+
+                                <div className="tech-help-form-section">
+                                    <h3 className="tech-help-form-section-title"><i className="fa-regular fa-file-lines" aria-hidden="true" />Steps Taken</h3>
+                                    <p className="tech-help-form-hint">Tell us what you did before and when the issue occurred.</p>
+                                    <textarea id="issueSteps" rows="3" className="form-control tech-help-form-input tech-help-textarea" placeholder={'1. Go to ...\n\n2. Click ...\n\n3. Observe ...'} value={issueSteps} onChange={(e) => setIssueSteps(e.target.value)} />
+                                </div>
+
+                                <div className="tech-help-form-section tech-help-attachments-section">
+                                    <h3 className="tech-help-form-section-title"><i className="fa-solid fa-paperclip" aria-hidden="true" />Attachments <small>(optional)</small></h3>
+                                    <p className="tech-help-form-hint">Add screenshots or files that can help us understand the issue.</p>
+                                    <label htmlFor="issueAttachments" className="tech-help-upload-box">
+                                        <i className="fa-solid fa-arrow-up-from-bracket" aria-hidden="true" />
+                                        <span><strong>Upload files here</strong><small>PNG, JPG, PDF up to 10MB each</small></span>
                                     </label>
-                                    <textarea
-                                        id="issueProblem"
-                                        rows="6"
-                                        className="form-control tech-help-form-input tech-help-textarea"
-                                        placeholder="Provide details, steps to reproduce, and expected behavior"
-                                        value={issueProblem}
-                                        onChange={(e) => setIssueProblem(e.target.value)}
-                                        required
-                                    />
+                                    <input id="issueAttachments" type="file" className="visually-hidden" multiple accept=".png,.jpg,.jpeg,.pdf" onChange={(e) => setIssueAttachments(Array.from(e.target.files || []))} />
+                                    {issueAttachments.length > 0 && <p className="tech-help-selected-files">{issueAttachments.length} file{issueAttachments.length === 1 ? "" : "s"} selected</p>}
                                 </div>
 
-                                <div className="d-flex justify-content-start">
-                                    <button type="submit" className="btn tech-help-primary-btn px-4 py-2">
-                                        Submit Support Ticket
+                                <div className="tech-help-form-actions">
+                                    <button type="button" className="btn tech-help-cancel-btn" onClick={() => setView("home")}>Cancel</button>
+                                    <button type="submit" className="btn tech-help-primary-btn">
+                                        <i className="fa-regular fa-paper-plane" aria-hidden="true" /> Submit Ticket
                                     </button>
                                 </div>
                             </form>
                         </article>
                     </div>
 
-                    {/* Right Column: Admin & Contact Info */}
                     <div className="col-12 col-xl-4">
-                        <article className="card shadow-sm border-0 rounded-4 p-4 h-100">
-                            <h5 className="fw-bold mb-4 tech-help-card-heading">Contact Support</h5>
-
-                            <div className="d-flex flex-column gap-4">
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="tech-help-icon-wrapper flex-shrink-0">
-                                        <i className="fa-solid fa-phone text-white" aria-hidden="true" />
-                                    </div>
-                                    <div>
-                                        <h6 className="fw-bold mb-1 tech-help-soft-black" style={{ fontSize: "14px" }}>Phone Support</h6>
-                                        <p className="mb-0 text-muted" style={{ fontSize: "13px" }}>1-8096-905 (Priority Line)</p>
-                                    </div>
-                                </div>
-
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="tech-help-icon-wrapper flex-shrink-0">
-                                        <i className="fa-regular fa-envelope text-white" aria-hidden="true" />
-                                    </div>
-                                    <div>
-                                        <h6 className="fw-bold mb-1 tech-help-soft-black" style={{ fontSize: "14px" }}>Mail Support</h6>
-                                        <p className="mb-0 text-muted" style={{ fontSize: "13px" }}>pharmadali@gmail.com</p>
-                                    </div>
-                                </div>
-
-                                <div className="d-flex align-items-start gap-3">
-                                    <div className="tech-help-icon-wrapper flex-shrink-0">
-                                        <i className="fa-solid fa-clock text-white" aria-hidden="true" />
-                                    </div>
-                                    <div>
-                                        <h6 className="fw-bold mb-1 tech-help-soft-black" style={{ fontSize: "14px" }}>Support Hours</h6>
-                                        <p className="mb-0 text-muted" style={{ fontSize: "13px" }}>8:00 AM - 5:00 PM (PHT)</p>
-                                    </div>
-                                </div>
+                        <article className="tech-help-availability-card">
+                            <h3 className="tech-help-availability-title"><i className="fa-solid fa-magnifying-glass" aria-hidden="true" />Support Availability</h3>
+                            <div className="tech-help-availability-item">
+                                <i className="fa-solid fa-ticket" aria-hidden="true" />
+                                <div><strong>Ticket Submission</strong><small>Submit your tickets anytime.</small></div>
+                                <span>Available 24/7</span>
+                            </div>
+                            <div className="tech-help-availability-item">
+                                <i className="fa-regular fa-clock" aria-hidden="true" />
+                                <div><strong>Expected Response Time</strong><small>We aim to respond to your ticket within</small></div>
+                                <span>Within 1-2 days</span>
                             </div>
                         </article>
                     </div>
