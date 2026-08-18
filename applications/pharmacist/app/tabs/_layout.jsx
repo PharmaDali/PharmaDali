@@ -29,10 +29,18 @@ function LayoutContent() {
       const data = response.notification.request.content.data;
       if (!data) return;
 
-      const { order_id, order_number } = data;
+      const { type, conversation_id, order_id, order_number } = data;
 
       setTimeout(() => {
         try {
+          if (type === 'chat' && conversation_id) {
+            router.push({
+              pathname: '/tabs/chat/Conversation',
+              params: { conversationId: String(conversation_id) },
+            });
+            return;
+          }
+
           if (order_id) {
             router.push({
               pathname: '/tabs/orders/Orders',
