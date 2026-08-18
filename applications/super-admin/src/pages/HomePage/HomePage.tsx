@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar/Sidebar'
 import Navbar from '../../components/Navbar/Navbar'
-import KpiCard from '../../components/Dashboard/KpiCard'
+import StatusCard from '../../components/Dashboard/StatusCard'
 import PharmacyMap from '../../components/Dashboard/PharmacyMap'
 import Pharmacies from '../Pharmacies/Pharmacies'
 import Users from '../Users/Users'
@@ -10,6 +10,7 @@ import Notifications from '../Notifications/Notifications'
 import Tickets from '../Tickets/Tickets'
 import TicketDetailsPage from '../Tickets/TicketDetailsPage'
 import { usePharmacies } from '../../context/PharmacyContext'
+import { useTickets } from '../../context/TicketContext'
 
 const PAGE_TITLES: Record<string, string> = {
   '/homepage': 'Dashboard',
@@ -23,7 +24,11 @@ function HomePage() {
   const { pathname } = useLocation()
   const title = PAGE_TITLES[pathname] ?? 'Dashboard'
   const { totalPharmacies, totalActivePharmacies } = usePharmacies()
+  const { tickets } = useTickets()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+
+  const openTickets = tickets.filter((ticket) => ticket.status === 'Open').length
+  const inProgressTickets = tickets.filter((ticket) => ticket.status === 'In progress').length
 
   return (
     <div className="min-h-screen flex flex-col bg-[#323642] text-[#e2e8f0] font-[var(--font-primary)] lg:flex-row">
@@ -39,11 +44,11 @@ function HomePage() {
                 <h1 className="m-0 text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.05] text-white">Dashboard</h1>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <KpiCard title="Total Pharmacies" value={String(totalPharmacies)} />
-                <KpiCard title="Total Active Pharmacies" value={String(totalActivePharmacies)} />
-                <KpiCard title="Total Users" value="24" />
-                <KpiCard title="KPI 1" value="--" />
-                <KpiCard title="KPI 2" value="--" />
+                <StatusCard title="Total Pharmacies" value={String(totalPharmacies)} />
+                <StatusCard title="Total Active Pharmacies" value={String(totalActivePharmacies)} />
+                <StatusCard title="Total Users" value="24" />
+                <StatusCard title="Open Tickets" value={String(openTickets)} tone="danger" />
+                <StatusCard title="In Progress Tickets" value={String(inProgressTickets)} tone="warning" />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr] xl:grid-cols-[1.5fr_1fr] gap-8 mt-4">
