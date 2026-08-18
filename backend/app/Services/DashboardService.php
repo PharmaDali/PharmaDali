@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\DashboardRepository;
 use App\Repositories\OrderRepository;
+use App\Services\Analytics\AnalyticsService;
 use App\Services\Order\OrderService;
 use App\Services\Inventory\InventoryService;
 use App\Services\Inventory\RestockPredictorService;
