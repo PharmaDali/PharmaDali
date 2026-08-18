@@ -125,7 +125,6 @@ const Notifications: React.FC = () => {
     const filtered = notifications.filter((n) => (filter === 'Unread' ? !n.read : true));
     const unreadCount = notifications.filter((n) => !n.read).length;
 
-    // Render modal based on target type
     const renderDeleteModal = () => {
         const isDeleteAll = deleteTarget === 'ALL'
 
@@ -158,11 +157,10 @@ const Notifications: React.FC = () => {
         )
     }
 
-    // Fullscreen View Mode for selected notification
     if (selectedNotification) {
         return (
             <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm font-[var(--font-primary)] animate-fade-in">
-                {/* Navigation Back Header */}
+                {}
                 <div className="mb-6 flex items-center justify-between gap-4">
                     <button
                         onClick={() => setSelectedNotification(null)}
@@ -194,10 +192,10 @@ const Notifications: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Fullscreen Notification Body Container */}
+                {}
                 <div className="w-full">
                     <div className="bg-[#424754] rounded-[20px] p-6 md:p-9 shadow-[0_24px_50px_rgba(0,0,0,0.18)] border border-[rgba(255,255,255,0.05)] flex flex-col gap-6">
-                        {/* Header Details */}
+                        {}
                         <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[rgba(255,255,255,0.08)]">
                             <div className="flex flex-col gap-2">
                                 <div className="flex items-center gap-3">
@@ -227,7 +225,7 @@ const Notifications: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Detailed Description */}
+                        {}
                         <div className="bg-[#353a45] rounded-[16px] p-6 border border-[rgba(255,255,255,0.04)]">
                             <h3 className="text-[#8ccfed] text-xs font-bold uppercase tracking-wider mb-3">
                                 Full Message & Details
@@ -237,7 +235,7 @@ const Notifications: React.FC = () => {
                             </p>
                         </div>
 
-                        {/* Metadata Grid */}
+                        {}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="bg-[#353a45] p-5 rounded-[14px] border border-[rgba(255,255,255,0.04)]">
                                 <span className="text-gray-400 text-xs block mb-1">Source / Sender</span>
@@ -262,7 +260,7 @@ const Notifications: React.FC = () => {
 
     return (
         <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm font-[var(--font-primary)]">
-            {/* Header Title & Controls */}
+            {}
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 className="m-0 text-[clamp(1.8rem,3vw,2.6rem)] font-regular text-white tracking-wide">
@@ -313,7 +311,7 @@ const Notifications: React.FC = () => {
                 </div>
             </div>
 
-            {/* Notifications Cards Container */}
+            {}
             <div className="w-full">
                 <div className="w-full">
                     <div className="grid grid-cols-1 gap-4">

@@ -102,7 +102,7 @@ const TicketDetailsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm space-y-6 animate-fade-in max-w-[1400px]">
-      {/* Top Header & Navigation */}
+      {}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[clamp(1.2rem,2.2vw,2rem)] font-bold">
           <span className="text-gray-300">Tickets</span>
@@ -124,7 +124,7 @@ const TicketDetailsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Section 1: Ticket Details Card */}
+      {}
       <div className="bg-[#3b3f4d] rounded-[16px] p-6 shadow-xl border border-[rgba(255,255,255,0.05)] text-gray-200">
         <div className="flex items-center gap-2 text-[#8ccfed] font-bold text-base mb-4">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -187,7 +187,7 @@ const TicketDetailsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Section 2: Assignment and Status Management Card */}
+      {}
       <div className="bg-[#3b3f4d] rounded-[16px] p-6 shadow-xl border border-[rgba(255,255,255,0.05)]">
         <div className="flex items-center gap-2 text-[#8ccfed] font-bold text-base mb-4">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -251,7 +251,7 @@ const TicketDetailsPage: React.FC = () => {
         </form>
       </div>
 
-      {/* Section 3: Two Columns Grid (Description & Steps Taken) */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Description Card */}
         <div className="bg-[#3b3f4d] rounded-[16px] p-6 shadow-xl border border-[rgba(255,255,255,0.05)]">
@@ -267,7 +267,7 @@ const TicketDetailsPage: React.FC = () => {
           <p className="text-gray-300 text-xs leading-relaxed m-0">{ticket.description}</p>
         </div>
 
-        {/* Steps Taken Card */}
+        {}
         <div className="bg-[#3b3f4d] rounded-[16px] p-6 shadow-xl border border-[rgba(255,255,255,0.05)]">
           <div className="flex items-center gap-2 text-[#8ccfed] font-bold text-base mb-4">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -288,7 +288,7 @@ const TicketDetailsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Section 4: Attachments Card */}
+      {}
       <div className="bg-[#3b3f4d] rounded-[16px] p-6 shadow-xl border border-[rgba(255,255,255,0.05)]">
         <div className="flex items-center gap-2 text-[#8ccfed] font-bold text-base mb-4">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -310,7 +310,7 @@ const TicketDetailsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Section 5: Additional Information Card */}
+      {}
       <div className="bg-[#3b3f4d] rounded-[16px] p-6 shadow-xl border border-[rgba(255,255,255,0.05)] space-y-4">
         <h3 className="text-[#8ccfed] font-bold text-base m-0">Additional Information</h3>
 
@@ -388,7 +388,7 @@ const TicketDetailsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Update Ticket Confirmation Modal */}
+      {}
       <ConfirmModal
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}

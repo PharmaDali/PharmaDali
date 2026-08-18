@@ -10,14 +10,12 @@ const Tickets: React.FC = () => {
   const [selectedPriority, setSelectedPriority] = useState('All')
   const [selectedPharmacy, setSelectedPharmacy] = useState('All')
 
-  // Calculate dynamic counts for KPI cards
   const totalTickets = tickets.length
   const openTickets = tickets.filter((t) => t.status === 'Open').length
   const inProgressTickets = tickets.filter((t) => t.status === 'In progress').length
   const resolvedTickets = tickets.filter((t) => t.status === 'Resolved').length
   const closedTickets = tickets.filter((t) => t.status === 'Closed').length
 
-  // Filter tickets based on search and dropdown selections
   const filteredTickets = tickets.filter((t) => {
     const query = searchTerm.toLowerCase().trim()
     const matchesSearch =
@@ -47,13 +45,13 @@ const Tickets: React.FC = () => {
   const getStatusColor = (status: Ticket['status']) => {
     switch (status) {
       case 'Open':
-        return 'text-[#f87171]' // Red
+        return 'text-[#f87171]' 
       case 'Closed':
-        return 'text-[#f59e0b]' // Yellow / Amber
+        return 'text-[#f59e0b]' 
       case 'In progress':
-        return 'text-[#4ade80]' // Green
+        return 'text-[#4ade80]' 
       case 'Resolved':
-        return 'text-[#38bdf8]' // Blue / Cyan
+        return 'text-[#38bdf8]' 
       default:
         return 'text-gray-300'
     }
@@ -79,14 +77,14 @@ const Tickets: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm">
-      {/* Header */}
+      {}
       <div className="mb-6">
         <h1 className="m-0 text-[clamp(1.8rem,3vw,2.8rem)] font-normal leading-[1.05] text-white">Tickets</h1>
       </div>
 
-      {/* KPI Cards (5 Cards) */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-        {/* All Tickets */}
+        {}
         <div className="bg-[#3e4350] rounded-[14px] p-4 flex items-center gap-4 shadow-lg border border-[rgba(255,255,255,0.04)]">
           <div className="w-12 h-12 rounded-full bg-[#2aa6e0] flex items-center justify-center text-white flex-shrink-0">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -102,7 +100,7 @@ const Tickets: React.FC = () => {
           </div>
         </div>
 
-        {/* Open */}
+        {}
         <div className="bg-[#3e4350] rounded-[14px] p-4 flex items-center gap-4 shadow-lg border border-[rgba(255,255,255,0.04)]">
           <div className="w-12 h-12 rounded-full bg-[#ef4444] flex items-center justify-center text-white flex-shrink-0 text-xl font-bold">
             !
@@ -113,7 +111,7 @@ const Tickets: React.FC = () => {
           </div>
         </div>
 
-        {/* In Progress */}
+        {}
         <div className="bg-[#3e4350] rounded-[14px] p-4 flex items-center gap-4 shadow-lg border border-[rgba(255,255,255,0.04)]">
           <div className="w-12 h-12 rounded-full bg-[#f59e0b] flex items-center justify-center text-white flex-shrink-0">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -127,7 +125,7 @@ const Tickets: React.FC = () => {
           </div>
         </div>
 
-        {/* Resolved */}
+        {}
         <div className="bg-[#3e4350] rounded-[14px] p-4 flex items-center gap-4 shadow-lg border border-[rgba(255,255,255,0.04)]">
           <div className="w-12 h-12 rounded-full bg-[#0284c7] flex items-center justify-center text-white flex-shrink-0">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -140,7 +138,7 @@ const Tickets: React.FC = () => {
           </div>
         </div>
 
-        {/* Closed */}
+        {}
         <div className="bg-[#3e4350] rounded-[14px] p-4 flex items-center gap-4 shadow-lg border border-[rgba(255,255,255,0.04)]">
           <div className="w-12 h-12 rounded-full bg-[#10b981] flex items-center justify-center text-white flex-shrink-0">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -156,10 +154,10 @@ const Tickets: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Row */}
+      {}
       <div className="bg-[#3e4350] rounded-[14px] p-5 mb-6 shadow-lg border border-[rgba(255,255,255,0.04)]">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Search Bar */}
+          {}
           <div className="flex flex-col gap-1.5">
             <label className="text-gray-200 text-xs font-medium">Search by ticket ID, subject, or requester</label>
             <div className="relative">
@@ -179,7 +177,7 @@ const Tickets: React.FC = () => {
             </div>
           </div>
 
-          {/* Status Dropdown */}
+          {}
           <div className="flex flex-col gap-1.5">
             <label className="text-gray-200 text-xs font-medium">Status</label>
             <div className="relative">
@@ -202,7 +200,7 @@ const Tickets: React.FC = () => {
             </div>
           </div>
 
-          {/* Priority Dropdown */}
+          {}
           <div className="flex flex-col gap-1.5">
             <label className="text-gray-200 text-xs font-medium">Priority</label>
             <div className="relative">
@@ -224,7 +222,7 @@ const Tickets: React.FC = () => {
             </div>
           </div>
 
-          {/* Pharmacy Dropdown */}
+          {}
           <div className="flex flex-col gap-1.5">
             <label className="text-gray-200 text-xs font-medium">Pharmacy</label>
             <div className="relative">
@@ -248,7 +246,7 @@ const Tickets: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Tickets Table */}
+      {}
       <div className="bg-[#424754] rounded-[14px] overflow-hidden shadow-xl border border-[rgba(255,255,255,0.04)]">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse min-w-[800px]">
