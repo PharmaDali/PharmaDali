@@ -3,7 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
-  KeyboardAvoidingView,
+  Keyboard,
   Platform,
   Pressable,
   StyleSheet,
@@ -74,7 +74,6 @@ const getParticipantName = (person) => {
 export default function PharmacistConversationScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [initialBottomInset] = useState(insets.bottom);
   const { conversationId } = useLocalSearchParams();
   const flatListRef = useRef(null);
 
@@ -86,6 +85,20 @@ export default function PharmacistConversationScreen() {
   const [draft, setDraft] = useState('');
   const [error, setError] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const pickFromGallery = async () => {
     try {
@@ -335,12 +348,8 @@ export default function PharmacistConversationScreen() {
         </View>
       </View>
 
-      {/* ── Scrollable area + input wrapped in KAV ── */}
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-      >
+      {/* ── Scrollable area + input ── */}
+      <View style={{ flex: 1, marginBottom: keyboardHeight > 0 ? keyboardHeight + 50 : 0 }}>
         {!!error && (
           <View style={styles.errorBanner}>
             <MaterialCommunityIcons name="alert-circle-outline" size={16} color="#DC2626" />
@@ -387,7 +396,7 @@ export default function PharmacistConversationScreen() {
           </View>
         )}
 
-        <View style={[styles.inputBar, { paddingBottom: Math.max(initialBottomInset, 12) }]}>
+        <View style={[styles.inputBar, { paddingBottom: keyboardHeight > 0 ? 10 : insets.bottom + 20 }]}>
           <TouchableOpacity onPress={pickFromGallery} style={styles.attachBtn} activeOpacity={0.7}>
             <MaterialCommunityIcons name="image-outline" size={24} color="#64748B" />
           </TouchableOpacity>
@@ -414,7 +423,7 @@ export default function PharmacistConversationScreen() {
             }
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 }
