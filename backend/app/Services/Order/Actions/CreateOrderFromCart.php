@@ -28,7 +28,7 @@ class CreateOrderFromCart
             $scheduledPickupAt = $timestamp;
             if ($rawScheduledPickup) {
                 try {
-                    $parsed = Carbon::parse($rawScheduledPickup);
+                    $parsed = Carbon::parse($rawScheduledPickup)->setTimezone(config('app.timezone', 'Asia/Manila'));
                     $scheduledPickupAt = $parsed->isPast() ? $timestamp : $parsed;
                 } catch (\Throwable) {
                     $scheduledPickupAt = $timestamp;
