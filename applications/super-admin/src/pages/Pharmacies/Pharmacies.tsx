@@ -152,7 +152,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
   }
 
   return (
-    <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm">
+    <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm transition-all duration-300 ease-out">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="m-0 text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.05] text-white">Pharmacies</h1>
       </div>
@@ -161,12 +161,12 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
         {/* Main Content Area (Table & Search) */}
         <div className="flex flex-col w-full flex-1 min-h-0 min-w-0">
           <div className="w-full mb-4">
-            <div className="flex items-center justify-between gap-4 w-full">
-              <div className="flex items-center gap-4 min-w-0 flex-1">
+            <div className="flex items-center justify-between gap-4 w-full flex-col sm:flex-row">
+              <div className="flex items-center gap-4 min-w-0 flex-1 w-full flex-col sm:flex-row">
                 <h2 className="text-white text-2xl font-semibold flex-shrink-0">Pharmacy List</h2>
 
                 {/* Search input inline with heading on wide screens */}
-                <div className="relative flex-1 max-w-none">
+                <div className="relative flex-1 w-full max-w-none">
                   <div className="absolute inset-y-0 left-3 flex items-center text-gray-400 pointer-events-none">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="11" cy="11" r="7" />
@@ -176,7 +176,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                   <input
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-[#2f3338] placeholder:text-gray-400 text-gray-100 pl-10 pr-10 py-3 rounded-[8px] border border-transparent focus:outline-none focus:border-[#2aa6e0] transition-colors"
+                    className="w-full bg-[#2f3338]/90 placeholder:text-gray-400 text-gray-100 pl-10 pr-10 py-3 rounded-[12px] border border-[rgba(255,255,255,0.06)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] focus:outline-none focus:border-[#2aa6e0] transition-all duration-200"
                     placeholder="Search by Pharmacy Name, Owner, Location, or Status"
                   />
                   {searchTerm && (
@@ -196,7 +196,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
 
               <button
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2 bg-[#2aa6e0] hover:bg-[#35b3f0] text-white text-sm font-medium px-4 py-2 rounded-[8px] shadow transition-colors flex-shrink-0"
+                className="flex items-center gap-2 bg-[#2aa6e0] hover:bg-[#35b3f0] text-white text-sm font-medium px-4 py-2 rounded-[10px] shadow-[0_10px_20px_rgba(42,166,224,0.22)] transition-all duration-200 flex-shrink-0"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block">
                   <path d="M12 5v14"></path>
@@ -207,8 +207,8 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
             </div>
           </div>
 
-          <div className="bg-transparent rounded-xl shadow-lg p-0 flex-1 min-h-0 w-full">
-            <div className="bg-[#424754] rounded-md overflow-auto max-h-[65vh]">
+          <div className="bg-transparent rounded-[18px] shadow-[0_20px_40px_rgba(0,0,0,0.12)] p-0 flex-1 min-h-0 w-full">
+            <div className="bg-[#424754] rounded-[16px] overflow-auto max-h-[65vh] border border-[rgba(255,255,255,0.04)]">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse table-fixed min-w-[700px]">
                   <thead>

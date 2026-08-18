@@ -195,8 +195,8 @@ const Notifications: React.FC = () => {
                 </div>
 
                 {/* Fullscreen Notification Body Container */}
-                <div className="w-full max-w-[1400px]">
-                    <div className="bg-[#424754] rounded-[20px] p-6 md:p-9 shadow-xl border border-[rgba(255,255,255,0.05)] flex flex-col gap-6">
+                <div className="w-full">
+                    <div className="bg-[#424754] rounded-[20px] p-6 md:p-9 shadow-[0_24px_50px_rgba(0,0,0,0.18)] border border-[rgba(255,255,255,0.05)] flex flex-col gap-6">
                         {/* Header Details */}
                         <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[rgba(255,255,255,0.08)]">
                             <div className="flex flex-col gap-2">
@@ -315,7 +315,7 @@ const Notifications: React.FC = () => {
 
             {/* Notifications Cards Container */}
             <div className="w-full">
-                <div className="max-w-[1400px]">
+                <div className="w-full">
                     <div className="grid grid-cols-1 gap-4">
                         {filtered.length > 0 ? (
                             filtered.map((item) => (

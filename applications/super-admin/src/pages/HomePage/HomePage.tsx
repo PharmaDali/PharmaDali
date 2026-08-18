@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar/Sidebar'
 import Navbar from '../../components/Navbar/Navbar'
@@ -22,17 +23,18 @@ function HomePage() {
   const { pathname } = useLocation()
   const title = PAGE_TITLES[pathname] ?? 'Dashboard'
   const { totalPharmacies, totalActivePharmacies } = usePharmacies()
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#323642] text-[#e2e8f0] font-[var(--font-primary)]">
-      <Sidebar />
+    <div className="min-h-screen flex flex-col bg-[#323642] text-[#e2e8f0] font-[var(--font-primary)] lg:flex-row">
+      <Sidebar isCollapsed={isSidebarCollapsed} onToggle={() => setIsSidebarCollapsed((prev) => !prev)} />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 transition-all duration-300 ease-out">
         <Navbar name="Denmar" role="Superman" />
 
-        <main className="flex-1 p-6 md:p-8 overflow-auto">
+        <main className="flex-1 w-full p-4 sm:p-6 lg:p-8 overflow-auto transition-all duration-300 ease-out">
           {pathname === '/homepage' ? (
-            <div className="flex flex-col gap-8 max-w-[1400px]">
+            <div className="flex w-full flex-col gap-8">
               <div className="mb-4">
                 <h1 className="m-0 text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.05] text-white">Dashboard</h1>
               </div>
@@ -51,33 +53,23 @@ function HomePage() {
             </div>
           ) : pathname === '/pharmacies' ? (
             <section className="w-full">
-              <div className="max-w-[1400px]">
-                <Pharmacies />
-              </div>
+              <Pharmacies />
             </section>
           ) : pathname === '/users' ? (
             <section className="w-full">
-              <div className="max-w-[1400px]">
-                <Users />
-              </div>
+              <Users />
             </section>
           ) : pathname === '/tickets' ? (
             <section className="w-full">
-              <div className="max-w-[1400px]">
-                <Tickets />
-              </div>
+              <Tickets />
             </section>
           ) : pathname.startsWith('/tickets/') ? (
             <section className="w-full">
-              <div className="max-w-[1400px]">
-                <TicketDetailsPage />
-              </div>
+              <TicketDetailsPage />
             </section>
           ) : pathname === '/notifications' ? (
             <section className="w-full">
-              <div className="max-w-[1400px]">
-                <Notifications />
-              </div>
+              <Notifications />
             </section>
           ) : (
             <section className="max-w-[720px] bg-[#424754] border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 md:p-[36px] shadow-lg">
