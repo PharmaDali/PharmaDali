@@ -9,19 +9,11 @@ import {
   deleteAllNotifications,
 } from "../services/notificationService";
 
-const REVERB_APP_KEY = import.meta.env.VITE_REVERB_APP_KEY || "pharmadali-local-key";
-const REVERB_HOST = import.meta.env.VITE_REVERB_HOST || "127.0.0.1";
-const REVERB_PORT = import.meta.env.VITE_REVERB_PORT || 8080;
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api";
+const REVERB_APP_KEY = import.meta.env.VITE_REVERB_APP_KEY;
+const REVERB_HOST = import.meta.env.VITE_REVERB_HOST;
+const REVERB_PORT = import.meta.env.VITE_REVERB_PORT;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-/**
- * Custom hook that manages real-time admin notifications.
- *
- * - Fetches notifications via REST.
- * - Subscribes to the private Laravel Reverb broadcast channel.
- * - Preserves read notifications in state (updating read_at instead of deleting).
- * - Exposes mark-as-read and delete actions.
- */
 export const useNotifications = () => {
   const [notificationsList, setNotificationsList] = useState([]);
   const [loading, setLoading] = useState(true);

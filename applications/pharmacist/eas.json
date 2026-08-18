@@ -15,7 +15,7 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.254.108:3000/api"
+        "EXPO_PUBLIC_API_URL": "https://api.pharmadali.com/api"
       }
     },
     "production": {
