@@ -40,6 +40,14 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
 }
 
+.pos-product-body table thead th,
+.pos-order-items-card table thead th {
+  background: #96D2EE !important;
+  color: var(--pd-text-dark, #334155) !important;
+  font-weight: 600;
+  font-size: 13px;
+}
+
 .pos-order-items-scroll,
 .pos-order-empty-state {
   height: var(--pos-order-items-viewport);

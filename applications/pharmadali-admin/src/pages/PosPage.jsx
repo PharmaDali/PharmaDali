@@ -51,12 +51,12 @@ function ProductTable({ results, selectedId, onSelect, onScroll, loadingMore }) 
             {COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
           </colgroup>
           <thead>
-            <tr style={{ background: "#48AAD9" }}>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "#ffffff", background: "#48AAD9" }}>Generic Name</th>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "#ffffff", background: "#48AAD9" }}>Brand Name</th>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "#ffffff", background: "#48AAD9" }}>Strength</th>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-end" style={{ color: "#ffffff", background: "#48AAD9" }}>Price (PHP)</th>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-center" style={{ color: "#ffffff", background: "#48AAD9" }}>Stocks</th>
+            <tr style={{ background: "#96D2EE" }}>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Generic Name</th>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Brand Name</th>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Strength</th>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-end" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Price (PHP)</th>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-center" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Stocks</th>
             </tr>
           </thead>
         </table>
@@ -248,9 +248,9 @@ function CurrentOrder({
           </colgroup>
           <thead>
             <tr>
-              <th className="px-3 py-2 fw-semibold border-0 text-center" style={{ color: "#555", background: "#96D2EE" }}>Product</th>
-              <th className="px-2 py-2 fw-semibold border-0 text-center" style={{ color: "#555", background: "#96D2EE" }}>Qty</th>
-              <th className="px-3 py-2 fw-semibold border-0 text-end" style={{ color: "#555", background: "#96D2EE" }}>Subtotal</th>
+              <th className="px-3 py-2 fw-semibold border-0 text-center">Product</th>
+              <th className="px-2 py-2 fw-semibold border-0 text-center">Qty</th>
+              <th className="px-3 py-2 fw-semibold border-0 text-end">Subtotal</th>
             </tr>
           </thead>
         </table>
