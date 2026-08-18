@@ -5,6 +5,7 @@ namespace App\Services\Order;
 use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use \Illuminate\Support\Carbon;
 
 class UpdateCustomerOrderService
 {
@@ -45,9 +46,20 @@ class UpdateCustomerOrderService
             ], 422);
         }
 
+        $rawScheduledPickup = array_key_exists('scheduled_pickup_at', $payload) ? $payload['scheduled_pickup_at'] : null;
+        $scheduledPickupAt = $order->scheduled_pickup_at;
+        if ($rawScheduledPickup) {
+            try {
+                $parsed = Carbon::parse($rawScheduledPickup)->setTimezone(config('app.timezone', 'Asia/Manila'));
+                $scheduledPickupAt = $parsed->isPast() ? now() : $parsed;
+            } catch (\Throwable) {
+                $scheduledPickupAt = $order->scheduled_pickup_at;
+            }
+        }
+
         $order->update([
             'payment_method' => $payload['payment_method'] ?? $order->payment_method,
-            'scheduled_pickup_at' => array_key_exists('scheduled_pickup_at', $payload) ? $payload['scheduled_pickup_at'] : $order->scheduled_pickup_at,
+            'scheduled_pickup_at' => $scheduledPickupAt,
             'note' => array_key_exists('note', $payload) ? $payload['note'] : $order->note,
         ]);
 

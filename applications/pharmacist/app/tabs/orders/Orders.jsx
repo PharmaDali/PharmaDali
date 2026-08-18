@@ -41,7 +41,9 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       orderNumber: order.order_number || String(order.id),
       customerName: `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim() || 'Customer',
       customerAvatar: MaleIcon,
-      pickupTime: formatDateToMMDDYYYY(order?.scheduled_pickup_at) || 'Schedule not set',
+      pickupTime: (order?.scheduled_pickup_at || order?.placed_at || order?.created_at)
+        ? formatDateToMMDDYYYY(order?.scheduled_pickup_at || order?.placed_at || order?.created_at)
+        : 'Schedule not set',
       submittedAgo: formatDateToMMDDYYYY(order?.created_at) || 'Recently',
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
