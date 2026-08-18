@@ -1,22 +1,22 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Analytics;
 
 use App\Repositories\AnalyticsRepository;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class GeminiService
+class GetAnalyticsInsights
 {
     public function __construct(protected AnalyticsRepository $repository)
     {
     }
 
     /**
-     * Get AI Insights from Gemini API for demand or sales data.
+     * Handle AI Analytics Insights retrieval from Gemini API or cache.
      */
-    public function getAnalyticsInsights(int $pharmacyId, string $type = 'demand'): array
+    public function handle(int $pharmacyId, string $type = 'demand'): array
     {
         $cacheKey = "pharmacy_{$pharmacyId}_gemini_insight_{$type}";
         $ttl = config('services.gemini.cache_ttl_minutes', 30);

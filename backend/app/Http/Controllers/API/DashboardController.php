@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use App\Services\DashboardService;
+use App\Services\Dashboard\DashboardService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -15,14 +15,7 @@ class DashboardController extends Controller
 
     public function overview(Request $request): JsonResponse
     {
-        $this->authorizePermission(null, 'Unauthorized Access');
-
-        $pharmacyId = $request->user()->pharmacy_id;
-
-        if (!$pharmacyId) {
-            return $this->errorResponse('Pharmacy context required.', 400);
-        }
-
+        $pharmacyId = $request->input('pharmacy_id') ? (int) $request->input('pharmacy_id') : null;
         $data = $this->dashboardService->getDashboardOverview($pharmacyId);
 
         return $this->successResponse($data, 'Dashboard overview fetched successfully.');
@@ -30,16 +23,8 @@ class DashboardController extends Controller
 
     public function salesTrend(Request $request): JsonResponse
     {
-        $this->authorizePermission(null, 'Unauthorized Access');
-
-        $pharmacyId = $request->user()->pharmacy_id;
-        $range = $request->input('range', 'Weekly');
-
-        if (!$pharmacyId) {
-            return $this->errorResponse('Pharmacy context required.', 400);
-        }
-
-        $data = $this->dashboardService->getSalesTrend($pharmacyId, $range);
+        $pharmacyId = $request->input('pharmacy_id') ? (int) $request->input('pharmacy_id') : null;
+        $data = $this->dashboardService->getSalesTrend($pharmacyId, $request->input('range', 'Weekly'));
 
         return $this->successResponse($data, 'Sales trend fetched successfully.');
     }
