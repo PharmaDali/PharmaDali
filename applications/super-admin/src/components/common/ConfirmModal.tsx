@@ -3,6 +3,7 @@ import Modal, { type ModalProps } from './Modal'
 import deleteIcon from '../../assets/delete-icon.svg'
 import saveChangesIcon from '../../assets/save-changes.svg'
 import savedSuccessfulIcon from '../../assets/saved-successful.svg'
+import updateModalIcon from '../../assets/update-modal-icon.svg'
 
 export type ConfirmIconType =
   | 'question'
@@ -11,6 +12,7 @@ export type ConfirmIconType =
   | 'success-question'
   | 'delete'
   | 'delete-icon'
+  | 'update-modal-icon'
   | 'save-changes'
   | 'saved-successful'
   | 'custom'
@@ -86,6 +88,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       return (
         <div className="flex items-center justify-center mx-auto mb-5">
           <img src={deleteIcon} alt="Delete" className="w-20 h-20 object-contain" />
+        </div>
+      )
+    }
+
+    if (icon === 'update-modal-icon') {
+      return (
+        <div className="flex items-center justify-center mx-auto mb-5">
+          <img src={updateModalIcon} alt="Update" className="w-20 h-20 object-contain" />
         </div>
       )
     }

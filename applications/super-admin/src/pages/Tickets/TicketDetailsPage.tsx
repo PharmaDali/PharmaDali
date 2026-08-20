@@ -392,8 +392,7 @@ const TicketDetailsPage: React.FC = () => {
       <ConfirmModal
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}
-        icon="danger"
-        iconColor="rgba(255, 255, 255, 0.8)"
+        icon="update-modal-icon"
         title="Update Ticket"
         titleColor="text-white"
         description="Are you sure you want to update this ticket?"
