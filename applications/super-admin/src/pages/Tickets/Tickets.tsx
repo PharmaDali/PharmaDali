@@ -50,13 +50,13 @@ const Tickets: React.FC = () => {
   const getStatusColor = (status: Ticket['status']) => {
     switch (status) {
       case 'Open':
-        return 'text-[#f87171]' 
-      case 'Closed':
-        return 'text-[#f59e0b]' 
+        return 'text-[#F56262]'
       case 'In progress':
-        return 'text-[#4ade80]' 
+        return 'text-[#F0C131]'
       case 'Resolved':
-        return 'text-[#38bdf8]' 
+        return 'text-[#1B6CA8]'
+      case 'Closed':
+        return 'text-[#01A768]'
       default:
         return 'text-gray-300'
     }
