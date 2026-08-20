@@ -2,8 +2,9 @@ import { useState } from "react";
 import { SettingForm } from "./SettingForm";
 import "../../assets/css/settings/common.css";
 import { updateAdminPassword } from "../../services/pharmacySettingsService";
+import PasswordField from "../../components/PasswordField";
 
-export const AccountSettings = ({ onNavigate }) => {
+export const PasswordSettings = ({ onNavigate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
@@ -65,30 +66,36 @@ export const AccountSettings = ({ onNavigate }) => {
       label: "Change Password",
       helper: "Update admin account login password securely.",
       content: (
-        <div className="d-flex flex-column gap-2 w-100">
-          <input
-            type="password"
-            className="form-control settings-form-input"
+        <div className="d-flex flex-column gap-1 w-100">
+          <PasswordField
+            name="currentPassword"
             placeholder="Current Password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             disabled={!isEditing || saving}
+            inputClassName="form-control settings-form-input"
+            containerClassName="mb-1"
+            autoComplete="current-password"
           />
-          <input
-            type="password"
-            className="form-control settings-form-input"
+          <PasswordField
+            name="newPassword"
             placeholder="New Password (min. 8 characters)"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             disabled={!isEditing || saving}
+            inputClassName="form-control settings-form-input"
+            containerClassName="mb-1"
+            autoComplete="new-password"
           />
-          <input
-            type="password"
-            className="form-control settings-form-input"
+          <PasswordField
+            name="confirmPassword"
             placeholder="Confirm New Password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             disabled={!isEditing || saving}
+            inputClassName="form-control settings-form-input"
+            containerClassName="mb-0"
+            autoComplete="new-password"
           />
         </div>
       ),
@@ -138,4 +145,4 @@ export const AccountSettings = ({ onNavigate }) => {
   );
 };
 
-export default AccountSettings;
+export default PasswordSettings;

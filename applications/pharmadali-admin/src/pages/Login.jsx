@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/loginService";
+import PasswordField from "../components/PasswordField";
 
 function Login() {
   const navigate = useNavigate();
@@ -36,6 +37,10 @@ function Login() {
     }
   };
 
+  const handleForgotPassword = () => {
+    // Forgot password info or handler
+  };
+
   return (
     <div className="login-page">
       <div className="login-brand-block" aria-hidden="true">
@@ -48,33 +53,37 @@ function Login() {
       <form onSubmit={handleLogin} className="login-form-panel">
         <h2 className="login-form-title">Log In</h2>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Admin Email"
-          value={credentials.email}
-          onChange={handleChange}
-          className="login-input"
-          required
-        />
+        <div className="w-100 mb-3">
+          <input
+            type="email"
+            name="email"
+            placeholder="Admin Email"
+            value={credentials.email}
+            onChange={handleChange}
+            className="form-control pd-password-input login-input mb-0"
+            required
+            autoComplete="email"
+          />
+        </div>
 
-        <input
-          type="password"
+        <PasswordField
           name="password"
           placeholder="Password"
           value={credentials.password}
           onChange={handleChange}
-          className="login-input"
+          inputClassName="login-input mb-0"
+          containerClassName="mb-3"
           required
+          autoComplete="current-password"
         />
 
         {error && <p className="login-error">{error}</p>}
 
         <div className="login-form-footer">
-          <button type="button" className="login-forgot-btn">
+          <button type="button" className="login-forgot-btn" onClick={handleForgotPassword}>
             Forgot Password?
           </button>
-          <button type="submit" className="login-submit-btn">
+          <button type="submit" className="login-submit-btn" disabled={isSubmitting}>
             {isSubmitting ? "Logging in..." : "Mag-login"}
           </button>
         </div>

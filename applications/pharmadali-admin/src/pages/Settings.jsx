@@ -2,7 +2,7 @@ import { useState } from "react";
 import "../assets/css/settings.css";
 import { SettingsListView } from "./settings/SettingsList";
 import { GeneralSettings } from "./settings/GeneralSettings";
-import { AccountSettings } from "./settings/AccountSettings";
+import { PasswordSettings } from "./settings/PasswordSettings";
 import { CategoryManagement } from "./settings/CategoryManagement";
 import HardwareAndReceipts from "./settings/HardwareAndReceipts";
 import Operations from "./settings/Operations";
@@ -14,7 +14,7 @@ const settingsMap = {
     component: GeneralSettings,
   },
   account: {
-    component: AccountSettings,
+    component: PasswordSettings,
   },
   category: {
     component: CategoryManagement,
@@ -22,7 +22,6 @@ const settingsMap = {
   hardware: {
     component: HardwareAndReceipts,
   },
-  // Alias mappings for legacy routes
   receipt: {
     component: HardwareAndReceipts,
   },
