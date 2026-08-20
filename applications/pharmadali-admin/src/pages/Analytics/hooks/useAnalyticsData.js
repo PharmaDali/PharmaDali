@@ -123,6 +123,14 @@ export function useAnalyticsData() {
     }
   };
 
+function extractList(res) {
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res?.data)) return res.data;
+  if (Array.isArray(res?.data?.data)) return res.data.data;
+  if (Array.isArray(res?.items)) return res.items;
+  return [];
+}
+
   // Load Table Data independently
   useEffect(() => {
     let mounted = true;
@@ -133,19 +141,21 @@ export function useAnalyticsData() {
         if (isDemand) {
           const res = await fetchDemandAnalytics(tableDemandTimeframe, periodInfo.startDate, periodInfo.endDate);
           if (mounted) {
-            setDemandData((res?.data || []).map(item => ({
-              product: item.product_name,
-              value: formatNumber(item.total_quantity_sold),
-              delta: item.quantity_delta
+            const list = extractList(res);
+            setDemandData(list.map(item => ({
+              product: item.product_name || item.name || "Unknown Product",
+              value: formatNumber(item.total_quantity_sold || item.quantity || 0),
+              delta: item.quantity_delta || 0
             })));
           }
         } else {
           const res = await fetchDemandAnalytics(tableSalesTimeframe, periodInfo.startDate, periodInfo.endDate);
           if (mounted) {
-            setSalesData((res?.data || []).sort((a, b) => b.total_revenue - a.total_revenue).map(item => ({
-              product: item.product_name,
-              value: formatCurrency(item.total_revenue),
-              delta: item.revenue_delta
+            const list = extractList(res);
+            setSalesData(list.slice().sort((a, b) => (b.total_revenue || 0) - (a.total_revenue || 0)).map(item => ({
+              product: item.product_name || item.name || "Unknown Product",
+              value: formatCurrency(item.total_revenue || item.revenue || 0),
+              delta: item.revenue_delta || 0
             })));
           }
         }
@@ -173,19 +183,19 @@ export function useAnalyticsData() {
         if (isDemand) {
           const res = await fetchSalesAnalytics(chartDemandTimeframe);
           if (mounted) {
-            const tsData = res?.data || [];
+            const tsData = extractList(res);
             setChartTimeseries({
-              labels: tsData.map(item => item.period),
-              values: tsData.map(item => Number(item.orders_count))
+              labels: tsData.map(item => item.period || item.label || ""),
+              values: tsData.map(item => Number(item.orders_count || item.quantity || 0))
             });
           }
         } else {
           const res = await fetchSalesAnalytics(chartSalesTimeframe);
           if (mounted) {
-            const tsData = res?.data || [];
+            const tsData = extractList(res);
             setChartTimeseries({
-              labels: tsData.map(item => item.period),
-              values: tsData.map(item => Number(item.revenue))
+              labels: tsData.map(item => item.period || item.label || ""),
+              values: tsData.map(item => Number(item.revenue || item.total || 0))
             });
           }
         }
