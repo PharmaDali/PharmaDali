@@ -96,6 +96,9 @@
 
 .login-input:focus {
   outline: 1px solid var(--pd-primary-light);
+  border-color: var(--pd-primary-light) !important;
+  box-shadow: none !important;
+  background: #ffffff;
 }
 
 .login-error {
