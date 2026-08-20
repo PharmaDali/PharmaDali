@@ -1,6 +1,11 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTickets, type Ticket } from '../../context/TicketContext'
+import allTicketsIcon from '../../assets/all-tickets-icon.svg'
+import openTicketsIcon from '../../assets/open-tickets.svg'
+import inProgressTicketsIcon from '../../assets/in-progress-tickets.svg'
+import resolvedTicketsIcon from '../../assets/resolved-tickets.svg'
+import closedTicketsIcon from '../../assets/closed-tickets.svg'
 
 const Tickets: React.FC = () => {
   const navigate = useNavigate()
@@ -86,14 +91,7 @@ const Tickets: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         {}
         <div className="bg-[#3e4350] rounded-[14px] p-4 flex items-center gap-4 shadow-lg border border-[rgba(255,255,255,0.04)]">
-          <div className="w-12 h-12 rounded-full bg-[#2aa6e0] flex items-center justify-center text-white flex-shrink-0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="6" width="20" height="12" rx="2" />
-              <path d="M12 12h.01" />
-              <path d="M17 12h.01" />
-              <path d="M7 12h.01" />
-            </svg>
-          </div>
+          <img src={allTicketsIcon} alt="" aria-hidden="true" className="w-12 h-12 object-contain flex-shrink-0" />
           <div>
             <div className="text-gray-300 text-xs font-semibold">All Tickets</div>
             <div className="text-white text-2xl font-bold">{totalTickets}</div>
@@ -102,9 +100,7 @@ const Tickets: React.FC = () => {
 
         {}
         <div className="bg-[#3e4350] rounded-[14px] p-4 flex items-center gap-4 shadow-lg border border-[rgba(255,255,255,0.04)]">
-          <div className="w-12 h-12 rounded-full bg-[#ef4444] flex items-center justify-center text-white flex-shrink-0 text-xl font-bold">
-            !
-          </div>
+          <img src={openTicketsIcon} alt="" aria-hidden="true" className="w-12 h-12 object-contain flex-shrink-0" />
           <div>
             <div className="text-gray-300 text-xs font-semibold">Open</div>
             <div className="text-white text-2xl font-bold">{openTickets}</div>
@@ -113,12 +109,7 @@ const Tickets: React.FC = () => {
 
         {}
         <div className="bg-[#3e4350] rounded-[14px] p-4 flex items-center gap-4 shadow-lg border border-[rgba(255,255,255,0.04)]">
-          <div className="w-12 h-12 rounded-full bg-[#f59e0b] flex items-center justify-center text-white flex-shrink-0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="9" />
-              <polyline points="12 7 12 12 15 15" />
-            </svg>
-          </div>
+          <img src={inProgressTicketsIcon} alt="" aria-hidden="true" className="w-12 h-12 object-contain flex-shrink-0" />
           <div>
             <div className="text-gray-300 text-xs font-semibold">In Progress</div>
             <div className="text-white text-2xl font-bold">{inProgressTickets}</div>
@@ -127,11 +118,7 @@ const Tickets: React.FC = () => {
 
         {}
         <div className="bg-[#3e4350] rounded-[14px] p-4 flex items-center gap-4 shadow-lg border border-[rgba(255,255,255,0.04)]">
-          <div className="w-12 h-12 rounded-full bg-[#0284c7] flex items-center justify-center text-white flex-shrink-0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          </div>
+          <img src={resolvedTicketsIcon} alt="" aria-hidden="true" className="w-12 h-12 object-contain flex-shrink-0" />
           <div>
             <div className="text-gray-300 text-xs font-semibold">Resolved</div>
             <div className="text-white text-2xl font-bold">{resolvedTickets}</div>
@@ -140,13 +127,7 @@ const Tickets: React.FC = () => {
 
         {}
         <div className="bg-[#3e4350] rounded-[14px] p-4 flex items-center gap-4 shadow-lg border border-[rgba(255,255,255,0.04)]">
-          <div className="w-12 h-12 rounded-full bg-[#10b981] flex items-center justify-center text-white flex-shrink-0">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-              <path d="m3.3 7 8.7 5 8.7-5" />
-              <path d="M12 22V12" />
-            </svg>
-          </div>
+          <img src={closedTicketsIcon} alt="" aria-hidden="true" className="w-12 h-12 object-contain flex-shrink-0" />
           <div>
             <div className="text-gray-300 text-xs font-semibold">Closed</div>
             <div className="text-white text-2xl font-bold">{closedTickets}</div>
