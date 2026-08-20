@@ -132,7 +132,7 @@ const Notifications: React.FC = () => {
             <ConfirmModal
                 isOpen={deleteTarget !== null}
                 onClose={() => setDeleteTarget(null)}
-                icon="danger"
+                icon="delete-icon"
                 iconColor="#ff4d4d"
                 title={isDeleteAll ? 'Delete All Notifications?' : 'Delete Notification?'}
                 titleColor="text-[#ff4d4d]"

@@ -487,7 +487,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       <ConfirmModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
-        icon="question"
+        icon="save-changes"
         title="Confirm Changes"
         description={
           <>
@@ -507,7 +507,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       <ConfirmModal
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
-        icon="success"
+        icon="saved-successful"
         title="Changes Saved Successfully"
         description="The information has been recorded successfully"
         confirmLabel="Done"
@@ -522,8 +522,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       <ConfirmModal
         isOpen={Boolean(deletingPharmacy)}
         onClose={() => setDeletingPharmacy(null)}
-        icon="danger"
-        iconColor="#ff4d4d"
+        icon="delete"
         title="Delete Pharmacy"
         titleColor="text-[#ff4d4d]"
         description={

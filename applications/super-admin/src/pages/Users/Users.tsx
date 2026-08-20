@@ -585,7 +585,7 @@ const Users: React.FC = () => {
       <ConfirmModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
-        icon="question"
+        icon="save-changes"
         title="Confirm Changes"
         description={
           <>
@@ -605,7 +605,7 @@ const Users: React.FC = () => {
       <ConfirmModal
         isOpen={isSuccessModalOpen}
         onClose={() => setIsSuccessModalOpen(false)}
-        icon="success"
+        icon="saved-successful"
         title="Changes Saved Successfully"
         description="The information has been recorded successfully"
         confirmLabel="Done"
@@ -620,7 +620,7 @@ const Users: React.FC = () => {
       <ConfirmModal
         isOpen={Boolean(togglingStatusUser)}
         onClose={() => setTogglingStatusUser(null)}
-        icon={togglingStatusUser?.status === 'Active' ? 'danger' : 'success-question'}
+        icon={togglingStatusUser?.status === 'Active' ? 'delete-icon' : 'success-question'}
         title={togglingStatusUser?.status === 'Active' ? 'Deactivate User' : 'Activate User'}
         titleColor={togglingStatusUser?.status === 'Active' ? 'text-[#ff4d4d]' : 'text-[#4ade80]'}
         description={
