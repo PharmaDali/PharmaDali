@@ -1,6 +1,7 @@
 import React from "react";
 import { TableSkeleton } from "../../shared/components/loading";
 import { calculateAge } from "../../hooks/usePharmacists";
+import SearchBar from "../../shared/components/SearchBar";
 
 export function PharmacistsTable({
   rows,
@@ -20,14 +21,12 @@ export function PharmacistsTable({
           <span className="pharmacists-count">{rows.length} account(s)</span>
         </div>
 
-        <div className="pharmacists-search-wrap">
-          <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
-          <input
-            className="form-control pharmacists-search"
+        <div style={{ minWidth: 260 }}>
+          <SearchBar
+            id="pharmacists-search"
             value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by"
-            aria-label="Search pharmacists"
+            onChange={(val) => setSearch(val)}
+            placeholder="Search by name, phone..."
           />
         </div>
       </div>

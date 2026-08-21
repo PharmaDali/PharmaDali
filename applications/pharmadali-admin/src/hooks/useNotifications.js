@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
+import apiClient from "../shared/api/apiClient";
 import {
   fetchNotifications,
   markNotificationAsRead,
@@ -55,27 +56,16 @@ export const useNotifications = () => {
       authEndpoint: `${API_BASE_URL.replace(/\/$/, "")}/broadcasting/auth`,
       authorizer: (channel) => ({
         authorize: (socketId, callback) => {
-          const currentToken = localStorage.getItem("token");
-          fetch(`${API_BASE_URL.replace(/\/$/, "")}/broadcasting/auth`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${currentToken || ""}`,
-              Accept: "application/json",
-            },
-            body: JSON.stringify({
+          apiClient
+            .post("/broadcasting/auth", {
               socket_id: socketId,
               channel_name: channel.name,
-            }),
-          })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error(`Broadcast auth failed with status ${response.status}`);
-              }
-              return response.json();
             })
-            .then((data) => callback(false, data))
-            .catch((error) => callback(true, error));
+            .then((res) => callback(false, res.data))
+            .catch((err) => {
+              console.warn("Real-time notification socket auth unavailable:", err?.message || err);
+              callback(true, err);
+            });
         },
       }),
     });

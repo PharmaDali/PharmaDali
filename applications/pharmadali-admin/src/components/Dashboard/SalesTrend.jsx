@@ -12,6 +12,7 @@ import { Line } from "react-chartjs-2";
 import { fetchSalesTrend } from "../../services/dashboardService";
 import { maxChartValue } from "../../utils/dashboardUtils";
 import { ChartSkeleton } from "../../shared/components/loading";
+import SelectDropdown from "../../shared/components/SelectDropdown";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler, Tooltip);
 
@@ -121,16 +122,13 @@ export function SalesTrend({ initialTrend, loading }) {
     <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h6 className="fw-bold mb-0" style={{ fontSize: 16, color: "#2aabe2" }}>Sales Trend Overview</h6>
-        <div className="position-relative d-inline-block">
-          <select
-            className="form-select form-select-sm dashboard-range-select"
+        <div style={{ minWidth: 120 }}>
+          <SelectDropdown
+            id="dashboard-sales-trend-timeframe"
             value={range}
-            onChange={(e) => setRange(e.target.value)}
-          >
-            <option value="Daily">Daily</option>
-            <option value="Weekly">Weekly</option>
-            <option value="Monthly">Monthly</option>
-          </select>
+            onChange={(val) => setRange(val)}
+            options={["Daily", "Weekly", "Monthly"]}
+          />
         </div>
       </div>
       <div className="dashboard-chart-wrap" style={{ height: 220 }}>

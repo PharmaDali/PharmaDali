@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Breadcrumb } from "./Breadcrumb";
 import { ListSkeleton } from "../../shared/components/loading";
+import SearchBar from "../../shared/components/SearchBar";
 import "../../assets/css/settings/common.css";
 import "../../assets/css/settings/product-config.css";
 import "../../assets/css/settings/overlays.css";
@@ -164,19 +165,12 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
             <p className="settings-header-subtitle">Import, add, delete, and update category.</p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <div className="settings-search-container">
-              <span className="settings-search-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </span>
-              <input
-                type="text"
-                placeholder="Search category"
-                className="settings-search-input"
+            <div style={{ minWidth: 220 }}>
+              <SearchBar
+                id="category-search"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(val) => setQuery(val)}
+                placeholder="Search category"
               />
             </div>
             <button className="btn-add-circle" onClick={openAddModal}>+</button>
