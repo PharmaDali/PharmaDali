@@ -4,6 +4,7 @@ import { SettingsListView } from "../components/Settings/SettingsList";
 import { GeneralSettings } from "../components/Settings/GeneralSettings";
 import { PasswordSettings } from "../components/Settings/PasswordSettings";
 import { CategoryManagement } from "../components/Settings/CategoryManagement";
+import DiscountSettings from "../components/Settings/DiscountSettings";
 import HardwareAndReceipts from "../components/Settings/HardwareAndReceipts";
 import Operations from "../components/Settings/Operations";
 import ItemExchangeSettings from "../components/Settings/ItemExchangeSettings";
@@ -18,6 +19,9 @@ const settingsMap = {
   },
   category: {
     component: CategoryManagement,
+  },
+  discount: {
+    component: DiscountSettings,
   },
   hardware: {
     component: HardwareAndReceipts,

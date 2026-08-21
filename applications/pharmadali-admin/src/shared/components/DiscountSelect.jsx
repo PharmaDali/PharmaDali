@@ -1,96 +1,51 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
+import { fetchDiscounts } from "../../services/discountService";
+import { SelectDropdown } from "./SelectDropdown";
 
-export function DiscountSelect({ value, onChange }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  const options = [
-    { value: "none", label: "No Discount" },
-    { value: "senior", label: "Senior Citizen (20%)" },
-    { value: "pwd", label: "PWD (Person With Disability) (20%)" },
-    { value: "employee", label: "Employee" },
-    { value: "custom", label: "Custom Policy" },
+export function DiscountSelect({ value, onChange, optionsList, selectClassName, style, disabled }) {
+  const options = optionsList || [
+    { value: "none", label: "Default", percentage: 0 },
+    { value: "senior", label: "Senior Citizen (20%)", percentage: 20, requires_id_number: true },
+    { value: "pwd", label: "PWD (20%)", percentage: 20, requires_id_number: true },
+    { value: "employee", label: "Employee (10%)", percentage: 10, requires_id_number: true },
+    { value: "custom", label: "Custom Policy", percentage: 0, requires_id_number: false },
   ];
 
-  const selectedOption = options.find((o) => o.value === value) || options[0];
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const handleSelect = (newValue) => {
+    const selectedOpt = options.find((o) => o.value === newValue || o.label === newValue);
+    const val = selectedOpt ? selectedOpt.value : newValue;
+    if (onChange) onChange(val, selectedOpt);
+  };
 
   return (
-    <div className="position-relative w-100 mb-2" ref={dropdownRef}>
-      <button
-        type="button"
-        className="form-select form-select-sm d-flex align-items-center justify-content-between text-start w-100"
-        style={{
-          fontSize: 12,
-          borderRadius: "var(--pd-radius-md)",
-          border: "1.5px solid #dde3ec",
-          background: "#ffffff",
-          color: "#334155",
-          outline: "none",
-          boxShadow: "none",
-          cursor: "pointer",
-        }}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span>{selectedOption.label}</span>
-      </button>
-
-      {isOpen && (
-        <div
-          className="position-absolute w-100 shadow-sm rounded-2 overflow-hidden border"
-          style={{
-            top: "100%",
-            left: 0,
-            zIndex: 1050,
-            background: "#ffffff",
-            borderColor: "#dde3ec",
-            marginTop: "4px",
-          }}
-        >
-          {options.map((opt) => {
-            const isSelected = opt.value === value;
-            return (
-              <div
-                key={opt.value}
-                className="px-3 py-2 d-flex align-items-center justify-content-between pos-discount-option"
-                style={{
-                  fontSize: 12,
-                  cursor: "pointer",
-                  background: isSelected ? "#e8f0fe" : "transparent",
-                  color: isSelected ? "#2aabe2" : "#334155",
-                  fontWeight: isSelected ? 600 : 400,
-                  transition: "background-color 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) e.currentTarget.style.backgroundColor = "#f1f5f9";
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
-                }}
-                onClick={() => {
-                  onChange(opt.value);
-                  setIsOpen(false);
-                }}
-              >
-                <span>{opt.label}</span>
-                {isSelected && <i className="fa-solid fa-check" style={{ fontSize: 11, color: "#2aabe2" }} />}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+    <SelectDropdown
+      id="discount-select-dropdown"
+      value={value}
+      onChange={handleSelect}
+      options={options}
+      placeholder="Default"
+      disabled={disabled}
+      selectClassName={selectClassName}
+      style={{
+        fontSize: "12px",
+        borderRadius: "8px",
+        backgroundColor: "#E3EBF3",
+        border: "1px solid rgba(217, 217, 217, 0.45)",
+        color: "#334155",
+        padding: "6px 12px",
+        boxShadow: "none",
+        ...style,
+      }}
+    />
   );
 }
+
+const formatShortLabel = (d) => {
+  let name = d.code || d.name || "";
+  // Strip out long parenthetical expansions like (Person With Disability)
+  name = name.replace(/\s*\([^)]*\)/g, "").replace(/Discount/gi, "").trim();
+  return `${name} (${d.percentage}%)`;
+};
 
 export function DiscountControl({
   discountType,
@@ -101,51 +56,130 @@ export function DiscountControl({
   setDiscountIdNumber,
   className = "mb-3",
 }) {
-  const handleTypeChange = (newType) => {
+  const [fetchedDiscounts, setFetchedDiscounts] = useState([]);
+  const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    loadDiscounts();
+  }, []);
+
+  const loadDiscounts = async () => {
+    try {
+      const res = await fetchDiscounts(false);
+      if (res?.data && Array.isArray(res.data)) {
+        setFetchedDiscounts(res.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch active discounts:", err);
+    }
+  };
+
+  const discountOptions = [
+    { value: "none", label: "Default", percentage: 0, requires_id_number: false },
+    ...fetchedDiscounts.map((d) => ({
+      value: (d.code || d.name).toLowerCase(),
+      label: formatShortLabel(d),
+      percentage: d.percentage,
+      requires_id_number: d.requires_id_number,
+    })),
+    { value: "custom", label: "Custom Policy", percentage: 0, requires_id_number: false },
+  ];
+
+  const handleTypeChange = (newType, selectedOpt) => {
     setDiscountType(newType);
-    if (newType === "senior" || newType === "pwd") {
-      setDiscountPercentage(20);
-    } else if (newType === "none") {
+
+    if (newType === "none") {
       setDiscountPercentage("");
       setDiscountIdNumber("");
+      return;
+    }
+
+    if (selectedOpt && selectedOpt.percentage !== undefined) {
+      setDiscountPercentage(selectedOpt.percentage > 0 ? selectedOpt.percentage : "");
     }
   };
 
   return (
-    <div className={`pos-discount-wrap p-3 rounded-3 border border-light-subtle ${className}`} style={{ backgroundColor: "#ffffff" }}>
-      <div className="pos-discount-title fw-semibold text-dark small mb-2 d-flex align-items-center">
-        <i className="fa-solid fa-percent me-1.5" style={{ color: "#2aabe2" }} /> Discount Policy
+    <div
+      className={`pos-discount-wrap p-3 rounded-4 ${className}`}
+      style={{
+        backgroundColor: "rgba(72, 170, 217, 0.16)",
+        border: "1px solid rgba(150, 210, 238, 0.2)",
+      }}
+    >
+      <div className="pos-discount-title fw-semibold mb-2.5" style={{ color: "#444444", fontSize: "14px" }}>
+        Discount
       </div>
 
-      <DiscountSelect value={discountType} onChange={handleTypeChange} />
+      <div className="row g-2.5 align-items-end">
+        <div className="col-6">
+          <label style={{ fontSize: "11px", color: "#64748b" }} className="fw-semibold mb-1 d-block">
+            Type
+          </label>
+          <DiscountSelect
+            value={discountType}
+            onChange={handleTypeChange}
+            optionsList={discountOptions}
+            style={{
+              fontSize: "12px",
+              borderRadius: "8px",
+              backgroundColor: "#E3EBF3",
+              border: "1px solid rgba(217, 217, 217, 0.45)",
+              color: "#334155",
+              height: "36px",
+            }}
+          />
+        </div>
 
-      {discountType !== "none" && (
-        <div className="d-flex gap-2 mt-2">
-          <div style={{ flex: "0 0 40%" }}>
-            <label style={{ fontSize: 10, color: "#64748b" }} className="fw-semibold mb-1 d-block">Rate (%)</label>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              step="0.1"
-              className="form-control form-control-sm"
-              style={{ fontSize: 12 }}
-              placeholder="%"
-              value={discountPercentage}
-              onChange={(e) => setDiscountPercentage(e.target.value)}
-            />
-          </div>
-          <div style={{ flex: 1 }}>
-            <label style={{ fontSize: 10, color: "#64748b" }} className="fw-semibold mb-1 d-block">ID No. (Optional)</label>
-            <input
-              type="text"
-              className="form-control form-control-sm"
-              style={{ fontSize: 12 }}
-              placeholder="ID Number"
-              value={discountIdNumber}
-              onChange={(e) => setDiscountIdNumber(e.target.value)}
-            />
-          </div>
+        <div className="col-6">
+          <label style={{ fontSize: "11px", color: "#64748b" }} className="fw-semibold mb-1 d-block">
+            ID No. (Optional)
+          </label>
+          <input
+            type="text"
+            className="form-control form-control-sm"
+            style={{
+              fontSize: "12px",
+              borderRadius: "8px",
+              backgroundColor: isFocused || discountIdNumber ? "#ffffff" : "#E3EBF3",
+              border: isFocused ? "1.5px solid #96D2EE" : "1px solid rgba(217, 217, 217, 0.45)",
+              color: "#334155",
+              height: "36px",
+              boxShadow: "none",
+              transition: "all 0.2s ease",
+            }}
+            placeholder="Enter ID number"
+            value={discountIdNumber}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            onChange={(e) => setDiscountIdNumber(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {discountType === "custom" && (
+        <div className="mt-2" style={{ maxWidth: "50%" }}>
+          <label style={{ fontSize: "11px", color: "#64748b" }} className="fw-semibold mb-1 d-block">
+            Custom Rate (%)
+          </label>
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="0.1"
+            className="form-control form-control-sm"
+            style={{
+              fontSize: "12px",
+              borderRadius: "8px",
+              backgroundColor: "#ffffff",
+              border: "1.5px solid #c8dcf0",
+              height: "34px",
+              boxShadow: "none",
+            }}
+            placeholder="%"
+            value={discountPercentage}
+            onChange={(e) => setDiscountPercentage(e.target.value)}
+          />
         </div>
       )}
     </div>
