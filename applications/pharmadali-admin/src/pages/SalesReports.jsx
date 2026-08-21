@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
-import { exportSalesCsv, exportSalesPdf } from "../../services/salesReportService";
-import { useSalesReports } from "./hooks/useSalesReports";
-import { downloadSalesCsv, openSalesPdf } from "./salesReportsUtils";
-import SalesSummaryCards from "./components/SalesSummaryCards";
-import SalesReportToolbar from "./components/SalesReportToolbar";
-import SalesReportTable from "./components/SalesReportTable";
-import TransactionDetailModal from "./components/TransactionDetailModal";
-import ItemExchangeModal from "./components/ItemExchangeModal";
-import ExchangeReceiptModal from "./components/ExchangeReceiptModal";
+import { exportSalesCsv, exportSalesPdf } from "../services/salesReportService";
+import { useSalesReports } from "../hooks/useSalesReports";
+import { downloadSalesCsv, openSalesPdf } from "../utils/salesReportsUtils";
+import SalesSummaryCards from "../components/SalesReports/SalesSummaryCards";
+import SalesReportToolbar from "../components/SalesReports/SalesReportToolbar";
+import SalesReportTable from "../components/SalesReports/SalesReportTable";
+import TransactionDetailModal from "../components/SalesReports/TransactionDetailModal";
+import ItemExchangeModal from "../components/SalesReports/ItemExchangeModal";
+import ExchangeReceiptModal from "../components/SalesReports/ExchangeReceiptModal";
 
 /** Formats a yyyy-mm-dd string to a short readable label, e.g. "Aug 1, 2026". */
 function formatDateLabel(dateStr) {

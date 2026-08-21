@@ -1,13 +1,13 @@
 import { useState } from "react";
 import "../assets/css/settings.css";
-import { SettingsListView } from "./settings/SettingsList";
-import { GeneralSettings } from "./settings/GeneralSettings";
-import { PasswordSettings } from "./settings/PasswordSettings";
-import { CategoryManagement } from "./settings/CategoryManagement";
-import HardwareAndReceipts from "./settings/HardwareAndReceipts";
-import Operations from "./settings/Operations";
-import ItemExchangeSettings from "./settings/ItemExchangeSettings";
-import BackupAndRestore from "./settings/BackupAndRestore";
+import { SettingsListView } from "../components/Settings/SettingsList";
+import { GeneralSettings } from "../components/Settings/GeneralSettings";
+import { PasswordSettings } from "../components/Settings/PasswordSettings";
+import { CategoryManagement } from "../components/Settings/CategoryManagement";
+import HardwareAndReceipts from "../components/Settings/HardwareAndReceipts";
+import Operations from "../components/Settings/Operations";
+import ItemExchangeSettings from "../components/Settings/ItemExchangeSettings";
+import BackupAndRestore from "../components/Settings/BackupAndRestore";
 
 const settingsMap = {
   general: {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getAdminProfile, updateAdminProfile, updateAdminPharmacy } from "../services/profileService";
 import "../assets/css/profile.css";
-import { PageLoader } from "../components/loading";
+import { PageLoader } from "../shared/components/loading";
 import emailIcon from "../assets/icons/profile/email.svg";
 import phoneIcon from "../assets/icons/profile/phone-number.svg";
 import adminIdIcon from "../assets/icons/profile/admin-id.svg";
