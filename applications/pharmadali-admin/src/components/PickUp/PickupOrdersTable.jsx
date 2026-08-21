@@ -41,7 +41,7 @@ export function PickupOrdersTable({
               >
                 <i className={`fa-solid ${tab.icon}`} />
                 <span>{tab.label}</span>
-                <span className={`badge rounded-pill ${isActive ? "bg-white text-primary" : "bg-secondary-subtle text-secondary"}`}>
+                <span className={`badge rounded-pill ${isActive ? "bg-white" : "bg-secondary-subtle text-secondary"}`} style={{ color: isActive ? "#2aabe2" : undefined }}>
                   {count}
                 </span>
               </button>
@@ -92,7 +92,7 @@ export function PickupOrdersTable({
             ) : (
               paginatedOrders.map((order) => (
                 <tr key={order.id} style={{ cursor: "pointer" }} onClick={() => onSelectOrder(order)}>
-                  <td className="fw-bold text-primary">#{order.order_number || order.id}</td>
+                  <td className="fw-bold" style={{ color: "#2aabe2" }}>#{order.order_number || order.id}</td>
                   <td>
                     <div className="fw-semibold text-dark">
                       {order.customer_name || `${order.user?.first_name || ''} ${order.user?.last_name || ''}`.trim() || "Walk-in Customer"}
@@ -106,7 +106,7 @@ export function PickupOrdersTable({
                     </span>
                   </td>
                   <td className="fw-bold text-dark">
-                    ₱{Number(order.total_amount || order.payable_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    PHP {Number(order.total_amount || order.payable_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                   </td>
                   <td>
                     <span className={`badge px-2 py-1 rounded-pill ${
@@ -122,7 +122,12 @@ export function PickupOrdersTable({
                   <td className="text-end" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"
-                      className="btn btn-sm btn-outline-primary rounded-3 px-3"
+                      className="btn btn-sm rounded-3 px-3 fw-medium"
+                      style={{
+                        border: "1.5px solid #2aabe2",
+                        color: "#2aabe2",
+                        backgroundColor: "transparent",
+                      }}
                       onClick={() => onSelectOrder(order)}
                     >
                       {order.status === "ready_for_pickup" ? "Process Pickup" : "View Details"}

@@ -106,19 +106,19 @@ export function PickUp() {
           <div className="p-3 bg-light rounded-3 mb-3 border">
             <div className="d-flex justify-content-between mb-1">
               <span className="text-muted small">Total Payable Amount:</span>
-              <strong className="fs-5 text-primary">₱{finalPayableAmount.toFixed(2)}</strong>
+              <strong className="fs-5" style={{ color: "#2aabe2" }}>PHP {finalPayableAmount.toFixed(2)}</strong>
             </div>
             {paymentMethod === "cash" && (
               <div className="d-flex justify-content-between align-items-center">
                 <span className="text-muted small">Change to return:</span>
-                <strong className="text-success fs-6">₱{changeAmount.toFixed(2)}</strong>
+                <strong className="text-success fs-6">PHP {changeAmount.toFixed(2)}</strong>
               </div>
             )}
           </div>
 
           {paymentMethod === "cash" ? (
             <div className="mb-3">
-              <label className="form-label fw-semibold text-dark small">Cash Received (₱) *</label>
+              <label className="form-label fw-semibold text-dark small">Cash Received (PHP) *</label>
               <input
                 type="number"
                 step="0.01"

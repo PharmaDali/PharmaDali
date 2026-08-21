@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { fetchDemandAnalytics, fetchSalesAnalytics, fetchAnalyticsInsights } from "../services/analyticsService";
 import { formatCurrency, formatNumber } from "../utils/formatUtils";
+import { demandOptions, salesOptions } from "../constants/analyticsConstants";
 
 function getPeriodInfo(timeframe, offset = 0) {
   const now = new Date();

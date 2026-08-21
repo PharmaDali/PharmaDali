@@ -45,7 +45,7 @@ export function PickupOrderDetailsModal({
             </div>
             <div className="col-6 col-md-3">
               <span className="text-muted d-block small">Order Type</span>
-              <strong className="text-primary">In-Store Pickup</strong>
+              <strong style={{ color: "#2aabe2" }}>In-Store Pickup</strong>
             </div>
             <div className="col-6 col-md-3">
               <span className="text-muted d-block small">Current Status</span>
@@ -81,11 +81,11 @@ export function PickupOrderDetailsModal({
                         <div className="fw-semibold text-dark">{item.product?.name || item.product_name || "Pharmacy Item"}</div>
                         {item.product?.brand && <span className="text-muted small">{item.product.brand}</span>}
                       </td>
-                      <td className="text-center">₱{price.toFixed(2)}</td>
+                      <td className="text-center">PHP {price.toFixed(2)}</td>
                       <td className="text-center">
                         <span className="badge bg-secondary-subtle text-secondary px-2">{qty}</span>
                       </td>
-                      <td className="text-end fw-bold">₱{itemSubtotal.toFixed(2)}</td>
+                      <td className="text-end fw-bold">PHP {itemSubtotal.toFixed(2)}</td>
                     </tr>
                   );
                 })}
@@ -172,17 +172,17 @@ export function PickupOrderDetailsModal({
             <div className="pt-2 border-top mt-2">
               <div className="d-flex justify-content-between text-muted small mb-1">
                 <span>Subtotal</span>
-                <span>₱{subtotalAmount.toFixed(2)}</span>
+                <span>PHP {subtotalAmount.toFixed(2)}</span>
               </div>
               {computedDiscountAmount > 0 && (
                 <div className="d-flex justify-content-between text-success small mb-1">
                   <span>Discount</span>
-                  <span>- ₱{computedDiscountAmount.toFixed(2)}</span>
+                  <span>- PHP {computedDiscountAmount.toFixed(2)}</span>
                 </div>
               )}
               <div className="d-flex justify-content-between fw-bold text-dark fs-5 pt-1 border-top">
                 <span>Total Payable</span>
-                <span style={{ color: "#2aabe2" }}>₱{finalPayableAmount.toFixed(2)}</span>
+                <span style={{ color: "#2aabe2" }}>PHP {finalPayableAmount.toFixed(2)}</span>
               </div>
             </div>
           </div>
@@ -207,7 +207,7 @@ export function PickupOrderDetailsModal({
               onClick={onOpenPaymentModal}
             >
               <i className="fa-solid fa-cash-register me-1" />
-              Complete Transaction (₱{finalPayableAmount.toFixed(2)})
+              Complete Transaction (PHP {finalPayableAmount.toFixed(2)})
             </button>
           )}
         </div>

@@ -156,7 +156,7 @@ export function usePickupOrders() {
     if (paymentMethod === "cash") {
       const received = parseFloat(cashReceived) || 0;
       if (received < finalPayableAmount) {
-        setErrorMessage(`Insufficient Cash. Required amount is ₱${finalPayableAmount.toFixed(2)}.`);
+        setErrorMessage(`Insufficient Cash. Required amount is PHP ${finalPayableAmount.toFixed(2)}.`);
         setPaymentResult("error");
         setIsPaymentResultModalOpen(true);
         return;

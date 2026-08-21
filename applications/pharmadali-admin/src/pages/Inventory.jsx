@@ -38,6 +38,13 @@ export function Inventory() {
     loadData,
   } = useInventory();
 
+  const {
+    successModal,
+    setSuccessModal,
+    errorModal,
+    setErrorModal,
+  } = feedbackModals;
+
   return (
     <section className="inventory-page" aria-label="Pharmacy Inventory Management">
       <header className="admin-page-header">

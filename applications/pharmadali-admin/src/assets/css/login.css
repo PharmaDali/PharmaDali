@@ -80,25 +80,47 @@
   font-weight: 500;
 }
 
-.login-input {
+.login-input,
+.form-control.login-input {
   width: 100%;
-  border: none;
+  border: 1.5px solid transparent;
   border-radius: 10px;
   padding: 0.9rem 1.1rem;
   margin-bottom: 1.05rem;
-  background: #e9e9e9;
+  background-color: #e9e9e9 !important;
   color: var(--pd-text-dark);
+  transition: all 0.2s ease;
 }
 
-.login-input::placeholder {
+.login-input::placeholder,
+.form-control.login-input::placeholder {
   color: var(--pd-text-placeholder);
 }
 
-.login-input:focus {
-  outline: 1px solid var(--pd-primary-light);
-  border-color: var(--pd-primary-light) !important;
+.login-input:focus,
+.form-control.login-input:focus {
+  outline: 1px solid var(--pd-primary-light, #2aabe2) !important;
+  border-color: var(--pd-primary-light, #2aabe2) !important;
   box-shadow: none !important;
-  background: #ffffff;
+  background-color: #ffffff !important;
+}
+
+.login-input:-webkit-autofill,
+.login-input:-webkit-autofill:hover,
+.login-input:-webkit-autofill:focus,
+.login-input:-webkit-autofill:active,
+.form-control.login-input:-webkit-autofill,
+.form-control.login-input:-webkit-autofill:hover,
+.form-control.login-input:-webkit-autofill:focus,
+.form-control.login-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #e9e9e9 inset !important;
+  -webkit-text-fill-color: var(--pd-text-dark, #334155) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.login-input:-webkit-autofill:focus,
+.form-control.login-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
 }
 
 .login-error {
