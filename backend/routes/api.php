@@ -8,6 +8,7 @@ use App\Http\Controllers\Customer\CustomerCartController;
 use App\Http\Controllers\Customer\CustomerProfileController;
 use App\Http\Controllers\Customer\CustomerRecommendationController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Discount\DiscountController;
 use App\Http\Controllers\Inventory\CategoryController;
 use App\Http\Controllers\Inventory\InventoryController;
 use App\Http\Controllers\Inventory\ProductBatchController;
@@ -140,6 +141,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('pharmacy/categories/store', [CategoryController::class, 'store']);
         Route::put('pharmacy/categories/{id}', [CategoryController::class, 'update']);
         Route::delete('pharmacy/categories/{id}', [CategoryController::class, 'destroy']);
+
+        // Discount settings CRUD
+        Route::get('pharmacy/discounts', [DiscountController::class, 'index']);
+        Route::post('pharmacy/discounts', [DiscountController::class, 'store']);
+        Route::put('pharmacy/discounts/{id}', [DiscountController::class, 'update']);
+        Route::delete('pharmacy/discounts/{id}', [DiscountController::class, 'destroy']);
 
         Route::get('pos/products', [PosController::class, 'getProducts']);
         Route::post('pos/orders', [PosController::class, 'storeOrder']);

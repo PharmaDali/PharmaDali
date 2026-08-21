@@ -15,6 +15,11 @@ export const settingsList = [
     description: "Organize product categories, POS color badges, and catalog status.",
   },
   {
+    id: "discount",
+    label: "Discount Policy Management",
+    description: "Configure discount rates, auto-fill percentages, and ID requirements.",
+  },
+  {
     id: "hardware",
     label: "Hardware & Receipts",
     description: "Configure receipt printers, auto-printing options, and receipt layout.",

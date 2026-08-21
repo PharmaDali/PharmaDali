@@ -494,3 +494,13 @@
   height: auto !important;
   aspect-ratio: 500 / 260;
 }
+
+/* Remove focus glow in inputs */
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus,
+.form-select:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}

@@ -1,16 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import adminMedsIcon from "../assets/icons/admin-meds.svg";
-import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg";
-import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
-import errorIcon from "../assets/icons/modal-icons/error.svg";
-import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg";
-import Modal from "../shared/components/Modal";
 import "../assets/css/pospage.css";
 import { fetchPosProducts, createPosOrder } from "../services/posService";
 import { toTitleCase } from "../utils/stringUtils";
 import { TableSkeleton } from "../shared/components/loading";
 import { DiscountControl } from "../shared/components/DiscountSelect";
 import PaymentMethodSelect from "../shared/components/PaymentMethodSelect";
+import { ReceivePaymentModal, ConfirmOrderModal, PaymentResultModal } from "../shared/components/PaymentModals";
+import AddQuantityModal from "../components/Pos/AddQuantityModal";
 
 function EmptyState({ minHeight = 260, iconWidth = 150, className = "", message = "Search for items" }) {
   return (
@@ -111,11 +108,33 @@ function ProductTable({ results, selectedId, onSelect, onScroll, loadingMore }) 
 
 const ORDER_COL_WIDTHS = ["50%", "25%", "25%"];
 
+const getFullProductName = (product) => {
+  if (!product) return "---";
+  const parts = [
+    product.product_name,
+    product.generic_name,
+    product.brand_name ? `(${product.brand_name})` : null,
+    product.form,
+    product.strength,
+    product.size,
+  ];
+  return toTitleCase(parts.filter(Boolean).join(" "));
+};
 
+const getDiscountLabel = (type) => {
+  if (!type || type === "none") return "";
+  if (type === "senior") return "Senior Citizen";
+  if (type === "pwd") return "PWD";
+  if (type === "employee") return "Employee";
+  if (type === "custom") return "Custom Policy";
+  return type.charAt(0).toUpperCase() + type.slice(1);
+};
 
 function CurrentOrder({
-  items,
+  items = [],
   paymentMethod,
+  paymentError,
+  cashReceived = "",
   discountType,
   discountPercentage,
   discountIdNumber,
@@ -123,65 +142,62 @@ function CurrentOrder({
   onDiscountTypeChange,
   onDiscountPercentageChange,
   onDiscountIdNumberChange,
-  onCompleteSale,
   onRemove,
+  onCompleteSale,
+  onSelectPaymentMethod,
 }) {
-  const getFullProductName = (product) => {
-    if (!product) return "---";
-    const parts = [
-      product.product_name,
-      product.generic_name,
-      product.brand_name ? `(${product.brand_name})` : null,
-      product.form,
-      product.strength,
-      product.size,
-    ];
-    return toTitleCase(parts.filter(Boolean).join(" "));
-  };
-
-  const totalQty = items.reduce((s, i) => s + i.qty, 0);
-  const subtotal = items.reduce((s, i) => s + i.qty * i.selling_price, 0);
-  
+  const totalQty = items.reduce((sum, item) => sum + item.qty, 0);
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.qty * item.selling_price,
+    0
+  );
   const discountPctNum = parseFloat(discountPercentage) || 0;
-  const discountAmount = discountType !== "none" ? Math.round((subtotal * (discountPctNum / 100)) * 100) / 100 : 0;
+  const discountAmount =
+    discountType !== "none"
+      ? Math.round(subtotal * (discountPctNum / 100) * 100) / 100
+      : 0;
   const netTotal = Math.max(0, subtotal - discountAmount);
-
   const isOrderEmpty = items.length === 0;
+
+  const numericCash = Number(cashReceived);
+  const hasFulfilledPayment = cashReceived !== "" && !Number.isNaN(numericCash) && numericCash > 0;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
       <div
-        className="card border-1 shadow-sm pos-order-items-card"
-        style={{ flex: "0 0 auto", minHeight: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}
+        className="card border-1 shadow-sm pos-order-items-card rounded-4 overflow-hidden"
+        style={{ flex: "0 0 auto", height: "225px", minHeight: "225px", maxHeight: "225px", overflow: "hidden", display: "flex", flexDirection: "column", marginBottom: "0.75rem" }}
       >
         <table className="table mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
           <colgroup>
             {ORDER_COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
           </colgroup>
           <thead>
-            <tr>
-              <th className="px-3 py-2 fw-semibold border-0 text-center">Product</th>
-              <th className="px-2 py-2 fw-semibold border-0 text-center">Qty</th>
-              <th className="px-3 py-2 fw-semibold border-0 text-end">Subtotal</th>
+            <tr style={{ background: "#f8fafc" }}>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "#334155" }}>Product</th>
+              <th className="px-2 py-2.5 fw-semibold border-0 text-center" style={{ color: "#334155" }}>Qty</th>
+              <th className="px-3 py-2.5 fw-semibold border-0 text-end" style={{ color: "#334155" }}>Subtotal</th>
             </tr>
           </thead>
         </table>
+
         {isOrderEmpty ? (
           <EmptyState
-            minHeight="var(--pos-order-items-viewport)"
+            minHeight="185px"
             iconWidth={92}
             className="pos-order-empty-state"
+            message="No order items added yet"
           />
         ) : (
-          <div className="pos-scroll pos-order-items-scroll" style={{ minHeight: 0, overflowY: "auto" }}>
-            <table className="table mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
+          <div className="pos-scroll pos-order-items-scroll" style={{ height: "185px", minHeight: "185px", maxHeight: "185px", overflowY: "auto" }}>
+            <table className="table table-hover mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
               <colgroup>
                 {ORDER_COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
               </colgroup>
               <tbody>
                 {items.map(({ id, product, qty, selling_price }) => (
                   <tr key={id}>
-                    <td className="px-3 py-2 border-0 border-bottom text-center" style={{ color: "#333" }}>
+                    <td className="px-3 py-2 border-0 border-bottom text-start" style={{ color: "#333", fontWeight: 500 }}>
                       {getFullProductName(product)}
                     </td>
                     <td className="px-2 py-2 border-0 border-bottom text-center" style={{ color: "#333" }}>{qty}</td>
@@ -189,9 +205,13 @@ function CurrentOrder({
                       <div className="d-flex align-items-center justify-content-end gap-2">
                         <span>{(qty * selling_price).toFixed(2)}</span>
                         <button
+                          type="button"
                           onClick={() => onRemove(id)}
-                          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#e25252", fontSize: 14, lineHeight: 1 }}
-                        >&times;</button>
+                          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#e25252", fontSize: 16, fontWeight: "bold", lineHeight: 1 }}
+                          title="Remove item"
+                        >
+                          &times;
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -200,22 +220,6 @@ function CurrentOrder({
             </table>
           </div>
         )}
-      </div>
-
-      <div className="d-flex justify-content-between align-items-end px-1 pt-3 pb-2 pos-order-meta">
-        <div>
-          <div style={{ fontSize: 12, color: "#888" }}>No. of Items</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#222" }}>{totalQty}</div>
-        </div>
-        <div className="text-end">
-          {discountAmount > 0 && (
-            <div style={{ fontSize: 11, color: "#e25252" }}>
-              Discount: -PHP {discountAmount.toFixed(2)}
-            </div>
-          )}
-          <div style={{ fontSize: 12, color: "#888" }}>Order Total</div>
-          <div style={{ fontSize: 20, fontWeight: 700, color: "#222" }}>PHP {netTotal.toFixed(2)}</div>
-        </div>
       </div>
 
       {/* Reusable Discount Component */}
@@ -229,17 +233,55 @@ function CurrentOrder({
         className="mb-2"
       />
 
+      {/* Payment Method Select */}
       <PaymentMethodSelect
         paymentMethod={paymentMethod}
         setPaymentMethod={onPaymentChange}
+        onSelectPaymentMethod={onSelectPaymentMethod}
+        error={paymentError}
         className="mb-2"
         title="Payment Method"
       />
 
+      {/* Order Breakdown at bottom of Payment Method */}
+      <div className="px-2 pt-2 pb-1 pos-order-breakdown mt-1" style={{ fontSize: 13, color: "#444444" }}>
+        <div className="d-flex justify-content-between mb-1.5">
+          <span style={{ color: "#444444" }}>No. of Items</span>
+          <span style={{ color: "#444444", fontWeight: 500 }}>{totalQty}</span>
+        </div>
+        <div className="d-flex justify-content-between mb-1.5">
+          <span style={{ color: "#444444" }}>Order Subtotal</span>
+          <span style={{ color: "#444444", fontWeight: 500 }}>{subtotal.toFixed(2)}</span>
+        </div>
+        {discountType !== "none" && discountAmount > 0 && (
+          <div className="d-flex justify-content-between mb-1.5">
+            <span style={{ color: "#444444" }}>Discount ({getDiscountLabel(discountType)})</span>
+            <span style={{ color: "#444444", fontWeight: 500 }}>-{discountAmount.toFixed(2)}</span>
+          </div>
+        )}
+        <div style={{ height: "1px", backgroundColor: "#D9D9D9", margin: "8px 0", width: "100%" }} />
+        <div className="d-flex justify-content-between align-items-center fw-semibold" style={{ fontSize: 13 }}>
+          <span style={{ color: "#444444" }}>Total Due</span>
+          <span style={{ color: "#444444" }}>{netTotal.toFixed(2)}</span>
+        </div>
+        {hasFulfilledPayment && (
+          <>
+            <div className="d-flex justify-content-between align-items-center fw-semibold mt-1.5" style={{ fontSize: 12 }}>
+              <span style={{ color: "#444444" }}>Amount Paid</span>
+              <span style={{ color: "#444444" }}>{numericCash.toFixed(2)}</span>
+            </div>
+            <div className="d-flex justify-content-between align-items-center fw-semibold mt-1.5" style={{ fontSize: 12}}>
+              <span style={{ color: "#444444" }}>Change</span>
+              <span style={{ color: "#444444" }}>{Math.max(0, numericCash - netTotal).toFixed(2)}</span>
+            </div>
+          </>
+        )}
+      </div>
+
       <button
         className="btn w-100 py-2 mt-auto pos-order-complete-btn"
         onClick={onCompleteSale}
-        disabled={isOrderEmpty}
+        disabled={isOrderEmpty || (!!paymentError && !paymentMethod)}
       >
         {isOrderEmpty ? "Sale Completed" : "Complete Sale"}
       </button>
@@ -257,8 +299,11 @@ function PosPage() {
   const [loadingMore, setLoadingMore] = useState(false);
 
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [productToQuantity, setProductToQuantity] = useState(null);
+  const [isQuantityModalOpen, setIsQuantityModalOpen] = useState(false);
   const [orderItems, setOrderItems] = useState([]);
-  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentError, setPaymentError] = useState("");
 
   // Discount feature state
   const [discountType, setDiscountType] = useState("none");
@@ -306,6 +351,12 @@ function PosPage() {
   }, []);
 
   useEffect(() => {
+    if (!debouncedSearch.trim()) {
+      setProducts([]);
+      setHasMore(false);
+      setLoading(false);
+      return;
+    }
     loadProducts(debouncedSearch, 1, true);
   }, [debouncedSearch, loadProducts]);
 
@@ -316,16 +367,21 @@ function PosPage() {
     }
   };
 
-  function addToOrder(product) {
+  function handleSelectProduct(product) {
     setSelectedProduct(product);
+    setProductToQuantity(product);
+    setIsQuantityModalOpen(true);
+  }
+
+  function handleAddQuantityToOrder(product, qty) {
     setOrderItems((prev) => {
       const existing = prev.find((i) => i.id === product.id);
       if (existing) {
         return prev.map((i) =>
-          i.id === product.id ? { ...i, qty: i.qty + 1 } : i
+          i.id === product.id ? { ...i, qty: i.qty + qty } : i
         );
       }
-      return [...prev, { ...product, qty: 1 }];
+      return [...prev, { ...product, qty }];
     });
   }
 
@@ -342,14 +398,28 @@ function PosPage() {
   const discountAmount = discountType !== "none" ? Math.round((subtotal * (discountPctNum / 100)) * 100) / 100 : 0;
   const orderTotal = Math.max(0, subtotal - discountAmount);
 
+  const handleSelectPaymentMethod = (method) => {
+    setPaymentMethod(method);
+    setPaymentError("");
+    setCashReceived(orderTotal.toFixed(2));
+    setGcashReference("");
+    setIsPaymentModalOpen(true);
+  };
+
+  const handleReceivePaymentConfirm = () => {
+    setIsPaymentModalOpen(false);
+  };
+
   const openCompleteSaleModal = () => {
     if (orderItems.length === 0) {
       return;
     }
-
-    setCashReceived(orderTotal.toFixed(2));
-    setGcashReference("");
-    setIsPaymentModalOpen(true);
+    if (!paymentMethod) {
+      setPaymentError("Please select a payment method");
+      return;
+    }
+    setPaymentError("");
+    setIsConfirmModalOpen(true);
   };
 
   const cashNumeric = Number(cashReceived);
@@ -382,6 +452,7 @@ function PosPage() {
         setPaymentResult("success");
         setOrderItems([]);
         setSelectedProduct(null);
+        setPaymentMethod("");
         setDiscountType("none");
         setDiscountPercentage("");
         setDiscountIdNumber("");
@@ -396,13 +467,9 @@ function PosPage() {
     } finally {
       setIsProcessingPayment(false);
       setIsPaymentModalOpen(false);
+      setIsConfirmModalOpen(false);
       setIsPaymentResultModalOpen(true);
     }
-  };
-
-  const openConfirmModal = () => {
-    setIsPaymentModalOpen(false);
-    setIsConfirmModalOpen(true);
   };
 
   const handleConfirmContinue = () => {
@@ -410,20 +477,11 @@ function PosPage() {
     processPayment();
   };
 
-  const handleConfirmCancel = () => {
-    setIsConfirmModalOpen(false);
-    setIsPaymentModalOpen(true);
-  };
-
   return (
     <section>
-      <header className="admin-page-header mb-4">
-        <h4 className="fw-bold mb-1 admin-page-title">Point of Sale (POS)</h4>
-        <p className="admin-page-subtitle">Process over-the-counter sales transactions and issue receipts.</p>
-      </header>
       <div className="d-flex flex-column flex-md-row gap-4 pos-page">
       <div className="d-flex flex-column flex-grow-1 pos-pane" style={{ minWidth: 0 }}>
-        <div className="card border-0 shadow-md pos-card pos-product-card">
+        <div className="card border-0 shadow-md pos-card pos-product-card rounded-4 overflow-hidden">
           <div className="card-header bg-white border-0 d-flex align-items-center gap-3 flex-wrap pt-3 pb-2 px-3">
             <h6
               className="fw-bold mb-0 flex-shrink-0 pos-title"
@@ -434,8 +492,8 @@ function PosPage() {
             <div
               className="d-flex align-items-center gap-2 px-3 py-2 flex-grow-1 pos-search"
               style={{
-                background: "#e8f0fe",
-                border: "1px solid #d0deee",
+                background: "#E3EBF3",
+                border: "1px solid #c9d6e4",
                 borderRadius: "8px",
                 maxWidth: "500px",
               }}
@@ -452,7 +510,7 @@ function PosPage() {
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
                   fontSize: 13,
-                  color: "var(--pd-soft-black, #334155)",
+                  color: "#1f2937",
                   outline: "none",
                   boxShadow: "none",
                 }}
@@ -460,7 +518,7 @@ function PosPage() {
             </div>
           </div>
           <div className="card-body p-3 pt-3 overflow-hidden pos-product-body" style={{ flex: 1, minHeight: 0 }}>
-            <div className="card border-1 shadow-md" style={{ height: "100%", overflow: "hidden" }}>
+            <div className="card border-1 shadow-md rounded-4 overflow-hidden" style={{ height: "100%", overflow: "hidden" }}>
               <div className="card-body d-flex flex-column p-0" style={{ flex: 1, minHeight: 0 }}>
                 {loading && products.length === 0 ? (
                   <div className="table-responsive p-3">
@@ -474,12 +532,17 @@ function PosPage() {
                   <ProductTable
                     results={products}
                     selectedId={selectedProduct?.id}
-                    onSelect={addToOrder}
+                    onSelect={handleSelectProduct}
                     onScroll={handleScroll}
                     loadingMore={loadingMore}
                   />
                 ) : (
-                  <EmptyState message={search ? "No products found." : "Search for items"} />
+                  <EmptyState
+                    minHeight="var(--pos-order-items-viewport)"
+                    iconWidth={92}
+                    className="pos-order-empty-state"
+                    message={debouncedSearch.trim() ? "No products found." : "Search for items"}
+                  />
                 )}
               </div>
             </div>
@@ -491,7 +554,7 @@ function PosPage() {
         className="d-flex flex-column pos-pane pos-order-pane"
         style={{ minWidth: 0 }}
       >
-        <div className="card border-0 shadow-sm pos-card pos-order-card">
+        <div className="card border-0 shadow-sm pos-card pos-order-card rounded-4 overflow-hidden">
           <div className="card-header bg-white border-0 d-flex align-items-center gap-3 flex-wrap pt-4 pb-2 px-3">
             <h6
               className="fw-semibold mb-0 flex-shrink-0 pos-title"
@@ -504,6 +567,8 @@ function PosPage() {
             <CurrentOrder
               items={orderItems}
               paymentMethod={paymentMethod}
+              paymentError={paymentError}
+              cashReceived={cashReceived}
               discountType={discountType}
               discountPercentage={discountPercentage}
               discountIdNumber={discountIdNumber}
@@ -513,149 +578,43 @@ function PosPage() {
               onDiscountIdNumberChange={setDiscountIdNumber}
               onRemove={removeFromOrder}
               onCompleteSale={openCompleteSaleModal}
+              onSelectPaymentMethod={handleSelectPaymentMethod}
             />
           </div>
         </div>
       </div>
 
-      <Modal
+      <ReceivePaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        title="Receive Payment"
-        size="md"
-        className="pos-payment-modal"
-        footer={null}
-      >
-        <div className="pos-payment-meta">
-          <span>{paymentMethod === "cash" ? "Cash" : "GCash"}</span>
-          <span>
-            Order Total: <strong>PHP {orderTotal.toFixed(2)}</strong>
-          </span>
-        </div>
+        paymentMethod={paymentMethod}
+        orderTotal={orderTotal}
+        cashReceived={cashReceived}
+        setCashReceived={setCashReceived}
+        gcashReference={gcashReference}
+        setGcashReference={setGcashReference}
+        onConfirm={handleReceivePaymentConfirm}
+      />
 
-        {paymentMethod === "cash" ? (
-          <>
-            <label className="pos-payment-label" htmlFor="pos-cash-received">
-              Enter Cash Received
-            </label>
-            <input
-              id="pos-cash-received"
-              type="number"
-              min="0"
-              step="0.01"
-              className={`pos-payment-input ${showCashError ? "is-error" : ""}`.trim()}
-              value={cashReceived}
-              onChange={(event) => setCashReceived(event.target.value)}
-            />
-            {showCashError && (
-              <div className="pos-payment-error" role="alert">
-                <img src={errorIcon} alt="" className="pos-payment-error-icon" aria-hidden="true" />
-                <span>Not enough payment. Please add PHP {cashShortage.toFixed(2)}.</span>
-              </div>
-            )}
-            <div className="pos-payment-change">
-              Change: <strong>PHP {Math.max(changeAmount, 0).toFixed(2)}</strong>
-            </div>
-          </>
-        ) : (
-          <>
-            <label className="pos-cash-received" htmlFor="pos-cash-received">
-              Enter Amount Received
-            </label>
-            <input
-              id="pos-cash-received"
-              type="number"
-              inputMode="decimal"
-              className={`pos-payment-input ${showCashError ? "is-error" : ""}`.trim()}
-              value={cashReceived}
-              onChange={(event) => setCashReceived(event.target.value)}
-            />
-            <label className="pos-payment-label" htmlFor="pos-gcash-reference">
-              Enter GCash Reference No.
-            </label>
-            <input
-              id="pos-gcash-reference"
-              type="text"
-              inputMode="numeric"
-              className="pos-payment-input"
-              value={gcashReference}
-              onChange={(event) => setGcashReference(event.target.value.replace(/\D/g, ""))}
-              placeholder="1234567891011"
-            />
-          </>
-        )}
-
-        <button
-          type="button"
-          className="pos-payment-confirm-btn"
-          onClick={openConfirmModal}
-          disabled={paymentMethod === "cash" ? !isCashValid : !isGcashValid}
-        >
-          Confirm
-        </button>
-      </Modal>
-
-      <Modal
+      <ConfirmOrderModal
         isOpen={isConfirmModalOpen}
-        onClose={handleConfirmCancel}
-        size="sm"
-        showCloseButton={false}
-        className="pos-confirm-modal"
-      >
-        <div className="pos-confirm-content">
-          <img src={shieldQuestionIcon} alt="" className="pos-confirm-icon" aria-hidden="true" />
-          <h3 className="pos-confirm-title">Confirm this order?</h3>
-          <p className="pos-confirm-text">
-            Please review the details before proceeding. This action cannot be undone.
-          </p>
-          <div className="pos-confirm-actions">
-            <button 
-              type="button" 
-              className="pos-confirm-primary" 
-              onClick={handleConfirmContinue}
-              disabled={isProcessingPayment}
-            >
-              {isProcessingPayment ? "Processing..." : "Continue"}
-            </button>
-            <button 
-              type="button" 
-              className="pos-confirm-secondary" 
-              onClick={handleConfirmCancel}
-              disabled={isProcessingPayment}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      </Modal>
+        onClose={() => setIsConfirmModalOpen(false)}
+        onContinue={handleConfirmContinue}
+        isProcessing={isProcessingPayment}
+      />
 
-      <Modal
+      <PaymentResultModal
         isOpen={isPaymentResultModalOpen}
         onClose={() => setIsPaymentResultModalOpen(false)}
-        size="sm"
-        showCloseButton={false}
-        className="pos-payment-result-modal"
-      >
-        <button
-          type="button"
-          className="pos-result-close"
-          onClick={() => setIsPaymentResultModalOpen(false)}
-          aria-label="Close payment result"
-        >
-          <i className="fa-solid fa-xmark" />
-        </button>
+        result={paymentResult}
+      />
 
-        <div className="pos-result-content">
-          <img
-            src={paymentResult === "success" ? successfulTaskIcon : unsuccessfulTaskIcon}
-            alt={paymentResult === "success" ? "Payment successful" : "Payment unsuccessful"}
-            className="pos-result-icon"
-          />
-          <p className="pos-result-text">
-            Payment {paymentResult === "success" ? "Successful" : "Unsuccessful"}
-          </p>
-        </div>
-      </Modal>
+      <AddQuantityModal
+        isOpen={isQuantityModalOpen}
+        onClose={() => setIsQuantityModalOpen(false)}
+        product={productToQuantity}
+        onAddToOrder={handleAddQuantityToOrder}
+      />
       </div>
     </section>
   );

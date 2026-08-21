@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Pos;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Pos\CompletePickupOrderRequest;
+use App\Http\Requests\Pos\StorePosOrderRequest;
 use App\Models\Order;
 use App\Services\Pos\PosService;
 use App\Services\Receipt\ReceiptService;
@@ -33,27 +35,12 @@ class PosController extends Controller
         ], 'POS products fetched successfully.');
     }
 
-    public function storeOrder(Request $request)
+    public function storeOrder(StorePosOrderRequest $request)
     {
         $this->authorizePermission('access_pos', 'Unauthorized to process POS orders.');
 
-        $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.id' => 'required|exists:pharmacy_products,id',
-            'items.*.qty' => 'required|integer|min:1',
-            'payment_method' => 'required|string',
-            'discount_type' => 'nullable|string',
-            'discount_percentage' => 'nullable|numeric|min:0|max:100',
-            'discount_amount' => 'nullable|numeric|min:0',
-            'discount_id_number' => 'nullable|string|max:100',
-            'discount_remarks' => 'nullable|string|max:255',
-            'amount_received' => 'nullable|numeric|min:0',
-            'change_amount' => 'nullable|numeric|min:0',
-            'note' => 'nullable|string',
-        ]);
-
         try {
-            $order = $this->posService->createOrder($request->all(), $request->user());
+            $order = $this->posService->createOrder($request->validated(), $request->user());
 
             return $this->successResponse($order, 'Order completed successfully', 201);
         } catch (\Exception $e) {
@@ -73,20 +60,9 @@ class PosController extends Controller
         }
     }
 
-    public function completePickupOrder(Request $request, Order $order)
+    public function completePickupOrder(CompletePickupOrderRequest $request, Order $order)
     {
         $this->authorizePermission('access_pickup', 'Unauthorized to complete pickup orders.');
-
-        $request->validate([
-            'payment_method' => 'required|string|in:cash,gcash,card,maya',
-            'discount_type' => 'nullable|string',
-            'discount_percentage' => 'nullable|numeric|min:0|max:100',
-            'discount_amount' => 'nullable|numeric|min:0',
-            'discount_id_number' => 'nullable|string|max:100',
-            'discount_remarks' => 'nullable|string|max:255',
-            'amount_received' => 'nullable|numeric|min:0',
-            'change_amount' => 'nullable|numeric|min:0',
-        ]);
 
         try {
             $order = $this->posService->completePickupOrder(
@@ -135,4 +111,5 @@ class PosController extends Controller
         }
     }
 }
+
 

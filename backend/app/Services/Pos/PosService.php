@@ -205,12 +205,17 @@ class PosService
      */
     public function completePickupOrder(
         Order $order, 
-        string $paymentMethod, 
+        $paymentMethod, 
         $user, 
         $amountReceived = null, 
         $changeAmount = null,
         array $discountData = []
     ) {
+        if (is_array($paymentMethod)) {
+            $paymentMethod = $paymentMethod['id'] ?? $paymentMethod['value'] ?? 'cash';
+        }
+        $paymentMethod = is_string($paymentMethod) ? strtolower($paymentMethod) : 'cash';
+
         if ($order->pharmacy_id !== $user->pharmacy_id) {
             throw new \Exception("Unauthorized: Order does not belong to your pharmacy.");
         }

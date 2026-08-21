@@ -4,6 +4,10 @@
   min-height: calc(100vh - 140px);
 }
 
+.pos-search input::placeholder {
+  color: #64748b !important;
+}
+
 .pos-page {
   align-items: stretch;
 }
@@ -13,13 +17,16 @@
   flex-direction: column;
   height: calc(100vh - 140px);
   min-height: 560px;
-  border-radius: var(--pd-radius-md);
+  border-radius: 16px;
   border: 1px solid #e1e9f3;
   background: #f4f7fb;
+  overflow: hidden;
 }
 
 .pos-card .card-body {
   background: #fff;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }
 
 .pos-product-body,
@@ -35,9 +42,10 @@
 
 .pos-order-items-card {
   --pos-order-items-viewport: 156px;
-  border-radius: var(--pd-radius-md);
+  border-radius: 14px;
   border: 1px solid #dfe8f2;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
 .pos-product-body table thead th,
@@ -50,12 +58,14 @@
 
 .pos-order-items-scroll,
 .pos-order-empty-state {
-  height: var(--pos-order-items-viewport);
-  max-height: var(--pos-order-items-viewport);
+  height: 185px;
+  min-height: 185px;
+  max-height: 185px;
+  overflow-y: auto;
 }
 
 .pos-order-empty-state {
-  min-height: var(--pos-order-items-viewport) !important;
+  min-height: 185px !important;
 }
 
 .pos-order-items-scroll .table tbody td {
@@ -65,16 +75,16 @@
 .pos-order-payment-wrap,
 .pos-discount-wrap {
   padding: 8px;
-  border: 1px solid #dbe7f2;
+  border: 1px solid rgba(150, 210, 238, 0.12);
   border-radius: var(--pd-radius-md);
-  background: #f2f8fd;
+  background: rgba(72, 170, 217, 0.16);
 }
 
 .pos-order-payment-title,
 .pos-discount-title {
   font-size: 13px;
   font-weight: 600;
-  color: #444;
+  color: #444444;
   margin-bottom: 6px;
 }
 
@@ -265,7 +275,7 @@
 .pos-confirm-title {
   margin: 0 0 8px;
   font-size: 1.35rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #2f2f2f;
 }
 
