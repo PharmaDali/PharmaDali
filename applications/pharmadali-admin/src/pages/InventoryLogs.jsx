@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import "../assets/css/inventory.css";
-import Modal from "../components/Modal";
-import { useInventoryLogs } from "./inventory/hooks/useInventoryLogs";
-import { TableSkeleton } from "../components/loading";
+import Modal from "../shared/components/Modal";
+import { useInventoryLogs } from "../hooks/useInventoryLogs";
+import { TableSkeleton } from "../shared/components/loading";
 
 const ACTION_FILTERS = ["All", "Stock In", "Stock Out", "Adjustment", "Waste"];
 
@@ -42,8 +42,6 @@ function InventoryLogs() {
         <span className="breadcrumb-separator">&rsaquo;</span>
         <span className="breadcrumb-current">Inventory logs</span>
       </div>
-
-
 
       <div className="inventory-filter-bar inventory-logs-filter-bar">
         <div className="inventory-field inventory-search-field">

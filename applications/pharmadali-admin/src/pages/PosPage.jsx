@@ -4,11 +4,11 @@ import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg"
 import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
 import errorIcon from "../assets/icons/modal-icons/error.svg";
 import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg";
-import Modal from "../components/Modal";
+import Modal from "../shared/components/Modal";
 import "../assets/css/pospage.css";
 import { fetchPosProducts, createPosOrder } from "../services/posService";
 import { toTitleCase } from "../utils/stringUtils";
-import { TableSkeleton } from "../components/loading";
+import { TableSkeleton } from "../shared/components/loading";
 
 function EmptyState({ minHeight = 260, iconWidth = 150, className = "", message = "Search for items" }) {
   return (

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/loginService";
-import PasswordField from "../components/PasswordField";
+import PasswordField from "../shared/components/PasswordField";
 
 function Login() {
   const navigate = useNavigate();

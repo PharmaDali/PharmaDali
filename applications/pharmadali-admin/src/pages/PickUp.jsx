@@ -1,800 +1,233 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import Modal from "../components/Modal";
+import React from "react";
+import Modal from "../shared/components/Modal";
 import successfulTaskIcon from "../assets/icons/modal-icons/successful-task.svg";
-import unsuccessfulTaskIcon from "../assets/icons/modal-icons/unsuccessful-task.svg";
 import errorIcon from "../assets/icons/modal-icons/error.svg";
 import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg";
-import { fetchPickupOrders, completePickupOrder } from "../services/posService";
+import { usePickupOrders, PICKUP_TABS } from "../hooks/usePickupOrders";
+import PickupOrdersTable from "../components/PickUp/PickupOrdersTable";
+import PickupOrderDetailsModal from "../components/PickUp/PickupOrderDetailsModal";
 import "../assets/css/pospage.css";
 import "../assets/css/inventory.css";
-import { TableSkeleton } from "../components/loading";
 
-function DiscountSelect({ value, onChange }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
-
-  const options = [
-    { value: "none", label: "No Discount" },
-    { value: "senior", label: "Senior Citizen" },
-    { value: "pwd", label: "PWD (Person With Disability)" },
-    { value: "employee", label: "Employee" },
-    { value: "custom", label: "Custom Policy" },
-  ];
-
-  const selectedOption = options.find((o) => o.value === value) || options[0];
-
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  return (
-    <div className="position-relative w-100 mb-2" ref={dropdownRef}>
-      <button
-        type="button"
-        className="form-select form-select-sm d-flex align-items-center justify-content-between text-start w-100"
-        style={{
-          fontSize: 12,
-          borderRadius: "var(--pd-radius-md)",
-          border: "1.5px solid #dde3ec",
-          background: "#ffffff",
-          color: "#334155",
-          outline: "none",
-          boxShadow: "none",
-          cursor: "pointer",
-        }}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span>{selectedOption.label}</span>
-      </button>
-
-      {isOpen && (
-        <div
-          className="position-absolute w-100 shadow-sm rounded-2 overflow-hidden border"
-          style={{
-            top: "100%",
-            left: 0,
-            zIndex: 1050,
-            background: "#ffffff",
-            borderColor: "#dde3ec",
-            marginTop: "4px",
-          }}
-        >
-          {options.map((opt) => {
-            const isSelected = opt.value === value;
-            return (
-              <div
-                key={opt.value}
-                className="px-3 py-2 d-flex align-items-center justify-content-between"
-                style={{
-                  fontSize: 12,
-                  cursor: "pointer",
-                  background: isSelected ? "#e8f0fe" : "transparent",
-                  color: isSelected ? "#2aabe2" : "#334155",
-                  fontWeight: isSelected ? 600 : 400,
-                  transition: "background-color 0.15s ease",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) e.currentTarget.style.backgroundColor = "#f1f5f9";
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) e.currentTarget.style.backgroundColor = "transparent";
-                }}
-                onClick={() => {
-                  onChange(opt.value);
-                  setIsOpen(false);
-                }}
-              >
-                <span>{opt.label}</span>
-                {isSelected && <i className="fa-solid fa-check" style={{ fontSize: 11, color: "#2aabe2" }} />}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
-
-const PICKUP_TABS = [
-  { id: "Ready", label: "Ready Orders", icon: "fa-box-archive" },
-  { id: "Completed", label: "Completed Orders", icon: "fa-circle-check" },
-  { id: "All", label: "All Orders", icon: "fa-boxes-stacked" },
-];
-
-function PickUp() {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("Ready");
-  const [activeOrder, setActiveOrder] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [isPaymentResultModalOpen, setIsPaymentResultModalOpen] = useState(false);
-  const [cashReceived, setCashReceived] = useState("");
-  const [gcashReference, setGcashReference] = useState("");
-  const [paymentResult, setPaymentResult] = useState("success");
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const [discountType, setDiscountType] = useState("none");
-  const [discountPercentage, setDiscountPercentage] = useState("");
-  const [discountIdNumber, setDiscountIdNumber] = useState("");
-
-  // Tab count metrics
-  const tabCounts = useMemo(() => {
-    const ready = orders.filter((o) => o.status === "ready_for_pickup").length;
-    const completed = orders.filter((o) => o.status === "completed").length;
-    return {
-      Ready: ready,
-      Completed: completed,
-      All: orders.length,
-    };
-  }, [orders]);
-
-  // Filter orders by active status tab
-  const filteredOrders = useMemo(() => {
-    if (statusFilter === "Ready") {
-      return orders.filter((o) => o.status === "ready_for_pickup");
-    }
-    if (statusFilter === "Completed") {
-      return orders.filter((o) => o.status === "completed");
-    }
-    return orders;
-  }, [orders, statusFilter]);
-
-  const itemsPerPage = 10;
-  const [currentPage, setCurrentPage] = useState(1);
-
-  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / itemsPerPage));
-  const paginatedOrders = useMemo(
-    () => filteredOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
-    [filteredOrders, currentPage]
-  );
-  const visiblePageNumbers = useMemo(() => {
-    if (totalPages <= 5) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-
-    const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
-    const endPage = Math.min(totalPages, startPage + 4);
-
-    return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
-  }, [currentPage, totalPages]);
-
-  const handlePageChange = (page) => {
-    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
-  };
-
-  const handleTabChange = (tabId) => {
-    setStatusFilter(tabId);
-    setCurrentPage(1);
-  };
-
-  const loadOrders = useCallback(async (showLoading = true) => {
-    try {
-      if (showLoading) setLoading(true);
-      const response = await fetchPickupOrders({
-        search,
-        status: "all"
-      });
-      const dataArray = Array.isArray(response?.data) 
-        ? response.data 
-        : (Array.isArray(response) ? response : []);
-      setOrders(dataArray);
-    } catch (error) {
-      console.error("Failed to fetch orders:", error);
-    } finally {
-      if (showLoading) setLoading(false);
-    }
-  }, [search]);
-
-  useEffect(() => {
-    loadOrders();
-    setCurrentPage(1);
-  }, [loadOrders]);
-
-  // Polling for auto-refresh
-  useEffect(() => {
-    const interval = setInterval(() => {
-      loadOrders(false);
-    }, 10000); // refresh every 10 seconds
-
-    return () => clearInterval(interval);
-  }, [loadOrders]);
-
-  const getStatusClassName = (status) => {
-    if (!status) return "pickup-status-ready";
-    const s = String(status).toLowerCase();
-    if (s === "completed") return "pickup-status-completed";
-    if (s === "ready_for_pickup") return "pickup-status-ready";
-    return "pickup-status-ready";
-  };
-
-  const rawSubtotal = activeOrder ? Number(activeOrder.subtotal || activeOrder.total_amount || 0) : 0;
-  const discountPctNum = parseFloat(discountPercentage) || 0;
-  const discountAmount = discountType !== "none" ? Math.round((rawSubtotal * (discountPctNum / 100)) * 100) / 100 : 0;
-  const orderTotal = Math.max(0, rawSubtotal - discountAmount);
-
-  const cashNumeric = Number(cashReceived);
-  const changeAmount = Number.isFinite(cashNumeric) ? cashNumeric - orderTotal : 0;
-  const isCashValid = Number.isFinite(cashNumeric) && cashNumeric >= orderTotal;
-  const isGcashValid = /^\d{13,}$/.test(gcashReference.trim());
-  
-  // Update overall validation to depend on choice
-  const isPaymentValid = paymentMethod === "cash" ? isCashValid : isGcashValid;
-
-  const showCashError = paymentMethod === "cash" && cashReceived.trim() !== "" && !isCashValid;
-  const cashShortage = showCashError ? Math.max(orderTotal - cashNumeric, 0) : 0;
-
-  const openDetailsPanel = (order) => {
-    setActiveOrder(order);
-    setDiscountType(order.discount_type || "none");
-    const existingPct = Number(order.discount_percentage || 0);
-    setDiscountPercentage(existingPct > 0 ? String(existingPct) : "");
-    setDiscountIdNumber(order.discount_id_number || "");
-  };
-
-  const openCompleteSaleModal = () => {
-    if (!activeOrder || activeOrder.status.toLowerCase() === "completed") {
-      return;
-    }
-
-    if (activeOrder.status.toLowerCase() !== "ready_for_pickup") {
-      return;
-    }
-
-    setCashReceived(orderTotal.toFixed(2));
-    setGcashReference("");
-    setIsPaymentModalOpen(true);
-  };
-
-  const processPayment = async () => {
-    if (!activeOrder) return;
-
-    try {
-      const response = await completePickupOrder(
-        activeOrder.id, 
-        paymentMethod,
-        Number(cashReceived),
-        Math.max(changeAmount, 0),
-        {
-          discount_type: discountType,
-          discount_percentage: discountPctNum,
-          discount_id_number: discountIdNumber,
-        }
-      );
-
-      if (response.status === "success") {
-        setPaymentResult("success");
-        loadOrders();
-        setActiveOrder(response.data);
-        // Trigger global refresh for notification/pickup badges
-        window.dispatchEvent(new CustomEvent("order-status-updated"));
-      } else {
-        setPaymentResult("failed");
-        setErrorMessage(response.message || "Something went wrong.");
-      }
-    } catch (error) {
-      setPaymentResult("failed");
-      setErrorMessage(error.message || "An unexpected error occurred.");
-    } finally {
-      setIsPaymentModalOpen(false);
-      setIsPaymentResultModalOpen(true);
-    }
-  };
-
-  const openConfirmModal = () => {
-    setIsPaymentModalOpen(false);
-    setIsConfirmModalOpen(true);
-  };
-
-  const handleConfirmContinue = () => {
-    setIsConfirmModalOpen(false);
-    processPayment();
-  };
-
-  const handleConfirmCancel = () => {
-    setIsConfirmModalOpen(false);
-    setIsPaymentModalOpen(true);
-  };
+export function PickUp() {
+  const {
+    orders,
+    loading,
+    search,
+    setSearch,
+    statusFilter,
+    activeOrder,
+    setActiveOrder,
+    paymentMethod,
+    setPaymentMethod,
+    isPaymentModalOpen,
+    setIsPaymentModalOpen,
+    isConfirmModalOpen,
+    setIsConfirmModalOpen,
+    isPaymentResultModalOpen,
+    setIsPaymentResultModalOpen,
+    cashReceived,
+    setCashReceived,
+    gcashReference,
+    setGcashReference,
+    paymentResult,
+    errorMessage,
+    discountType,
+    setDiscountType,
+    discountPercentage,
+    setDiscountPercentage,
+    discountIdNumber,
+    setDiscountIdNumber,
+    tabCounts,
+    paginatedOrders,
+    currentPage,
+    totalPages,
+    visiblePageNumbers,
+    handlePageChange,
+    handleTabChange,
+    subtotalAmount,
+    computedDiscountAmount,
+    finalPayableAmount,
+    changeAmount,
+    handleOpenPaymentModal,
+    handleCompleteOrderClick,
+    confirmCompleteOrder,
+  } = usePickupOrders();
 
   return (
-    <section>
+    <section className="inventory-page" aria-label="Pickup Order Fulfillment">
       <header className="admin-page-header mb-4">
         <h4 className="fw-bold mb-1 admin-page-title">Pickup Orders</h4>
-        <p className="admin-page-subtitle">View and fulfill customer online pickup orders.</p>
+        <p className="admin-page-subtitle">Verify, collect payment, and complete customer online pickup orders.</p>
       </header>
-      <div className="pickup-layout">
-        <div className="pickup-outer-card">
-          {/* Toolbar Header: Tab Navigation Pills & Search Input */}
-          <div className="d-flex align-items-center justify-content-between gap-3 mb-4 flex-wrap">
-            <div className="nav nav-pills pickup-nav-pills">
-              {PICKUP_TABS.map((tab) => {
-                const isActive = statusFilter === tab.id;
-                const count = tabCounts[tab.id] ?? 0;
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    className={`nav-link ${isActive ? "active" : ""}`}
-                    onClick={() => handleTabChange(tab.id)}
-                  >
-                    <i className={`fa-solid ${tab.icon}`} />
-                    <span>{tab.label}</span>
-                    <span className="badge rounded-pill ms-1">{count}</span>
-                  </button>
-                );
-              })}
-            </div>
 
-            <div className="position-relative pickup-search-wrap">
-              <i className="fa-solid fa-magnifying-glass pickup-search-icon" />
-              <input
-                type="text"
-                className="pickup-search-input"
-                placeholder="Search order ID or Customer Name..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-          </div>
+      <PickupOrdersTable
+        orders={orders}
+        loading={loading}
+        search={search}
+        setSearch={setSearch}
+        statusFilter={statusFilter}
+        onTabChange={handleTabChange}
+        tabCounts={tabCounts}
+        paginatedOrders={paginatedOrders}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        visiblePageNumbers={visiblePageNumbers}
+        onPageChange={handlePageChange}
+        onSelectOrder={setActiveOrder}
+        tabs={PICKUP_TABS}
+      />
 
-          <div className="pickup-card">
-            <table className="pickup-table w-100">
-              <colgroup>
-                <col style={{ width: "16%" }} />
-                <col style={{ width: "26%" }} />
-                <col style={{ width: "12%" }} />
-                <col style={{ width: "18%" }} />
-                <col style={{ width: "14%" }} />
-                <col style={{ width: "14%" }} />
-              </colgroup>
-              <thead>
-                <tr>
-                  <th>Order Number</th>
-                  <th>Customer</th>
-                  <th className="pickup-col-center">Items</th>
-                  <th className="pickup-col-center">Total Amount</th>
-                  <th className="pickup-col-center">Status</th>
-                  <th className="pickup-col-center">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <TableSkeleton rows={5} columns={6} showAvatar={false} />
-                ) : filteredOrders.length === 0 ? (
-                  <tr className="pickup-empty-row" style={{ cursor: "default" }}>
-                    <td colSpan="6" className="text-center py-5">
-                      <div className="d-flex flex-column align-items-center justify-content-center py-4">
-                        <i className="fa-solid fa-box-open mb-3" style={{ fontSize: "3.5rem", color: "#94a3b8" }} />
-                        <span className="fw-medium" style={{ fontSize: "15px", color: "#64748b" }}>
-                          {statusFilter === "Ready"
-                            ? "No pickup orders ready for pickup."
-                            : statusFilter === "Completed"
-                            ? "No completed pickup orders found."
-                            : "No pickup orders found."}
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedOrders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className={activeOrder?.id === order.id ? "pickup-row-selected" : ""}
-                    >
-                      <td className="fw-semibold">{order.order_number}</td>
-                      <td>
-                        {order.customer?.user 
-                          ? `${order.customer.user.first_name} ${order.customer.user.last_name}`
-                          : "Guest Customer"
-                        }
-                      </td>
-                      <td className="pickup-col-center">{order.items?.length || 0}</td>
-                      <td className="pickup-col-center">PHP {Number(order.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      <td className="pickup-col-center">
-                        <span className={getStatusClassName(order.status)}>
-                          {order.status === 'ready_for_pickup' ? 'Ready' : order.status}
-                        </span>
-                      </td>
-                      <td className="pickup-col-center">
-                        <button
-                          className="pickup-view-btn"
-                          onClick={() => openDetailsPanel(order)}
-                        >
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-              </table>
-              {!loading && filteredOrders.length > 0 && (
-                <div className="inventory-pagination-bar">
-                  <span className="inventory-pagination-info">
-                    Showing {(currentPage - 1) * itemsPerPage + 1}–
-                    {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length}
-                  </span>
+      <PickupOrderDetailsModal
+        activeOrder={activeOrder}
+        onClose={() => setActiveOrder(null)}
+        discountType={discountType}
+        setDiscountType={setDiscountType}
+        discountPercentage={discountPercentage}
+        setDiscountPercentage={setDiscountPercentage}
+        discountIdNumber={discountIdNumber}
+        setDiscountIdNumber={setDiscountIdNumber}
+        subtotalAmount={subtotalAmount}
+        computedDiscountAmount={computedDiscountAmount}
+        finalPayableAmount={finalPayableAmount}
+        paymentMethod={paymentMethod}
+        setPaymentMethod={setPaymentMethod}
+        onOpenPaymentModal={handleOpenPaymentModal}
+      />
 
-                  <nav aria-label="Pickup order table pagination">
-                    <ul className="inventory-pagination">
-                      <li className={`inventory-page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                        <button
-                          type="button"
-                          className="inventory-page-link inventory-page-nav"
-                          onClick={() => handlePageChange(currentPage - 1)}
-                          disabled={currentPage === 1}
-                          aria-label="Previous page"
-                        >
-                          <i className="fa-solid fa-chevron-left" aria-hidden="true" />
-                        </button>
-                      </li>
-
-                      {visiblePageNumbers[0] > 1 && (
-                        <>
-                          <li className="inventory-page-item">
-                            <button
-                              type="button"
-                              className="inventory-page-link"
-                              onClick={() => handlePageChange(1)}
-                            >
-                              1
-                            </button>
-                          </li>
-                          {visiblePageNumbers[0] > 2 && (
-                            <li className="inventory-page-item inventory-page-ellipsis">
-                              <span>…</span>
-                            </li>
-                          )}
-                        </>
-                      )}
-
-                      {visiblePageNumbers.map((pageNumber) => (
-                        <li
-                          key={pageNumber}
-                          className={`inventory-page-item ${currentPage === pageNumber ? "active" : ""}`}
-                        >
-                          <button
-                            type="button"
-                            className="inventory-page-link"
-                            onClick={() => handlePageChange(pageNumber)}
-                          >
-                            {pageNumber}
-                          </button>
-                        </li>
-                      ))}
-
-                      {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages && (
-                        <>
-                          {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages - 1 && (
-                            <li className="inventory-page-item inventory-page-ellipsis">
-                              <span>…</span>
-                            </li>
-                          )}
-                          <li className="inventory-page-item">
-                            <button
-                              type="button"
-                              className="inventory-page-link"
-                              onClick={() => handlePageChange(totalPages)}
-                            >
-                              {totalPages}
-                            </button>
-                          </li>
-                        </>
-                      )}
-
-                      <li className={`inventory-page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-                        <button
-                          type="button"
-                          className="inventory-page-link inventory-page-nav"
-                          onClick={() => handlePageChange(currentPage + 1)}
-                          disabled={currentPage === totalPages}
-                          aria-label="Next page"
-                        >
-                          <i className="fa-solid fa-chevron-right" aria-hidden="true" />
-                        </button>
-                      </li>
-                    </ul>
-                  </nav>
-                </div>
-              )}
-          </div>
-        </div>
-        {activeOrder && (
-          <aside className="pickup-details-panel">
-            <div className="pickup-details-header">
-              <h6>Order Details</h6>
-              <button
-                type="button"
-                className="pickup-details-close"
-                onClick={() => setActiveOrder(null)}
-                aria-label="Close order details"
-              >
-                <i className="fa-solid fa-xmark" />
-              </button>
-            </div>
-
-            <p className="pickup-details-customer">
-              Customer: {activeOrder.customer?.user 
-                ? `${activeOrder.customer.user.first_name} ${activeOrder.customer.user.last_name}`
-                : "Guest Customer"
-              }
-            </p>
-            <p className="pickup-details-contact">
-              Order No: <strong>{activeOrder.order_number}</strong>
-            </p>
-
-            <hr className="pickup-details-divider" />
-
-            <div className="pickup-details-section">
-              <p className="pickup-details-section-title">Order Items</p>
-              <ul className="pickup-details-list">
-                {activeOrder.items?.map((item, index) => (
-                  <li key={`${activeOrder.id}-${index}`}>
-                    {item.product_name} x {item.quantity}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <hr className="pickup-details-divider" />
-
-            <div className="pickup-details-row">
-              <span>Total Amount</span>
-              <strong>PHP {Number(activeOrder.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
-            </div>
-
-            <hr className="pickup-details-divider" />
-
-            <div className="pickup-details-row pickup-details-status">
-              <span>Status:</span>
-              <strong className={getStatusClassName(activeOrder.status)}>
-                {activeOrder.status === "ready_for_pickup" ? "Ready" : 
-                 activeOrder.status.charAt(0).toUpperCase() + activeOrder.status.slice(1)}
-              </strong>
-            </div>
-
-            {activeOrder.status === "completed" ? (
-              <div className="pickup-details-row mt-3">
-                <span>Payment Method:</span>
-                <strong className="text-uppercase">{activeOrder.payment_method || "N/A"}</strong>
-              </div>
-            ) : (
-              <>
-                {/* Discount Feature Container (Placed directly on top of Payment Method Container) */}
-                <div className="pos-discount-wrap mb-2 mt-3">
-                  <div className="pos-discount-title">
-                    <i className="fa-solid fa-percent me-1" style={{ color: "#2aabe2" }} /> Apply Discount
-                  </div>
-                  
-                  <DiscountSelect
-                    value={discountType}
-                    onChange={(type) => {
-                      setDiscountType(type);
-                      if (type === "none") {
-                        setDiscountPercentage("");
-                        setDiscountIdNumber("");
-                      }
-                    }}
-                  />
-
-                  {discountType !== "none" && (
-                    <div className="d-flex gap-2">
-                      <div style={{ flex: "0 0 40%" }}>
-                        <label style={{ fontSize: 10, color: "#64748b" }} className="fw-semibold mb-0">Rate (%)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                          className="form-control form-control-sm"
-                          style={{ fontSize: 12 }}
-                          placeholder="%"
-                          value={discountPercentage}
-                          onChange={(e) => setDiscountPercentage(e.target.value)}
-                        />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <label style={{ fontSize: 10, color: "#64748b" }} className="fw-semibold mb-0">ID No. (Optional)</label>
-                        <input
-                          type="text"
-                          className="form-control form-control-sm"
-                          style={{ fontSize: 12 }}
-                          placeholder="ID Number"
-                          value={discountIdNumber}
-                          onChange={(e) => setDiscountIdNumber(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="pickup-payment-method-wrap">
-                  <p className="pickup-details-section-title">Select Payment Method</p>
-                  <div className="d-flex gap-2 pos-payment-actions">
-                    <button
-                      className="btn flex-grow-1 py-2"
-                      style={{
-                        fontSize: 13,
-                        background: paymentMethod === "cash" ? "#2aabe2" : "white",
-                        color: paymentMethod === "cash" ? "white" : "#555",
-                        border: "1.5px solid #dde3ec",
-                        borderRadius: "var(--pd-radius-md)",
-                      }}
-                      onClick={() => setPaymentMethod("cash")}
-                      type="button"
-                    >
-                      Cash
-                    </button>
-                    <button
-                      className="btn flex-grow-1 py-2"
-                      style={{
-                        fontSize: 13,
-                        background: paymentMethod === "gcash" ? "#2aabe2" : "white",
-                        color: paymentMethod === "gcash" ? "white" : "#555",
-                        border: "1.5px solid #dde3ec",
-                        borderRadius: "var(--pd-radius-md)",
-                      }}
-                      onClick={() => setPaymentMethod("gcash")}
-                      type="button"
-                    >
-                      GCash
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {activeOrder.status !== "completed" && (
-              <button
-                type="button"
-                className="pickup-complete-sale-btn"
-                onClick={openCompleteSaleModal}
-                disabled={activeOrder.status !== "ready_for_pickup"}
-              >
-                Complete Sale
-              </button>
-            )}
-          </aside>
-        )}
-      </div>
-
+      {/* Payment Processing Modal */}
       <Modal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        title="Receive Payment"
         size="md"
-        className="pos-payment-modal"
-        footer={null}
+        title="Complete Pickup Payment"
       >
-        <div className="pos-payment-meta">
-          <span>{paymentMethod === "cash" ? "Cash" : "GCash"}</span>
-          <span>
-            Order Total: <strong>PHP {orderTotal.toFixed(2)}</strong>
-          </span>
-        </div>
-
-        {paymentMethod === "cash" ? (
-          <>
-            <label className="pos-payment-label" htmlFor="pickup-cash-received">
-              Enter Cash Received
-            </label>
-            <input
-              id="pickup-cash-received"
-              type="number"
-              min="0"
-              step="0.01"
-              className={`pos-payment-input ${showCashError ? "is-error" : ""}`.trim()}
-              value={cashReceived}
-              onChange={(event) => setCashReceived(event.target.value)}
-            />
-            {showCashError && (
-              <div className="pos-payment-error" role="alert">
-                <img src={errorIcon} alt="" className="pos-payment-error-icon" aria-hidden="true" />
-                <span>Not enough payment. Please add PHP {cashShortage.toFixed(2)}.</span>
+        <div className="p-3">
+          <div className="p-3 bg-light rounded-3 mb-3 border">
+            <div className="d-flex justify-content-between mb-1">
+              <span className="text-muted small">Total Payable Amount:</span>
+              <strong className="fs-5" style={{ color: "#2aabe2" }}>PHP {finalPayableAmount.toFixed(2)}</strong>
+            </div>
+            {paymentMethod === "cash" && (
+              <div className="d-flex justify-content-between align-items-center">
+                <span className="text-muted small">Change to return:</span>
+                <strong className="text-success fs-6">PHP {changeAmount.toFixed(2)}</strong>
               </div>
             )}
-            <div className="pos-payment-change">
-              Change: <strong>PHP {Math.max(changeAmount, 0).toFixed(2)}</strong>
-            </div>
-          </>
-        ) : (
-          <>
-            <label className="pos-cash-received" htmlFor="pos-cash-received">
-              Enter Amount Received
-            </label>
-            <input
-              id="pos-cash-received"
-              type="number"
-              inputMode="decimal"
-              className={`pos-payment-input ${showCashError ? "is-error" : ""}`.trim()}
-              value={cashReceived}
-              onChange={(event) => setCashReceived(event.target.value)}
-            />
-            <label className="pos-payment-label" htmlFor="pickup-gcash-reference">
-              Enter GCash Reference No.
-            </label>
-            <input
-              id="pickup-gcash-reference"
-              type="text"
-              inputMode="numeric"
-              className="pos-payment-input"
-              value={gcashReference}
-              onChange={(event) => setGcashReference(event.target.value.replace(/\D/g, ""))}
-              placeholder="1234567891011"
-            />
-          </>
-        )}
+          </div>
 
-        <button
-          type="button"
-          className="pos-payment-confirm-btn"
-          onClick={openConfirmModal}
-          disabled={!isPaymentValid}
-        >
-          Confirm
-        </button>
+          {paymentMethod === "cash" ? (
+            <div className="mb-3">
+              <label className="form-label fw-semibold text-dark small">Cash Received (PHP) *</label>
+              <input
+                type="number"
+                step="0.01"
+                className="form-control form-control-lg"
+                placeholder="Enter cash received"
+                value={cashReceived}
+                onChange={(e) => setCashReceived(e.target.value)}
+              />
+            </div>
+          ) : (
+            <div className="mb-3">
+              <label className="form-label fw-semibold text-dark small">GCash Reference Number *</label>
+              <input
+                type="text"
+                className="form-control form-control-lg"
+                placeholder="e.g. 100293848123"
+                value={gcashReference}
+                onChange={(e) => setGcashReference(e.target.value)}
+              />
+            </div>
+          )}
+
+          <div className="d-flex justify-content-end gap-2 pt-2 border-top">
+            <button
+              type="button"
+              className="btn btn-outline-secondary px-4 rounded-3"
+              onClick={() => setIsPaymentModalOpen(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary px-4 rounded-3 fw-semibold"
+              style={{ backgroundColor: "#2aabe2", borderColor: "#2aabe2" }}
+              onClick={handleCompleteOrderClick}
+            >
+              Confirm & Complete Pickup
+            </button>
+          </div>
+        </div>
       </Modal>
 
+      {/* Confirmation Confirmation Modal */}
       <Modal
         isOpen={isConfirmModalOpen}
-        onClose={handleConfirmCancel}
+        onClose={() => setIsConfirmModalOpen(false)}
         size="sm"
         showCloseButton={false}
         className="pos-confirm-modal"
       >
         <div className="pos-confirm-content">
-          <img src={shieldQuestionIcon} alt="" className="pos-confirm-icon" aria-hidden="true" />
-          <h3 className="pos-confirm-title">Confirm this order?</h3>
+          <img src={shieldQuestionIcon} alt="Confirm Pickup" className="pos-confirm-icon" />
+          <h3 className="pos-confirm-title">Complete Pickup Order?</h3>
           <p className="pos-confirm-text">
-            Please review the details before proceeding. This action cannot be undone.
+            This will mark order <strong>#{activeOrder?.order_number || activeOrder?.id}</strong> as completed and deduct batch stock.
           </p>
           <div className="pos-confirm-actions">
-            <button type="button" className="pos-confirm-primary" onClick={handleConfirmContinue}>
-              Continue
+            <button
+              type="button"
+              className="pos-confirm-primary"
+              onClick={confirmCompleteOrder}
+            >
+              Confirm Complete
             </button>
-            <button type="button" className="pos-confirm-secondary" onClick={handleConfirmCancel}>
+            <button
+              type="button"
+              className="pos-confirm-secondary"
+              onClick={() => setIsConfirmModalOpen(false)}
+            >
               Cancel
             </button>
           </div>
         </div>
       </Modal>
 
+      {/* Result Status Modal */}
       <Modal
         isOpen={isPaymentResultModalOpen}
         onClose={() => setIsPaymentResultModalOpen(false)}
         size="sm"
         showCloseButton={false}
-        className="pos-payment-result-modal"
+        className="pos-confirm-modal"
       >
-        <button
-          type="button"
-          className="pos-result-close"
-          onClick={() => setIsPaymentResultModalOpen(false)}
-          aria-label="Close payment result"
-        >
-          <i className="fa-solid fa-xmark" />
-        </button>
-
-        <div className="pos-result-content">
+        <div style={{ textAlign: "center", padding: "20px 0" }}>
           <img
-            src={paymentResult === "success" ? successfulTaskIcon : unsuccessfulTaskIcon}
-            alt={paymentResult === "success" ? "Payment successful" : "Payment unsuccessful"}
-            className="pos-result-icon"
+            src={paymentResult === "success" ? successfulTaskIcon : errorIcon}
+            alt={paymentResult === "success" ? "Success" : "Error"}
+            style={{ width: "64px", height: "64px", marginBottom: "16px" }}
           />
-          <p className="pos-result-text">
-            {paymentResult === "success" 
-              ? "Order Picked Up Successfully!" 
-              : errorMessage || "Payment Unsuccessful"
-            }
+          <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "12px", color: "#1f2937" }}>
+            {paymentResult === "success" ? "Pickup Order Completed!" : "Transaction Failed"}
+          </h2>
+          <p style={{ fontSize: "14px", color: "#666", lineHeight: "1.5", marginBottom: "24px" }}>
+            {paymentResult === "success"
+              ? "The customer pickup transaction has been completed successfully."
+              : errorMessage}
           </p>
+          <button
+            onClick={() => setIsPaymentResultModalOpen(false)}
+            className="btn inventory-modal-btn inventory-modal-btn-primary w-100"
+            style={{
+              padding: "10px",
+              backgroundColor: paymentResult === "success" ? "#2aabe2" : "#dc3545",
+              borderColor: paymentResult === "success" ? "#2aabe2" : "#dc3545",
+              color: "white",
+            }}
+          >
+            {paymentResult === "success" ? "DONE" : "DISMISS"}
+          </button>
         </div>
       </Modal>
     </section>

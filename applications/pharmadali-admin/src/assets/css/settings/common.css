@@ -393,21 +393,23 @@
 .settings-form-input, .settings-form-display {
   width: 100%;
   font-size: 0.95rem;
-  border: 1px solid #eee;
+  border: 1.5px solid #dde3ec;
   border-radius: 12px;
   padding: 0.75rem 1rem;
-  background-color: #f5f7fa;
-  color: var(--pd-text-dark);
+  background-color: #f8fafc;
+  color: var(--pd-text-dark, #334155);
 }
 
 .settings-form-input {
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
-.settings-form-input:focus {
-  border-color: var(--pd-primary-dark);
-  background-color: #fff;
-  outline: none;
+.settings-form-input:focus,
+.settings-form-input.form-control:focus {
+  box-shadow: none !important;
+  outline: 1px solid var(--pd-primary, #2aabe2) !important;
+  border-color: var(--pd-primary, #2aabe2) !important;
+  background-color: #ffffff !important;
 }
 
 .settings-form-display {

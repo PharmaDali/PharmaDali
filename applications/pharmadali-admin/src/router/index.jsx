@@ -1,21 +1,21 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import DashBoard from "../pages/DashBoard";
-import SalesReports from "../pages/SalesReports/SalesReports";
+import SalesReports from "../pages/SalesReports";
 import Settings from "../pages/Settings";
 import PosPage from "../pages/PosPage";
 import PickUp from "../pages/PickUp";
 import Notifications from "../pages/Notifications";
 import Login from "../pages/Login";
-import ProtectedRoute from "../components/ProtectedRoute";
-import Analytics from "../pages/Analytics/Analytics";
-import Inventory from "../pages/inventory/Inventory";
+import ProtectedRoute from "../shared/components/ProtectedRoute";
+import Analytics from "../pages/Analytics";
+import Inventory from "../pages/Inventory";
 import InventoryLogs from "../pages/InventoryLogs";
 import Pharmacists from "../pages/Pharmacists";
 import GetTechnicalHelp from "../pages/GetTechnicalHelp";
 import Profile from "../pages/Profile";
 
-import PermissionGuard from "../components/PermissionGuard";
+import PermissionGuard from "../shared/components/PermissionGuard";
 import { useOutletContext } from "react-router-dom";
 
 function RouteGuard({ permission, element }) {
