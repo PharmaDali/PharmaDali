@@ -154,9 +154,9 @@ class PosService
         $status = $filters['status'] ?? 'all'; // all, ready, completed
 
         $query = Order::with([
-            'customer.user:id,first_name,last_name',
-            'items.pharmacyProduct.product:id,product_name,generic_name',
-            'items.pharmacyProduct.category:id,category_name'
+            'customer.user',
+            'items.pharmacyProduct.product',
+            'items.pharmacyProduct.category'
         ])
         ->whereNotNull('customer_id'); // Pickup orders always have a customer
 
@@ -182,12 +182,22 @@ class PosService
                 $q->where('order_number', 'like', "%{$search}%")
                   ->orWhereHas('customer.user', function ($uq) use ($search) {
                       $uq->where('first_name', 'like', "%{$search}%")
-                        ->orWhere('last_name', 'like', "%{$search}%");
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('mobile_number', 'like', "%{$search}%");
                   });
             });
         }
 
-        return $query->latest()->get();
+        $orders = $query->latest()->get();
+
+        $orders->transform(function ($order) {
+            $user = $order->customer?->user;
+            $order->customer_name = $user ? trim("{$user->first_name} {$user->last_name}") : ($order->customer_name ?? 'Customer');
+            $order->customer_phone = $user?->mobile_number ?? $user?->phone ?? $order->customer_phone ?? null;
+            return $order;
+        });
+
+        return $orders;
     }
 
     /**
