@@ -162,6 +162,21 @@ function CurrentOrder({
   const numericCash = Number(cashReceived);
   const hasFulfilledPayment = cashReceived !== "" && !Number.isNaN(numericCash) && numericCash > 0;
 
+  if (isOrderEmpty) {
+    return (
+      <div className="card border-1 shadow-sm rounded-4 overflow-hidden" style={{ height: "100%", minHeight: "380px", border: "1px solid #e2e8f0", display: "flex", flexDirection: "column" }}>
+        <div className="card-body d-flex flex-column align-items-center justify-content-center p-0" style={{ flex: 1, minHeight: 0, height: "100%" }}>
+          <EmptyState
+            minHeight="100%"
+            iconWidth={100}
+            className="pos-order-empty-state"
+            message="Search for items"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
       <div
@@ -181,45 +196,36 @@ function CurrentOrder({
           </thead>
         </table>
 
-        {isOrderEmpty ? (
-          <EmptyState
-            minHeight="185px"
-            iconWidth={92}
-            className="pos-order-empty-state"
-            message="No order items added yet"
-          />
-        ) : (
-          <div className="pos-scroll pos-order-items-scroll" style={{ height: "185px", minHeight: "185px", maxHeight: "185px", overflowY: "auto" }}>
-            <table className="table table-hover mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
-              <colgroup>
-                {ORDER_COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
-              </colgroup>
-              <tbody>
-                {items.map(({ id, product, qty, selling_price }) => (
-                  <tr key={id}>
-                    <td className="px-3 py-2 border-0 border-bottom text-start" style={{ color: "#333", fontWeight: 500 }}>
-                      {getFullProductName(product)}
-                    </td>
-                    <td className="px-2 py-2 border-0 border-bottom text-center" style={{ color: "#333" }}>{qty}</td>
-                    <td className="px-3 py-2 border-0 border-bottom text-end" style={{ color: "#333" }}>
-                      <div className="d-flex align-items-center justify-content-end gap-2">
-                        <span>{(qty * selling_price).toFixed(2)}</span>
-                        <button
-                          type="button"
-                          onClick={() => onRemove(id)}
-                          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#e25252", fontSize: 16, fontWeight: "bold", lineHeight: 1 }}
-                          title="Remove item"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        <div className="pos-scroll pos-order-items-scroll" style={{ height: "185px", minHeight: "185px", maxHeight: "185px", overflowY: "auto" }}>
+          <table className="table table-hover mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
+            <colgroup>
+              {ORDER_COL_WIDTHS.map((w, i) => <col key={i} style={{ width: w }} />)}
+            </colgroup>
+            <tbody>
+              {items.map(({ id, product, qty, selling_price }) => (
+                <tr key={id}>
+                  <td className="px-3 py-2 border-0 border-bottom text-start" style={{ color: "#333", fontWeight: 500 }}>
+                    {getFullProductName(product)}
+                  </td>
+                  <td className="px-2 py-2 border-0 border-bottom text-center" style={{ color: "#333" }}>{qty}</td>
+                  <td className="px-3 py-2 border-0 border-bottom text-end" style={{ color: "#333" }}>
+                    <div className="d-flex align-items-center justify-content-end gap-2">
+                      <span>{(qty * selling_price).toFixed(2)}</span>
+                      <button
+                        type="button"
+                        onClick={() => onRemove(id)}
+                        style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "#e25252", fontSize: 16, fontWeight: "bold", lineHeight: 1 }}
+                        title="Remove item"
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Reusable Discount Component */}
@@ -283,7 +289,7 @@ function CurrentOrder({
         onClick={onCompleteSale}
         disabled={isOrderEmpty || (!!paymentError && !paymentMethod)}
       >
-        {isOrderEmpty ? "Sale Completed" : "Complete Sale"}
+        Complete Sale
       </button>
     </div>
   );
@@ -538,7 +544,7 @@ function PosPage() {
                   />
                 ) : (
                   <EmptyState
-                    minHeight="var(--pos-order-items-viewport)"
+                    minHeight="100%"
                     iconWidth={92}
                     className="pos-order-empty-state"
                     message={debouncedSearch.trim() ? "No products found." : "Search for items"}
