@@ -138,8 +138,17 @@ export function usePickupOrders() {
   }, [loadOrders]);
 
   const subtotalAmount = useMemo(() => {
-    if (!activeOrder?.items) return 0;
-    return activeOrder.items.reduce((sum, item) => sum + (Number(item.subtotal) || (Number(item.price) * Number(item.quantity))), 0);
+    if (!activeOrder) return 0;
+    if (Array.isArray(activeOrder.items) && activeOrder.items.length > 0) {
+      const sum = activeOrder.items.reduce((acc, item) => {
+        const price = Number(item.price || item.unit_price || 0);
+        const qty = Number(item.quantity || item.qty || 1);
+        const itemSub = Number(item.subtotal || item.total) || (price * qty);
+        return acc + itemSub;
+      }, 0);
+      if (sum > 0) return sum;
+    }
+    return Number(activeOrder.total_amount || activeOrder.payable_amount || activeOrder.total || 0);
   }, [activeOrder]);
 
   const computedDiscountAmount = useMemo(() => {
@@ -208,14 +217,32 @@ export function usePickupOrders() {
     setIsPaymentModalOpen(false);
     
     try {
+      const parsedPayable = Number(finalPayableAmount) && !Number.isNaN(Number(finalPayableAmount)) ? Number(finalPayableAmount) : 0;
+      const parsedCash = Number(cashReceived) && !Number.isNaN(Number(cashReceived)) ? Number(cashReceived) : 0;
+      const amtReceived = parsedCash > 0 ? parsedCash : parsedPayable;
+      const chgAmount = Math.max(0, amtReceived - parsedPayable);
+
+      const rawMethod = typeof paymentMethod === "object" && paymentMethod !== null ? (paymentMethod.id || paymentMethod.value || "cash") : paymentMethod;
+      const methodStr = String(rawMethod || "cash").toLowerCase();
+
       const payload = {
-        payment_method: paymentMethod,
-        discount_type: discountType !== "none" ? discountType : null,
-        discount_percentage: discountType === "custom" ? (parseFloat(discountPercentage) || 0) : (discountType === "senior" || discountType === "pwd" ? 20 : discountType === "employee" ? 10 : 0),
-        discount_id_number: discountIdNumber.trim() || null,
-        cash_received: paymentMethod === "cash" ? (parseFloat(cashReceived) || finalPayableAmount) : null,
-        gcash_reference_number: paymentMethod === "gcash" ? gcashReference.trim() : null
+        payment_method: methodStr,
+        amount_received: amtReceived,
+        change_amount: chgAmount,
       };
+
+      if (discountType && discountType !== "none") {
+        payload.discount_type = discountType;
+        const pct = discountType === "custom"
+          ? (parseFloat(discountPercentage) || 0)
+          : (discountType === "senior" || discountType === "pwd" ? 20 : discountType === "employee" ? 10 : 0);
+        if (Number.isFinite(pct) && pct > 0) {
+          payload.discount_percentage = pct;
+        }
+        if (discountIdNumber && String(discountIdNumber).trim()) {
+          payload.discount_id_number = String(discountIdNumber).trim();
+        }
+      }
 
       await completePickupOrder(activeOrder.id, payload);
 
@@ -227,8 +254,15 @@ export function usePickupOrders() {
       await loadOrders(false);
       setActiveOrder(null);
     } catch (err) {
-      console.error("Complete order failed:", err);
-      const backendMsg = err.response?.data?.message || err.message || "Failed to complete pickup transaction.";
+      console.error("Complete order failed details:", err.response?.data || err);
+      const responseData = err.response?.data;
+      let backendMsg = responseData?.message || err.message || "Failed to complete pickup transaction.";
+      if (responseData?.errors) {
+        const errorKeys = Object.keys(responseData.errors);
+        if (errorKeys.length > 0) {
+          backendMsg = responseData.errors[errorKeys[0]][0];
+        }
+      }
       setErrorMessage(backendMsg);
       setPaymentResult("error");
       setIsPaymentResultModalOpen(true);
