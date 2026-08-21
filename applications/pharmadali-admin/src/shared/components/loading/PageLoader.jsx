@@ -1,5 +1,5 @@
 import React from "react";
-import "../../assets/css/loading-system.css";
+import "../../../assets/css/loading-system.css";
 
 export function PageLoader({
   title = "Gathering your pharmacy data...",

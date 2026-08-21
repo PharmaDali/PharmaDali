@@ -1,17 +1,17 @@
 import { checkUserPermission } from "./PermissionGuard";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../services/loginService";
-import dashboardIcon from "../assets/icons/sidebar-icons/dashboard.svg";
-import posIcon from "../assets/icons/sidebar-icons/pos.svg";
-import pickupOrdersIcon from "../assets/icons/sidebar-icons/pickup-orders.svg";
-import inventoryIcon from "../assets/icons/sidebar-icons/inventory.svg";
-import aiAnalyticsIcon from "../assets/icons/sidebar-icons/ai-analytics&forecasting.svg";
-import salesReportsIcon from "../assets/icons/sidebar-icons/sales-and-reports.svg";
-import pharmacistsIcon from "../assets/icons/sidebar-icons/pharmacists.svg";
-import notificationsIcon from "../assets/icons/sidebar-icons/notifications.svg";
-import settingsIcon from "../assets/icons/sidebar-icons/settings.svg";
-import getTechnicalHelpIcon from "../assets/icons/sidebar-icons/get-technical-help.svg";
+import { logout } from "../../services/loginService";
+import dashboardIcon from "../../assets/icons/sidebar-icons/dashboard.svg";
+import posIcon from "../../assets/icons/sidebar-icons/pos.svg";
+import pickupOrdersIcon from "../../assets/icons/sidebar-icons/pickup-orders.svg";
+import inventoryIcon from "../../assets/icons/sidebar-icons/inventory.svg";
+import aiAnalyticsIcon from "../../assets/icons/sidebar-icons/ai-analytics&forecasting.svg";
+import salesReportsIcon from "../../assets/icons/sidebar-icons/sales-and-reports.svg";
+import pharmacistsIcon from "../../assets/icons/sidebar-icons/pharmacists.svg";
+import notificationsIcon from "../../assets/icons/sidebar-icons/notifications.svg";
+import settingsIcon from "../../assets/icons/sidebar-icons/settings.svg";
+import getTechnicalHelpIcon from "../../assets/icons/sidebar-icons/get-technical-help.svg";
 
 const ROUTE_PERMISSION_MAP = {
   "/": "view_dashboard",

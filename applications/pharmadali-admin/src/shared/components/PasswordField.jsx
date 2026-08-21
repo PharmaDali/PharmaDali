@@ -1,5 +1,5 @@
 import { useState, forwardRef } from "react";
-import "../assets/css/password-field.css";
+import "../../assets/css/password-field.css";
 
 const PasswordField = forwardRef(function PasswordField(
   {

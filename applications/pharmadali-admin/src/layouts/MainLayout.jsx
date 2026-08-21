@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import NavBar from "../components/NavBar";
-import SideBar from "../components/SideBar";
-import ToastNotification from "../components/ToastNotification";
+import NavBar from "../shared/components/NavBar";
+import SideBar from "../shared/components/SideBar";
+import ToastNotification from "../shared/components/ToastNotification";
 import { getCurrentUser } from "../services/loginService";
 import { usePickupOrdersCount } from "../hooks/usePickupOrders";
 import { useNotifications } from "../hooks/useNotifications";
