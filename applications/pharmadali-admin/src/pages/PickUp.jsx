@@ -5,7 +5,7 @@ import errorIcon from "../assets/icons/modal-icons/error.svg";
 import shieldQuestionIcon from "../assets/icons/modal-icons/shield-question.svg";
 import { usePickupOrders, PICKUP_TABS } from "../hooks/usePickupOrders";
 import PickupOrdersTable from "../components/PickUp/PickupOrdersTable";
-import PickupOrderDetailsModal from "../components/PickUp/PickupOrderDetailsModal";
+import PickupOrderDetailsSidebar from "../components/PickUp/PickupOrderDetailsSidebar";
 import "../assets/css/pospage.css";
 import "../assets/css/inventory.css";
 
@@ -13,6 +13,7 @@ export function PickUp() {
   const {
     orders,
     loading,
+    fetchError,
     search,
     setSearch,
     statusFilter,
@@ -39,6 +40,7 @@ export function PickUp() {
     discountIdNumber,
     setDiscountIdNumber,
     tabCounts,
+    filteredOrders,
     paginatedOrders,
     currentPage,
     totalPages,
@@ -55,45 +57,50 @@ export function PickUp() {
   } = usePickupOrders();
 
   return (
-    <section className="inventory-page" aria-label="Pickup Order Fulfillment">
-      <header className="admin-page-header mb-4">
-        <h4 className="fw-bold mb-1 admin-page-title">Pickup Orders</h4>
-        <p className="admin-page-subtitle">Verify, collect payment, and complete customer online pickup orders.</p>
-      </header>
+    <section className="inventory-page d-flex flex-column" aria-label="Pickup Order Fulfillment">
+      <div className="row g-4 align-items-stretch">
+        <div className={activeOrder ? "col-12 col-lg-8 col-xl-9 h-100 d-flex flex-column" : "col-12 h-100 d-flex flex-column"}>
+          <PickupOrdersTable
+            orders={orders}
+            filteredOrders={filteredOrders}
+            loading={loading}
+            fetchError={fetchError}
+            search={search}
+            setSearch={setSearch}
+            statusFilter={statusFilter}
+            onTabChange={handleTabChange}
+            tabCounts={tabCounts}
+            paginatedOrders={paginatedOrders}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            visiblePageNumbers={visiblePageNumbers}
+            onPageChange={handlePageChange}
+            onSelectOrder={setActiveOrder}
+            tabs={PICKUP_TABS}
+          />
+        </div>
 
-      <PickupOrdersTable
-        orders={orders}
-        loading={loading}
-        search={search}
-        setSearch={setSearch}
-        statusFilter={statusFilter}
-        onTabChange={handleTabChange}
-        tabCounts={tabCounts}
-        paginatedOrders={paginatedOrders}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        visiblePageNumbers={visiblePageNumbers}
-        onPageChange={handlePageChange}
-        onSelectOrder={setActiveOrder}
-        tabs={PICKUP_TABS}
-      />
-
-      <PickupOrderDetailsModal
-        activeOrder={activeOrder}
-        onClose={() => setActiveOrder(null)}
-        discountType={discountType}
-        setDiscountType={setDiscountType}
-        discountPercentage={discountPercentage}
-        setDiscountPercentage={setDiscountPercentage}
-        discountIdNumber={discountIdNumber}
-        setDiscountIdNumber={setDiscountIdNumber}
-        subtotalAmount={subtotalAmount}
-        computedDiscountAmount={computedDiscountAmount}
-        finalPayableAmount={finalPayableAmount}
-        paymentMethod={paymentMethod}
-        setPaymentMethod={setPaymentMethod}
-        onOpenPaymentModal={handleOpenPaymentModal}
-      />
+        {activeOrder && (
+          <div className="col-12 col-lg-4 col-xl-3 h-100 d-flex flex-column">
+            <PickupOrderDetailsSidebar
+              activeOrder={activeOrder}
+              onClose={() => setActiveOrder(null)}
+              discountType={discountType}
+              setDiscountType={setDiscountType}
+              discountPercentage={discountPercentage}
+              setDiscountPercentage={setDiscountPercentage}
+              discountIdNumber={discountIdNumber}
+              setDiscountIdNumber={setDiscountIdNumber}
+              subtotalAmount={subtotalAmount}
+              computedDiscountAmount={computedDiscountAmount}
+              finalPayableAmount={finalPayableAmount}
+              paymentMethod={paymentMethod}
+              setPaymentMethod={setPaymentMethod}
+              onOpenPaymentModal={handleOpenPaymentModal}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Payment Processing Modal */}
       <Modal

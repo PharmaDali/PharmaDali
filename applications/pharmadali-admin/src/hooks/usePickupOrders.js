@@ -21,9 +21,9 @@ export function usePickupOrdersCount() {
 }
 
 export const PICKUP_TABS = [
-  { id: "Ready", label: "Ready Orders", icon: "fa-box-archive" },
-  { id: "Completed", label: "Completed Orders", icon: "fa-circle-check" },
-  { id: "All", label: "All Orders", icon: "fa-boxes-stacked" },
+  { id: "Ready", label: "Ready", icon: "fa-box-archive" },
+  { id: "Completed", label: "Completed", icon: "fa-circle-check" },
+  { id: "All", label: "All", icon: "fa-boxes-stacked" },
 ];
 
 export function usePickupOrders() {
@@ -45,15 +45,18 @@ export function usePickupOrders() {
   const [discountPercentage, setDiscountPercentage] = useState("");
   const [discountIdNumber, setDiscountIdNumber] = useState("");
 
+  const [newCompletedCount, setNewCompletedCount] = useState(0);
+
   const tabCounts = useMemo(() => {
     const ready = orders.filter((o) => o.status === "ready_for_pickup").length;
     const completed = orders.filter((o) => o.status === "completed").length;
     return {
       Ready: ready,
       Completed: completed,
+      CompletedNew: newCompletedCount,
       All: orders.length,
     };
-  }, [orders]);
+  }, [orders, newCompletedCount]);
 
   const filteredOrders = useMemo(() => {
     if (statusFilter === "Ready") {
@@ -91,21 +94,39 @@ export function usePickupOrders() {
   const handleTabChange = (tabId) => {
     setStatusFilter(tabId);
     setCurrentPage(1);
+    setActiveOrder(null);
+    if (tabId === "Completed") {
+      setNewCompletedCount(0);
+    }
   };
+
+  const [fetchError, setFetchError] = useState(null);
 
   const loadOrders = useCallback(async (showLoading = true) => {
     try {
       if (showLoading) setLoading(true);
+      setFetchError(null);
       const response = await fetchPickupOrders({
         search,
         status: "all"
       });
-      const dataArray = Array.isArray(response?.data) 
-        ? response.data 
-        : (Array.isArray(response) ? response : []);
-      setOrders(dataArray);
+      const dataArray = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
+      
+      // Filter out POS walk-in transactions to only display pickup orders
+      const pickupOrdersOnly = dataArray.filter(
+        (o) =>
+          o.order_type !== "pos" &&
+          o.fulfillment_type !== "pos" &&
+          o.source !== "pos" &&
+          o.channel !== "pos" &&
+          o.is_pos !== 1 &&
+          o.is_pos !== true
+      );
+      setOrders(pickupOrdersOnly);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
+      setFetchError(error?.message || "Failed to connect to API server");
+      setOrders([]);
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -200,6 +221,9 @@ export function usePickupOrders() {
 
       setPaymentResult("success");
       setIsPaymentResultModalOpen(true);
+      if (statusFilter !== "Completed") {
+        setNewCompletedCount((prev) => prev + 1);
+      }
       await loadOrders(false);
       setActiveOrder(null);
     } catch (err) {
@@ -214,6 +238,7 @@ export function usePickupOrders() {
   return {
     orders,
     loading,
+    fetchError,
     search,
     setSearch,
     statusFilter,

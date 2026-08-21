@@ -6,8 +6,8 @@ export function DiscountSelect({ value, onChange }) {
 
   const options = [
     { value: "none", label: "No Discount" },
-    { value: "senior", label: "Senior Citizen" },
-    { value: "pwd", label: "PWD (Person With Disability)" },
+    { value: "senior", label: "Senior Citizen (20%)" },
+    { value: "pwd", label: "PWD (Person With Disability) (20%)" },
     { value: "employee", label: "Employee" },
     { value: "custom", label: "Custom Policy" },
   ];
@@ -61,7 +61,7 @@ export function DiscountSelect({ value, onChange }) {
             return (
               <div
                 key={opt.value}
-                className="px-3 py-2 d-flex align-items-center justify-content-between"
+                className="px-3 py-2 d-flex align-items-center justify-content-between pos-discount-option"
                 style={{
                   fontSize: 12,
                   cursor: "pointer",
@@ -86,6 +86,66 @@ export function DiscountSelect({ value, onChange }) {
               </div>
             );
           })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function DiscountControl({
+  discountType,
+  setDiscountType,
+  discountPercentage,
+  setDiscountPercentage,
+  discountIdNumber,
+  setDiscountIdNumber,
+  className = "mb-3",
+}) {
+  const handleTypeChange = (newType) => {
+    setDiscountType(newType);
+    if (newType === "senior" || newType === "pwd") {
+      setDiscountPercentage(20);
+    } else if (newType === "none") {
+      setDiscountPercentage("");
+      setDiscountIdNumber("");
+    }
+  };
+
+  return (
+    <div className={`pos-discount-wrap p-3 rounded-3 border border-light-subtle ${className}`} style={{ backgroundColor: "#ffffff" }}>
+      <div className="pos-discount-title fw-semibold text-dark small mb-2 d-flex align-items-center">
+        <i className="fa-solid fa-percent me-1.5" style={{ color: "#2aabe2" }} /> Discount Policy
+      </div>
+
+      <DiscountSelect value={discountType} onChange={handleTypeChange} />
+
+      {discountType !== "none" && (
+        <div className="d-flex gap-2 mt-2">
+          <div style={{ flex: "0 0 40%" }}>
+            <label style={{ fontSize: 10, color: "#64748b" }} className="fw-semibold mb-1 d-block">Rate (%)</label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              className="form-control form-control-sm"
+              style={{ fontSize: 12 }}
+              placeholder="%"
+              value={discountPercentage}
+              onChange={(e) => setDiscountPercentage(e.target.value)}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label style={{ fontSize: 10, color: "#64748b" }} className="fw-semibold mb-1 d-block">ID No. (Optional)</label>
+            <input
+              type="text"
+              className="form-control form-control-sm"
+              style={{ fontSize: 12 }}
+              placeholder="ID Number"
+              value={discountIdNumber}
+              onChange={(e) => setDiscountIdNumber(e.target.value)}
+            />
+          </div>
         </div>
       )}
     </div>

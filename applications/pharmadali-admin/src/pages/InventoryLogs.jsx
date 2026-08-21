@@ -3,6 +3,9 @@ import "../assets/css/inventory.css";
 import Modal from "../shared/components/Modal";
 import { useInventoryLogs } from "../hooks/useInventoryLogs";
 import { TableSkeleton } from "../shared/components/loading";
+import SearchBar from "../shared/components/SearchBar";
+import SelectDropdown from "../shared/components/SelectDropdown";
+import Pagination from "../shared/components/Pagination";
 
 const ACTION_FILTERS = ["All", "Stock In", "Stock Out", "Adjustment", "Waste"];
 
@@ -30,8 +33,15 @@ function InventoryLogs() {
   } = useInventoryLogs();
 
   return (
-    <section className="inventory-page">
-      <div className="inventory-breadcrumbs mb-3">
+    <section className="inventory-page" aria-label="Inventory Logs Audit Trail">
+      <header className="admin-page-header">
+        <h4 className="fw-bold mb-1 admin-page-title">Inventory logs</h4>
+        <p className="admin-page-subtitle">
+          Audit trail of stock movements, batch expirations, and adjustments.
+        </p>
+      </header>
+
+      <div className="inventory-breadcrumb">
         <button
           type="button"
           className="breadcrumb-link"
@@ -44,45 +54,26 @@ function InventoryLogs() {
       </div>
 
       <div className="inventory-filter-bar inventory-logs-filter-bar">
-        <div className="inventory-field inventory-search-field">
-          <label className="inventory-field-label" htmlFor="logs-search">
-            Search by Product name
-          </label>
-          <div className="inventory-input-wrap">
-            <i className="fa-solid fa-magnifying-glass" aria-hidden="true" />
-            <input
-              id="logs-search"
-              className="form-control inventory-input"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter") {
-                  loadData();
-                }
-              }}
-              placeholder="Search by Product name"
-              aria-label="Search inventory logs"
-            />
-          </div>
-        </div>
+        <SearchBar
+          id="logs-search"
+          label="Search by Product name"
+          value={query}
+          onChange={(val) => setQuery(val)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              loadData();
+            }
+          }}
+          placeholder="Search by Product name"
+        />
 
-        <div className="inventory-field">
-          <label className="inventory-field-label" htmlFor="logs-action">
-            Action
-          </label>
-          <select
-            id="logs-action"
-            className="form-select inventory-select"
-            value={actionFilter}
-            onChange={(event) => handleActionChange(event.target.value)}
-          >
-            {ACTION_FILTERS.map((action) => (
-              <option key={action} value={action}>
-                {action}
-              </option>
-            ))}
-          </select>
-        </div>
+        <SelectDropdown
+          id="logs-action"
+          label="Action"
+          value={actionFilter}
+          onChange={(val) => handleActionChange(val)}
+          options={ACTION_FILTERS}
+        />
 
         <div className="inventory-field">
           <label className="inventory-field-label" htmlFor="logs-date">
@@ -102,17 +93,13 @@ function InventoryLogs() {
           </div>
         </div>
 
-        <div className="inventory-field">
-          <label className="inventory-field-label" htmlFor="logs-user">
-            User
-          </label>
-          <select
-            id="logs-user"
-            className="form-select inventory-select"
-          >
-            <option>All Users</option>
-          </select>
-        </div>
+        <SelectDropdown
+          id="logs-user"
+          label="User"
+          value="All Users"
+          onChange={() => {}}
+          options={["All Users"]}
+        />
 
         <div className="inventory-field inventory-search-action">
           <button type="button" className="btn inventory-search-btn" onClick={loadData}>
@@ -188,93 +175,15 @@ function InventoryLogs() {
         </div>
 
         {!loading && logs.length > 0 && (
-          <div className="inventory-pagination-bar">
-            <span className="inventory-pagination-info">
-              Showing {(currentPage - 1) * 10 + 1}–
-              {Math.min(currentPage * 10, logs.length)} of {logs.length}
-            </span>
-
-            <nav aria-label="Inventory logs pagination">
-              <ul className="inventory-pagination">
-                <li className={`inventory-page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                  <button
-                    type="button"
-                    className="inventory-page-link inventory-page-nav"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    aria-label="Previous page"
-                  >
-                    <i className="fa-solid fa-chevron-left" aria-hidden="true" />
-                  </button>
-                </li>
-
-                {visiblePageNumbers[0] > 1 && (
-                  <>
-                    <li className="inventory-page-item">
-                      <button
-                        type="button"
-                        className="inventory-page-link"
-                        onClick={() => handlePageChange(1)}
-                      >
-                        1
-                      </button>
-                    </li>
-                    {visiblePageNumbers[0] > 2 && (
-                      <li className="inventory-page-item inventory-page-ellipsis">
-                        <span>…</span>
-                      </li>
-                    )}
-                  </>
-                )}
-
-                {visiblePageNumbers.map((pageNumber) => (
-                  <li
-                    key={pageNumber}
-                    className={`inventory-page-item ${currentPage === pageNumber ? "active" : ""}`}
-                  >
-                    <button
-                      type="button"
-                      className="inventory-page-link"
-                      onClick={() => handlePageChange(pageNumber)}
-                    >
-                      {pageNumber}
-                    </button>
-                  </li>
-                ))}
-
-                {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages && (
-                  <>
-                    {visiblePageNumbers[visiblePageNumbers.length - 1] < totalPages - 1 && (
-                      <li className="inventory-page-item inventory-page-ellipsis">
-                        <span>…</span>
-                      </li>
-                    )}
-                    <li className="inventory-page-item">
-                      <button
-                        type="button"
-                        className="inventory-page-link"
-                        onClick={() => handlePageChange(totalPages)}
-                      >
-                        {totalPages}
-                      </button>
-                    </li>
-                  </>
-                )}
-
-                <li className={`inventory-page-item ${currentPage === totalPages ? "disabled" : ""}`}>
-                  <button
-                    type="button"
-                    className="inventory-page-link inventory-page-nav"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    aria-label="Next page"
-                  >
-                    <i className="fa-solid fa-chevron-right" aria-hidden="true" />
-                  </button>
-                </li>
-              </ul>
-            </nav>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={logs.length}
+            itemsPerPage={10}
+            onPageChange={handlePageChange}
+            visiblePageNumbers={visiblePageNumbers}
+            ariaLabel="Inventory logs table pagination"
+          />
         )}
       </article>
 
