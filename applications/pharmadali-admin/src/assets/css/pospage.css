@@ -54,12 +54,22 @@
   overflow: hidden;
 }
 
-.pos-product-body table thead th,
-.pos-order-items-card table thead th {
+.pos-product-body table thead th {
   background: #96D2EE !important;
   color: var(--pd-text-dark, #334155) !important;
   font-weight: 600;
   font-size: 13px;
+  white-space: nowrap !important;
+  border-radius: 0 !important;
+}
+
+.pos-order-items-card table thead th {
+  background: #eef7fc !important;
+  color: var(--pd-text-dark, #334155) !important;
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap !important;
+  border-radius: 0 !important;
 }
 
 .pos-order-items-scroll {
@@ -399,6 +409,21 @@
     min-width: 560px !important;
   }
 
+  .pos-product-card {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .pos-product-body {
+    height: auto !important;
+  }
+
+  .pos-product-table-scroll {
+    max-height: 220px !important;
+    height: 220px !important;
+    overflow-y: auto !important;
+  }
+
   .pos-order-table-scroll table {
     min-width: 400px !important;
   }
@@ -523,10 +548,14 @@
     min-height: 340px;
   }
 
-  .pos-card .card-header,
-  .pos-card .card-body {
+  .pos-card > .card-header,
+  .pos-card > .card-body {
     padding-left: 0.75rem !important;
     padding-right: 0.75rem !important;
+  }
+
+  .pos-card .card-body.p-0 {
+    padding: 0 !important;
   }
 
   .pos-payment-actions {

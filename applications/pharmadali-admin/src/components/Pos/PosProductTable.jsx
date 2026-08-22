@@ -43,6 +43,7 @@ export default function PosProductTable() {
         className="table table-hover mb-0 align-middle"
         style={{
           fontSize: 13,
+          minWidth: "520px",
           width: "100%",
           tableLayout: "fixed",
         }}
@@ -57,32 +58,52 @@ export default function PosProductTable() {
         <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
           <tr style={{ background: "#96D2EE" }}>
             <th
-              className="px-3 py-2 fw-semibold border-0 text-start"
-              style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}
+              className="px-3 py-2 fw-semibold border-0 text-start text-nowrap"
+              style={{
+                color: "var(--pd-text-dark, #334155)",
+                background: "#96D2EE",
+                whiteSpace: "nowrap",
+              }}
             >
               Generic Name
             </th>
             <th
-              className="px-3 py-2 fw-semibold border-0 text-start"
-              style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}
+              className="px-3 py-2 fw-semibold border-0 text-start text-nowrap"
+              style={{
+                color: "var(--pd-text-dark, #334155)",
+                background: "#96D2EE",
+                whiteSpace: "nowrap",
+              }}
             >
               Brand Name
             </th>
             <th
-              className="px-3 py-2 fw-semibold border-0 text-start"
-              style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}
+              className="px-3 py-2 fw-semibold border-0 text-start text-nowrap"
+              style={{
+                color: "var(--pd-text-dark, #334155)",
+                background: "#96D2EE",
+                whiteSpace: "nowrap",
+              }}
             >
               Strength
             </th>
             <th
-              className="px-3 py-2 fw-semibold border-0 text-end"
-              style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}
+              className="px-3 py-2 fw-semibold border-0 text-end text-nowrap"
+              style={{
+                color: "var(--pd-text-dark, #334155)",
+                background: "#96D2EE",
+                whiteSpace: "nowrap",
+              }}
             >
               Price (PHP)
             </th>
             <th
-              className="px-3 py-2 fw-semibold border-0 text-center"
-              style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}
+              className="px-3 py-2 fw-semibold border-0 text-center text-nowrap"
+              style={{
+                color: "var(--pd-text-dark, #334155)",
+                background: "#96D2EE",
+                whiteSpace: "nowrap",
+              }}
             >
               Stocks
             </th>
@@ -121,14 +142,14 @@ export default function PosProductTable() {
                   {getStrength(item.product)}
                 </td>
                 <td
-                  className="px-3 py-3 border-0 border-bottom text-end"
-                  style={{ color: "var(--pd-soft-black, #334155)" }}
+                  className="px-3 py-3 border-0 border-bottom text-end text-nowrap"
+                  style={{ color: "var(--pd-soft-black, #334155)", whiteSpace: "nowrap" }}
                 >
                   {parseFloat(item.selling_price).toFixed(2)}
                 </td>
                 <td
-                  className="px-3 py-3 border-0 border-bottom text-center"
-                  style={{ color: "var(--pd-soft-black, #334155)" }}
+                  className="px-3 py-3 border-0 border-bottom text-center text-nowrap"
+                  style={{ color: "var(--pd-soft-black, #334155)", whiteSpace: "nowrap" }}
                 >
                   {item.stock}
                 </td>
