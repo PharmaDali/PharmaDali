@@ -4,6 +4,7 @@ import { PosProvider } from "../context/PosContext";
 import PosProductPane from "../components/Pos/PosProductPane";
 import PosOrderPane from "../components/Pos/PosOrderPane";
 import PosModals from "../components/Pos/PosModals";
+import PosMobileOrderSummary from "../components/Pos/PosMobileOrderSummary";
 
 function PosPage() {
   return (
@@ -13,6 +14,7 @@ function PosPage() {
           <PosProductPane />
           <PosOrderPane />
           <PosModals />
+          <PosMobileOrderSummary />
         </div>
       </section>
     </PosProvider>
