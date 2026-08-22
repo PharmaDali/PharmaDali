@@ -95,8 +95,6 @@ export default function PosCurrentOrder() {
         className="card border-1 shadow-sm pos-order-items-card rounded-4 overflow-hidden"
         style={{
           flex: "0 0 auto",
-          height: "225px",
-          minHeight: "225px",
           maxHeight: "225px",
           overflow: "hidden",
           display: "flex",
@@ -107,7 +105,7 @@ export default function PosCurrentOrder() {
         <div
           className="pos-scroll pos-order-table-scroll pos-order-items-scroll"
           style={{
-            height: "100%",
+            maxHeight: "225px",
             overflowX: "auto",
             overflowY: "auto",
             WebkitOverflowScrolling: "touch",
@@ -115,37 +113,53 @@ export default function PosCurrentOrder() {
         >
           <table
             className="table table-hover mb-0 align-middle"
-            style={{ fontSize: 13, width: "100%", tableLayout: "fixed" }}
+            style={{ fontSize: 13, minWidth: "380px", width: "100%", tableLayout: "fixed" }}
           >
             <colgroup>
-              <col style={{ width: "42%" }} />
+              <col style={{ width: "40%" }} />
               <col style={{ width: "16%" }} />
-              <col style={{ width: "22%" }} />
+              <col style={{ width: "24%" }} />
               <col style={{ width: "20%" }} />
             </colgroup>
             <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
-              <tr style={{ background: "#f8fafc" }}>
+              <tr style={{ background: "#eef7fc" }}>
                 <th
-                  className="px-3 py-2 fw-semibold border-0 text-start"
-                  style={{ color: "#334155", background: "#eef7fc" }}
+                  className="px-3 py-2 fw-semibold border-0 text-start text-nowrap"
+                  style={{
+                    color: "#334155",
+                    background: "#eef7fc",
+                    whiteSpace: "nowrap",
+                  }}
                 >
                   Product
                 </th>
                 <th
-                  className="px-2 py-2 fw-semibold border-0 text-center"
-                  style={{ color: "#334155", background: "#eef7fc" }}
+                  className="px-2 py-2 fw-semibold border-0 text-center text-nowrap"
+                  style={{
+                    color: "#334155",
+                    background: "#eef7fc",
+                    whiteSpace: "nowrap",
+                  }}
                 >
                   Qty
                 </th>
                 <th
-                  className="px-2 py-2 fw-semibold border-0 text-end"
-                  style={{ color: "#334155", background: "#eef7fc" }}
+                  className="px-2 py-2 fw-semibold border-0 text-end text-nowrap"
+                  style={{
+                    color: "#334155",
+                    background: "#eef7fc",
+                    whiteSpace: "nowrap",
+                  }}
                 >
                   Price (PHP)
                 </th>
                 <th
-                  className="px-3 py-2 fw-semibold border-0 text-end"
-                  style={{ color: "#334155", background: "#eef7fc" }}
+                  className="px-3 py-2 fw-semibold border-0 text-end text-nowrap"
+                  style={{
+                    color: "#334155",
+                    background: "#eef7fc",
+                    whiteSpace: "nowrap",
+                  }}
                 >
                   Amount
                 </th>
