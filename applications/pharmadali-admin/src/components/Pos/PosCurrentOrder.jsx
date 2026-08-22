@@ -105,7 +105,7 @@ export default function PosCurrentOrder() {
         }}
       >
         <div
-          className="pos-scroll pos-order-items-scroll"
+          className="pos-scroll pos-order-table-scroll pos-order-items-scroll"
           style={{
             height: "100%",
             overflowX: "auto",
@@ -115,7 +115,7 @@ export default function PosCurrentOrder() {
         >
           <table
             className="table table-hover mb-0 align-middle"
-            style={{ fontSize: 13, minWidth: "400px", tableLayout: "fixed" }}
+            style={{ fontSize: 13, width: "100%", tableLayout: "fixed" }}
           >
             <colgroup>
               <col style={{ width: "42%" }} />
@@ -204,7 +204,6 @@ export default function PosCurrentOrder() {
         </div>
       </div>
 
-      {/* Reusable Discount Component */}
       <DiscountControl
         discountType={discountType}
         setDiscountType={setDiscountType}
@@ -215,7 +214,6 @@ export default function PosCurrentOrder() {
         className="mb-2"
       />
 
-      {/* Payment Method Select */}
       <PaymentMethodSelect
         paymentMethod={paymentMethod}
         setPaymentMethod={setPaymentMethod}
@@ -225,7 +223,6 @@ export default function PosCurrentOrder() {
         title="Payment Method"
       />
 
-      {/* Order Breakdown at bottom of Payment Method (Desktop only) */}
       <div
         className="px-2 pt-2 pb-1 pos-order-breakdown mt-1 d-none d-md-block"
         style={{ fontSize: 13, color: "#444444" }}

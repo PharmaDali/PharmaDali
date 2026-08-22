@@ -29,10 +29,16 @@
   border-bottom-right-radius: 16px;
 }
 
-.pos-product-body,
+.pos-product-body {
+  display: flex;
+  flex-direction: column;
+}
+
 .pos-order-body {
   display: flex;
   flex-direction: column;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 .pos-order-pane {
@@ -389,6 +395,14 @@
 }
 
 @media (max-width: 767.98px) {
+  .pos-product-table-scroll table {
+    min-width: 560px !important;
+  }
+
+  .pos-order-table-scroll table {
+    min-width: 400px !important;
+  }
+
   .pos-order-items-card {
     --pos-order-items-viewport: 148px;
   }

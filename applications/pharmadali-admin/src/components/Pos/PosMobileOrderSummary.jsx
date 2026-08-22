@@ -41,7 +41,6 @@ export default function PosMobileOrderSummary() {
 
   return (
     <div className="d-block d-md-none">
-      {/* Semi-transparent backdrop when expanded */}
       {isExpanded && (
         <div
           className="pos-mobile-summary-backdrop"
@@ -49,13 +48,10 @@ export default function PosMobileOrderSummary() {
         />
       )}
 
-      {/* Sheet Container */}
       <div
-        className={`pos-mobile-summary-container ${
-          isExpanded ? "expanded" : "collapsed"
-        }`}
+        className={`pos-mobile-summary-container ${isExpanded ? "expanded" : "collapsed"
+          }`}
       >
-        {/* Top Drag Handle Bar (Visible when expanded) */}
         {isExpanded && (
           <div
             className="d-flex justify-content-center py-1 cursor-pointer"
@@ -65,7 +61,6 @@ export default function PosMobileOrderSummary() {
           </div>
         )}
 
-        {/* Bar Header (Always Visible) */}
         <div
           className="d-flex align-items-center justify-content-between px-3 py-2 pos-mobile-summary-header cursor-pointer"
           onClick={() => setIsExpanded(!isExpanded)}
@@ -80,14 +75,12 @@ export default function PosMobileOrderSummary() {
               </span>
             )}
             <i
-              className={`fa-solid ${
-                isExpanded ? "fa-chevron-down" : "fa-chevron-up"
-              } pos-mobile-summary-icon`}
+              className={`fa-solid ${isExpanded ? "fa-chevron-down" : "fa-chevron-up"
+                } pos-mobile-summary-icon`}
             />
           </div>
         </div>
 
-        {/* Expanded Sheet Details */}
         {isExpanded && (
           <div className="px-3 pt-2 pb-3 pos-mobile-summary-body">
             <div

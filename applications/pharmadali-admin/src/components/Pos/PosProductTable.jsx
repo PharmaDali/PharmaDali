@@ -29,7 +29,7 @@ export default function PosProductTable() {
 
   return (
     <div
-      className="pos-table-scroll-container pos-scroll"
+      className="pos-product-table-scroll pos-scroll"
       onScroll={handleScroll}
       style={{
         flex: 1,
@@ -43,7 +43,6 @@ export default function PosProductTable() {
         className="table table-hover mb-0 align-middle"
         style={{
           fontSize: 13,
-          minWidth: "560px",
           width: "100%",
           tableLayout: "fixed",
         }}
