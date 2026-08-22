@@ -29,10 +29,16 @@
   border-bottom-right-radius: 16px;
 }
 
-.pos-product-body,
+.pos-product-body {
+  display: flex;
+  flex-direction: column;
+}
+
 .pos-order-body {
   display: flex;
   flex-direction: column;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 .pos-order-pane {
@@ -389,12 +395,21 @@
 }
 
 @media (max-width: 767.98px) {
+  .pos-product-table-scroll table {
+    min-width: 560px !important;
+  }
+
+  .pos-order-table-scroll table {
+    min-width: 400px !important;
+  }
+
   .pos-order-items-card {
     --pos-order-items-viewport: 148px;
   }
 
   .pos-page {
     min-height: auto;
+    padding-bottom: 65px !important;
   }
 
   .pos-card {
@@ -419,6 +434,84 @@
     align-items: flex-start !important;
     gap: 0.65rem;
   }
+}
+
+/* Mobile Order Summary Bottom Sheet Styles */
+.pos-mobile-summary-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 1040;
+  animation: posFadeIn 0.2s ease-out;
+}
+
+@keyframes posFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.pos-mobile-summary-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1045;
+  background: #eef7fc;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+  border-top: 1px solid #bae6fd;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pos-mobile-summary-container.collapsed {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.pos-mobile-summary-container.expanded {
+  background: #eef7fc;
+  box-shadow: 0 -8px 28px rgba(0, 0, 0, 0.18);
+  padding-bottom: env(safe-area-inset-bottom, 12px);
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.pos-mobile-drag-handle {
+  width: 44px;
+  height: 4px;
+  background: #b0c4de;
+  border-radius: 2px;
+  margin-top: 4px;
+  margin-bottom: 2px;
+}
+
+.pos-mobile-summary-header {
+  min-height: 48px;
+  color: #334155;
+  user-select: none;
+}
+
+.pos-mobile-summary-title {
+  font-size: 15px;
+  color: #334155;
+}
+
+.pos-mobile-summary-total {
+  font-size: 15px;
+  color: #2aabe2;
+}
+
+.pos-mobile-summary-icon {
+  font-size: 14px;
+  color: #2aabe2;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 @media (max-width: 575.98px) {

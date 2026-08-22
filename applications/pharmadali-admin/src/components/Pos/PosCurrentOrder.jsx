@@ -5,8 +5,6 @@ import { DiscountControl } from "../../shared/components/DiscountSelect";
 import PaymentMethodSelect from "../../shared/components/PaymentMethodSelect";
 import { toTitleCase } from "../../utils/stringUtils";
 
-const ORDER_COL_WIDTHS = ["50%", "25%", "25%"];
-
 const getFullProductName = (product) => {
   if (!product) return "---";
   const parts = [
@@ -106,47 +104,78 @@ export default function PosCurrentOrder() {
           marginBottom: "0.75rem",
         }}
       >
-        <table className="table mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
-          <colgroup>
-            {ORDER_COL_WIDTHS.map((w, i) => (
-              <col key={i} style={{ width: w }} />
-            ))}
-          </colgroup>
-          <thead>
-            <tr style={{ background: "#f8fafc" }}>
-              <th className="px-3 py-2 fw-semibold border-0 text-start" style={{ color: "#334155" }}>
-                Product
-              </th>
-              <th className="px-2 py-2 fw-semibold border-0 text-center" style={{ color: "#334155" }}>
-                Qty
-              </th>
-              <th className="px-3 py-2 fw-semibold border-0 text-end" style={{ color: "#334155" }}>
-                Subtotal
-              </th>
-            </tr>
-          </thead>
-        </table>
-
         <div
-          className="pos-scroll pos-order-items-scroll"
-          style={{ height: "185px", minHeight: "185px", maxHeight: "185px", overflowY: "auto" }}
+          className="pos-scroll pos-order-table-scroll pos-order-items-scroll"
+          style={{
+            height: "100%",
+            overflowX: "auto",
+            overflowY: "auto",
+            WebkitOverflowScrolling: "touch",
+          }}
         >
-          <table className="table table-hover mb-0" style={{ fontSize: 13, tableLayout: "fixed" }}>
+          <table
+            className="table table-hover mb-0 align-middle"
+            style={{ fontSize: 13, width: "100%", tableLayout: "fixed" }}
+          >
             <colgroup>
-              {ORDER_COL_WIDTHS.map((w, i) => (
-                <col key={i} style={{ width: w }} />
-              ))}
+              <col style={{ width: "42%" }} />
+              <col style={{ width: "16%" }} />
+              <col style={{ width: "22%" }} />
+              <col style={{ width: "20%" }} />
             </colgroup>
+            <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
+              <tr style={{ background: "#f8fafc" }}>
+                <th
+                  className="px-3 py-2 fw-semibold border-0 text-start"
+                  style={{ color: "#334155", background: "#eef7fc" }}
+                >
+                  Product
+                </th>
+                <th
+                  className="px-2 py-2 fw-semibold border-0 text-center"
+                  style={{ color: "#334155", background: "#eef7fc" }}
+                >
+                  Qty
+                </th>
+                <th
+                  className="px-2 py-2 fw-semibold border-0 text-end"
+                  style={{ color: "#334155", background: "#eef7fc" }}
+                >
+                  Price (PHP)
+                </th>
+                <th
+                  className="px-3 py-2 fw-semibold border-0 text-end"
+                  style={{ color: "#334155", background: "#eef7fc" }}
+                >
+                  Amount
+                </th>
+              </tr>
+            </thead>
             <tbody>
               {items.map(({ id, product, qty, selling_price }) => (
                 <tr key={id}>
-                  <td className="px-3 py-2 border-0 border-bottom text-start" style={{ color: "#333", fontWeight: 500 }}>
+                  <td
+                    className="px-3 py-2 border-0 border-bottom text-start text-truncate"
+                    style={{ color: "#333", fontWeight: 500 }}
+                  >
                     {getFullProductName(product)}
                   </td>
-                  <td className="px-2 py-2 border-0 border-bottom text-center" style={{ color: "#333" }}>
+                  <td
+                    className="px-2 py-2 border-0 border-bottom text-center"
+                    style={{ color: "#333" }}
+                  >
                     {qty}
                   </td>
-                  <td className="px-3 py-2 border-0 border-bottom text-end" style={{ color: "#333" }}>
+                  <td
+                    className="px-2 py-2 border-0 border-bottom text-end"
+                    style={{ color: "#333" }}
+                  >
+                    {parseFloat(selling_price).toFixed(2)}
+                  </td>
+                  <td
+                    className="px-3 py-2 border-0 border-bottom text-end"
+                    style={{ color: "#333" }}
+                  >
                     <div className="d-flex align-items-center justify-content-end gap-2">
                       <span>{(qty * selling_price).toFixed(2)}</span>
                       <button
@@ -175,7 +204,6 @@ export default function PosCurrentOrder() {
         </div>
       </div>
 
-      {/* Reusable Discount Component */}
       <DiscountControl
         discountType={discountType}
         setDiscountType={setDiscountType}
@@ -186,7 +214,6 @@ export default function PosCurrentOrder() {
         className="mb-2"
       />
 
-      {/* Payment Method Select */}
       <PaymentMethodSelect
         paymentMethod={paymentMethod}
         setPaymentMethod={setPaymentMethod}
@@ -196,36 +223,62 @@ export default function PosCurrentOrder() {
         title="Payment Method"
       />
 
-      {/* Order Breakdown at bottom of Payment Method */}
-      <div className="px-2 pt-2 pb-1 pos-order-breakdown mt-1" style={{ fontSize: 13, color: "#444444" }}>
+      <div
+        className="px-2 pt-2 pb-1 pos-order-breakdown mt-1 d-none d-md-block"
+        style={{ fontSize: 13, color: "#444444" }}
+      >
         <div className="d-flex justify-content-between mb-1">
           <span style={{ color: "#444444" }}>No. of Items</span>
           <span style={{ color: "#444444", fontWeight: 500 }}>{totalQty}</span>
         </div>
         <div className="d-flex justify-content-between mb-1">
           <span style={{ color: "#444444" }}>Order Subtotal</span>
-          <span style={{ color: "#444444", fontWeight: 500 }}>{subtotal.toFixed(2)}</span>
+          <span style={{ color: "#444444", fontWeight: 500 }}>
+            {subtotal.toFixed(2)}
+          </span>
         </div>
         {discountType !== "none" && discountAmount > 0 && (
           <div className="d-flex justify-content-between mb-1">
-            <span style={{ color: "#444444" }}>Discount ({getDiscountLabel(discountType)})</span>
-            <span style={{ color: "#444444", fontWeight: 500 }}>-{discountAmount.toFixed(2)}</span>
+            <span style={{ color: "#444444" }}>
+              Discount ({getDiscountLabel(discountType)})
+            </span>
+            <span style={{ color: "#444444", fontWeight: 500 }}>
+              -{discountAmount.toFixed(2)}
+            </span>
           </div>
         )}
-        <div style={{ height: "1px", backgroundColor: "#D9D9D9", margin: "8px 0", width: "100%" }} />
-        <div className="d-flex justify-content-between align-items-center fw-semibold" style={{ fontSize: 13 }}>
+        <div
+          style={{
+            height: "1px",
+            backgroundColor: "#D9D9D9",
+            margin: "8px 0",
+            width: "100%",
+          }}
+        />
+        <div
+          className="d-flex justify-content-between align-items-center fw-semibold"
+          style={{ fontSize: 13 }}
+        >
           <span style={{ color: "#444444" }}>Total Due</span>
           <span style={{ color: "#444444" }}>{netTotal.toFixed(2)}</span>
         </div>
         {hasFulfilledPayment && (
           <>
-            <div className="d-flex justify-content-between align-items-center fw-semibold mt-1" style={{ fontSize: 12 }}>
+            <div
+              className="d-flex justify-content-between align-items-center fw-semibold mt-1"
+              style={{ fontSize: 12 }}
+            >
               <span style={{ color: "#444444" }}>Amount Paid</span>
               <span style={{ color: "#444444" }}>{numericCash.toFixed(2)}</span>
             </div>
-            <div className="d-flex justify-content-between align-items-center fw-semibold mt-1" style={{ fontSize: 12 }}>
+            <div
+              className="d-flex justify-content-between align-items-center fw-semibold mt-1"
+              style={{ fontSize: 12 }}
+            >
               <span style={{ color: "#444444" }}>Change</span>
-              <span style={{ color: "#444444" }}>{Math.max(0, numericCash - netTotal).toFixed(2)}</span>
+              <span style={{ color: "#444444" }}>
+                {Math.max(0, numericCash - netTotal).toFixed(2)}
+              </span>
             </div>
           </>
         )}
@@ -233,7 +286,7 @@ export default function PosCurrentOrder() {
 
       <button
         type="button"
-        className="btn w-100 py-2 mt-auto pos-order-complete-btn"
+        className="btn w-100 py-2 mt-auto pos-order-complete-btn d-none d-md-block"
         onClick={openCompleteSaleModal}
         disabled={isOrderEmpty || (!!paymentError && !paymentMethod)}
       >

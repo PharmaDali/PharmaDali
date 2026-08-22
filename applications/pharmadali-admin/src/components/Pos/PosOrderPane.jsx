@@ -10,7 +10,7 @@ export default function PosOrderPane() {
             Current Order
           </h6>
         </div>
-        <div className="card-body p-3 pt-1 overflow-hidden pos-order-body" style={{ flex: 1, minHeight: 0 }}>
+        <div className="card-body p-3 pt-1 overflow-y-auto pos-order-body" style={{ flex: 1, minHeight: 0 }}>
           <PosCurrentOrder />
         </div>
       </div>
