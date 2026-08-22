@@ -77,7 +77,7 @@ export function PickUp() {
                       <div key={tab.id} className="position-relative d-inline-flex align-items-center">
                         <button
                           type="button"
-                          className={`nav-link btn-sm d-flex align-items-center rounded-3 px-3 py-1.5 ${
+                          className={`nav-link btn-sm d-flex align-items-center rounded-3 px-3 py-2 ${
                             isActive ? "active" : ""
                           }`}
                           style={{

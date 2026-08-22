@@ -107,11 +107,11 @@ export function DiscountControl({
         border: "1px solid rgba(150, 210, 238, 0.2)",
       }}
     >
-      <div className="pos-discount-title fw-semibold mb-2.5" style={{ color: "#444444", fontSize: "14px" }}>
+      <div className="pos-discount-title fw-semibold mb-2" style={{ color: "#444444", fontSize: "14px" }}>
         Discount
       </div>
 
-      <div className="row g-2.5 align-items-end">
+      <div className="row g-2 align-items-end">
         <div className="col-6">
           <label style={{ fontSize: "11px", color: "#64748b" }} className="fw-semibold mb-1 d-block">
             Type

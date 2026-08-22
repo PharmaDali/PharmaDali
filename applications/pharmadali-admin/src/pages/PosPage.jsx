@@ -51,11 +51,11 @@ function ProductTable({ results, selectedId, onSelect, onScroll, loadingMore }) 
           </colgroup>
           <thead>
             <tr style={{ background: "#96D2EE" }}>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Generic Name</th>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Brand Name</th>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Strength</th>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-end" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Price (PHP)</th>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-center" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Stocks</th>
+              <th className="px-3 py-2 fw-semibold border-0 text-start" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Generic Name</th>
+              <th className="px-3 py-2 fw-semibold border-0 text-start" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Brand Name</th>
+              <th className="px-3 py-2 fw-semibold border-0 text-start" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Strength</th>
+              <th className="px-3 py-2 fw-semibold border-0 text-end" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Price (PHP)</th>
+              <th className="px-3 py-2 fw-semibold border-0 text-center" style={{ color: "var(--pd-text-dark, #334155)", background: "#96D2EE" }}>Stocks</th>
             </tr>
           </thead>
         </table>
@@ -189,9 +189,9 @@ function CurrentOrder({
           </colgroup>
           <thead>
             <tr style={{ background: "#f8fafc" }}>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-start" style={{ color: "#334155" }}>Product</th>
-              <th className="px-2 py-2.5 fw-semibold border-0 text-center" style={{ color: "#334155" }}>Qty</th>
-              <th className="px-3 py-2.5 fw-semibold border-0 text-end" style={{ color: "#334155" }}>Subtotal</th>
+              <th className="px-3 py-2 fw-semibold border-0 text-start" style={{ color: "#334155" }}>Product</th>
+              <th className="px-2 py-2 fw-semibold border-0 text-center" style={{ color: "#334155" }}>Qty</th>
+              <th className="px-3 py-2 fw-semibold border-0 text-end" style={{ color: "#334155" }}>Subtotal</th>
             </tr>
           </thead>
         </table>
@@ -251,16 +251,16 @@ function CurrentOrder({
 
       {/* Order Breakdown at bottom of Payment Method */}
       <div className="px-2 pt-2 pb-1 pos-order-breakdown mt-1" style={{ fontSize: 13, color: "#444444" }}>
-        <div className="d-flex justify-content-between mb-1.5">
+        <div className="d-flex justify-content-between mb-1">
           <span style={{ color: "#444444" }}>No. of Items</span>
           <span style={{ color: "#444444", fontWeight: 500 }}>{totalQty}</span>
         </div>
-        <div className="d-flex justify-content-between mb-1.5">
+        <div className="d-flex justify-content-between mb-1">
           <span style={{ color: "#444444" }}>Order Subtotal</span>
           <span style={{ color: "#444444", fontWeight: 500 }}>{subtotal.toFixed(2)}</span>
         </div>
         {discountType !== "none" && discountAmount > 0 && (
-          <div className="d-flex justify-content-between mb-1.5">
+          <div className="d-flex justify-content-between mb-1">
             <span style={{ color: "#444444" }}>Discount ({getDiscountLabel(discountType)})</span>
             <span style={{ color: "#444444", fontWeight: 500 }}>-{discountAmount.toFixed(2)}</span>
           </div>
@@ -272,11 +272,11 @@ function CurrentOrder({
         </div>
         {hasFulfilledPayment && (
           <>
-            <div className="d-flex justify-content-between align-items-center fw-semibold mt-1.5" style={{ fontSize: 12 }}>
+            <div className="d-flex justify-content-between align-items-center fw-semibold mt-1" style={{ fontSize: 12 }}>
               <span style={{ color: "#444444" }}>Amount Paid</span>
               <span style={{ color: "#444444" }}>{numericCash.toFixed(2)}</span>
             </div>
-            <div className="d-flex justify-content-between align-items-center fw-semibold mt-1.5" style={{ fontSize: 12}}>
+            <div className="d-flex justify-content-between align-items-center fw-semibold mt-1" style={{ fontSize: 12}}>
               <span style={{ color: "#444444" }}>Change</span>
               <span style={{ color: "#444444" }}>{Math.max(0, numericCash - netTotal).toFixed(2)}</span>
             </div>
