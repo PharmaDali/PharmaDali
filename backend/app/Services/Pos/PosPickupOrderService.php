@@ -1,0 +1,135 @@
+<?php
+
+namespace App\Services\Pos;
+
+use App\Models\Order;
+use App\Models\Pharmacy;
+use App\Notifications\OrderCompletedNotification;
+use App\Repositories\PosRepository;
+use App\Services\Messaging\ConversationService;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class PosPickupOrderService
+{
+    public function __construct(
+        private readonly PosRepository $posRepository,
+        private readonly PosDiscountCalculator $discountCalculator
+    ) {}
+
+    /**
+     * Get pickup orders for the pharmacy with search and filtering.
+     */
+    public function getPickupOrders(array $filters, $user)
+    {
+        if (!$user) {
+            throw new \Exception("Unauthorized");
+        }
+
+        $pharmacyId = $user->pharmacy_id;
+        $search = $filters['search'] ?? null;
+        $status = $filters['status'] ?? 'all';
+
+        return $this->posRepository->getPickupOrders($pharmacyId, $status, $search);
+    }
+
+    /**
+     * Complete a pickup order and update payment info (with optional discount application).
+     */
+    public function completePickupOrder(
+        Order $order, 
+        $paymentMethod, 
+        $user, 
+        $amountReceived = null, 
+        $changeAmount = null,
+        array $discountData = []
+    ) {
+        if (is_array($paymentMethod)) {
+            $paymentMethod = $paymentMethod['id'] ?? $paymentMethod['value'] ?? 'cash';
+        }
+        $paymentMethod = is_string($paymentMethod) ? strtolower($paymentMethod) : 'cash';
+
+        if ($order->pharmacy_id !== $user->pharmacy_id) {
+            throw new \Exception("Unauthorized: Order does not belong to your pharmacy.");
+        }
+
+        if ($order->status === 'completed') {
+            throw new \Exception("Order is already completed.");
+        }
+
+        if ($order->status !== 'ready_for_pickup') {
+            throw new \Exception("Order must be in 'ready_for_pickup' status to be completed at POS.");
+        }
+
+        return DB::transaction(function () use ($order, $paymentMethod, $user, $amountReceived, $changeAmount, $discountData) {
+            $pharmacy = $user->pharmacy ?? (Pharmacy::find($user->pharmacy_id));
+            
+            // Calculate subtotal from order items if subtotal is 0
+            $subtotal = (float) $order->subtotal;
+            if ($subtotal <= 0) {
+                $subtotal = (float) $order->items->sum('line_total');
+            }
+
+            $discountType = $discountData['discount_type'] ?? $order->discount_type ?? 'none';
+            $discountPercentageInput = isset($discountData['discount_percentage']) 
+                ? (float) $discountData['discount_percentage'] 
+                : ($order->discount_percentage > 0 ? (float) $order->discount_percentage : null);
+            $discountAmountInput = isset($discountData['discount_amount']) 
+                ? (float) $discountData['discount_amount'] 
+                : ($order->discount_amount > 0 ? (float) $order->discount_amount : null);
+
+            [$discountAmount, $discountPercentage] = $this->discountCalculator->calculateDiscount(
+                subtotal: $subtotal,
+                discountType: $discountType,
+                discountPercentage: $discountPercentageInput,
+                discountAmount: $discountAmountInput,
+                pharmacy: $pharmacy
+            );
+
+            $totalAmount = max(0, round($subtotal - $discountAmount, 2));
+            $finalAmountReceived = $amountReceived !== null ? (float) $amountReceived : $totalAmount;
+            $finalChangeAmount = $changeAmount !== null ? (float) $changeAmount : max(0, round($finalAmountReceived - $totalAmount, 2));
+
+            $updateData = [
+                'status' => 'completed',
+                'verified_by' => $user->id,
+                'verified_at' => now(),
+                'payment_method' => $paymentMethod,
+                'payment_status' => 'paid',
+                'subtotal' => $subtotal,
+                'discount_type' => $discountType,
+                'discount_percentage' => $discountPercentage,
+                'discount_id_number' => $discountData['discount_id_number'] ?? $order->discount_id_number,
+                'discount_remarks' => $discountData['discount_remarks'] ?? $order->discount_remarks,
+                'discount_amount' => $discountAmount,
+                'total_amount' => $totalAmount,
+                'amount_received' => $finalAmountReceived,
+                'change_amount' => $finalChangeAmount,
+                'completed_at' => now(),
+                'picked_up_at' => now(),
+            ];
+
+            $this->posRepository->updateOrder($order, $updateData);
+
+            // Notify customer that order is completed
+            if ($order->customer && $order->customer->user) {
+                $order->customer->user->notify(new OrderCompletedNotification($order));
+            }
+
+            try {
+                $conversationService = app(ConversationService::class);
+                $msg = $conversationService->appendSystemMessage($order, 'Order completed', [
+                    'status' => 'completed',
+                ]);
+                $msg->conversation()->update([
+                    'status' => 'closed',
+                    'closed_at' => now(),
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('Failed to append system message or close conversation: ' . $e->getMessage());
+            }
+
+            return $order->load(['customer.user', 'items.pharmacyProduct.product']);
+        });
+    }
+}
