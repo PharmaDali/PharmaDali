@@ -68,6 +68,7 @@
 
 .pos-scroll::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 .pos-scroll::-webkit-scrollbar-track {
   background: #f0f4f8;

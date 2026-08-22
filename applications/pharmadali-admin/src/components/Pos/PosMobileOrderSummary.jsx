@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { usePosContext } from "../../context/PosContext";
 
 const getDiscountLabel = (type) => {
@@ -39,6 +39,18 @@ export default function PosMobileOrderSummary() {
   const hasFulfilledPayment =
     cashReceived !== "" && !Number.isNaN(numericCash) && numericCash > 0;
 
+  // Auto expand when Method of Payment (MoP) is selected or fulfilled
+  useEffect(() => {
+    if (paymentMethod && (paymentMethod !== "cash" || hasFulfilledPayment)) {
+      setIsExpanded(true);
+    }
+  }, [paymentMethod, hasFulfilledPayment]);
+
+  // Hide order summary completely on mobile when order is empty
+  if (isOrderEmpty) {
+    return null;
+  }
+
   return (
     <div className="d-block d-md-none">
       {isExpanded && (
@@ -49,8 +61,9 @@ export default function PosMobileOrderSummary() {
       )}
 
       <div
-        className={`pos-mobile-summary-container ${isExpanded ? "expanded" : "collapsed"
-          }`}
+        className={`pos-mobile-summary-container ${
+          isExpanded ? "expanded" : "collapsed"
+        }`}
       >
         {isExpanded && (
           <div
@@ -75,8 +88,9 @@ export default function PosMobileOrderSummary() {
               </span>
             )}
             <i
-              className={`fa-solid ${isExpanded ? "fa-chevron-down" : "fa-chevron-up"
-                } pos-mobile-summary-icon`}
+              className={`fa-solid ${
+                isExpanded ? "fa-chevron-down" : "fa-chevron-up"
+              } pos-mobile-summary-icon`}
             />
           </div>
         </div>
