@@ -93,7 +93,7 @@ export function AddQuantityModal({
           <div className="d-flex align-items-center justify-content-between gap-3">
             {/* Wider Stepper Input Form */}
             <div
-              className="d-flex align-items-center p-1.5 rounded-3 flex-grow-1"
+              className="d-flex align-items-center p-2 rounded-3 flex-grow-1"
               style={{
                 backgroundColor: "#eef6fb",
                 border: "1px solid #bae6fd",
@@ -160,7 +160,7 @@ export function AddQuantityModal({
 
         <button
           type="button"
-          className="btn w-100 py-2.5 rounded-3 fw-semibold text-white shadow-sm"
+          className="btn w-100 py-2 rounded-3 fw-semibold text-white shadow-sm"
           style={{ backgroundColor: "#2aabe2", borderColor: "#2aabe2", fontSize: "15px" }}
           onClick={handleConfirm}
         >

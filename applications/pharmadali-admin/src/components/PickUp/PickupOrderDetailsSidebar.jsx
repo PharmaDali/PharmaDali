@@ -149,7 +149,7 @@ export function PickupOrderDetailsSidebar({
       {isReady && (
         <button
           type="button"
-          className="btn w-100 py-2.5 text-white fw-bold rounded-3 mt-auto"
+          className="btn w-100 py-2 text-white fw-bold rounded-3 mt-auto"
           style={{ backgroundColor: "#2aabe2", borderColor: "#2aabe2", fontSize: 15 }}
           onClick={onOpenPaymentModal}
         >

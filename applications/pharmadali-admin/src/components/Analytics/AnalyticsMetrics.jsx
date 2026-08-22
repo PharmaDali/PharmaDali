@@ -12,7 +12,7 @@ export default function AnalyticsMetrics({ metrics, loading }) {
                 {metric.label}
               </span>
               {metric.badge && (
-                <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0.5" style={{ fontSize: "10px" }}>
+                <span className="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1" style={{ fontSize: "10px" }}>
                   {metric.badge}
                 </span>
               )}
