@@ -1,4 +1,4 @@
-import { placeCustomerOrder } from '@shared/services/orderService'
+import { placeCustomerOrder, uploadCustomerDiscountId, uploadCustomerPaymentReceipt } from '@shared/services/orderService'
 import { uploadOrderItemPrescription } from '@shared/services/prescriptionService'
 
 export function buildSelectedCartItemIds(items) {
@@ -12,14 +12,17 @@ export async function submitCheckoutOrder({
   items,
   hasPrescription,
   prescriptionImage,
+  discountIdImage,
+  gcashReceiptImage,
   selectedPharmacyLabel,
   scheduledPickupAt,
   customerNote,
+  paymentMethod = 'cash',
 }) {
   const selectedCartItemIds = buildSelectedCartItemIds(items)
 
   const orderPayload = await placeCustomerOrder({
-    paymentMethod: 'cash',
+    paymentMethod: paymentMethod || 'cash',
     scheduledPickupAt: scheduledPickupAt.toISOString(),
     pickedUpAt: selectedPharmacyLabel,
     note: customerNote || null,
@@ -27,6 +30,7 @@ export async function submitCheckoutOrder({
   })
 
   const order = orderPayload?.data || {}
+  const orderId = Number(order?.id ?? 0) || null
   const orderItems = Array.isArray(order?.items) ? order.items : []
 
   await uploadPrescriptionItemsIfNeeded({
@@ -36,9 +40,25 @@ export async function submitCheckoutOrder({
     prescriptionImage,
   })
 
+  if (orderId && discountIdImage?.uri) {
+    try {
+      await uploadCustomerDiscountId(orderId, discountIdImage)
+    } catch (err) {
+      console.warn('Failed to upload discount ID image:', err)
+    }
+  }
+
+  if (orderId && gcashReceiptImage?.uri) {
+    try {
+      await uploadCustomerPaymentReceipt(orderId, gcashReceiptImage)
+    } catch (err) {
+      console.warn('Failed to upload GCash payment receipt image:', err)
+    }
+  }
+
   return {
     order,
-    orderId: Number(order?.id ?? 0) || null,
+    orderId,
   }
 }
 

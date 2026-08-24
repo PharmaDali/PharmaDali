@@ -1,12 +1,20 @@
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput } from 'react-native'
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image, Modal } from 'react-native'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import * as ImagePicker from 'expo-image-picker'
 import { colors } from '@src/shared/theme/colorPalette'
 import RedLocationIcon from '@assets/icons/red_location_icon.svg'
 import LogoHeader from '@src/shared/components/LogoHeader'
 import RedInfoIcon from '@assets/icons/red_info_icon.svg'
+import DiscountIcon from '@assets/icons/discount_icon.svg'
+import BlueInfoIcon from '@assets/icons/blue_info_icon.svg'
+import PaymentMethodIcon from '@assets/icons/payment_method_icon.svg'
+import GcashIcon from '@assets/icons/gcash_icon.svg'
+import DownloadIcon from '@assets/icons/download_icon.svg'
+import GcashReceiptIcon from '@assets/icons/gcash_reciept_icon.svg'
+import QrCodeImage from '@assets/images/qrcode_dummy.png'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
 import { submitCheckoutOrder } from '@shared/services/checkoutSubmissionService'
@@ -25,7 +33,7 @@ const PickupDetailsScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { selectedPharmacy } = useSelectionPhase()
-  const { items, total, prescriptionImage } = getCheckoutDraft()
+  const { items, total, prescriptionImage, discountIdImage: draftDiscountId, gcashReceiptImage: draftGcashReceipt } = getCheckoutDraft()
 
   const hasPrescription = items.some((item) => item.prescriptionRequired)
   const totalItems = items.reduce((sum, item) => sum + (Number(item?.quantity) || 0), 0)
@@ -43,6 +51,10 @@ const PickupDetailsScreen = () => {
   const [showTimePicker, setShowTimePicker] = useState(false)
   const [selectedTime, setSelectedTime] = useState(null)
   const [customerNote, setCustomerNote] = useState('')
+  const [discountIdImage, setDiscountIdImage] = useState(draftDiscountId || null)
+  const [gcashReceiptImage, setGcashReceiptImage] = useState(draftGcashReceipt || null)
+  const [paymentMethod, setPaymentMethod] = useState('cash')
+  const [expandedImageUri, setExpandedImageUri] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
@@ -65,8 +77,17 @@ const PickupDetailsScreen = () => {
     [selectedDate, openingMinutes, closingMinutes],
   )
 
+  const formatTime12Hour = (date) => {
+    if (!date || !(date instanceof Date)) return ''
+    return date.toLocaleTimeString('en-PH', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+  }
+
   const selectedTimeLabel = selectedTime
-    ? selectedTime.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true })
+    ? formatTime12Hour(selectedTime)
     : 'Select pickup time'
 
   const confirmPickupValidationError = useMemo(() => {
@@ -109,11 +130,9 @@ const PickupDetailsScreen = () => {
       return
     }
 
-    if (selectedTime && selectedTime >= minimumDateTime && selectedTime <= closingDateTime) {
-      return
+    if (selectedTime && (selectedTime < minimumDateTime || selectedTime > closingDateTime)) {
+      setSelectedTime(null)
     }
-
-    setSelectedTime(new Date(minimumDateTime))
   }, [hasValidOperatingWindow, hasWindowToday, minimumDateTime, closingDateTime, selectedTime])
 
   const handleTimePickerChange = (event, pickedValue) => {
@@ -143,6 +162,136 @@ const PickupDetailsScreen = () => {
     setSelectedTime(candidate)
   }
 
+  const handlePickDiscountIdFromGallery = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (status !== 'granted') {
+        setSubmitError('Permission to access media library was denied.')
+        return
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        quality: 0.8,
+      })
+
+      if (!result.canceled && result.assets?.[0]) {
+        const asset = result.assets[0]
+        const selected = {
+          uri: asset.uri,
+          fileName: asset.fileName || 'discount_id.jpg',
+          mimeType: asset.mimeType || 'image/jpeg',
+        }
+        setDiscountIdImage(selected)
+        setCheckoutDraft({
+          ...getCheckoutDraft(),
+          discountIdImage: selected,
+        })
+      }
+    } catch (err) {
+      setSubmitError('Failed to pick image from gallery.')
+    }
+  }
+
+  const handleTakeDiscountIdPhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync()
+      if (status !== 'granted') {
+        setSubmitError('Permission to access camera was denied.')
+        return
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        quality: 0.8,
+      })
+
+      if (!result.canceled && result.assets?.[0]) {
+        const asset = result.assets[0]
+        const selected = {
+          uri: asset.uri,
+          fileName: asset.fileName || 'discount_id.jpg',
+          mimeType: asset.mimeType || 'image/jpeg',
+        }
+        setDiscountIdImage(selected)
+        setCheckoutDraft({
+          ...getCheckoutDraft(),
+          discountIdImage: selected,
+        })
+      }
+    } catch (err) {
+      setSubmitError('Failed to take photo.')
+    }
+  }
+
+  const handleRemoveDiscountId = () => {
+    setDiscountIdImage(null)
+    setCheckoutDraft({
+      ...getCheckoutDraft(),
+      discountIdImage: null,
+    })
+  }
+
+  const handlePickGcashReceiptFromGallery = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync()
+      if (!permissionResult.granted) {
+        setSubmitError('Permission to access gallery is required.')
+        return
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        quality: 0.8,
+      })
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selected = result.assets[0]
+        setGcashReceiptImage(selected)
+        setCheckoutDraft({
+          ...getCheckoutDraft(),
+          gcashReceiptImage: selected,
+        })
+      }
+    } catch (err) {
+      setSubmitError('Failed to pick GCash receipt image.')
+    }
+  }
+
+  const handleTakeGcashReceiptPhoto = async () => {
+    try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync()
+      if (!permissionResult.granted) {
+        setSubmitError('Permission to access camera is required.')
+        return
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: false,
+        quality: 0.8,
+      })
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const captured = result.assets[0]
+        setGcashReceiptImage(captured)
+        setCheckoutDraft({
+          ...getCheckoutDraft(),
+          gcashReceiptImage: captured,
+        })
+      }
+    } catch (err) {
+      setSubmitError('Failed to take photo.')
+    }
+  }
+
+  const handleRemoveGcashReceipt = () => {
+    setGcashReceiptImage(null)
+    setCheckoutDraft({
+      ...getCheckoutDraft(),
+      gcashReceiptImage: null,
+    })
+  }
+
   const handleConfirmPickup = async () => {
     if (confirmPickupValidationError) {
       setSubmitError(confirmPickupValidationError)
@@ -161,9 +310,12 @@ const PickupDetailsScreen = () => {
         items,
         hasPrescription,
         prescriptionImage,
+        discountIdImage,
+        gcashReceiptImage,
         selectedPharmacyLabel,
         scheduledPickupAt,
         customerNote: normalizedCustomerNote,
+        paymentMethod: hasPrescription ? 'cash' : paymentMethod,
       })
 
       setCheckoutDraft({
@@ -187,7 +339,7 @@ const PickupDetailsScreen = () => {
         <StepIndicator currentStep={hasPrescription ? 2 : 1} hasPrescription={hasPrescription} />
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-4 p-4">
           <View className="flex-row items-center">
             <RedLocationIcon width={18} height={18} />
@@ -198,7 +350,7 @@ const PickupDetailsScreen = () => {
         </View>
 
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-4">
-          <Text className="text-sm mb-2" style={styles.fontBold}>Pickup Time</Text>
+          <Text className="text-sm mb-2" style={styles.fontSemiBold}>Pickup Time</Text>
           <TouchableOpacity
             className={`rounded-xl border px-3 py-3 ${hasValidOperatingWindow && hasWindowToday ? 'border-[#48AAD9] bg-[#F8FCFF]' : 'border-gray-300 bg-gray-100'}`}
             disabled={!hasValidOperatingWindow || !hasWindowToday}
@@ -213,7 +365,7 @@ const PickupDetailsScreen = () => {
             </View>
             <Text className="text-[10px] text-gray-500 mt-1" style={styles.fontMedium}>
               {hasValidOperatingWindow && hasWindowToday
-                ? `Available between ${minimumDateTime.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true })} and ${formatMinutesToAmPm(closingMinutes)}`
+                ? `Available between ${formatTime12Hour(minimumDateTime)} and ${formatMinutesToAmPm(closingMinutes)}`
                 : hasValidOperatingWindow
                   ? 'No pickup slots available today.'
                   : 'Operating hours unavailable for this pharmacy'}
@@ -240,6 +392,7 @@ const PickupDetailsScreen = () => {
           {showTimePicker && hasValidOperatingWindow && hasWindowToday && (
             <DateTimePicker
               mode="time"
+              is24Hour={false}
               value={selectedTime || minimumDateTime}
               onChange={handleTimePickerChange}
               minimumDate={minimumDateTime}
@@ -248,7 +401,7 @@ const PickupDetailsScreen = () => {
             />
           )}
 
-          <Text className="text-sm mt-4 mb-2" style={styles.fontBold}>Customer Notes (Optional)</Text>
+          <Text className="text-sm mt-4 mb-2" style={styles.fontSemiBold}>Customer Notes (Optional)</Text>
           <TextInput
             value={customerNote}
             onChangeText={setCustomerNote}
@@ -256,7 +409,7 @@ const PickupDetailsScreen = () => {
             placeholderTextColor="#9CA3AF"
             multiline
             maxLength={250}
-            className="rounded-xl border border-gray-300 px-3 py-3"
+            className="rounded-xl border border-gray-300 px-3 py-2 text-xs"
             style={styles.noteInput}
             textAlignVertical="top"
           />
@@ -265,19 +418,286 @@ const PickupDetailsScreen = () => {
           </Text>
         </View>
 
-        <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-4">
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-xs" style={styles.fontBold}>Total Items: {totalItems}</Text>
-            <Text className="text-xs">
-              <Text style={styles.fontBold}>Total: </Text>
-              <Text style={styles.priceText}>PHP {effectiveTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</Text>
+        {/* Senior/PWD Discount Card */}
+        <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 overflow-hidden">
+          <View className="p-4">
+            <Text className="text-sm" style={styles.fontSemiBold}>
+              Senior/PWD Discount (Optional)
             </Text>
+            <Text className="text-xs text-gray-600 mt-1 mb-3" style={styles.fontMedium}>
+              If you are availing a Senior or PWD discount, please upload a valid ID.
+            </Text>
+
+            <View className="flex-row items-center mb-4 py-1">
+              <DiscountIcon width={28} height={28} />
+              <View className="ml-3 flex-1">
+                <Text className="text-xs" style={styles.fontMedium}>
+                  Accepted: Senior Citizen ID, PWD ID
+                </Text>
+                <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
+                  File Format: JPG PNG (Max. 5MB)
+                </Text>
+              </View>
+            </View>
+
+            <View className="flex-row justify-between gap-2.5">
+              <TouchableOpacity
+                className="flex-[1.25] border border-[#48AAD9] rounded-xl py-3 items-center justify-center bg-white"
+                onPress={handlePickDiscountIdFromGallery}
+              >
+                <Text className="text-xs" style={styles.primarySemiBold}>
+                  Upload from Gallery
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="flex-1 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
+                onPress={handleTakeDiscountIdPhoto}
+              >
+                <Text className="text-xs text-white" style={styles.confirmPickupText}>
+                  Take a Photo
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Post-Upload Image Preview Container */}
+            {discountIdImage ? (
+              <View className="mt-3 rounded-2xl bg-[#EEF7FD] p-4 flex-row items-center justify-between">
+                <View className="relative">
+                  <TouchableOpacity
+                    onPress={() => setExpandedImageUri(discountIdImage.uri)}
+                    activeOpacity={0.9}
+                  >
+                    <Image
+                      source={{ uri: discountIdImage.uri }}
+                      className="w-36 h-24 rounded-xl"
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleRemoveDiscountId}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#48AAD9] items-center justify-center border-2 border-white"
+                    activeOpacity={0.8}
+                  >
+                    <Text className="text-white text-[11px] font-bold leading-none">✕</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  className="px-8 py-2.5 rounded-xl border border-[#48AAD9] bg-white items-center justify-center min-w-[96px]"
+                  onPress={handlePickDiscountIdFromGallery}
+                >
+                  <Text className="text-xs" style={styles.primarySemiBold}>
+                    Upload
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
           </View>
 
+          {/* Info Container with #CFE7F3 background */}
+          <View className="bg-[#CFE7F3] px-4 py-3 flex-row items-center border-t border-[#B9DEEF]">
+            <BlueInfoIcon width={18} height={18} />
+            <Text className="text-xs ml-2.5 flex-1" style={styles.discountInfoText}>
+              Our pharmacist may ask you to present the original ID upon pickup.
+            </Text>
+          </View>
         </View>
 
+        {/* Fullscreen Expandable Image Modal */}
+        <Modal
+          visible={!!expandedImageUri}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setExpandedImageUri(null)}
+        >
+          <View className="flex-1 bg-black/85 items-center justify-center p-4">
+            <TouchableOpacity
+              className="absolute top-12 right-6 z-10 w-10 h-10 rounded-full bg-white/20 items-center justify-center"
+              onPress={() => setExpandedImageUri(null)}
+            >
+              <Text className="text-white text-lg font-bold">✕</Text>
+            </TouchableOpacity>
+            {expandedImageUri ? (
+              <Image
+                source={{ uri: expandedImageUri }}
+                className="w-full h-4/6 rounded-xl"
+                resizeMode="contain"
+              />
+            ) : null}
+          </View>
+        </Modal>
+
+        {/* Payment Method Container */}
+        <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 overflow-hidden">
+          <View className="p-4">
+            <Text className="text-sm mb-3" style={styles.fontSemiBold}>Payment Method</Text>
+
+            {hasPrescription ? (
+              /* Prescribed items: Fixed Pay at Pharmacy (Cash/GCash) row */
+              <View className="flex-row items-center py-1">
+                <PaymentMethodIcon width={22} height={22} />
+                <Text className="text-xs ml-3" style={styles.fontMedium}>
+                  Pay at Pharmacy (Cash/GCash)
+                </Text>
+              </View>
+            ) : (
+              /* OTC items: Selectable Cash and GCash QR options */
+              <View className="gap-3">
+                <TouchableOpacity
+                  className="flex-row items-center justify-between py-1"
+                  onPress={() => setPaymentMethod('cash')}
+                  activeOpacity={0.8}
+                >
+                  <View className="flex-row items-center flex-1">
+                    <PaymentMethodIcon width={22} height={22} />
+                    <Text className="text-xs ml-3" style={styles.fontMedium}>
+                      Pay at Pharmacy (Cash)
+                    </Text>
+                  </View>
+                  <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${paymentMethod === 'cash' ? 'border-[#48AAD9]' : 'border-gray-400'}`}>
+                    {paymentMethod === 'cash' && (
+                      <View className="w-2.5 h-2.5 rounded-full bg-[#48AAD9]" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  className="flex-row items-center justify-between py-1"
+                  onPress={() => setPaymentMethod('gcash')}
+                  activeOpacity={0.8}
+                >
+                  <View className="flex-row items-center flex-1">
+                    <GcashIcon width={22} height={22} />
+                    <Text className="text-xs ml-3" style={styles.fontMedium}>
+                      GCash QR / Scan to Pay
+                    </Text>
+                  </View>
+                  <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${paymentMethod === 'gcash' ? 'border-[#48AAD9]' : 'border-gray-400'}`}>
+                    {paymentMethod === 'gcash' && (
+                      <View className="w-2.5 h-2.5 rounded-full bg-[#48AAD9]" />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View className="border-t border-gray-100 my-3" />
+
+            {/* Total Items & Estimated Total Row */}
+            <View className="flex-row justify-between items-center">
+              <Text className="text-xs" style={styles.fontMedium}>
+                Total items: <Text style={styles.fontBold}>{totalItems}</Text>
+              </Text>
+              <Text className="text-xs" style={styles.fontMedium}>
+                Estimated Total: <Text style={styles.fontBold}>₱{effectiveTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</Text>
+              </Text>
+            </View>
+          </View>
+
+          {/* Bottom Info Banner (#CFE7F3 background) */}
+          <View className="bg-[#CFE7F3] px-4 py-3 flex-row items-center border-t border-[#B9DEEF]">
+            <RedInfoIcon width={16} height={16} />
+            <Text className="text-xs ml-2.5 flex-1" style={styles.paymentInfoText}>
+              Final amount may change after pharmacist review.
+            </Text>
+          </View>
+        </View>
+
+        {/* QR Code Container (Only appears when OTC items AND GCash selected) */}
+        {!hasPrescription && paymentMethod === 'gcash' && (
+          <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-5 items-center justify-center relative">
+            <TouchableOpacity className="absolute top-4 right-4 p-1" activeOpacity={0.7}>
+              <DownloadIcon width={24} height={24} />
+            </TouchableOpacity>
+            <Image
+              source={QrCodeImage}
+              className="w-60 h-60"
+              resizeMode="contain"
+            />
+          </View>
+        )}
+
+        {/* GCash Receipt Upload Container (Only appears when OTC items AND GCash selected) */}
+        {!hasPrescription && paymentMethod === 'gcash' && (
+          <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-4">
+            <Text className="text-sm" style={styles.fontSemiBold}>
+              GCash QR / Scan to Pay Receipt
+            </Text>
+            <Text className="text-xs text-gray-600 mt-1 mb-3" style={styles.fontMedium}>
+              Upload a screenshot or photo of your Gcash payment receipt. Make sure the payment details are visible.
+            </Text>
+
+            <View className="flex-row items-center mb-4 py-1">
+              <GcashReceiptIcon width={28} height={28} />
+              <View className="ml-3 flex-1">
+                <Text className="text-xs" style={styles.fontMedium}>
+                  Accepted: Gcash receipt screenshot or photo
+                </Text>
+                <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
+                  File Format: JPG PNG (Max. 5MB)
+                </Text>
+              </View>
+            </View>
+
+            <View className="flex-row justify-between gap-2.5">
+              <TouchableOpacity
+                className="flex-[1.25] border border-[#48AAD9] rounded-xl py-3 items-center justify-center bg-white"
+                onPress={handlePickGcashReceiptFromGallery}
+              >
+                <Text className="text-xs" style={styles.primarySemiBold}>
+                  Upload from Gallery
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="flex-1 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
+                onPress={handleTakeGcashReceiptPhoto}
+              >
+                <Text className="text-xs text-white" style={styles.confirmPickupText}>
+                  Take a Photo
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Post-Upload Image Preview Container */}
+            {gcashReceiptImage ? (
+              <View className="mt-3 rounded-2xl bg-[#EEF7FD] p-4 flex-row items-center justify-between">
+                <View className="relative">
+                  <TouchableOpacity
+                    onPress={() => setExpandedImageUri(gcashReceiptImage.uri)}
+                    activeOpacity={0.9}
+                  >
+                    <Image
+                      source={{ uri: gcashReceiptImage.uri }}
+                      className="w-36 h-24 rounded-xl"
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleRemoveGcashReceipt}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#48AAD9] items-center justify-center border-2 border-white"
+                    activeOpacity={0.8}
+                  >
+                    <Text className="text-white text-[11px] font-bold leading-none">✕</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity
+                  className="px-8 py-2.5 rounded-xl border border-[#48AAD9] bg-white items-center justify-center min-w-[96px]"
+                  onPress={handlePickGcashReceiptFromGallery}
+                >
+                  <Text className="text-xs" style={styles.primarySemiBold}>
+                    Upload
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : null}
+          </View>
+        )}
+
         {isPharmacyClosed && (
-          <View className="flex-row items-start bg-[#FFF7ED] rounded-xl mx-4 mt-3 mb-1 p-3 border border-[#FCD34D]">
+          <View className="flex-row items-start bg-[#FFF7ED] rounded-xl mx-4 mt-3 p-3 border border-[#FCD34D]">
             <RedInfoIcon width={14} height={14} />
             <View className="flex-1 ml-2">
               <Text className="text-xs" style={styles.closedWarningTitle}>Pharmacy is currently closed</Text>
@@ -287,18 +707,6 @@ const PickupDetailsScreen = () => {
             </View>
           </View>
         )}
-
-        <View className="mx-4 mt-3 mb-4 rounded-xl bg-[#EEF7FD] border border-[#C8E3F5] px-4 py-3">
-          <Text className="text-[10px] mb-1" style={styles.noteHeading}>Things to know</Text>
-          <View className="flex-row items-start mt-1">
-            <Text style={styles.noteBullet}>•</Text>
-            <Text className="text-[10px] ml-1.5 flex-1" style={styles.noteText}>Payment is collected at the pharmacy upon pickup — cash or GCash accepted.</Text>
-          </View>
-          <View className="flex-row items-start mt-1">
-            <Text style={styles.noteBullet}>•</Text>
-            <Text className="text-[10px] ml-1.5 flex-1" style={styles.noteText}>Final amount may change after pharmacist review.</Text>
-          </View>
-        </View>
       </ScrollView>
 
       <View className="flex-row justify-center gap-4 px-6 py-4 bg-white border-t border-gray-100">
@@ -329,15 +737,15 @@ export default PickupDetailsScreen
 const styles = StyleSheet.create({
   fontBold: {
     fontFamily: 'Poppins-Bold',
-    color: colors.textColor,
+    color: '#444444',
   },
   fontSemiBold: {
     fontFamily: 'Poppins-SemiBold',
-    color: colors.textColor,
+    color: '#444444',
   },
   fontMedium: {
     fontFamily: 'Poppins-Medium',
-    color: colors.textColor,
+    color: '#444444',
   },
   confirmPickupText: {
     fontFamily: 'Poppins-SemiBold',
@@ -353,8 +761,9 @@ const styles = StyleSheet.create({
   },
   noteInput: {
     fontFamily: 'Poppins-Medium',
-    minHeight: 90,
-    color: colors.textColor,
+    minHeight: 52,
+    fontSize: 11,
+    color: '#444444',
   },
   closedWarningTitle: {
     fontFamily: 'Poppins-SemiBold',
@@ -380,4 +789,15 @@ const styles = StyleSheet.create({
     color: '#4A7A94',
     lineHeight: 16,
   },
+  discountInfoText: {
+    fontFamily: 'Poppins-Medium',
+    color: '#444444',
+    lineHeight: 16,
+  },
+  paymentInfoText: {
+    fontFamily: 'Poppins-Medium',
+    color: '#444444',
+    lineHeight: 16,
+  },
 })
+

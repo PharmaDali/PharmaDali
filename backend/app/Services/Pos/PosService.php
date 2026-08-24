@@ -38,16 +38,9 @@ class PosService
     }
 
     /**
-     * Complete a pickup order and update payment info (with optional discount application).
+     * Complete a pickup order and update payment info.
      */
     public function completePickupOrder(Order $order, $paymentMethod, $user, $amountReceived = null, $changeAmount = null, array $discountData = []) {
-        return $this->pickupOrderService->completePickupOrder(
-            $order,
-            $paymentMethod,
-            $user,
-            $amountReceived,
-            $changeAmount,
-            $discountData
-        );
+        return $this->pickupOrderService->completePickupOrder($order, $paymentMethod, $user, $amountReceived, $changeAmount, $discountData);
     }
 }
