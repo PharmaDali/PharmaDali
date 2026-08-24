@@ -58,16 +58,13 @@ export function PickUp() {
     <section className="inventory-page d-flex flex-column" aria-label="Pickup Order Fulfillment">
       <div className="row g-4 align-items-stretch">
         <div className={activeOrder ? "col-12 col-lg-8 col-xl-9 d-flex flex-column" : "col-12 d-flex flex-column"}>
-          {/* Main White Parent Card wrapping the whole view */}
           <div className="bg-white rounded-3 shadow-sm p-4 d-flex flex-column flex-grow-1">
-            {/* Header Row: Title & Tabs */}
             <div className="d-flex align-items-end justify-content-between" style={{ marginBottom: "0" }}>
               <h4 className="fw-bold text-dark m-0 pb-2" style={{ fontSize: "1.25rem" }}>
                 Pickup Orders
               </h4>
               <div className="d-flex gap-1" style={{ marginBottom: "-1px", zIndex: 2 }}>
                 {(() => {
-                  // Reorder to match mockup: All, Completed, Ready
                   const orderedTabs = [
                     PICKUP_TABS.find(t => t.id === "All"),
                     PICKUP_TABS.find(t => t.id === "Completed"),
@@ -126,11 +123,9 @@ export function PickUp() {
               </div>
             </div>
 
-            {/* Main Cyan Parent Card for Search + Table */}
-            <div className="p-4 d-flex flex-column flex-grow-1" style={{ backgroundColor: "#e2f2fa", border: "1px solid #cce4f2", borderRadius: "12px", zIndex: 1 }}>
-              
-              {/* Search Bar - Full Width with light blue background */}
-              <div className="mb-4 w-100">
+            <div className="d-flex flex-column flex-grow-1" style={{ backgroundColor: "#e2f2fa", border: "1px solid #cce4f2", borderTopLeftRadius: "12px", borderTopRightRadius: "0px", borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px", zIndex: 1, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)", paddingTop: "24px", paddingBottom: "0px", paddingLeft: "0px", paddingRight: "0px", overflow: "hidden" }}>
+
+              <div className="mb-4 px-4">
                 <div className="input-group">
                   <span className="input-group-text border-end-0" style={{ borderColor: "#cce4f2", backgroundColor: "#edf4f9" }}>
                     <i className="fa-solid fa-magnifying-glass text-muted"></i>
@@ -185,7 +180,6 @@ export function PickUp() {
         )}
       </div>
 
-      {/* Reusable Payment Modals */}
       <ReceivePaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}

@@ -23,7 +23,10 @@ export function PickupOrdersTable({
         className="table-responsive flex-grow-1 overflow-hidden d-flex flex-column justify-content-between" 
         style={{ 
           backgroundColor: "transparent", 
-          borderRadius: "10px"
+          borderTopLeftRadius: "0px",
+          borderTopRightRadius: "0px",
+          borderBottomLeftRadius: "10px",
+          borderBottomRightRadius: "10px"
         }}
       >
         <table className="table align-middle mb-0 inventory-table" style={{ backgroundColor: "transparent", borderCollapse: "separate", borderSpacing: "0", border: "none" }}>
@@ -40,13 +43,13 @@ export function PickupOrdersTable({
           <tbody>
             {loading ? (
               <tr style={{ backgroundColor: "#ffffff" }}>
-                <td colSpan={6} style={{ backgroundColor: "#ffffff", borderRadius: "10px" }}>
+                <td colSpan={6} style={{ backgroundColor: "#ffffff", borderTopLeftRadius: "0px", borderTopRightRadius: "0px", borderBottomLeftRadius: "10px", borderBottomRightRadius: "10px" }}>
                   <TableSkeleton rows={5} columns={6} showAvatar={false} />
                 </td>
               </tr>
             ) : fetchError ? (
               <tr className="inventory-empty-row" style={{ cursor: "default", backgroundColor: "#ffffff" }}>
-                <td colSpan={6} className="text-center py-5" style={{ backgroundColor: "#ffffff", borderRadius: "10px" }}>
+                <td colSpan={6} className="text-center py-5" style={{ backgroundColor: "#ffffff", borderTopLeftRadius: "0px", borderTopRightRadius: "0px", borderBottomLeftRadius: "10px", borderBottomRightRadius: "10px" }}>
                   <div className="d-flex flex-column align-items-center justify-content-center py-4">
                     <i className="fa-solid fa-plug-circle-xmark mb-3 text-warning" style={{ fontSize: "3.5rem" }} />
                     <span className="fw-semibold text-dark mb-1" style={{ fontSize: "16px" }}>
@@ -60,7 +63,7 @@ export function PickupOrdersTable({
               </tr>
             ) : paginatedOrders.length === 0 ? (
               <tr className="inventory-empty-row" style={{ cursor: "default", backgroundColor: "#ffffff" }}>
-                <td colSpan={6} className="text-center py-5" style={{ backgroundColor: "#ffffff", borderRadius: "10px" }}>
+                <td colSpan={6} className="text-center py-5" style={{ backgroundColor: "#ffffff", borderTopLeftRadius: "0px", borderTopRightRadius: "0px", borderBottomLeftRadius: "10px", borderBottomRightRadius: "10px" }}>
                   <div className="d-flex flex-column align-items-center justify-content-center py-4">
                     <i className="fa-solid fa-box-open mb-3" style={{ fontSize: "3.5rem", color: "#94a3b8" }} />
                     <span className="fw-medium" style={{ fontSize: "15px", color: "#64748b" }}>
@@ -77,8 +80,8 @@ export function PickupOrdersTable({
                 const isFirstRow = index === 0;
 
                 // Calculate border radius for clean card rounding of the table body block
-                const topLeftRadius = isFirstRow ? "10px" : "0px";
-                const topRightRadius = isFirstRow ? "10px" : "0px";
+                const topLeftRadius = "0px";
+                const topRightRadius = "0px";
                 const bottomLeftRadius = isLastRow ? "10px" : "0px";
                 const bottomRightRadius = isLastRow ? "10px" : "0px";
 
