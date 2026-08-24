@@ -40,7 +40,7 @@ export function Pharmacists() {
       <h4 className="fw-bold mb-1 admin-page-title">Pharmacist</h4>
       <p className="admin-page-subtitle mb-4">List of pharmacist accounts in the pharmacy.</p>
 
-      <div className="d-flex justify-content-end mb-3">
+      <div className="d-none d-md-flex justify-content-end mb-3">
         <button type="button" className="btn pharmacists-add-btn" onClick={() => handleOpenModal()}>
           Add new pharmacist
         </button>
@@ -55,6 +55,7 @@ export function Pharmacists() {
         onOpenModal={handleOpenModal}
         onOpenDetailsModal={handleOpenDetailsModal}
         onOpenPermissionsModal={handleOpenPermissionsModal}
+        onDelete={handleDeletePharmacist}
       />
 
       <PharmacistFormModal

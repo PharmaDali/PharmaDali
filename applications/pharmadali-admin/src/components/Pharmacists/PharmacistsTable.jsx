@@ -12,26 +12,97 @@ export function PharmacistsTable({
   onOpenModal,
   onOpenDetailsModal,
   onOpenPermissionsModal,
+  onDelete,
 }) {
   return (
-    <article className="pharmacists-card">
-      <div className="pharmacists-toolbar">
-        <div className="pharmacists-toolbar-left">
-          <h6 className="pharmacists-title mb-0">Pharmacist</h6>
-          <span className="pharmacists-count">{rows.length} account(s)</span>
-        </div>
-
-        <div style={{ minWidth: 260 }}>
+    <article className="pharmacists-card bg-transparent border-0 shadow-none">
+      {/* Mobile Toolbar (Search + Add) */}
+      <div className="d-flex d-md-none gap-2 mb-3">
+        <div className="flex-grow-1" style={{ backgroundColor: "#edf4f9", borderRadius: "6px" }}>
           <SearchBar
-            id="pharmacists-search"
+            id="pharmacists-search-mobile"
             value={search}
             onChange={(val) => setSearch(val)}
-            placeholder="Search by name, phone..."
+            placeholder="Search by"
           />
         </div>
+        <button 
+          type="button" 
+          className="btn text-white rounded-2 px-3 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" 
+          style={{ backgroundColor: "#48aad9", fontSize: "13px", border: "none" }}
+          onClick={() => onOpenModal()}
+        >
+          + Add new pharmacist
+        </button>
       </div>
 
-      <div className="pharmacists-table-scroll">
+      {/* Mobile Card Layout */}
+      <div className="d-block d-md-none">
+        {loading ? (
+          <div className="p-3 bg-white rounded-3 text-center shadow-sm">Loading...</div>
+        ) : tableError ? (
+          <div className="p-3 bg-white rounded-3 text-center text-danger shadow-sm">{tableError}</div>
+        ) : rows.length === 0 ? (
+          <div className="p-4 bg-white rounded-3 text-center text-muted shadow-sm">No pharmacist records found.</div>
+        ) : (
+          rows.map((item) => (
+            <div key={item.id} className="bg-white rounded-3 p-3 mb-3 shadow-sm d-flex flex-column">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <span className="fw-semibold text-dark" style={{ fontSize: "15px" }}>
+                  {item.first_name} {item.last_name}
+                </span>
+                <span 
+                  className="badge rounded-pill" 
+                  style={{ 
+                    fontSize: "12px", 
+                    padding: "4px 14px", 
+                    backgroundColor: item.is_active ? "#a7f3d0" : "#e2e8f0", 
+                    color: item.is_active ? "#047857" : "#475569",
+                    fontWeight: "600"
+                  }}
+                >
+                  {item.is_active ? "Active" : "Inactive"}
+                </span>
+              </div>
+              <div className="text-muted d-flex gap-4 mb-1" style={{ fontSize: "13px" }}>
+                <span>ID: {item.pharmacist?.employee_number || "—"}</span>
+                <span>Age: {item.date_of_birth ? calculateAge(item.date_of_birth) : "N/A"}</span>
+              </div>
+              <div className="text-muted mb-3" style={{ fontSize: "13px" }}>
+                Mobile: {item.mobile_number}
+              </div>
+              <div className="d-flex justify-content-end gap-3 border-top pt-2 mt-1">
+                <button type="button" className="btn btn-link p-0 text-primary" onClick={() => onOpenDetailsModal(item)}>
+                  <i className="fa-regular fa-pen-to-square" style={{ fontSize: "16px", color: "#48aad9" }} />
+                </button>
+                <button type="button" className="btn btn-link p-0 text-danger" onClick={() => onDelete(item.id)}>
+                  <i className="fa-regular fa-trash-can" style={{ fontSize: "16px", color: "#ef4444" }} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop View */}
+      <div className="d-none d-md-block bg-white rounded-3 shadow-sm p-3">
+        <div className="pharmacists-toolbar">
+          <div className="pharmacists-toolbar-left">
+            <h6 className="pharmacists-title mb-0">Pharmacist</h6>
+            <span className="pharmacists-count">{rows.length} account(s)</span>
+          </div>
+
+          <div style={{ minWidth: 260 }}>
+            <SearchBar
+              id="pharmacists-search"
+              value={search}
+              onChange={(val) => setSearch(val)}
+              placeholder="Search by name, phone..."
+            />
+          </div>
+        </div>
+
+        <div className="pharmacists-table-scroll">
         <table className="table mb-0 pharmacists-table">
           <thead>
             <tr>
@@ -100,6 +171,7 @@ export function PharmacistsTable({
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </article>
   );
