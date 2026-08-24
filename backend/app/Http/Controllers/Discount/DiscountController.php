@@ -9,6 +9,7 @@ use App\Models\Discount;
 use App\Services\Discount\DiscountService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class DiscountController extends Controller
 {
@@ -27,9 +28,13 @@ class DiscountController extends Controller
         }
 
         $all = $request->boolean('all', false);
-        $discounts = $all
-            ? $this->service->getDiscountsForPharmacy($pharmacyId)
-            : $this->service->getActiveDiscountsForPharmacy($pharmacyId);
+        $cacheKey = "pharmacy_{$pharmacyId}_discounts_" . ($all ? 'all' : 'active');
+
+        $discounts = Cache::remember($cacheKey, 3600, function () use ($pharmacyId, $all) {
+            return $all
+                ? $this->service->getDiscountsForPharmacy($pharmacyId)
+                : $this->service->getActiveDiscountsForPharmacy($pharmacyId);
+        });
 
         return $this->successResponse($discounts, 'Discount policies retrieved successfully.');
     }
@@ -42,6 +47,8 @@ class DiscountController extends Controller
         }
 
         $discount = $this->service->createDiscount($pharmacyId, $request->validated());
+
+        $this->clearDiscountCache($pharmacyId);
 
         return $this->successResponse($discount, 'Discount policy created successfully.', 201);
     }
@@ -57,6 +64,8 @@ class DiscountController extends Controller
 
         $updated = $this->service->updateDiscount($discount, $request->validated());
 
+        $this->clearDiscountCache($pharmacyId);
+
         return $this->successResponse($updated, 'Discount policy updated successfully.');
     }
 
@@ -71,6 +80,14 @@ class DiscountController extends Controller
 
         $this->service->deleteDiscount($discount);
 
+        $this->clearDiscountCache($pharmacyId);
+
         return $this->successResponse(null, 'Discount policy deleted successfully.');
+    }
+
+    private function clearDiscountCache(int $pharmacyId): void
+    {
+        Cache::forget("pharmacy_{$pharmacyId}_discounts_all");
+        Cache::forget("pharmacy_{$pharmacyId}_discounts_active");
     }
 }
