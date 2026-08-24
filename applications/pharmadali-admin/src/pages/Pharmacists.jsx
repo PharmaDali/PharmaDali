@@ -4,6 +4,7 @@ import PharmacistsTable from "../components/Pharmacists/PharmacistsTable";
 import PharmacistFormModal from "../components/Pharmacists/PharmacistFormModal";
 import PharmacistDetailsModal from "../components/Pharmacists/PharmacistDetailsModal";
 import PharmacistPermissionsModal from "../components/Pharmacists/PharmacistPermissionsModal";
+import PharmacistDeleteModal from "../components/Pharmacists/PharmacistDeleteModal";
 import "../assets/css/pharmacists.css";
 
 export function Pharmacists() {
@@ -18,6 +19,9 @@ export function Pharmacists() {
     showPermissionsModal,
     setShowPermissionsModal,
     permissionsPharmacist,
+    showDeleteModal,
+    setShowDeleteModal,
+    isDeleting,
     formData,
     editingId,
     isSaving,
@@ -33,6 +37,7 @@ export function Pharmacists() {
     handleInputChange,
     handleSave,
     handleDeletePharmacist,
+    confirmDelete,
   } = usePharmacists();
 
   return (
@@ -83,6 +88,13 @@ export function Pharmacists() {
         onClose={() => setShowPermissionsModal(false)}
         pharmacist={permissionsPharmacist}
         onSuccess={handlePermissionsUpdated}
+      />
+
+      <PharmacistDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
+        isDeleting={isDeleting}
       />
     </section>
   );
