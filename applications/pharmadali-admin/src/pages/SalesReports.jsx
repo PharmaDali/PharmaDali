@@ -101,37 +101,35 @@ function SalesReports() {
       )}
 
       <div className="mt-4">
-        <div className="card border rounded-3 shadow-sm">
-          <div className="card-body">
-            <SalesReportToolbar
-              startDate={startDate}
-              endDate={endDate}
-              onStartDateChange={handleStartDateChange}
-              onEndDateChange={handleEndDateChange}
-              onSearch={handleFilter}
-              onClear={handleClearFilter}
-              onExportCsv={handleExportCsv}
-              onExportPdf={handleExportPdf}
-              salesLoading={salesLoading}
-              showExportDropdown={showExportDropdown}
-              onToggleExportDropdown={() => setShowExportDropdown((v) => !v)}
-              dateError={dateError}
-              activeFilterLabel={activeFilterLabel}
-            />
+        <div className="sales-report-card">
+          <SalesReportToolbar
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={handleStartDateChange}
+            onEndDateChange={handleEndDateChange}
+            onSearch={handleFilter}
+            onClear={handleClearFilter}
+            onExportCsv={handleExportCsv}
+            onExportPdf={handleExportPdf}
+            salesLoading={salesLoading}
+            showExportDropdown={showExportDropdown}
+            onToggleExportDropdown={() => setShowExportDropdown((v) => !v)}
+            dateError={dateError}
+            activeFilterLabel={activeFilterLabel}
+          />
 
-            <SalesReportTable
-              rows={salesRows}
-              meta={salesMeta}
-              loading={salesLoading}
-              error={salesError}
-              totalAmount={totalAmount}
-              selectedRow={selectedRow}
-              onRowClick={handleRowClick}
-              onPageChange={handlePageChange}
-              startDate={startDate}
-              endDate={endDate}
-            />
-          </div>
+          <SalesReportTable
+            rows={salesRows}
+            meta={salesMeta}
+            loading={salesLoading}
+            error={salesError}
+            totalAmount={totalAmount}
+            selectedRow={selectedRow}
+            onRowClick={handleRowClick}
+            onPageChange={handlePageChange}
+            startDate={startDate}
+            endDate={endDate}
+          />
         </div>
       </div>
 

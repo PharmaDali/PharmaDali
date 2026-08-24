@@ -32,49 +32,40 @@ function SalesReportToolbar({
   activeFilterLabel,
 }) {
   return (
-    <div className="d-flex flex-wrap align-items-start justify-content-between gap-3 mb-3">
-      <h3 className="mb-0 fw-semibold" style={{ fontSize: "16px", color: "#48AAD9" }}>
+    <div className="report-toolbar-container mb-3">
+      <h3 className="report-title mb-0">
         Sales Report
       </h3>
 
       <div className="d-flex flex-column align-items-end gap-2">
-        <div className="d-flex flex-wrap align-items-end gap-2">
-
+        <div className="d-flex flex-wrap align-items-center gap-2">
           {/* From date */}
-          <div className="d-flex flex-column gap-1">
-            <label className="fw-medium" style={{ fontSize: "11px", color: "#888", marginBottom: 0 }}>
-              From
-            </label>
-            <div className="report-date-wrap">
-              <input
-                type="date"
-                className="report-date-input"
-                value={startDate}
-                onChange={(e) => onStartDateChange(e.target.value)}
-              />
-              <CalendarIcon />
-            </div>
+          <div className="report-date-wrap">
+            <input
+              type="date"
+              className="report-date-input"
+              value={startDate}
+              placeholder="dd/mm/yyyy"
+              onChange={(e) => onStartDateChange(e.target.value)}
+            />
+            <CalendarIcon />
           </div>
 
-          {/* To date — no native min so users can freely select historical dates */}
-          <div className="d-flex flex-column gap-1">
-            <label className="fw-medium" style={{ fontSize: "11px", color: "#888", marginBottom: 0 }}>
-              To
-            </label>
-            <div className="report-date-wrap">
-              <input
-                type="date"
-                className="report-date-input"
-                value={endDate}
-                onChange={(e) => onEndDateChange(e.target.value)}
-              />
-              <CalendarIcon />
-            </div>
+          {/* To date */}
+          <div className="report-date-wrap">
+            <input
+              type="date"
+              className="report-date-input"
+              value={endDate}
+              placeholder="dd/mm/yyyy"
+              onChange={(e) => onEndDateChange(e.target.value)}
+            />
+            <CalendarIcon />
           </div>
 
           <button
             type="button"
-            className="search-button btn btn-sm rounded-pill px-3"
+            className="search-button btn"
             onClick={onSearch}
             disabled={salesLoading}
           >
@@ -84,7 +75,7 @@ function SalesReportToolbar({
           {(startDate || endDate) && (
             <button
               type="button"
-              className="btn btn-sm btn-outline-secondary rounded-pill px-3"
+              className="btn btn-clear-filter"
               onClick={onClear}
               disabled={salesLoading}
             >
@@ -96,7 +87,7 @@ function SalesReportToolbar({
           <div className="position-relative">
             <button
               type="button"
-              className="btn btn-sm btn-outline-secondary rounded-pill px-3 dropdown-toggle"
+              className="btn export-button dropdown-toggle"
               onClick={onToggleExportDropdown}
             >
               Export
