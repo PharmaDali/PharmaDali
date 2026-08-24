@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Order;
 
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pharmacy;
 use App\Models\User;
@@ -16,7 +17,8 @@ class UploadDiscountIdTest extends TestCase
     use RefreshDatabase;
 
     private Pharmacy $pharmacy;
-    private User $user;
+    private User $customerUser;
+    private Customer $customer;
     private Order $order;
 
     protected function setUp(): void
@@ -32,14 +34,20 @@ class UploadDiscountIdTest extends TestCase
             'is_active'      => true,
         ]);
 
-        $this->user = User::factory()->create([
-            'pharmacy_id' => $this->pharmacy->id,
-            'role'        => 'pharmacy_admin',
+        $this->customerUser = User::factory()->create([
+            'role'        => 'customer',
+            'pharmacy_id' => null,
+        ]);
+
+        $this->customer = Customer::create([
+            'user_id'     => $this->customerUser->id,
+            'pharmacy_id' => null,
         ]);
 
         $this->order = Order::create([
             'order_number'        => 'ORD-TEST-001',
             'pharmacy_id'         => $this->pharmacy->id,
+            'customer_id'         => $this->customer->id,
             'status'              => 'ready_for_pickup',
             'payment_method'      => 'cash',
             'payment_status'      => 'unpaid',
@@ -54,12 +62,12 @@ class UploadDiscountIdTest extends TestCase
 
     public function test_successful_discount_id_upload_compresses_and_stores_webp_image(): void
     {
-        Sanctum::actingAs($this->user, ['pharmacy_admin']);
+        Sanctum::actingAs($this->customerUser, ['customer']);
 
         // Create a large fake JPG image (2000x2000)
         $fakeImage = UploadedFile::fake()->image('senior_id.jpg', 2000, 2000);
 
-        $response = $this->postJson("/api/pos/orders/{$this->order->id}/discount-id", [
+        $response = $this->postJson("/api/customer/orders/{$this->order->id}/discount-id", [
             'discount_id_image' => $fakeImage,
         ]);
 
@@ -77,39 +85,37 @@ class UploadDiscountIdTest extends TestCase
         Storage::disk('public')->assertExists($this->order->discount_id_image_path);
     }
 
-    public function test_unauthorized_pharmacy_user_cannot_upload_discount_id(): void
+    public function test_unauthorized_customer_cannot_upload_discount_id_for_another_customer_order(): void
     {
-        $otherPharmacy = Pharmacy::create([
-            'pharmacy_name'  => 'Other Pharmacy',
-            'location'       => 'Uptown',
-            'contact_number' => '09987654321',
-            'is_active'      => true,
+        $otherCustomerUser = User::factory()->create([
+            'role'        => 'customer',
+            'pharmacy_id' => null,
         ]);
 
-        $otherUser = User::factory()->create([
-            'pharmacy_id' => $otherPharmacy->id,
-            'role'        => 'pharmacy_admin',
+        $otherCustomer = Customer::create([
+            'user_id'     => $otherCustomerUser->id,
+            'pharmacy_id' => null,
         ]);
 
-        Sanctum::actingAs($otherUser, ['pharmacy_admin']);
+        Sanctum::actingAs($otherCustomerUser, ['customer']);
 
         $fakeImage = UploadedFile::fake()->image('id.png', 500, 500);
 
-        $response = $this->postJson("/api/pos/orders/{$this->order->id}/discount-id", [
+        $response = $this->postJson("/api/customer/orders/{$this->order->id}/discount-id", [
             'discount_id_image' => $fakeImage,
         ]);
 
-        $this->assertTrue(in_array($response->status(), [403, 404]));
+        $response->assertStatus(403);
     }
 
     public function test_rate_limiter_throttles_excessive_uploads(): void
     {
-        Sanctum::actingAs($this->user, ['pharmacy_admin']);
+        Sanctum::actingAs($this->customerUser, ['customer']);
 
         // Send 10 allowed requests
         for ($i = 0; $i < 10; $i++) {
             $fakeImage = UploadedFile::fake()->image("id_{$i}.png", 100, 100);
-            $res = $this->postJson("/api/pos/orders/{$this->order->id}/discount-id", [
+            $res = $this->postJson("/api/customer/orders/{$this->order->id}/discount-id", [
                 'discount_id_image' => $fakeImage,
             ]);
             $res->assertStatus(200);
@@ -117,7 +123,7 @@ class UploadDiscountIdTest extends TestCase
 
         // 11th request should trigger rate limit (429 Too Many Requests)
         $extraImage = UploadedFile::fake()->image("id_extra.png", 100, 100);
-        $response = $this->postJson("/api/pos/orders/{$this->order->id}/discount-id", [
+        $response = $this->postJson("/api/customer/orders/{$this->order->id}/discount-id", [
             'discount_id_image' => $extraImage,
         ]);
 

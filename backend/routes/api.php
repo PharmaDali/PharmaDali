@@ -101,6 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('customer/orders/{order}', [OrderController::class, 'update']);
         Route::patch('customer/orders/{order}/cancel', [OrderController::class, 'cancel']);
         Route::post('customer/order-items/{orderItem}/prescription', [OrderItemPrescriptionController::class, 'upload']);
+        Route::post('customer/orders/{order}/discount-id', [DiscountIdUploadController::class, 'upload'])->middleware('throttle:discount-id-upload');
     });
 
     Route::middleware(['ability:pharmacist,pharmacy_admin'])->group(function () {
@@ -153,7 +154,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('pos/orders', [PosController::class, 'storeOrder']);
         Route::get('pos/pickup-orders', [PosController::class, 'getPickupOrders']);
         Route::patch('pos/pickup-orders/{order}/complete', [PosController::class, 'completePickupOrder']);
-        Route::post('pos/orders/{order}/discount-id', [DiscountIdUploadController::class, 'upload'])->middleware('throttle:discount-id-upload');
         Route::get('pos/exchanges', [ItemExchangeController::class, 'index']);
         Route::get('pos/orders/{order}/exchange-eligibility', [ItemExchangeController::class, 'eligibility']);
         Route::post('pos/exchanges', [ItemExchangeController::class, 'store']);

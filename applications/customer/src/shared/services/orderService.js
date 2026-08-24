@@ -62,3 +62,25 @@ export async function cancelCustomerOrder(orderId, reason = 'Cancelled by custom
   });
 }
 
+export async function uploadCustomerDiscountId(orderId, imageAsset) {
+  const numericId = Number(orderId);
+  if (!Number.isFinite(numericId) || numericId <= 0 || !imageAsset?.uri) {
+    return null;
+  }
+
+  const filename = imageAsset.fileName || `discount-id-${numericId}.jpg`;
+  const mimeType = imageAsset.mimeType || 'image/jpeg';
+
+  const formData = new FormData();
+  formData.append('discount_id_image', {
+    uri: imageAsset.uri,
+    name: filename,
+    type: mimeType,
+  });
+
+  return apiRequest(`/customer/orders/${numericId}/discount-id`, {
+    method: 'POST',
+    body: formData,
+  });
+}
+
