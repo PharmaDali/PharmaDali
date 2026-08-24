@@ -77,8 +77,17 @@ const PickupDetailsScreen = () => {
     [selectedDate, openingMinutes, closingMinutes],
   )
 
+  const formatTime12Hour = (date) => {
+    if (!date || !(date instanceof Date)) return ''
+    return date.toLocaleTimeString('en-PH', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    })
+  }
+
   const selectedTimeLabel = selectedTime
-    ? selectedTime.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true })
+    ? formatTime12Hour(selectedTime)
     : 'Select pickup time'
 
   const confirmPickupValidationError = useMemo(() => {
@@ -121,11 +130,9 @@ const PickupDetailsScreen = () => {
       return
     }
 
-    if (selectedTime && selectedTime >= minimumDateTime && selectedTime <= closingDateTime) {
-      return
+    if (selectedTime && (selectedTime < minimumDateTime || selectedTime > closingDateTime)) {
+      setSelectedTime(null)
     }
-
-    setSelectedTime(new Date(minimumDateTime))
   }, [hasValidOperatingWindow, hasWindowToday, minimumDateTime, closingDateTime, selectedTime])
 
   const handleTimePickerChange = (event, pickedValue) => {
@@ -343,7 +350,7 @@ const PickupDetailsScreen = () => {
         </View>
 
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-4">
-          <Text className="text-sm mb-2" style={styles.fontBold}>Pickup Time</Text>
+          <Text className="text-sm mb-2" style={styles.fontSemiBold}>Pickup Time</Text>
           <TouchableOpacity
             className={`rounded-xl border px-3 py-3 ${hasValidOperatingWindow && hasWindowToday ? 'border-[#48AAD9] bg-[#F8FCFF]' : 'border-gray-300 bg-gray-100'}`}
             disabled={!hasValidOperatingWindow || !hasWindowToday}
@@ -358,7 +365,7 @@ const PickupDetailsScreen = () => {
             </View>
             <Text className="text-[10px] text-gray-500 mt-1" style={styles.fontMedium}>
               {hasValidOperatingWindow && hasWindowToday
-                ? `Available between ${minimumDateTime.toLocaleTimeString('en-PH', { hour: 'numeric', minute: '2-digit', hour12: true })} and ${formatMinutesToAmPm(closingMinutes)}`
+                ? `Available between ${formatTime12Hour(minimumDateTime)} and ${formatMinutesToAmPm(closingMinutes)}`
                 : hasValidOperatingWindow
                   ? 'No pickup slots available today.'
                   : 'Operating hours unavailable for this pharmacy'}
@@ -385,6 +392,7 @@ const PickupDetailsScreen = () => {
           {showTimePicker && hasValidOperatingWindow && hasWindowToday && (
             <DateTimePicker
               mode="time"
+              is24Hour={false}
               value={selectedTime || minimumDateTime}
               onChange={handleTimePickerChange}
               minimumDate={minimumDateTime}
@@ -393,7 +401,7 @@ const PickupDetailsScreen = () => {
             />
           )}
 
-          <Text className="text-sm mt-4 mb-2" style={styles.fontBold}>Customer Notes (Optional)</Text>
+          <Text className="text-sm mt-4 mb-2" style={styles.fontSemiBold}>Customer Notes (Optional)</Text>
           <TextInput
             value={customerNote}
             onChangeText={setCustomerNote}
@@ -401,7 +409,7 @@ const PickupDetailsScreen = () => {
             placeholderTextColor="#9CA3AF"
             multiline
             maxLength={250}
-            className="rounded-xl border border-gray-300 px-3 py-3"
+            className="rounded-xl border border-gray-300 px-3 py-2 text-xs"
             style={styles.noteInput}
             textAlignVertical="top"
           />
@@ -413,7 +421,7 @@ const PickupDetailsScreen = () => {
         {/* Senior/PWD Discount Card */}
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 overflow-hidden">
           <View className="p-4">
-            <Text className="text-sm" style={styles.fontBold}>
+            <Text className="text-sm" style={styles.fontSemiBold}>
               Senior/PWD Discount (Optional)
             </Text>
             <Text className="text-xs text-gray-600 mt-1 mb-3" style={styles.fontMedium}>
@@ -423,7 +431,7 @@ const PickupDetailsScreen = () => {
             <View className="flex-row items-center mb-4 py-1">
               <DiscountIcon width={28} height={28} />
               <View className="ml-3 flex-1">
-                <Text className="text-xs" style={styles.fontSemiBold}>
+                <Text className="text-xs" style={styles.fontMedium}>
                   Accepted: Senior Citizen ID, PWD ID
                 </Text>
                 <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
@@ -523,13 +531,13 @@ const PickupDetailsScreen = () => {
         {/* Payment Method Container */}
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 overflow-hidden">
           <View className="p-4">
-            <Text className="text-sm mb-3" style={styles.fontBold}>Payment Method</Text>
+            <Text className="text-sm mb-3" style={styles.fontSemiBold}>Payment Method</Text>
 
             {hasPrescription ? (
               /* Prescribed items: Fixed Pay at Pharmacy (Cash/GCash) row */
               <View className="flex-row items-center py-1">
                 <PaymentMethodIcon width={22} height={22} />
-                <Text className="text-xs ml-3" style={styles.fontSemiBold}>
+                <Text className="text-xs ml-3" style={styles.fontMedium}>
                   Pay at Pharmacy (Cash/GCash)
                 </Text>
               </View>
@@ -543,7 +551,7 @@ const PickupDetailsScreen = () => {
                 >
                   <View className="flex-row items-center flex-1">
                     <PaymentMethodIcon width={22} height={22} />
-                    <Text className="text-xs ml-3" style={styles.fontSemiBold}>
+                    <Text className="text-xs ml-3" style={styles.fontMedium}>
                       Pay at Pharmacy (Cash)
                     </Text>
                   </View>
@@ -561,7 +569,7 @@ const PickupDetailsScreen = () => {
                 >
                   <View className="flex-row items-center flex-1">
                     <GcashIcon width={22} height={22} />
-                    <Text className="text-xs ml-3" style={styles.fontSemiBold}>
+                    <Text className="text-xs ml-3" style={styles.fontMedium}>
                       GCash QR / Scan to Pay
                     </Text>
                   </View>
@@ -613,7 +621,7 @@ const PickupDetailsScreen = () => {
         {/* GCash Receipt Upload Container (Only appears when OTC items AND GCash selected) */}
         {!hasPrescription && paymentMethod === 'gcash' && (
           <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-4">
-            <Text className="text-sm" style={styles.fontBold}>
+            <Text className="text-sm" style={styles.fontSemiBold}>
               GCash QR / Scan to Pay Receipt
             </Text>
             <Text className="text-xs text-gray-600 mt-1 mb-3" style={styles.fontMedium}>
@@ -623,7 +631,7 @@ const PickupDetailsScreen = () => {
             <View className="flex-row items-center mb-4 py-1">
               <GcashReceiptIcon width={28} height={28} />
               <View className="ml-3 flex-1">
-                <Text className="text-xs" style={styles.fontSemiBold}>
+                <Text className="text-xs" style={styles.fontMedium}>
                   Accepted: Gcash receipt screenshot or photo
                 </Text>
                 <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
@@ -753,7 +761,8 @@ const styles = StyleSheet.create({
   },
   noteInput: {
     fontFamily: 'Poppins-Medium',
-    minHeight: 90,
+    minHeight: 52,
+    fontSize: 11,
     color: '#444444',
   },
   closedWarningTitle: {

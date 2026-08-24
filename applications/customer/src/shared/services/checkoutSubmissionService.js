@@ -1,4 +1,4 @@
-import { placeCustomerOrder, uploadCustomerDiscountId } from '@shared/services/orderService'
+import { placeCustomerOrder, uploadCustomerDiscountId, uploadCustomerPaymentReceipt } from '@shared/services/orderService'
 import { uploadOrderItemPrescription } from '@shared/services/prescriptionService'
 
 export function buildSelectedCartItemIds(items) {
@@ -45,6 +45,14 @@ export async function submitCheckoutOrder({
       await uploadCustomerDiscountId(orderId, discountIdImage)
     } catch (err) {
       console.warn('Failed to upload discount ID image:', err)
+    }
+  }
+
+  if (orderId && gcashReceiptImage?.uri) {
+    try {
+      await uploadCustomerPaymentReceipt(orderId, gcashReceiptImage)
+    } catch (err) {
+      console.warn('Failed to upload GCash payment receipt image:', err)
     }
   }
 

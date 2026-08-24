@@ -84,3 +84,25 @@ export async function uploadCustomerDiscountId(orderId, imageAsset) {
   });
 }
 
+export async function uploadCustomerPaymentReceipt(orderId, imageAsset) {
+  const numericId = Number(orderId);
+  if (!Number.isFinite(numericId) || numericId <= 0 || !imageAsset?.uri) {
+    return null;
+  }
+
+  const filename = imageAsset.fileName || `payment-receipt-${numericId}.jpg`;
+  const mimeType = imageAsset.mimeType || 'image/jpeg';
+
+  const formData = new FormData();
+  formData.append('payment_receipt_image', {
+    uri: imageAsset.uri,
+    name: filename,
+    type: mimeType,
+  });
+
+  return apiRequest(`/customer/orders/${numericId}/payment-receipt`, {
+    method: 'POST',
+    body: formData,
+  });
+}
+

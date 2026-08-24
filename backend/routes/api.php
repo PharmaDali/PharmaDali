@@ -18,6 +18,7 @@ use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Order\DiscountIdUploadController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderItemPrescriptionController;
+use App\Http\Controllers\Order\PaymentReceiptUploadController;
 use App\Http\Controllers\Pharmacist\PharmacistProfileController;
 use App\Http\Controllers\Pharmacy\PharmacyController;
 use App\Http\Controllers\Pharmacy\PharmacyPharmacistController;
@@ -102,6 +103,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::patch('customer/orders/{order}/cancel', [OrderController::class, 'cancel']);
         Route::post('customer/order-items/{orderItem}/prescription', [OrderItemPrescriptionController::class, 'upload']);
         Route::post('customer/orders/{order}/discount-id', [DiscountIdUploadController::class, 'upload'])->middleware('throttle:discount-id-upload');
+        Route::post('customer/orders/{order}/payment-receipt', [PaymentReceiptUploadController::class, 'upload'])->middleware('throttle:payment-receipt-upload');
     });
 
     Route::middleware(['ability:pharmacist,pharmacy_admin'])->group(function () {
