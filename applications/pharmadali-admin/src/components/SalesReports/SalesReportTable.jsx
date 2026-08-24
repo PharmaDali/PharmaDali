@@ -16,13 +16,15 @@ function SalesReportTable({
   return (
     <>
       {/* Table */}
-      <div className="table-responsive rounded-3 border">
-        <table className="table table-hover mb-0" style={{ fontSize: "13px" }}>
+      <div className="table-responsive rounded-3 border-0">
+        <table className="table sales-report-table align-middle mb-0">
           <thead className="report-thead">
             <tr>
               <th>Order ID</th>
+              <th>Channel</th>
               <th>Items</th>
               <th>Processed By</th>
+              <th>Unit Price</th>
               <th>Total</th>
               <th>Status</th>
               <th>Date</th>
@@ -30,14 +32,14 @@ function SalesReportTable({
           </thead>
           <tbody>
             {loading ? (
-              <TableSkeleton rows={5} columns={6} showAvatar={false} />
+              <TableSkeleton rows={5} columns={8} showAvatar={false} />
             ) : error ? (
               <tr>
-                <td colSpan={6} className="text-center py-4 text-danger">{error}</td>
+                <td colSpan={8} className="text-center py-4 text-danger">{error}</td>
               </tr>
             ) : rows.length === 0 ? (
               <tr style={{ cursor: "default" }}>
-                <td colSpan={6} className="text-center py-5">
+                <td colSpan={8} className="text-center py-5">
                   <div className="d-flex flex-column align-items-center justify-content-center py-4">
                     <i className="fa-solid fa-file-invoice-dollar mb-3" style={{ fontSize: "3.5rem", color: "#94a3b8" }} />
                     <span className="fw-medium" style={{ fontSize: "15px", color: "#64748b" }}>No sales transactions found.</span>
@@ -45,31 +47,40 @@ function SalesReportTable({
                 </td>
               </tr>
             ) : (
-              rows.map((row, index) => (
-                <tr
-                  key={`${row.id}-${index}`}
-                  onClick={() => onRowClick(row, index)}
-                  className={selectedRow?.id === row.id && selectedRow?.rowIndex === index ? "table-active" : ""}
-                  style={{ cursor: "pointer" }}
-                >
-                  <td>{row.id}</td>
-                  <td>{row.items}</td>
-                  <td>{row.processedBy}</td>
-                  <td>PHP {parseFloat(row.total).toFixed(2)}</td>
-                  <td>
-                    {row.has_exchange || row.status === 'exchanged' ? (
-                      <span className="badge text-white shadow-sm" style={{ backgroundColor: "#2aabe2" }}>
-                        <i className="fa-solid fa-right-left me-1"></i> Exchanged
-                      </span>
-                    ) : (
-                      <span className="badge bg-success shadow-sm">
-                        Completed
-                      </span>
-                    )}
-                  </td>
-                  <td>{row.date}</td>
-                </tr>
-              ))
+              rows.map((row, index) => {
+                const totalNum = parseFloat(row.total ?? 0);
+                const itemsNum = parseInt(row.items ?? 0, 10) || 1;
+                const unitPrice = row.unitPrice != null ? parseFloat(row.unitPrice) : (totalNum / itemsNum);
+                const channel = row.channel || (row.order_type === 'online' || row.order_type === 'delivery' || String(row.id).startsWith('ORD-') ? 'Online Order' : 'Walk-in');
+
+                return (
+                  <tr
+                    key={`${row.id}-${index}`}
+                    onClick={() => onRowClick(row, index)}
+                    className={selectedRow?.id === row.id && selectedRow?.rowIndex === index ? "table-active" : ""}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <td className="fw-medium text-dark">{row.id}</td>
+                    <td>{channel}</td>
+                    <td>{row.items}</td>
+                    <td className="fw-medium">{row.processedBy}</td>
+                    <td>PHP {unitPrice.toFixed(2)}</td>
+                    <td className="fw-medium">PHP {totalNum.toFixed(2)}</td>
+                    <td>
+                      {row.has_exchange || row.status === 'exchanged' ? (
+                        <span className="badge badge-status badge-exchanged">
+                          <i className="fa-solid fa-right-left me-1"></i> Exchanged
+                        </span>
+                      ) : (
+                        <span className="badge badge-status badge-completed">
+                          Completed
+                        </span>
+                      )}
+                    </td>
+                    <td className="text-muted">{row.date}</td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -77,9 +88,11 @@ function SalesReportTable({
 
       {/* Running total */}
       {!loading && rows.length > 0 && (
-        <div className="d-flex justify-content-end gap-3 pt-3 fw-bold" style={{ color: "#48AAD9", fontSize: "14px" }}>
-          <span>TOTAL</span>
-          <span>{totalAmount.toFixed(2)}</span>
+        <div className="report-table-total-container">
+          <span className="report-total-label">TOTAL</span>
+          <span className="report-total-amount">
+            {totalAmount.toLocaleString("en-PH", { minimumFractionDigits: 1, maximumFractionDigits: 2 })}
+          </span>
         </div>
       )}
 
