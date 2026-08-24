@@ -58,90 +58,103 @@ export function PickUp() {
     <section className="inventory-page d-flex flex-column" aria-label="Pickup Order Fulfillment">
       <div className="row g-4 align-items-stretch">
         <div className={activeOrder ? "col-12 col-lg-8 col-xl-9 d-flex flex-column" : "col-12 d-flex flex-column"}>
-          {/* Main White Parent Card for Toolbar + Table */}
-          <div className="bg-white rounded-4 shadow-sm p-3 p-md-4 d-flex flex-column flex-grow-1">
-            {/* Header Toolbar (Title, Tabs & Search) */}
-            <div className="mb-3 d-flex align-items-center justify-content-between flex-wrap gap-3 border-0" style={{ backgroundColor: "transparent" }}>
-              <div className="d-flex align-items-center gap-3 flex-wrap">
-                <h5 className="fw-bold text-dark mb-0 me-2" style={{ fontSize: "1.25rem", whiteSpace: "nowrap" }}>
-                  Pickup Orders
-                </h5>
-                <div className="nav nav-pills gap-3">
-                  {PICKUP_TABS.map((tab) => {
+          <div className="bg-white rounded-3 shadow-sm p-4 d-flex flex-column flex-grow-1">
+            <div className="d-flex align-items-end justify-content-between" style={{ marginBottom: "0" }}>
+              <h4 className="fw-bold text-dark m-0 pb-2" style={{ fontSize: "1.25rem" }}>
+                Pickup Orders
+              </h4>
+              <div className="d-flex gap-1" style={{ marginBottom: "-1px", zIndex: 2 }}>
+                {(() => {
+                  const orderedTabs = [
+                    PICKUP_TABS.find(t => t.id === "All"),
+                    PICKUP_TABS.find(t => t.id === "Completed"),
+                    PICKUP_TABS.find(t => t.id === "Ready")
+                  ].filter(Boolean);
+
+                  return orderedTabs.map((tab) => {
                     const isActive = statusFilter === tab.id;
                     const rawCount = tabCounts[tab.id] || 0;
                     const badgeCount = tab.id === "Completed" ? (tabCounts.CompletedNew || 0) : rawCount;
                     const showBadge = tab.id !== "All" && badgeCount > 0;
 
                     return (
-                      <div key={tab.id} className="position-relative d-inline-flex align-items-center">
-                        <button
-                          type="button"
-                          className={`nav-link btn-sm d-flex align-items-center rounded-3 px-3 py-2 ${
-                            isActive ? "active" : ""
-                          }`}
-                          style={{
-                            backgroundColor: isActive ? "#2aabe2" : "#f1f5f9",
-                            color: isActive ? "#ffffff" : "#475569",
-                            fontWeight: isActive ? 600 : 500,
-                            fontSize: "0.815rem",
-                            gap: "7px",
-                          }}
-                          onClick={() => handleTabChange(tab.id)}
-                        >
-                          <i className={`fa-solid ${tab.icon}`} style={{ fontSize: "0.775rem" }} />
-                          <span>{tab.label}</span>
-                        </button>
-
+                      <button
+                        key={tab.id}
+                        type="button"
+                        className="btn btn-sm px-4 fw-semibold d-flex align-items-center position-relative"
+                        style={{
+                          backgroundColor: isActive ? "#e2f2fa" : "#e2e8f0",
+                          color: isActive ? "#0f172a" : "#475569",
+                          border: "1px solid",
+                          borderColor: isActive ? "#cce4f2" : "transparent",
+                          borderBottomColor: isActive ? "#e2f2fa" : "#cce4f2",
+                          borderTopLeftRadius: "8px",
+                          borderTopRightRadius: "8px",
+                          borderBottomLeftRadius: "0",
+                          borderBottomRightRadius: "0",
+                          fontSize: "12px",
+                          paddingTop: "10px",
+                          paddingBottom: "10px",
+                          transition: "all 0.2s"
+                        }}
+                        onClick={() => handleTabChange(tab.id)}
+                      >
+                        {tab.label === "All" ? "All Orders" : tab.label}
                         {showBadge && (
                           <span
-                            className="position-absolute top-0 start-100 translate-middle badge rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm"
+                            className="position-absolute top-0 start-100 translate-middle badge rounded-circle d-inline-flex align-items-center justify-content-center"
                             style={{
                               width: "18px",
                               height: "18px",
                               padding: 0,
-                              backgroundColor: "#f87171",
+                              backgroundColor: "#ef4444",
                               color: "#ffffff",
-                              zIndex: 2,
+                              fontSize: "10px",
+                              zIndex: 3,
                             }}
                           >
-                            {tab.id === "Completed" ? (
-                              <i className="fa-solid fa-check" style={{ fontSize: "9px" }} />
-                            ) : (
-                              <span style={{ fontSize: "0.675rem", lineHeight: "18px" }}>
-                                {badgeCount > 99 ? "99+" : badgeCount}
-                              </span>
-                            )}
+                            {badgeCount > 99 ? "99+" : badgeCount}
                           </span>
                         )}
-                      </div>
+                      </button>
                     );
-                  })}
-                </div>
-              </div>
-
-              <div style={{ minWidth: 420 }}>
-                <SearchBar
-                  id="pickup-orders-search"
-                  value={search}
-                  onChange={(val) => setSearch(val)}
-                  placeholder="Search order ID, customer name, ref..."
-                />
+                  });
+                })()}
               </div>
             </div>
 
-            <PickupOrdersTable
-              orders={orders}
-              filteredOrders={filteredOrders}
-              loading={loading}
-              fetchError={fetchError}
-              paginatedOrders={paginatedOrders}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              visiblePageNumbers={visiblePageNumbers}
-              onPageChange={handlePageChange}
-              onSelectOrder={setActiveOrder}
-            />
+            <div className="d-flex flex-column flex-grow-1" style={{ backgroundColor: "#e2f2fa", border: "1px solid #cce4f2", borderTopLeftRadius: "12px", borderTopRightRadius: "0px", borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px", zIndex: 1, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)", paddingTop: "24px", paddingBottom: "0px", paddingLeft: "0px", paddingRight: "0px", overflow: "hidden" }}>
+
+              <div className="mb-4 px-4">
+                <div className="input-group">
+                  <span className="input-group-text border-end-0" style={{ borderColor: "#cce4f2", backgroundColor: "#edf4f9" }}>
+                    <i className="fa-solid fa-magnifying-glass text-muted"></i>
+                  </span>
+                  <input
+                    type="text"
+                    className="form-control border-start-0 ps-0"
+                    style={{ borderColor: "#cce4f2", backgroundColor: "#edf4f9", fontSize: "14px", height: "42px" }}
+                    placeholder="Search an order by order ID or Customer Name"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <PickupOrdersTable
+                orders={orders}
+                filteredOrders={filteredOrders}
+                loading={loading}
+                fetchError={fetchError}
+                paginatedOrders={paginatedOrders}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                visiblePageNumbers={visiblePageNumbers}
+                onPageChange={handlePageChange}
+                onSelectOrder={setActiveOrder}
+                activeOrder={activeOrder}
+              />
+            </div>
           </div>
         </div>
 
@@ -167,7 +180,6 @@ export function PickUp() {
         )}
       </div>
 
-      {/* Reusable Payment Modals */}
       <ReceivePaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}

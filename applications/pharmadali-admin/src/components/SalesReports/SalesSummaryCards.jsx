@@ -4,16 +4,6 @@ import { WavingDots } from "../../shared/components/loading";
 function SalesSummaryCards({ loading, cards }) {
   const displayCards = loading
     ? [
-        { label: "Gross Sales", currency: "PHP" },
-        { label: "Net Sales", currency: "PHP" },
-        { label: "Items Sold" },
-        { label: "Total Transactions" },
-      ]
-    : cards;
-
-function SalesSummaryCards({ loading, cards }) {
-  const displayCards = loading
-    ? [
         { label: "Daily Sales", currency: "PHP" },
         { label: "Weekly Sales", currency: "PHP" },
         { label: "Monthly Sales", currency: "PHP" },
