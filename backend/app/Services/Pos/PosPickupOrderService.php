@@ -100,6 +100,7 @@ class PosPickupOrderService
                 'discount_type' => $discountType,
                 'discount_percentage' => $discountPercentage,
                 'discount_id_number' => $discountData['discount_id_number'] ?? $order->discount_id_number,
+                'discount_id_image_path' => $discountData['discount_id_image_path'] ?? $order->discount_id_image_path,
                 'discount_remarks' => $discountData['discount_remarks'] ?? $order->discount_remarks,
                 'discount_amount' => $discountAmount,
                 'total_amount' => $totalAmount,

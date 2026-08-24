@@ -24,6 +24,7 @@ class Order extends Model
         'discount_type',
         'discount_percentage',
         'discount_id_number',
+        'discount_id_image_path',
         'discount_remarks',
         'discount_amount',
         'total_amount',

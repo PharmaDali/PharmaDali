@@ -15,6 +15,7 @@ use App\Http\Controllers\Inventory\ProductBatchController;
 use App\Http\Controllers\Notification\ConversationController;
 use App\Http\Controllers\Notification\FcmTokenController;
 use App\Http\Controllers\Notification\NotificationController;
+use App\Http\Controllers\Order\DiscountIdUploadController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderItemPrescriptionController;
 use App\Http\Controllers\Pharmacist\PharmacistProfileController;
@@ -152,6 +153,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('pos/orders', [PosController::class, 'storeOrder']);
         Route::get('pos/pickup-orders', [PosController::class, 'getPickupOrders']);
         Route::patch('pos/pickup-orders/{order}/complete', [PosController::class, 'completePickupOrder']);
+        Route::post('pos/orders/{order}/discount-id', [DiscountIdUploadController::class, 'upload'])->middleware('throttle:discount-id-upload');
         Route::get('pos/exchanges', [ItemExchangeController::class, 'index']);
         Route::get('pos/orders/{order}/exchange-eligibility', [ItemExchangeController::class, 'eligibility']);
         Route::post('pos/exchanges', [ItemExchangeController::class, 'store']);

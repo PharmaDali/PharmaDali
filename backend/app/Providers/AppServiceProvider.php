@@ -11,6 +11,10 @@ use App\Observers\OrderObserver;
 use App\Observers\PharmacyProductObserver;
 use App\Observers\ProductBatchObserver;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -29,5 +33,9 @@ class AppServiceProvider extends ServiceProvider
         PharmacyProduct::observe(PharmacyProductObserver::class);
         ProductBatch::observe(ProductBatchObserver::class);
         Order::observe(OrderObserver::class);
+
+        RateLimiter::for('discount-id-upload', function (Request $request) {
+            return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
+        });
     }
 }
