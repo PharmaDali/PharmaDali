@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
@@ -15,11 +16,10 @@ class CategoryController extends Controller
      */
     public function index(): JsonResponse
     {
-        $categories = Category::orderBy('category_name')->get();
+        $categoriesData = Cache::remember('admin_categories_all', 3600, function () {
+            $categories = Category::orderBy('category_name')->get();
 
-        return response()->json([
-            'status' => 'success',
-            'data'   => $categories->map(function ($cat) {
+            return $categories->map(function ($cat) {
                 return [
                     'id'         => $cat->id,
                     'name'       => $cat->category_name,
@@ -27,7 +27,12 @@ class CategoryController extends Controller
                     'background' => $cat->background_color ?? '#e8f0fe',
                     'font'       => $cat->font_color ?? '#000000',
                 ];
-            }),
+            })->toArray();
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'data'   => $categoriesData,
         ]);
     }
 
@@ -53,6 +58,8 @@ class CategoryController extends Controller
             'background_color' => $validated['background'] ?? '#e8f0fe',
             'font_color'       => $validated['font'] ?? '#000000',
         ]);
+
+        Cache::forget('admin_categories_all');
 
         return response()->json([
             'status'  => 'success',
@@ -100,6 +107,8 @@ class CategoryController extends Controller
 
         $category->update($updateData);
 
+        Cache::forget('admin_categories_all');
+
         return response()->json([
             'status'  => 'success',
             'message' => 'Category updated successfully.',
@@ -121,6 +130,8 @@ class CategoryController extends Controller
     {
         $category = Category::findOrFail($id);
         $category->delete();
+
+        Cache::forget('admin_categories_all');
 
         return response()->json([
             'status'  => 'success',

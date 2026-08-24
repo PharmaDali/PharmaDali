@@ -33,19 +33,19 @@ use Illuminate\Support\Facades\Route;
 
 
 // Public routes
-Route::post('customer/register', [AuthController::class, 'customerRegister']);
+Route::post('customer/register', [AuthController::class, 'customerRegister'])->middleware('throttle:auth-register');
 Route::post('login', [AuthController::class, 'login']);
 Route::post('pharmacist/login', [AuthController::class, 'pharmacistLogin']);
 Route::post('admin/login', [AuthController::class, 'adminLogin']);
 
 // Customer Forgot Password routes (Email OTP stored in Redis)
 Route::post('customer/forgot-password/send-otp', [CustomerForgotPasswordController::class, 'sendOtp']);
-Route::post('customer/forgot-password/verify-otp', [CustomerForgotPasswordController::class, 'verifyOtp']);
+Route::post('customer/forgot-password/verify-otp', [CustomerForgotPasswordController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
 Route::post('customer/forgot-password/reset-password', [CustomerForgotPasswordController::class, 'resetPassword']);
 
 // Pharmacist Change Password routes (Email OTP stored in Redis)
 Route::post('pharmacist/change-password/send-otp', [PharmacistChangePasswordController::class, 'sendOtp']);
-Route::post('pharmacist/change-password/verify-otp', [PharmacistChangePasswordController::class, 'verifyOtp']);
+Route::post('pharmacist/change-password/verify-otp', [PharmacistChangePasswordController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
 Route::post('pharmacist/change-password/reset-password', [PharmacistChangePasswordController::class, 'changePassword']);
 
 Broadcast::routes(['middleware' => ['auth:sanctum']]);
@@ -101,7 +101,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('customer/orders/{order}/review', [OrderController::class, 'review']);
         Route::put('customer/orders/{order}', [OrderController::class, 'update']);
         Route::patch('customer/orders/{order}/cancel', [OrderController::class, 'cancel']);
-        Route::post('customer/order-items/{orderItem}/prescription', [OrderItemPrescriptionController::class, 'upload']);
+        Route::post('customer/order-items/{orderItem}/prescription', [OrderItemPrescriptionController::class, 'upload'])->middleware('throttle:file-upload');
         Route::post('customer/orders/{order}/discount-id', [DiscountIdUploadController::class, 'upload'])->middleware('throttle:discount-id-upload');
         Route::post('customer/orders/{order}/payment-receipt', [PaymentReceiptUploadController::class, 'upload'])->middleware('throttle:payment-receipt-upload');
     });
@@ -137,7 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
         // Pharmacy settings (store profile, operating hours, alert thresholds, account security)
         Route::get('pharmacy/settings', [PharmacySettingsController::class, 'show']);
         Route::put('pharmacy/settings', [PharmacySettingsController::class, 'update']);
-        Route::post('pharmacy/settings/logo', [PharmacySettingsController::class, 'uploadLogo']);
+        Route::post('pharmacy/settings/logo', [PharmacySettingsController::class, 'uploadLogo'])->middleware('throttle:file-upload');
         Route::patch('pharmacy/settings/password', [PharmacySettingsController::class, 'updatePassword']);
 
         // Category settings CRUD
@@ -161,17 +161,17 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('pos/exchanges', [ItemExchangeController::class, 'store']);
         Route::get('pos/exchanges/{id}', [ItemExchangeController::class, 'show']);
 
-        Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister']);
+        Route::post('pharmacist/register', [AuthController::class, 'pharmacistRegister'])->middleware('throttle:auth-register');
         Route::get('pharmacists', [PharmacyPharmacistController::class, 'index']);
         Route::put('pharmacists/{pharmacist}', [PharmacyPharmacistController::class, 'update']);
         Route::put('pharmacists/{pharmacist}/permissions', [PharmacyPharmacistController::class, 'updatePermissions']);
         Route::delete('pharmacists/{pharmacist}', [PharmacyPharmacistController::class, 'destroy']);
 
         Route::post('products', [PharmacyProductController::class, 'store']);
-        Route::post('products/import', [PharmacyProductController::class, 'importPharmacyProducts']);
+        Route::post('products/import', [PharmacyProductController::class, 'importPharmacyProducts'])->middleware('throttle:batch-import');
         Route::put('products/{id}', [PharmacyProductController::class, 'update']);
         Route::delete('products/{id}', [PharmacyProductController::class, 'destroy']);
-        Route::post('products/{id}/image', [PharmacyProductController::class, 'uploadImage']);
+        Route::post('products/{id}/image', [PharmacyProductController::class, 'uploadImage'])->middleware('throttle:file-upload');
 
 
         Route::get('pharmacy/orders/stats', [OrderController::class, 'getTodayStats']);
@@ -193,8 +193,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // sales and reports
         Route::get('pharmacy/reports/sales/summary', [ReportController::class, 'getSalesSummary']);
         Route::get('pharmacy/reports/sales', [ReportController::class, 'getSalesList']);
-        Route::get('pharmacy/reports/sales/export/csv', [ReportController::class, 'exportSalesCsv']);
-        Route::get('pharmacy/reports/sales/export/pdf', [ReportController::class, 'exportSalesPdf']);
+        Route::get('pharmacy/reports/sales/export/csv', [ReportController::class, 'exportSalesCsv'])->middleware('throttle:csv-pdf-export');
+        Route::get('pharmacy/reports/sales/export/pdf', [ReportController::class, 'exportSalesPdf'])->middleware('throttle:csv-pdf-export');
 
         // product batches
         Route::get('pharmacy/inventory/products/{pharmacyProductId}/batches', [ProductBatchController::class, 'index']);
@@ -204,7 +204,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {
-        Route::post('admin/register', [AuthController::class, 'adminRegister']);
+        Route::post('admin/register', [AuthController::class, 'adminRegister'])->middleware('throttle:auth-register');
 
         Route::apiResource('pharmacies', PharmacyController::class)->except(['index', 'show']);
     });

@@ -8,6 +8,7 @@ use App\Models\Pharmacy;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Support\Facades\Cache;
 
 class PharmacyController extends Controller
 {
@@ -18,7 +19,10 @@ class PharmacyController extends Controller
     */
     public function index()
     {
-        $pharmacies = Pharmacy::all();
+        $pharmacies = Cache::remember('pharmacies_all', 3600, function () {
+            return Pharmacy::all();
+        });
+
         return response()->json($pharmacies);
     }
 
@@ -28,6 +32,8 @@ class PharmacyController extends Controller
     public function store(PharmacyRequest $request): JsonResponse
     {
         $pharmacy = Pharmacy::create($request->validated());
+
+        Cache::forget('pharmacies_all');
 
         return response()->json([
             'message' => 'Pharmacy created',
@@ -40,7 +46,10 @@ class PharmacyController extends Controller
     */
     public function show(string $id)
     {
-        $pharmacy = Pharmacy::findOrFail($id);
+        $pharmacy = Cache::remember("pharmacy_{$id}", 3600, function () use ($id) {
+            return Pharmacy::findOrFail($id);
+        });
+
         return response()->json($pharmacy);
     }
 
@@ -51,6 +60,9 @@ class PharmacyController extends Controller
     {
         $pharmacy = Pharmacy::findOrFail($id);
         $pharmacy->update($request->validated());
+
+        Cache::forget('pharmacies_all');
+        Cache::forget("pharmacy_{$id}");
 
         return response()->json([
             'message' => 'Pharmacy updated',
@@ -63,7 +75,8 @@ class PharmacyController extends Controller
     */
     public function updateOwn(Request $request): JsonResponse
     {
-        $pharmacy = Pharmacy::findOrFail($request->user()->pharmacy_id);
+        $pharmacyId = $request->user()->pharmacy_id;
+        $pharmacy = Pharmacy::findOrFail($pharmacyId);
 
         $validated = $request->validate([
             'pharmacy_name' => 'sometimes|string|max:255',
@@ -71,6 +84,9 @@ class PharmacyController extends Controller
         ]);
 
         $pharmacy->update($validated);
+
+        Cache::forget('pharmacies_all');
+        Cache::forget("pharmacy_{$pharmacyId}");
 
         return response()->json([
             'message'  => 'Pharmacy updated',
@@ -91,7 +107,11 @@ class PharmacyController extends Controller
             ], 400);
         }
 
+        $pharmacyId = $pharmacy->id;
         $pharmacy->delete();
+
+        Cache::forget('pharmacies_all');
+        Cache::forget("pharmacy_{$pharmacyId}");
 
         return response()->noContent();
     }

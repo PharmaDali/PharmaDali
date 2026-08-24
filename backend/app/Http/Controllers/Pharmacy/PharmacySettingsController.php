@@ -7,6 +7,7 @@ use App\Http\Requests\Pharmacy\UpdatePharmacySettingsRequest;
 use App\Services\Pharmacy\PharmacySettingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 
 class PharmacySettingsController extends Controller
@@ -21,7 +22,12 @@ class PharmacySettingsController extends Controller
      */
     public function show(Request $request): JsonResponse
     {
-        $settings = $this->settingsService->getSettings($request->user());
+        $pharmacyId = $request->user()->pharmacy_id;
+        $cacheKey = "pharmacy_{$pharmacyId}_settings";
+
+        $settings = Cache::remember($cacheKey, 3600, function () use ($request) {
+            return $this->settingsService->getSettings($request->user());
+        });
 
         return response()->json([
             'status' => 'success',
@@ -36,6 +42,9 @@ class PharmacySettingsController extends Controller
     public function update(UpdatePharmacySettingsRequest $request): JsonResponse
     {
         $pharmacy = $this->settingsService->updateSettings($request->user(), $request->validated());
+
+        $pharmacyId = $request->user()->pharmacy_id;
+        Cache::forget("pharmacy_{$pharmacyId}_settings");
 
         return response()->json([
             'status'  => 'success',
@@ -62,6 +71,9 @@ class PharmacySettingsController extends Controller
         ]);
 
         $logoUrl = $this->settingsService->uploadLogo($request->user(), $request->file('logo'));
+
+        $pharmacyId = $request->user()->pharmacy_id;
+        Cache::forget("pharmacy_{$pharmacyId}_settings");
 
         return response()->json([
             'status'   => 'success',

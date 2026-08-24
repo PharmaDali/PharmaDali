@@ -10,6 +10,7 @@ use App\Http\Requests\Analytics\GetSalesAnalyticsRequest;
 use App\Services\Analytics\AnalyticsService;
 use App\Services\AprioriService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Cache;
 
 class AnalyticsController extends Controller
 {
@@ -53,12 +54,21 @@ class AnalyticsController extends Controller
      */
     public function apriori(GetAprioriAnalyticsRequest $request): JsonResponse
     {
-        $data = $this->aprioriService->generateFrequentlyBoughtTogether(
-            $request->getPharmacyId(),
-            (int) $request->input('months', 6),
-            (float) $request->input('min_support', 0.05),
-            (float) $request->input('min_confidence', 0.2)
-        );
+        $pharmacyId = $request->getPharmacyId();
+        $months = (int) $request->input('months', 6);
+        $minSupport = (float) $request->input('min_support', 0.05);
+        $minConfidence = (float) $request->input('min_confidence', 0.2);
+
+        $cacheKey = "pharmacy_{$pharmacyId}_apriori_{$months}_{$minSupport}_{$minConfidence}";
+
+        $data = Cache::remember($cacheKey, 60 * 60 * 6, function () use ($pharmacyId, $months, $minSupport, $minConfidence) {
+            return $this->aprioriService->generateFrequentlyBoughtTogether(
+                $pharmacyId,
+                $months,
+                $minSupport,
+                $minConfidence
+            );
+        });
 
         return $this->successResponse($data, 'Frequently bought together rules retrieved successfully.');
     }
