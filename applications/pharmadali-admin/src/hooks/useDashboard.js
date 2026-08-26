@@ -60,7 +60,7 @@ export function useDashboard() {
         bg: "#96D2EE",
       },
       {
-        label: "Orders Today",
+        label: "Today's Transactions",
         value: cards ? Number(cards.orders_today).toLocaleString() : "0",
         prefix: null,
         bg: "#96D2EE",
@@ -78,7 +78,7 @@ export function useDashboard() {
         bg: "#F9C784",
       },
       {
-        label: "Predicted Stockout Risk",
+        label: "Stockout Risk",
         value: cards ? cards.predicted_stockout_risk : "Low",
         prefix: null,
         bg:
