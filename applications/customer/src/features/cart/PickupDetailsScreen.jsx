@@ -17,7 +17,7 @@ import GcashReceiptIcon from '@assets/icons/gcash_reciept_icon.svg'
 import QrCodeImage from '@assets/images/qrcode_dummy.png'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
-import { submitCheckoutOrder } from '@shared/services/checkoutSubmissionService'
+import { useOrderSubmission } from '@shared/context/OrderSubmissionContext'
 import { useSelectionPhase } from '@shared/context/SelectionPhaseContext'
 import {
   buildEffectivePickupBounds,
@@ -33,6 +33,7 @@ const PickupDetailsScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const { selectedPharmacy } = useSelectionPhase()
+  const { submitOptimisticOrder } = useOrderSubmission()
   const { items, total, prescriptionImage, discountIdImage: draftDiscountId, gcashReceiptImage: draftGcashReceipt } = getCheckoutDraft()
 
   const hasPrescription = items.some((item) => item.prescriptionRequired)
@@ -292,43 +293,34 @@ const PickupDetailsScreen = () => {
     })
   }
 
-  const handleConfirmPickup = async () => {
+  const handleConfirmPickup = () => {
     if (confirmPickupValidationError) {
       setSubmitError(confirmPickupValidationError)
       return
     }
 
     const scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, selectedTime)
-
-    setSubmitting(true)
     setSubmitError('')
 
-    try {
-      const normalizedCustomerNote = customerNote.trim()
-      const selectedPharmacyLabel = selectedPharmacy?.name || ''
-      const { orderId } = await submitCheckoutOrder({
-        items,
-        hasPrescription,
-        prescriptionImage,
-        discountIdImage,
-        gcashReceiptImage,
-        selectedPharmacyLabel,
-        scheduledPickupAt,
-        customerNote: normalizedCustomerNote,
-        paymentMethod: hasPrescription ? 'cash' : paymentMethod,
-      })
-
-      setCheckoutDraft({
-        ...getCheckoutDraft(),
-        orderId,
-      })
-
-      router.replace('/tabs/cart/OrderSubmitted')
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Failed to confirm pickup.')
-    } finally {
-      setSubmitting(false)
+    const normalizedCustomerNote = customerNote.trim()
+    const selectedPharmacyLabel = selectedPharmacy?.name || ''
+    const payload = {
+      items,
+      hasPrescription,
+      prescriptionImage,
+      discountIdImage,
+      gcashReceiptImage,
+      selectedPharmacyLabel,
+      scheduledPickupAt,
+      customerNote: normalizedCustomerNote,
+      paymentMethod: hasPrescription ? 'cash' : paymentMethod,
     }
+
+    // Submit optimistically in the background
+    submitOptimisticOrder(payload)
+
+    // Instantly navigate
+    router.replace('/tabs/cart/OrderSubmitted')
   }
 
   return (
