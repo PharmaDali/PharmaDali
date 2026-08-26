@@ -42,11 +42,7 @@ export function PickupOrdersTable({
           </thead>
           <tbody>
             {loading ? (
-              <tr style={{ backgroundColor: "#ffffff" }}>
-                <td colSpan={6} style={{ backgroundColor: "#ffffff", borderTopLeftRadius: "0px", borderTopRightRadius: "0px", borderBottomLeftRadius: "10px", borderBottomRightRadius: "10px" }}>
-                  <TableSkeleton rows={5} columns={6} showAvatar={false} />
-                </td>
-              </tr>
+              <TableSkeleton rows={5} columns={6} showAvatar={false} />
             ) : fetchError ? (
               <tr className="inventory-empty-row" style={{ cursor: "default", backgroundColor: "#ffffff" }}>
                 <td colSpan={6} className="text-center py-5" style={{ backgroundColor: "#ffffff", borderTopLeftRadius: "0px", borderTopRightRadius: "0px", borderBottomLeftRadius: "10px", borderBottomRightRadius: "10px" }}>
