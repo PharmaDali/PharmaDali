@@ -11,6 +11,7 @@ import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { FlyToCartProvider } from '@shared/context/FlyToCartContext';
 import { configureForegroundNotifications, syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
+import { OrderSubmissionProvider } from '@shared/context/OrderSubmissionContext';
 
 // Configure foreground notification presentation at module level
 configureForegroundNotifications();
@@ -116,7 +117,9 @@ export default function RootLayout() {
       <SelectionPhaseProvider>
         <SearchProvider>
           <FlyToCartProvider>
-            <LayoutContent />
+            <OrderSubmissionProvider>
+              <LayoutContent />
+            </OrderSubmissionProvider>
           </FlyToCartProvider>
         </SearchProvider>
       </SelectionPhaseProvider>

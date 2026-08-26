@@ -103,6 +103,7 @@ const ProductView = () => {
           startX: tapPos.x,
           startY: tapPos.y,
           img: productData?.product?.image_url,
+          product: product,
         });
         setTimeout(() => {
           setIsAddedSuccess(false);
