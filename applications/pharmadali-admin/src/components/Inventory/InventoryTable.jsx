@@ -46,10 +46,10 @@ export function InventoryTable({
             <tr>
               <th>Product Name</th>
               <th>Category</th>
-              <th>Stock Quantity</th>
-              <th>Expiry Date</th>
-              <th>Selling Price</th>
-              <th>Status</th>
+              <th className="text-center">Stock Quantity</th>
+              <th className="text-center">Expiry Date</th>
+              <th className="text-center">Selling Price</th>
+              <th className="text-center">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -95,16 +95,18 @@ export function InventoryTable({
                     </div>
                   </td>
                   <td>{item.category}</td>
-                  <td>{item.quantity}</td>
-                  <td>{item.expiryLabel}</td>
-                  <td>{item.sellingPrice.toFixed(2)}</td>
-                  <td>
+                  <td className="text-center">{item.quantity}</td>
+                  <td className="text-center">{item.expiryLabel}</td>
+                  <td className="text-center">{item.sellingPrice.toFixed(2)}</td>
+                  <td className="text-center">
                     <span
                       className={`inventory-status-chip inventory-status-${item.status
                         .toLowerCase()
                         .replace(/\s+/g, "-")}`}
                     >
-                      {item.status}
+                      {item.status === "Expired" && item.batches
+                        ? `${item.batches.filter((b) => b.status === "Expired").reduce((sum, b) => sum + parseInt(b.stock, 10), 0)} units expired`
+                        : item.status}
                     </span>
                   </td>
                 </tr>

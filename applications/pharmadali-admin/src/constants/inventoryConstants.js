@@ -36,6 +36,6 @@ export const STOCK_FILTERS = [
   "500 and above",
 ];
 
-export const STATUS_FILTERS = ["All", "Normal", "Low Stocks", "Expiring soon", "Expired"];
+export const STATUS_FILTERS = ["All", "Healthy", "Low Stocks", "Expiring soon", "Expired"];
 
 export const ITEMS_PER_PAGE = 10;

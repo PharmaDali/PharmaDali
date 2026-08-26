@@ -18,7 +18,14 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems 
           {lowStockItems && lowStockItems.length > 0 ? (
             lowStockItems.map((item) => (
               <div key={item.id} className="inventory-side-row">
-                <span className="inventory-side-name">{item.name}</span>
+                <span className="inventory-side-name">
+                  {item.name}
+                  {item.batches && item.batches.length > 0 && (
+                    <div style={{ fontSize: "10px", color: "#6c757d", fontWeight: "normal", marginTop: "2px" }}>
+                      {item.batches.map((b) => b.batch_number).filter(Boolean).join(", ")}
+                    </div>
+                  )}
+                </span>
                 <span className="inventory-side-sub">{item.quantity} left</span>
                 <span className="inventory-side-pill inventory-side-pill-warn">
                   {getWeeksLeft(item)}
@@ -42,7 +49,18 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems 
           {expiringItems && expiringItems.length > 0 ? (
             expiringItems.map((item) => (
               <div key={item.id} className="inventory-side-row">
-                <span className="inventory-side-name">{item.name}</span>
+                <span className="inventory-side-name">
+                  {item.name}
+                  {item.batches && item.batches.length > 0 && (
+                    <div style={{ fontSize: "10px", color: "#6c757d", fontWeight: "normal", marginTop: "2px" }}>
+                      {item.batches
+                        .filter((b) => b.status === "Expiring soon")
+                        .map((b) => b.batch_number)
+                        .filter(Boolean)
+                        .join(", ")}
+                    </div>
+                  )}
+                </span>
                 <span className="inventory-side-sub">{item.quantity} left</span>
                 <span className="inventory-side-pill inventory-side-pill-danger">
                   {item.expiringInDays}
@@ -66,7 +84,17 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems 
           {expiredItems && expiredItems.length > 0 ? (
             expiredItems.map((item) => (
               <div key={item.id} className="inventory-side-row">
-                <span className="inventory-side-name">{item.name}</span>
+                <span className="inventory-side-name">
+                  {item.name}
+                  {item.batches && item.batches.length > 0 && (
+                    <div style={{ fontSize: "10px", color: "#6c757d", fontWeight: "normal", marginTop: "2px" }}>                      {item.batches
+                        .filter((b) => b.status === "Expired")
+                        .map((b) => b.batch_number)
+                        .filter(Boolean)
+                        .join(", ")}
+                    </div>
+                  )}
+                </span>
                 <span className="inventory-side-sub">{item.quantity} left</span>
                 <span className="inventory-side-pill inventory-side-pill-danger">
                   {Math.abs(item.expiringInDays)}
