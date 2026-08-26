@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Image, StyleSheet, Dimensions, View, Text } from 'react-native';
+import { Animated, StyleSheet, Dimensions, View } from 'react-native';
+import ProductImage from '@shared/components/ProductImage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -58,17 +59,13 @@ export default function FlyingCartItem({ item, targetPos, onComplete }) {
         },
       ]}
     >
-      {item.img ? (
-        <Image
-          source={{ uri: item.img }}
-          style={styles.image}
-          resizeMode="cover"
-        />
-      ) : (
-        <View style={styles.fallbackBadge}>
-          <Text style={styles.fallbackText}>💊</Text>
-        </View>
-      )}
+      <ProductImage 
+         source={item.img}
+         product={item.product}
+         width={44}
+         height={44}
+         containerStyle={{ borderRadius: 22, borderWidth: 0 }}
+      />
     </Animated.View>
   );
 }

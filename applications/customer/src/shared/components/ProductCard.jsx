@@ -75,6 +75,7 @@ const ProductCard = ({
               startX: tapPos.x,
               startY: tapPos.y,
               img: img || product?.image_url,
+              product: product,
             });
             setTimeout(() => {
               setIsAddedSuccess(false);

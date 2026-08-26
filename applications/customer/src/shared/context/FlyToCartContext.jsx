@@ -27,12 +27,13 @@ export function FlyToCartProvider({ children }) {
     };
   }, []);
 
-  const triggerFlyToCart = useCallback(({ startX, startY, img }) => {
+  const triggerFlyToCart = useCallback(({ startX, startY, img, product }) => {
     const newItem = {
       id: `${Date.now()}-${Math.random()}`,
       startX: startX ?? (SCREEN_WIDTH / 2),
       startY: startY ?? 300,
       img,
+      product,
     };
     setFlyingItems((prev) => [...prev, newItem]);
   }, []);
