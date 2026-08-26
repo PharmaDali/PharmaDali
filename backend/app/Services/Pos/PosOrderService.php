@@ -4,6 +4,7 @@ namespace App\Services\Pos;
 
 use App\Models\Pharmacy;
 use App\Repositories\PosRepository;
+use App\Repositories\ProductBatchRepository;
 use App\Services\Inventory\InventoryLogService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -12,6 +13,7 @@ class PosOrderService
 {
     public function __construct(
         private readonly PosRepository $posRepository,
+        private readonly ProductBatchRepository $batchRepository,
         private readonly PosDiscountCalculator $discountCalculator,
         private readonly InventoryLogService $logService,
     ) {}
@@ -95,16 +97,19 @@ class PosOrderService
                     'product_name' => $pharmacyProduct->product->product_name ?? 'Unknown Product',
                 ]);
 
-                // Update stock using Eloquent save() in PosRepository
-                $this->posRepository->decrementStock($pharmacyProduct, $item['qty']);
+                // Update stock using FEFO batch deduction
+                $deductionLog = $this->batchRepository->stockOutFefo($pharmacyProduct->id, $item['qty']);
 
-                $this->logService->logStockOut(
-                    pharmacyId:         $pharmacyProduct->pharmacy_id,
-                    pharmacyProductId:  $pharmacyProduct->id,
-                    batchId:            null, // POS uses direct decrement, no FEFO batch tracking
-                    quantity:           $item['qty'],
-                    reason:             'POS Sale: ' . $order->order_number,
-                );
+                // Log each batch deduction
+                foreach ($deductionLog as $batchLog) {
+                    $this->logService->logStockOut(
+                        pharmacyId:         $pharmacyProduct->pharmacy_id,
+                        pharmacyProductId:  $pharmacyProduct->id,
+                        batchId:            $batchLog['batch_id'],
+                        quantity:           $batchLog['deducted'],
+                        reason:             'POS Sale: ' . $order->order_number,
+                    );
+                }
             }
 
             return $order;

@@ -466,13 +466,13 @@
 }
 
 .inventory-status-low-stocks {
-  background: #bfe7fb;
-  color: #1e5a82;
+  background: #FEF3C7;
+  color: #944A1B;
 }
 
 .inventory-status-expiring-soon {
-  background: #f9d6a7;
-  color: #8a4b07;
+  background: #FEE2E2;
+  color: #C61D1C;
 }
 
 .inventory-status-expired {
@@ -480,9 +480,9 @@
   color: #8a1f2b;
 }
 
-.inventory-status-normal {
-  background: #c7f2c9;
-  color: #17663a;
+.inventory-status-healthy {
+  background: #DCFCE7;
+  color: #4A7634;
 }
 
 .inventory-log-action-chip {
@@ -588,13 +588,13 @@
 }
 
 .inventory-side-pill-warn {
-  background: #f9d6a7;
-  color: #8a4b07;
+  background: #FEF3C7;
+  color: #944A1B;
 }
 
 .inventory-side-pill-danger {
-  background: #ffb6b9;
-  color: #8a1f2b;
+  background: #FEE2E2;
+  color: #C61D1C;
 }
 
 .inventory-content-row {

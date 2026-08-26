@@ -91,7 +91,7 @@ class GetInventoryProductsService
             );
         } elseif ($status === 'Low Stocks') {
             $query->where('stock', '<=', $this->lowStockThreshold);
-        } elseif ($status === 'Normal') {
+        } elseif ($status === 'Healthy') {
             $query->where('stock', '>', $this->lowStockThreshold)
                 ->whereDoesntHave('batches', fn ($q) => $q
                     ->whereNotNull('expiry_date')
@@ -129,7 +129,7 @@ class GetInventoryProductsService
             $earliestExpiryDate !== null && $expiringInDays <= 0 => 'Expired',
             $earliestExpiryDate !== null && $expiringInDays <= $this->expiryDaysThreshold => 'Expiring soon',
             $realStock <= $this->lowStockThreshold => 'Low Stocks',
-            default => 'Normal',
+            default => 'Healthy',
         };
 
         $strengthFormParts = array_filter([$product->strength ?? '', $product->form ?? '', $product->size ?? '']);
@@ -171,14 +171,14 @@ class GetInventoryProductsService
             ->sortBy('expiry_date')
             ->map(function ($batch) {
                 $expiringInDays = null;
-                $status = 'Normal';
+                $status = 'Healthy';
 
                 if ($batch->expiry_date) {
                     $expiringInDays = (int) $this->today->diffInDays($batch->expiry_date, false);
                     $status = match (true) {
                         $expiringInDays <= 0  => 'Expired',
                         $expiringInDays <= 30 => 'Expiring soon',
-                        default               => 'Normal',
+                        default               => 'Healthy',
                     };
                 }
 

@@ -40,7 +40,7 @@ class RestockRepository
             ->toArray();
 
         // Fetch all products for this pharmacy
-        $products = PharmacyProduct::with(['product:id,product_name,brand_name', 'category:id,category_name'])
+        $products = PharmacyProduct::with(['product:id,product_name,brand_name', 'category:id,category_name', 'batches'])
             ->where('pharmacy_id', $pharmacyId)
             ->get();
 
@@ -53,6 +53,7 @@ class RestockRepository
                 'quantity'       => (int) $bp->stock,
                 'selling_price'  => (float) $bp->selling_price,
                 'total_sold_30d' => (int) ($salesMap[$bp->id] ?? 0),
+                'batches'        => $bp->batches->map(fn($b) => ['batch_number' => $b->batch_number])->toArray(),
             ];
         })->toArray();
     }

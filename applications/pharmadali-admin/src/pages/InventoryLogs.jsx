@@ -34,23 +34,16 @@ function InventoryLogs() {
 
   return (
     <section className="inventory-page" aria-label="Inventory Logs Audit Trail">
-      <header className="admin-page-header">
-        <h4 className="fw-bold mb-1 admin-page-title">Inventory logs</h4>
-        <p className="admin-page-subtitle">
-          Audit trail of stock movements, batch expirations, and adjustments.
-        </p>
-      </header>
-
-      <div className="inventory-breadcrumb">
+      <div className="inventory-breadcrumb mb-3">
         <button
           type="button"
-          className="breadcrumb-link"
+          className="breadcrumb-link fs-4"
           onClick={() => navigate("/inventory")}
         >
           Inventory
         </button>
-        <span className="breadcrumb-separator">&rsaquo;</span>
-        <span className="breadcrumb-current">Inventory logs</span>
+        <span className="breadcrumb-separator fs-4">&rsaquo;</span>
+        <span className="breadcrumb-current fs-4">Inventory logs</span>
       </div>
 
       <div className="inventory-filter-bar inventory-logs-filter-bar">
