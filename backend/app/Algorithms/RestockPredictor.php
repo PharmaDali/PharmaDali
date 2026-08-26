@@ -64,6 +64,7 @@ class RestockPredictor
                 'weeksLeft'        => $weeksLeft <= 1 ? 'less than 1' : (string) round($weeksLeft),
                 'velocity'         => $velocity,
                 'sellingPrice'     => $product['selling_price'],
+                'batches'          => $product['batches'] ?? [],
             ];
         }
 
