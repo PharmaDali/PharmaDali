@@ -6,6 +6,8 @@ use App\Models\Order;
 use App\Models\Pharmacy;
 use App\Notifications\OrderCompletedNotification;
 use App\Repositories\PosRepository;
+use App\Repositories\ProductBatchRepository;
+use App\Services\Inventory\InventoryLogService;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,7 +16,9 @@ class PosPickupOrderService
 {
     public function __construct(
         private readonly PosRepository $posRepository,
-        private readonly PosDiscountCalculator $discountCalculator
+        private readonly ProductBatchRepository $batchRepository,
+        private readonly PosDiscountCalculator $discountCalculator,
+        private readonly InventoryLogService $logService
     ) {}
 
     /**
@@ -111,6 +115,21 @@ class PosPickupOrderService
             ];
 
             $this->posRepository->updateOrder($order, $updateData);
+
+            // Deduct stock via FEFO for all items in the pickup order
+            foreach ($order->items as $item) {
+                $deductionLog = $this->batchRepository->stockOutFefo($item->pharmacy_product_id, $item->quantity);
+
+                foreach ($deductionLog as $batchLog) {
+                    $this->logService->logStockOut(
+                        pharmacyId:         $order->pharmacy_id,
+                        pharmacyProductId:  $item->pharmacy_product_id,
+                        batchId:            $batchLog['batch_id'],
+                        quantity:           $batchLog['deducted'],
+                        reason:             'Pickup Order Completed: ' . $order->order_number,
+                    );
+                }
+            }
 
             // Notify customer that order is completed
             if ($order->customer && $order->customer->user) {
