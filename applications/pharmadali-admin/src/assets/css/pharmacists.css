@@ -280,6 +280,30 @@
   color: #fff;
 }
 
+.pharmacists-btn-permissions {
+  border-radius: var(--pd-radius-md);
+  background: transparent;
+  border: 1px solid #2aabe2;
+  color: #2aabe2;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pharmacists-btn-permissions:hover,
+.pharmacists-btn-permissions:focus,
+.pharmacists-btn-permissions:active,
+.pharmacists-page .btn-outline-primary:hover,
+.pharmacists-page .btn-outline-primary:focus,
+.pharmacists-page .btn-outline-primary:active {
+  background: #2aabe2 !important;
+  border-color: #2aabe2 !important;
+  color: #fff !important;
+  box-shadow: none;
+}
+
 .pharmacists-status-badge {
   display: inline-block;
   padding: 0.25rem 0.75rem;

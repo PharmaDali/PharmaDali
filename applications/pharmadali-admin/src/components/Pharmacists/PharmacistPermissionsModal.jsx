@@ -144,10 +144,12 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
             return (
               <div
                 key={perm.key}
-                className={`p-3 rounded-3 border d-flex align-items-start justify-content-between transition-all ${
-                  isChecked ? "border-primary-subtle bg-primary-subtle bg-opacity-10" : "bg-light bg-opacity-50"
-                }`}
-                style={{ cursor: "pointer" }}
+                className="p-3 rounded-3 border d-flex align-items-start justify-content-between transition-all"
+                style={{
+                  cursor: "pointer",
+                  borderColor: isChecked ? "#96d2ee" : "#e2e8f0",
+                  backgroundColor: isChecked ? "#f4f9fd" : "#f8fafc",
+                }}
                 onClick={() => handleToggle(perm.key)}
               >
                 <div className="d-flex align-items-start gap-3">

@@ -156,8 +156,7 @@ export function PharmacistsTable({
                       </button>
                       <button
                         type="button"
-                        className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1 py-1 px-2 rounded-2"
-                        style={{ borderColor: "#2aabe2", color: "#2aabe2", fontSize: "0.8rem" }}
+                        className="btn btn-sm pharmacists-btn-permissions d-flex align-items-center gap-1"
                         onClick={() => onOpenPermissionsModal(item)}
                         title="Manage Staff Permissions"
                       >
