@@ -45,6 +45,9 @@ export function usePharmacists() {
   const [viewingPharmacist, setViewingPharmacist] = useState(null);
   const [showPermissionsModal, setShowPermissionsModal] = useState(false);
   const [permissionsPharmacist, setPermissionsPharmacist] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -246,15 +249,24 @@ export function usePharmacists() {
     }
   };
 
-  const handleDeletePharmacist = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this pharmacist account?")) return;
+  const handleDeletePharmacist = (id) => {
+    setDeletingId(id);
+    setShowDeleteModal(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!deletingId) return;
     try {
-      await deletePharmacist(id);
-      setPharmacists((prev) => prev.filter((item) => item.id !== id));
+      setIsDeleting(true);
+      await deletePharmacist(deletingId);
+      setPharmacists((prev) => prev.filter((item) => item.id !== deletingId));
+      setShowDeleteModal(false);
+      setDeletingId(null);
     } catch (err) {
       console.error("Failed to delete pharmacist:", err);
       alert(err.response?.data?.message || "Failed to delete pharmacist.");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -272,6 +284,9 @@ export function usePharmacists() {
     showPermissionsModal,
     setShowPermissionsModal,
     permissionsPharmacist,
+    showDeleteModal,
+    setShowDeleteModal,
+    isDeleting,
     formData,
     editingId,
     isSaving,
@@ -288,6 +303,7 @@ export function usePharmacists() {
     handleInputChange,
     handleSave,
     handleDeletePharmacist,
+    confirmDelete,
   };
 }
 
