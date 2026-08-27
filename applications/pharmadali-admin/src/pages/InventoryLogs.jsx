@@ -75,6 +75,14 @@ function InventoryLogs() {
           options={ACTION_FILTERS}
         />
 
+        <SelectDropdown
+          id="logs-user"
+          label="User"
+          value="All Users"
+          onChange={() => {}}
+          options={["All Users"]}
+        />
+
         <div className="inventory-field">
           <label className="inventory-field-label" htmlFor="logs-date">
             Date Range
@@ -92,14 +100,6 @@ function InventoryLogs() {
             />
           </div>
         </div>
-
-        <SelectDropdown
-          id="logs-user"
-          label="User"
-          value="All Users"
-          onChange={() => {}}
-          options={["All Users"]}
-        />
 
         <div className="inventory-field inventory-search-action">
           <button type="button" className="btn inventory-search-btn" onClick={loadData}>

@@ -1611,6 +1611,10 @@ input[type="month"]::-webkit-calendar-picker-indicator {
     grid-column: span 2;
   }
 
+  .inventory-logs-filter-bar> :nth-child(2) {
+    grid-column: span 2;
+  }
+
   .inventory-search-action {
     grid-column: span 2;
     justify-content: center;
