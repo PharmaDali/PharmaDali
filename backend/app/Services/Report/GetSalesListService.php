@@ -33,7 +33,7 @@ class GetSalesListService
                 : ((float) $order->total_amount + $discountAmount);
 
             $hasExchange = $order->exchanges && $order->exchanges->isNotEmpty();
-            $status = $hasExchange ? 'exchanged' : strtolower($order->status ?? 'completed');
+            $status = $hasExchange ? 'exchanged' : strtolower($order->status?->value ?? 'completed');
 
             return [
                 'id' => $order->order_number,

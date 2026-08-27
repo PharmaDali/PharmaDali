@@ -10,15 +10,34 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
+use App\Enums\OrderStatus;
+
 class ExpireOrders extends Command
 {
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
     protected $signature = 'orders:expire';
-    protected $description = 'Process order pickup reminders and mark open/unclaimed orders as overdue when pharmacy closing hour or scheduled pickup time passes.';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Marks unresolved and un-picked-up orders as overdue when pharmacy closes.';
 
     /**
      * Statuses that indicate an order is still open / in-progress or awaiting pickup.
      */
-    private const EXPIRABLE_STATUSES = ['pending', 'reviewing', 'preparing', 'stand_by', 'ready_for_pickup'];
+    private const EXPIRABLE_STATUSES = [
+        OrderStatus::PENDING, 
+        OrderStatus::REVIEWING, 
+        OrderStatus::PREPARING, 
+        OrderStatus::STAND_BY, 
+        OrderStatus::READY_FOR_PICKUP
+    ];
 
     public function handle(): int
     {
@@ -39,7 +58,7 @@ class ExpireOrders extends Command
         $sentCount = 0;
 
         $orders = Order::withoutGlobalScopes()
-            ->where('status', 'ready_for_pickup')
+            ->where('status', OrderStatus::READY_FOR_PICKUP)
             ->whereNull('pickup_reminder_sent_at')
             ->with(['customer.user', 'pharmacy'])
             ->get();
@@ -117,14 +136,14 @@ class ExpireOrders extends Command
                 $orders = $query->with('customer.user')->get();
 
                 foreach ($orders as $order) {
-                    $reason = $order->status === 'ready_for_pickup'
+                    $reason = $order->status === OrderStatus::READY_FOR_PICKUP
                         ? 'Order expired: item was not picked up before pharmacy closing time.'
                         : 'Order expired: pharmacy closed before order could be fulfilled.';
 
                     Order::withoutGlobalScopes()
                         ->where('id', $order->id)
                         ->update([
-                            'status'              => 'overdue',
+                            'status'              => OrderStatus::OVERDUE,
                             'cancelled_at'        => $now,
                             'cancellation_reason' => $reason,
                         ]);

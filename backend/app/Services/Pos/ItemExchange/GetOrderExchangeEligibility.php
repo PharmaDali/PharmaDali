@@ -31,10 +31,10 @@ class GetOrderExchangeEligibility
             ];
         }
 
-        if ($order->status !== 'completed') {
+        if ($order->status !== \App\Enums\OrderStatus::COMPLETED) {
             return [
                 'eligible' => false,
-                'reason' => "Only completed orders can be exchanged (Order #{$order->order_number} status is currently '{$order->status}').",
+                'reason' => "Only completed orders can be exchanged (Order #{$order->order_number} status is currently '{$order->status->value}').",
                 'items' => [],
             ];
         }

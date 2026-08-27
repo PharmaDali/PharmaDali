@@ -11,6 +11,8 @@ use App\Services\Inventory\InventoryLogService;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 
 class PosPickupOrderService
 {
@@ -57,11 +59,11 @@ class PosPickupOrderService
             throw new \Exception("Unauthorized: Order does not belong to your pharmacy.");
         }
 
-        if ($order->status === 'completed') {
+        if ($order->status === OrderStatus::COMPLETED) {
             throw new \Exception("Order is already completed.");
         }
 
-        if ($order->status !== 'ready_for_pickup') {
+        if ($order->status !== OrderStatus::READY_FOR_PICKUP) {
             throw new \Exception("Order must be in 'ready_for_pickup' status to be completed at POS.");
         }
 
@@ -95,11 +97,11 @@ class PosPickupOrderService
             $finalChangeAmount = $changeAmount !== null ? (float) $changeAmount : max(0, round($finalAmountReceived - $totalAmount, 2));
 
             $updateData = [
-                'status' => 'completed',
+                'status' => OrderStatus::COMPLETED,
                 'verified_by' => $user->id,
                 'verified_at' => now(),
                 'payment_method' => $paymentMethod,
-                'payment_status' => 'paid',
+                'payment_status' => PaymentStatus::PAID,
                 'subtotal' => $subtotal,
                 'discount_type' => $discountType,
                 'discount_percentage' => $discountPercentage,

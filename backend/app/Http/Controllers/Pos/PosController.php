@@ -90,7 +90,7 @@ class PosController extends Controller
         }
 
         // Only allow printing receipts for completed orders
-        if ($order->status !== 'completed') {
+        if ($order->status !== \App\Enums\OrderStatus::COMPLETED) {
             return $this->errorResponse('A receipt can only be generated for completed orders.', 422);
         }
 

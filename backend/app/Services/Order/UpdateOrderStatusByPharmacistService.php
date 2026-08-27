@@ -9,6 +9,7 @@ use App\Notifications\OrderStatusNotification;
 use Illuminate\Http\JsonResponse;
 use App\Notifications\OrderRejectedNotification;
 use Illuminate\Support\Facades\Log;
+use App\Enums\OrderStatus;
 
 class UpdateOrderStatusByPharmacistService
 {
@@ -17,17 +18,17 @@ class UpdateOrderStatusByPharmacistService
     ) {}
 
     private const ACTION_TO_STATUS = [
-        'approve' => 'preparing',
-        'ready' => 'ready_for_pickup',
-        'pending' => 'stand_by',
-        'reject' => 'cancelled',
+        'approve' => OrderStatus::PREPARING,
+        'ready' => OrderStatus::READY_FOR_PICKUP,
+        'pending' => OrderStatus::STAND_BY,
+        'reject' => OrderStatus::CANCELLED,
     ];
 
     private const ACTION_ALLOWED_CURRENT_STATUSES = [
-        'approve' => ['pending', 'reviewing'],
-        'ready' => ['preparing'],
-        'pending' => ['pending', 'reviewing', 'preparing', 'ready_for_pickup'],
-        'reject' => ['pending', 'reviewing', 'preparing', 'ready_for_pickup'],
+        'approve' => [OrderStatus::PENDING, OrderStatus::REVIEWING],
+        'ready' => [OrderStatus::PREPARING],
+        'pending' => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP],
+        'reject' => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP],
     ];
 
     public function handle(?User $user, Order $order, string $action, ?string $reason = null): JsonResponse
@@ -84,7 +85,7 @@ class UpdateOrderStatusByPharmacistService
             'verified_at' => now(),
         ];
 
-        if ($nextStatus === 'cancelled') {
+        if ($nextStatus === OrderStatus::CANCELLED) {
             $updatePayload['cancelled_at'] = now();
             $updatePayload['cancellation_reason'] = 'Rejected by pharmacist: ' . trim((string) $reason);
         }
