@@ -32,12 +32,7 @@ export default function OrdersScreen() {
   }, [reloadOrders])
 
   return (
-    <ScrollView
-      style={styles.container}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#48AAD9']} tintColor="#48AAD9" />
-      }
-    >
+    <View style={styles.container}>
       <View className="items-center">
         <View className="flex-row items-center justify-center mt-5 rounded-2xl shadow-xl px-8 py-2 bg-white elevation-2 border border-gray-200">
           <TouchableOpacity onPress={() => setActiveTab('active')} className="px-4">
@@ -70,10 +65,10 @@ export default function OrdersScreen() {
 
       {!loading && !errorMessage && (
         activeTab === 'active'
-          ? <ActiveOrdersScreen orders={activeOrders} onOrderCancelled={reloadOrders} />
-          : <CompletedOrdersScreen orders={completedOrders} />
+          ? <ActiveOrdersScreen orders={activeOrders} onOrderCancelled={reloadOrders} refreshing={refreshing} onRefresh={onRefresh} />
+          : <CompletedOrdersScreen orders={completedOrders} refreshing={refreshing} onRefresh={onRefresh} />
       )}
-    </ScrollView>
+    </View>
   )
 }
 
