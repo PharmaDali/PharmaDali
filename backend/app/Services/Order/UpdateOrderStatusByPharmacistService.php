@@ -2,40 +2,42 @@
 
 namespace App\Services\Order;
 
+use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
-use App\Services\Messaging\ConversationService;
-use App\Notifications\OrderStatusNotification;
-use Illuminate\Http\JsonResponse;
 use App\Notifications\OrderRejectedNotification;
+use App\Notifications\OrderStatusNotification;
+use App\Services\Messaging\ConversationService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;
-use App\Enums\OrderStatus;
 
 class UpdateOrderStatusByPharmacistService
 {
-    public function __construct(
-        private readonly ConversationService $conversationService,
-    ) {}
-
     private const ACTION_TO_STATUS = [
-        'approve' => OrderStatus::PREPARING,
-        'ready' => OrderStatus::READY_FOR_PICKUP,
-        'pending' => OrderStatus::STAND_BY,
-        'reject' => OrderStatus::CANCELLED,
+        'approve'     => OrderStatus::PREPARING,
+        'ready'       => OrderStatus::READY_FOR_PICKUP,
+        'pending'     => OrderStatus::STAND_BY,
+        'out_pending' => OrderStatus::REVIEWING,
+        'reject'      => OrderStatus::CANCELLED,
     ];
 
     private const ACTION_ALLOWED_CURRENT_STATUSES = [
-        'approve' => [OrderStatus::PENDING, OrderStatus::REVIEWING],
-        'ready' => [OrderStatus::PREPARING],
-        'pending' => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP],
-        'reject' => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP],
+        'approve'     => [OrderStatus::PENDING, OrderStatus::REVIEWING],
+        'ready'       => [OrderStatus::PREPARING],
+        'pending'     => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP],
+        'out_pending' => [OrderStatus::STAND_BY, OrderStatus::PENDING],
+        'reject'      => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP],
     ];
 
-    public function handle(?User $user, Order $order, string $action, ?string $reason = null): JsonResponse
+    public function __construct(
+        private readonly ConversationService $conversationService
+    ) {}
+
+    public function handle(?User $user, Order $order, string $action, ?string $reason = null, ?string $section = null): JsonResponse
     {
         if (!$user || $user->role !== 'pharmacist') {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Only pharmacists can update order status.',
             ], 403);
         }
@@ -43,21 +45,21 @@ class UpdateOrderStatusByPharmacistService
         $pharmacistProfile = $user->pharmacist;
         if (!$pharmacistProfile) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Pharmacist profile not found.',
             ], 403);
         }
 
         if (!is_null($user->pharmacy_id) && $order->pharmacy_id !== $user->pharmacy_id) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'You are not allowed to update this order.',
             ], 403);
         }
 
         if (!array_key_exists($action, self::ACTION_TO_STATUS)) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Unsupported pharmacist action.',
             ], 422);
         }
@@ -65,22 +67,27 @@ class UpdateOrderStatusByPharmacistService
         $allowedCurrentStatuses = self::ACTION_ALLOWED_CURRENT_STATUSES[$action];
         if (!in_array($order->status, $allowedCurrentStatuses, true)) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'This order cannot be updated to the requested status.',
             ], 422);
         }
 
-        if ($action === 'reject' && blank($reason)) {
+        if ($action === 'reject' && blank($reason) && !$section) {
             return response()->json([
-                'status' => 'error',
+                'status'  => 'error',
                 'message' => 'Reason is required when rejecting an order.',
             ], 422);
+        }
+
+        // Handle section-specific rejections (Prescription, Discount ID, Payment Receipt)
+        if ($action === 'reject' && !empty($section)) {
+            return $this->handleSectionRejection($user, $order, $section, $reason);
         }
 
         $nextStatus = self::ACTION_TO_STATUS[$action];
 
         $updatePayload = [
-            'status' => $nextStatus,
+            'status'      => $nextStatus,
             'verified_by' => $user->id,
             'verified_at' => now(),
         ];
@@ -88,10 +95,11 @@ class UpdateOrderStatusByPharmacistService
         if ($nextStatus === OrderStatus::CANCELLED) {
             $updatePayload['cancelled_at'] = now();
             $updatePayload['cancellation_reason'] = 'Rejected by pharmacist: ' . trim((string) $reason);
+        } elseif ($nextStatus === OrderStatus::STAND_BY && !empty($reason)) {
+            $updatePayload['cancellation_reason'] = trim((string) $reason);
         }
 
         $order->update($updatePayload);
-
         $order = $order->fresh();
 
         // Notify customer about status change
@@ -102,10 +110,11 @@ class UpdateOrderStatusByPharmacistService
         }
 
         $systemMessage = match ($action) {
-            'approve' => 'Prescription approved',
-            'ready' => 'Ready for pickup',
-            'pending' => 'Order placed on hold',
-            default => 'Order rejected',
+            'approve'     => 'Prescription approved',
+            'ready'       => 'Ready for pickup',
+            'pending'     => 'Order placed on hold',
+            'out_pending' => 'Order removed from hold',
+            default       => 'Order rejected',
         };
 
         $msg = $this->conversationService->appendSystemMessage($order, $systemMessage, [
@@ -117,7 +126,7 @@ class UpdateOrderStatusByPharmacistService
         if ($action === 'reject') {
             try {
                 $msg->conversation()->update([
-                    'status' => 'closed',
+                    'status'    => 'closed',
                     'closed_at' => now(),
                 ]);
             } catch (\Throwable $e) {
@@ -126,16 +135,73 @@ class UpdateOrderStatusByPharmacistService
         }
 
         $successMessage = match ($action) {
-            'approve' => 'Order approved successfully.',
-            'ready' => 'Order marked as ready for pickup.',
-            'pending' => 'Order marked as pending successfully.',
-            default => 'Order rejected successfully.',
+            'approve'     => 'Order approved successfully.',
+            'ready'       => 'Order marked as ready for pickup.',
+            'pending'     => 'Order marked as pending successfully.',
+            'out_pending' => 'Order removed from pending status.',
+            default       => 'Order rejected successfully.',
         };
 
         return response()->json([
-            'status' => 'success',
+            'status'  => 'success',
             'message' => $successMessage,
-            'data' => $order->fresh(),
+            'data'    => $order->fresh(),
+        ]);
+    }
+
+    private function handleSectionRejection(User $user, Order $order, string $section, ?string $reason): JsonResponse
+    {
+        $cleanReason = trim((string) $reason);
+        $order->load(['items.orderItemPrescription']);
+
+        switch ($section) {
+            case 'prescription':
+                foreach ($order->items as $item) {
+                    if ($item->orderItemPrescription) {
+                        $item->orderItemPrescription->update([
+                            'status'           => 'rejected',
+                            'rejection_reason' => $cleanReason ?: 'Prescription rejected by pharmacist.',
+                            'verified_by'       => $user->id,
+                            'verified_at'       => now(),
+                        ]);
+                    }
+                }
+                $order->update([
+                    'status'              => OrderStatus::STAND_BY,
+                    'cancellation_reason' => 'Prescription rejected: ' . ($cleanReason ?: 'Invalid prescription'),
+                ]);
+                $systemMsg = 'Prescription rejected by pharmacist: ' . ($cleanReason ?: 'Invalid prescription');
+                break;
+
+            case 'discount':
+                $order->update([
+                    'status'           => OrderStatus::STAND_BY,
+                    'discount_remarks' => 'rejected: ' . ($cleanReason ?: 'Online ID verification rejected. Present physical ID upon pickup.'),
+                ]);
+                $systemMsg = 'Discount ID rejected: Please present physical ID upon pickup.';
+                break;
+
+            case 'receipt':
+                $order->update([
+                    'status'         => OrderStatus::STAND_BY,
+                    'payment_status' => \App\Enums\PaymentStatus::FAILED,
+                    'note'           => trim(($order->note ? $order->note . ' | ' : '') . 'Payment receipt unverified. Pay upon pickup.'),
+                ]);
+                $systemMsg = 'Payment receipt rejected: Please pay at the pharmacy upon pickup.';
+                break;
+
+            default:
+                return response()->json(['status' => 'error', 'message' => 'Invalid rejection section.'], 422);
+        }
+
+        $order = $order->fresh();
+        $order->customer->user->notify(new OrderStatusNotification($order));
+        $this->conversationService->appendSystemMessage($order, $systemMsg);
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Section rejection processed. Order placed on hold awaiting customer response.',
+            'data'    => $order,
         ]);
     }
 }
