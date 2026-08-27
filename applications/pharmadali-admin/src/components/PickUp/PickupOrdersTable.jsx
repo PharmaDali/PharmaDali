@@ -15,29 +15,32 @@ export function PickupOrdersTable({
   onPageChange,
   onSelectOrder,
   activeOrder,
+  statusFilter,
 }) {
   return (
-    <article className="h-100 d-flex flex-column flex-grow-1" style={{ backgroundColor: "transparent" }}>
-      {/* Table & Pagination Container with rounded corners, no wrapper border */}
-      <div 
-        className="table-responsive flex-grow-1 overflow-hidden d-flex flex-column justify-content-between" 
-        style={{ 
-          backgroundColor: "transparent", 
+    <article className="h-100 d-flex flex-column flex-grow-1" style={{ backgroundColor: "transparent", minHeight: 0 }}>
+      {/* Table Wrapper with horizontal scrolling */}
+      <div
+        className="table-responsive flex-grow-1"
+        style={{
+          overflowX: "auto",
+          overflowY: "hidden",
+          backgroundColor: "transparent",
           borderTopLeftRadius: "0px",
           borderTopRightRadius: "0px",
           borderBottomLeftRadius: "10px",
           borderBottomRightRadius: "10px"
         }}
       >
-        <table className="table align-middle mb-0 inventory-table" style={{ backgroundColor: "transparent", borderCollapse: "separate", borderSpacing: "0", border: "none" }}>
+        <table className="table align-middle mb-0 inventory-table" style={{ backgroundColor: "transparent", borderCollapse: "separate", borderSpacing: "0", border: "none", minWidth: "750px" }}>
           <thead>
             <tr style={{ backgroundColor: "#e2f2fa" }}>
-              <th className="fw-semibold px-4 py-3 text-start" style={{ color: "#475569", backgroundColor: "#e2f2fa", border: "none", fontSize: "13px" }}>Order ID</th>
-              <th className="fw-semibold px-4 py-3 text-center" style={{ color: "#475569", backgroundColor: "#e2f2fa", border: "none", fontSize: "13px" }}>Customer</th>
-              <th className="fw-semibold px-4 py-3 text-center" style={{ color: "#475569", backgroundColor: "#e2f2fa", border: "none", fontSize: "13px" }}>Items</th>
-              <th className="fw-semibold px-4 py-3 text-center" style={{ color: "#475569", backgroundColor: "#e2f2fa", border: "none", fontSize: "13px" }}>Total</th>
-              <th className="fw-semibold px-4 py-3 text-center" style={{ color: "#475569", backgroundColor: "#e2f2fa", border: "none", fontSize: "13px" }}>Status</th>
-              <th className="fw-semibold px-4 py-3 text-center" style={{ color: "#475569", backgroundColor: "#e2f2fa", border: "none", fontSize: "13px" }}>Action</th>
+              <th className="fw-semibold px-2 px-md-4 py-3 text-start text-nowrap text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Order ID</th>
+              <th className="fw-semibold px-2 px-md-4 py-3 text-center text-nowrap text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Customer</th>
+              <th className="fw-semibold px-2 px-md-4 py-3 text-center text-nowrap text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Items</th>
+              <th className="fw-semibold px-2 px-md-4 py-3 text-center text-nowrap text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Total</th>
+              <th className="fw-semibold px-4 py-3 text-center text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Status</th>
+              <th className="fw-semibold px-4 py-3 text-center text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -82,23 +85,32 @@ export function PickupOrdersTable({
                 const bottomRightRadius = isLastRow ? "10px" : "0px";
 
                 const bottomBorder = isLastRow ? "none" : "1px solid #e2e8f0";
+                const showMobileDot = true; // Always show status dot on mobile view
+                const isReady = order.status === "ready_for_pickup" || order.status === "ready";
 
                 return (
-                  <tr 
-                    key={order.id} 
-                    style={{ cursor: "pointer", transition: "background-color 0.2s" }} 
+                  <tr
+                    key={order.id}
+                    style={{ cursor: "pointer", transition: "background-color 0.2s" }}
                     onClick={() => onSelectOrder(order)}
                   >
-                    <td className="px-4 py-3 text-start text-dark" style={{ fontSize: "13px", borderBottom: bottomBorder, borderTopLeftRadius: topLeftRadius, borderBottomLeftRadius: bottomLeftRadius, backgroundColor: cellBgColor, borderLeft: "none" }}>{order.order_number || order.id}</td>
-                    <td className="px-4 py-3 text-center" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
+                    <td className="px-2 px-md-4 py-3 text-start text-dark text-nowrap" style={{ fontSize: "13px", borderBottom: bottomBorder, borderTopLeftRadius: topLeftRadius, borderBottomLeftRadius: bottomLeftRadius, backgroundColor: cellBgColor, borderLeft: "none" }}>
+                      <span className="d-inline-block rounded-circle me-2 d-md-none" style={{
+                        width: '8px',
+                        height: '8px',
+                        backgroundColor: isReady ? "#10b981" : "#94a3b8"
+                      }}></span>
+                      {order.order_number || order.id}
+                    </td>
+                    <td className="px-2 px-md-4 py-3 text-center text-nowrap" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
                       <div className="fw-medium text-dark" style={{ fontSize: "13px" }}>
-                        {formatCustomerName(order)}
+                        {order.customer_name ? order.customer_name : formatCustomerName(order)}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center text-dark" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor, fontSize: "13px" }}>
+                    <td className="px-2 px-md-4 py-3 text-center text-dark text-nowrap" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor, fontSize: "13px" }}>
                       {Number(order.items_count || order.items?.length || 0)}
                     </td>
-                    <td className="px-4 py-3 text-center fw-medium text-dark" style={{ fontSize: "13px", borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
+                    <td className="px-2 px-md-4 py-3 text-center fw-medium text-dark text-nowrap" style={{ fontSize: "13px", borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
                       PHP {Number(order.total_amount || order.payable_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-4 py-3 text-center" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
@@ -106,15 +118,10 @@ export function PickupOrdersTable({
                         className="fw-semibold"
                         style={{
                           fontSize: "13px",
-                          color:
-                            order.status === "ready_for_pickup" || order.status === "ready"
-                              ? "#10b981"
-                              : "#64748b",
+                          color: isReady ? "#10b981" : "#64748b",
                         }}
                       >
-                        {order.status === "ready_for_pickup" || order.status === "ready"
-                          ? "Ready"
-                          : "Completed"}
+                        {isReady ? "Ready" : "Completed"}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()} style={{ borderBottom: bottomBorder, borderTopRightRadius: topRightRadius, borderBottomRightRadius: bottomRightRadius, backgroundColor: cellBgColor, borderRight: "none" }}>
@@ -137,22 +144,22 @@ export function PickupOrdersTable({
             )}
           </tbody>
         </table>
-
-        {/* Pagination Footer inside Table Card */}
-        {!loading && !fetchError && (filteredOrders || orders).length > 0 && (
-          <div className="p-3 bg-transparent border-0">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={(filteredOrders || orders).length}
-              itemsPerPage={10}
-              onPageChange={onPageChange}
-              visiblePageNumbers={visiblePageNumbers}
-              ariaLabel="Pickup orders table pagination"
-            />
-          </div>
-        )}
       </div>
+
+      {/* Pagination Footer outside Table scroll wrapper */}
+      {!loading && !fetchError && paginatedOrders.length > 0 && (
+        <div className="p-3 bg-transparent border-0 mt-auto">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={(filteredOrders || orders).length}
+            itemsPerPage={10}
+            onPageChange={onPageChange}
+            visiblePageNumbers={visiblePageNumbers}
+            ariaLabel="Pickup orders table pagination"
+          />
+        </div>
+      )}
     </article>
   );
 }
