@@ -32,33 +32,30 @@
 }
 
 .summary-card-label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  color: #334155;
-  margin-bottom: 8px;
+  color: #52525b; /* Dark gray */
+  margin-bottom: 0;
 }
 
 .summary-card-body {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 4px;
+  margin-top: 8px;
 }
 
-.summary-currency-tag {
-  font-size: 11px;
-  font-weight: 600;
-  color: #2b5b75;
-  background-color: #7bbcd9;
-  padding: 2px 6px;
-  border-radius: 4px;
-  letter-spacing: 0.2px;
+.summary-currency-text {
+  font-size: 10px;
+  font-weight: 700;
+  color: #3f3f46;
 }
 
 .summary-amount {
-  font-size: 28px;
-  font-weight: 800;
-  color: #1e293b;
-  letter-spacing: -0.5px;
+  font-size: 32px;
+  font-weight: 900;
+  color: #3f3f46; /* Matching the dark grey from the image */
+  letter-spacing: -1px;
   line-height: 1;
 }
 
