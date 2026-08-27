@@ -60,6 +60,9 @@ const PharmacistLogin = () => {
         label="Employee Number"
         mode="outlined"
         theme={theme}
+        activeOutlineColor="#48AAD9"
+        textColor="#444444"
+        contentStyle={styles.inputContent}
         style={styles.input}
         value={employeeNumber}
         onChangeText={setEmployeeNumber}
@@ -97,7 +100,11 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
-    activeOutlineColor: '#48AAD9',
+    fontFamily: 'Poppins-Regular',
+  },
+  inputContent: {
+    color: '#444444',
+    fontFamily: 'Poppins-Regular',
   },
   loginButton: {
     borderRadius: 10,

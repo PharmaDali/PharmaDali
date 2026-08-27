@@ -10,6 +10,15 @@ export const theme = {
     outline: '#D9D9D9',
     outlineVariant: '#D9D9D9',
   },
+  fonts: {
+    bodyLarge: { fontFamily: 'Poppins-Regular', fontWeight: '400' },
+    bodyMedium: { fontFamily: 'Poppins-Regular', fontWeight: '400' },
+    bodySmall: { fontFamily: 'Poppins-Regular', fontWeight: '400' },
+    labelLarge: { fontFamily: 'Poppins-Medium', fontWeight: '500' },
+    labelMedium: { fontFamily: 'Poppins-Regular', fontWeight: '400' },
+    labelSmall: { fontFamily: 'Poppins-Regular', fontWeight: '400' },
+    titleMedium: { fontFamily: 'Poppins-Medium', fontWeight: '500' },
+  },
   roundness: 10,
 };
 

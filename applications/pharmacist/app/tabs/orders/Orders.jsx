@@ -1,6 +1,6 @@
 import { View, FlatList, Text, RefreshControl, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
 import StatusFeedbackModal from '@shared/components/StatusFeedbackModal';
@@ -189,12 +189,25 @@ export default function Orders() {
     }
   }, []);
 
-  // Lazy Loading: Fetch tab data only when tab becomes active for the first time
+  // Lazy Loading & Initial Load
   useEffect(() => {
     if (!tabStates[activeTab]?.loaded && !tabStates[activeTab]?.loading) {
       fetchTabOrders(activeTab, 1);
     }
   }, [activeTab, fetchTabOrders, tabStates]);
+
+  // Real-time Auto-Sync: Auto-refresh on screen focus and poll silently every 6s
+  useFocusEffect(
+    useCallback(() => {
+      fetchTabOrders(activeTab, 1, true);
+
+      const interval = setInterval(() => {
+        fetchTabOrders(activeTab, 1, true);
+      }, 6000);
+
+      return () => clearInterval(interval);
+    }, [activeTab, fetchTabOrders])
+  );
 
   // Pull to refresh active tab
   const onRefresh = useCallback(async () => {
@@ -268,16 +281,38 @@ export default function Orders() {
     }
   };
 
-  const handleReject = (order) => {
+  const [selectedSection, setSelectedSection] = useState(null);
+
+  const handleReject = (order, section = null) => {
     setError('');
     setSelectedOrder(order);
+    setSelectedSection(section);
     setOverlayAction('reject');
     setOverlayVisible(true);
+  };
+
+  const handleOutPending = async (order) => {
+    const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
+    if (!orderId) return;
+
+    setError('');
+    const previousTabStates = JSON.parse(JSON.stringify(tabStates));
+
+    try {
+      await updateOrderStatusByPharmacist(orderId, 'out_pending');
+      fetchTabOrders('For Review', 1, true);
+      fetchTabOrders('Issues', 1, true);
+    } catch (e) {
+      console.error('[Orders] Error removing order from pending:', e);
+      setError(e?.message || 'Failed to remove order from pending status.');
+      setTabStates(previousTabStates);
+    }
   };
 
   const handlePending = (order) => {
     setError('');
     setSelectedOrder(order);
+    setSelectedSection(null);
     setOverlayAction('pending');
     setOverlayVisible(true);
   };
@@ -289,7 +324,9 @@ export default function Orders() {
     setError('');
     const action = overlayAction;
     const targetOrderId = selectedOrder?.id;
+    const targetSection = selectedSection;
     setOverlayVisible(false);
+    setSelectedSection(null);
     const previousTabStates = JSON.parse(JSON.stringify(tabStates));
 
     // Optimistic UI: Immediately remove order from 'For Review' UI list
@@ -314,7 +351,7 @@ export default function Orders() {
     setFeedbackVisible(true);
 
     try {
-      await updateOrderStatusByPharmacist(orderId, action, reason);
+      await updateOrderStatusByPharmacist(orderId, action, reason, targetSection);
       fetchTabOrders(activeTab, 1, true);
     } catch (e) {
       console.error(`[Orders] Error marking order as ${action}:`, e);
@@ -364,7 +401,7 @@ export default function Orders() {
     if (activeTab === 'Preparing') {
       return <PreparingOrderCard order={item} onMarkAsReady={handleMarkAsReady} />;
     }
-    return <IssueOrderCard order={item} />;
+    return <IssueOrderCard order={item} onOutPending={handleOutPending} />;
   };
 
   const renderListFooter = () => {
