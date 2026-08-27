@@ -6,9 +6,9 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems 
   const emptyStateStyle = { textAlign: "center", padding: "2rem 1rem", color: "#6c757d", fontSize: "0.9rem" };
 
   return (
-    <div className="d-flex flex-column h-100 gap-3">
-      <article className="card border-0 shadow-sm p-3 d-flex flex-column" style={cardStyle}>
-        <h6 className="inventory-side-title mb-3">Priority restocks</h6>
+    <div className="inventory-side-wrapper d-flex flex-column gap-3">
+      <article className="card border-0 shadow-sm p-3 d-flex flex-column inventory-side-card">
+        <h6 className="inventory-side-title mb-3">Priority Restocks</h6>
         <div className="inventory-side-table flex-fill overflow-auto">
           <div className="inventory-side-head">
             <span>Product</span>
@@ -38,7 +38,7 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems 
         </div>
       </article>
 
-      <article className="card border-0 shadow-sm p-3 d-flex flex-column" style={cardStyle}>
+      <article className="card border-0 shadow-sm p-3 d-flex flex-column inventory-side-card">
         <h6 className="inventory-side-title mb-3">Expiring Soon</h6>
         <div className="inventory-side-table flex-fill overflow-auto">
           <div className="inventory-side-head">
@@ -73,7 +73,7 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems 
         </div>
       </article>
 
-      <article className="card border-0 shadow-sm p-3 d-flex flex-column" style={cardStyle}>
+      <article className="card border-0 shadow-sm p-3 d-flex flex-column inventory-side-card">
         <h6 className="inventory-side-title mb-3">Expired Products</h6>
         <div className="inventory-side-table flex-fill overflow-auto">
           <div className="inventory-side-head">
