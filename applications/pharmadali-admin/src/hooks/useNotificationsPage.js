@@ -56,6 +56,8 @@ export function useNotificationsPage() {
 
   const [activeTab, setActiveTab] = useState("All");
   const [selectedNotification, setSelectedNotification] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const categoryCounts = useMemo(() => {
     const counts = { All: unreadCount };
@@ -79,6 +81,33 @@ export function useNotificationsPage() {
     );
   }, [activeTab, unreadNotifications]);
 
+  const totalPages = Math.ceil(filteredNotifications.length / itemsPerPage);
+
+  const paginatedNotifications = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredNotifications.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredNotifications, currentPage]);
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setCurrentPage(1);
+    setSelectedNotification(null);
+  };
+
+  const visiblePageNumbers = useMemo(() => {
+    const maxVisible = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+    if (endPage - startPage + 1 < maxVisible) {
+      startPage = Math.max(1, endPage - maxVisible + 1);
+    }
+    return Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i);
+  }, [currentPage, totalPages]);
+
   return {
     unreadNotifications,
     unreadCount,
@@ -89,6 +118,12 @@ export function useNotificationsPage() {
     setSelectedNotification,
     categoryCounts,
     filteredNotifications,
+    paginatedNotifications,
+    currentPage,
+    totalPages,
+    visiblePageNumbers,
+    handlePageChange,
+    handleTabChange,
     markAsRead,
     markAllAsRead,
     deleteNotification,

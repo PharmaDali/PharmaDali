@@ -3,6 +3,7 @@ import { useNotificationsPage, TAB_CATEGORIES } from "../hooks/useNotificationsP
 import NotificationDetail from "../components/Notifications/NotificationDetail";
 import NotificationCardItem from "../components/Notifications/NotificationCardItem";
 import { ListSkeleton } from "../shared/components/loading";
+import Pagination from "../shared/components/Pagination";
 
 export function Notifications() {
   const {
@@ -15,6 +16,12 @@ export function Notifications() {
     setSelectedNotification,
     categoryCounts,
     filteredNotifications,
+    paginatedNotifications,
+    currentPage,
+    totalPages,
+    visiblePageNumbers,
+    handlePageChange,
+    handleTabChange,
     markAsRead,
     markAllAsRead,
     deleteNotification,
@@ -91,10 +98,7 @@ export function Notifications() {
               key={tab.id}
               type="button"
               className={`nav-link ${isActive ? "active" : ""}`}
-              onClick={() => {
-                setActiveTab(tab.id);
-                setSelectedNotification(null);
-              }}
+              onClick={() => handleTabChange(tab.id)}
             >
               <i className={`fa-solid ${tab.icon}`} />
               <span>{tab.label}</span>
@@ -108,7 +112,7 @@ export function Notifications() {
       <div className="d-flex flex-column gap-3">
         {loading ? (
           <ListSkeleton count={4} />
-        ) : filteredNotifications.length === 0 ? (
+        ) : paginatedNotifications.length === 0 ? (
           <div className="card border-0 shadow-sm rounded-4 text-center py-5">
             <div className="card-body py-4">
               <h6 className="fw-semibold text-dark mb-1">No notifications found</h6>
@@ -116,15 +120,32 @@ export function Notifications() {
             </div>
           </div>
         ) : (
-          filteredNotifications.map((item) => (
-            <NotificationCardItem
-              key={item.id}
-              item={item}
-              onSelect={setSelectedNotification}
-              onMarkAsRead={markAsRead}
-              onDelete={deleteNotification}
-            />
-          ))
+          <>
+            {paginatedNotifications.map((item) => (
+              <NotificationCardItem
+                key={item.id}
+                item={item}
+                onSelect={setSelectedNotification}
+                onMarkAsRead={markAsRead}
+                onDelete={deleteNotification}
+              />
+            ))}
+            
+            {/* Pagination Footer */}
+            {!loading && filteredNotifications.length > 0 && (
+              <div className="p-3 bg-transparent border-0 mt-2">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  totalItems={filteredNotifications.length}
+                  itemsPerPage={10}
+                  onPageChange={handlePageChange}
+                  visiblePageNumbers={visiblePageNumbers}
+                  ariaLabel="Notifications table pagination"
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>
