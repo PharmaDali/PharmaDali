@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Concerns\BelongsToPharmacy;
 
+use App\Enums\TransactionType;
+
 class InventoryLog extends Model
 {
     use HasFactory, BelongsToPharmacy;
@@ -18,6 +20,10 @@ class InventoryLog extends Model
         'transaction_type',
         'quantity',
         'reason',
+    ];
+
+    protected $casts = [
+        'transaction_type' => TransactionType::class,
     ];
 
     public function pharmacyProduct()

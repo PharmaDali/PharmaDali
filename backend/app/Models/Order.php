@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use App\Models\Concerns\BelongsToPharmacy;
+use App\Enums\OrderStatus;
+use App\Enums\PaymentStatus;
 
 class Order extends Model
 {
@@ -41,6 +43,8 @@ class Order extends Model
     ];
 
     protected $casts = [
+        'status' => OrderStatus::class,
+        'payment_status' => PaymentStatus::class,
         'subtotal' => 'decimal:2',
         'discount_percentage' => 'decimal:2',
         'discount_amount' => 'decimal:2',
