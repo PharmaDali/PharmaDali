@@ -1,14 +1,16 @@
-import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
+import { useRouter } from 'expo-router'
 import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
+import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import CancelOrderOverlay from '@src/shared/components/CancelOrderOverlay'
-import { cancelCustomerOrder } from '@shared/services/orderService'
+import { cancelCustomerOrder, confirmInStorePayment, acknowledgeDiscountNotice, removeRxItemsAndProceed } from '@shared/services/orderService'
 import { useOrderSubmission } from '@shared/context/OrderSubmissionContext'
 
-function ActiveOrderCard({ order, onCancel }) {
+function ActiveOrderCard({ order, onViewDetails }) {
   const isOptimistic = order._isOptimistic;
-  
+
   return (
     <View className={`border ${isOptimistic ? 'border-[#48AAD9]' : 'border-gray-200'} bg-white rounded-2xl py-4 px-4 mt-4 mx-4 shadow-md elevation-2`}>
       {isOptimistic && (
@@ -21,6 +23,7 @@ function ActiveOrderCard({ order, onCancel }) {
           )}
         </View>
       )}
+
       <View className="flex-row justify-between items-start">
         <View className="flex-1 mr-2">
           <Text className="text-sm" style={styles.textColorBold}>Order #{order.orderNumber}</Text>
@@ -44,8 +47,13 @@ function ActiveOrderCard({ order, onCancel }) {
 
       {!isOptimistic && (
         <View className="items-center mt-4 mb-1">
-          <TouchableOpacity className="rounded-xl border px-6 py-2" style={styles.cancelButton} onPress={onCancel}>
-            <Text className="text-sm" style={styles.primaryLabelBold}>Cancel Order</Text>
+          <TouchableOpacity
+            className="flex-row items-center rounded-xl px-6 py-2"
+            style={styles.viewDetailsButton}
+            onPress={onViewDetails}
+          >
+            <Text className="text-sm text-white mr-1" style={styles.fontSemiBold}>View Details</Text>
+            <ArrowForwardIcon width={13} height={13} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       )}
@@ -54,6 +62,7 @@ function ActiveOrderCard({ order, onCancel }) {
 }
 
 export default function ActiveOrdersScreen({ orders = [], onOrderCancelled, refreshing, onRefresh }) {
+  const router = useRouter()
   const { optimisticOrders } = useOrderSubmission()
   const allOrders = [...optimisticOrders, ...orders]
   
@@ -61,6 +70,16 @@ export default function ActiveOrdersScreen({ orders = [], onOrderCancelled, refr
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [cancelError, setCancelError] = useState('')
+
+  const handleViewDetails = (order) => {
+    router.push({
+      pathname: '/tabs/orders/ViewOrderDetails',
+      params: {
+        orderId: String(order.id || ''),
+        orderNumber: order.orderNumber,
+      },
+    })
+  }
 
   const handleCancelPress = (order) => {
     setSelectedOrder(order)
@@ -103,7 +122,12 @@ export default function ActiveOrdersScreen({ orders = [], onOrderCancelled, refr
         data={allOrders}
         keyExtractor={(item) => String(item.id || item.orderNumber)}
         renderItem={({ item }) => (
-          <ActiveOrderCard order={item} onCancel={() => handleCancelPress(item)} />
+          <ActiveOrderCard
+            order={item}
+            onViewDetails={() => handleViewDetails(item)}
+            onCancel={() => handleCancelPress(item)}
+            onActionSuccess={onRefresh || onOrderCancelled}
+          />
         )}
         contentContainerStyle={{ paddingBottom: 24, paddingTop: 16 }}
         showsVerticalScrollIndicator={false}
@@ -131,6 +155,9 @@ const styles = StyleSheet.create({
   fontMedium: {
     fontFamily: 'Poppins-Medium',
   },
+  fontSemiBold: {
+    fontFamily: 'Poppins-SemiBold',
+  },
   primaryLabelBold: {
     fontFamily: 'Poppins-Bold',
     color: colors.buttonColor,
@@ -139,7 +166,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins-Bold',
     color: colors.textColor,
   },
-  cancelButton: {
-    borderColor: colors.buttonColor,
+  viewDetailsButton: {
+    backgroundColor: colors.buttonColor,
   },
 })
