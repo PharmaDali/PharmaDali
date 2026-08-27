@@ -22,7 +22,7 @@ function SalesSummaryCards({ loading, cards }) {
             </div>
             <div className="summary-card-body">
               {card.currency && !loading && (
-                <span className="summary-currency-tag">{card.currency}</span>
+                <span className="summary-currency-text">{card.currency}</span>
               )}
               <span className="summary-amount">
                 {loading ? <WavingDots /> : card.amount}
