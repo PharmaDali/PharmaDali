@@ -148,7 +148,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                         className="rounded-xl px-6 py-2 border"
                         style={muteActions ? styles.mutedRejectButton : styles.discountRejectButton}
                         disabled={muteActions}
-                        onPress={() => onReject?.(order)}
+                        onPress={() => onReject?.(order, 'prescription')}
                       >
                         <Text className="text-sm" style={muteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
                       </TouchableOpacity>
@@ -182,7 +182,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                       className="rounded-xl px-4 py-1.5 border"
                       style={muteActions ? styles.mutedRejectButton : styles.discountRejectButton}
                       disabled={muteActions}
-                      onPress={() => onReject?.(order)}
+                      onPress={() => onReject?.(order, 'prescription')}
                     >
                       <View className="flex-row items-center">
                         <Text className="text-sm" style={muteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
@@ -225,6 +225,8 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     <TouchableOpacity
                       className="rounded-xl px-6 py-2 border"
                       style={styles.discountRejectButton}
+                      disabled={muteActions}
+                      onPress={() => onReject?.(order, 'discount')}
                     >
                       <Text className="text-sm" style={styles.discountRejectText}>Reject</Text>
                     </TouchableOpacity>
@@ -279,6 +281,8 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     <TouchableOpacity
                       className="rounded-xl px-6 py-2 border"
                       style={styles.discountRejectButton}
+                      disabled={muteActions}
+                      onPress={() => onReject?.(order, 'receipt')}
                     >
                       <Text className="text-sm" style={styles.discountRejectText}>Reject</Text>
                     </TouchableOpacity>

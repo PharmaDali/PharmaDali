@@ -16,6 +16,7 @@ class OrderService
         private readonly UpdateCustomerOrderService $updateCustomerOrderService,
         private readonly CancelCustomerOrderService $cancelCustomerOrderService,
         private readonly UpdateOrderStatusByPharmacistService $updateOrderStatusByPharmacistService,
+        private readonly CustomerOrderActionService $customerOrderActionService,
     ) {}
 
     public function index(?User $user): JsonResponse
@@ -48,13 +49,29 @@ class OrderService
         return $this->cancelCustomerOrderService->handle($user, $order, $reason);
     }
 
-    public function updateStatusByPharmacist(?User $user, Order $order, string $action, ?string $reason = null): JsonResponse
+    public function confirmInStorePayment(?User $user, Order $order): JsonResponse
+    {
+        return $this->customerOrderActionService->confirmInStorePayment($user, $order);
+    }
+
+    public function acknowledgeDiscount(?User $user, Order $order): JsonResponse
+    {
+        return $this->customerOrderActionService->acknowledgeDiscount($user, $order);
+    }
+
+    public function removeRxItemsAndProceed(?User $user, Order $order): JsonResponse
+    {
+        return $this->customerOrderActionService->removeRxItemsAndProceed($user, $order);
+    }
+
+    public function updateStatusByPharmacist(?User $user, Order $order, string $action, ?string $reason = null, ?string $section = null): JsonResponse
     {
         return $this->updateOrderStatusByPharmacistService->handle(
             $user,
             $order,
             $action,
             $reason,
+            $section,
         );
     }
 

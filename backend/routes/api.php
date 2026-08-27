@@ -104,6 +104,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('customer/order-items/{orderItem}/prescription', [OrderItemPrescriptionController::class, 'upload'])->middleware('throttle:file-upload');
         Route::post('customer/orders/{order}/discount-id', [DiscountIdUploadController::class, 'upload'])->middleware('throttle:discount-id-upload');
         Route::post('customer/orders/{order}/payment-receipt', [PaymentReceiptUploadController::class, 'upload'])->middleware('throttle:payment-receipt-upload');
+        Route::post('customer/orders/{order}/confirm-instore-payment', [OrderController::class, 'confirmInStorePayment']);
+        Route::post('customer/orders/{order}/acknowledge-discount', [OrderController::class, 'acknowledgeDiscount']);
+        Route::post('customer/orders/{order}/remove-rx-items', [OrderController::class, 'removeRxItems']);
     });
 
     Route::middleware(['ability:pharmacist,pharmacy_admin'])->group(function () {

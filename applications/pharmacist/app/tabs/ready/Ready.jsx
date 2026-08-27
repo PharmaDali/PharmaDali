@@ -7,6 +7,8 @@ import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
 import { getPharmacyOrders } from '@shared/services/orderToPharmacistService';
 
+import { useFocusEffect } from 'expo-router';
+
 const readyTabs = ['For Pickup', 'Completed', 'Expired'];
 
 const tabApiMap = {
@@ -153,6 +155,19 @@ const Ready = () => {
       fetchTabOrders(activeTab, 1);
     }
   }, [activeTab, fetchTabOrders, tabStates]);
+
+  // Real-time Auto-Sync: Auto-refresh on screen focus and poll silently every 6s
+  useFocusEffect(
+    useCallback(() => {
+      fetchTabOrders(activeTab, 1, true);
+
+      const interval = setInterval(() => {
+        fetchTabOrders(activeTab, 1, true);
+      }, 6000);
+
+      return () => clearInterval(interval);
+    }, [activeTab, fetchTabOrders])
+  );
 
   // Pull to refresh active tab
   const onRefresh = useCallback(async () => {

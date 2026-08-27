@@ -1,12 +1,13 @@
 import { apiRequest } from '@shared/api/client';
 
-export const updateOrderStatusByPharmacist = async (orderId, action, reason) => {
+export const updateOrderStatusByPharmacist = async (orderId, action, reason, section = null) => {
   try {
     return await apiRequest(`/pharmacist/orders/${orderId}/status`, {
       method: 'PATCH',
       body: {
         action,
         ...(reason ? { reason } : {}),
+        ...(section ? { section } : {}),
       },
     });
   } catch (error) {

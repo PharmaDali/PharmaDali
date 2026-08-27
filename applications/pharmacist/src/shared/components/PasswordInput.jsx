@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Platform } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import theme from '@src/shared/theme/inputTheme';
 
@@ -15,6 +15,8 @@ const PasswordInput = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
+  const dynamicFontFamily = showPassword ? 'Poppins-Regular' : (Platform.OS === 'ios' ? 'Poppins-Regular' : undefined);
+
   return (
     <View className="w-full mb-4">
       <TextInput
@@ -25,11 +27,20 @@ const PasswordInput = ({
         onChangeText={onChangeText}
         placeholder={placeholder}
         autoCapitalize={autoCapitalize}
-        theme={theme}
+        theme={{
+          ...theme,
+          fonts: {
+            ...theme.fonts,
+            bodyLarge: { fontFamily: dynamicFontFamily || 'System', fontWeight: '400' },
+          },
+        }}
         activeOutlineColor="#48AAD9"
         textColor="#444444"
-        contentStyle={{ color: '#444444', fontFamily: 'Poppins-Regular' }}
-        style={style}
+        contentStyle={[
+          styles.contentStyle,
+          { fontFamily: dynamicFontFamily },
+        ]}
+        style={[styles.inputStyle, { fontFamily: dynamicFontFamily }, style]}
         right={
           <TextInput.Icon
             icon={showPassword ? 'eye' : 'eye-off'}
@@ -55,6 +66,16 @@ const PasswordInput = ({
 export default PasswordInput;
 
 const styles = StyleSheet.create({
+  contentStyle: {
+    color: '#444444',
+    fontWeight: '400',
+    fontSize: 14,
+    letterSpacing: 0,
+  },
+  inputStyle: {
+    fontWeight: '400',
+    fontSize: 14,
+  },
   helperText: {
     fontFamily: 'Poppins-Regular',
     color: '#777777',

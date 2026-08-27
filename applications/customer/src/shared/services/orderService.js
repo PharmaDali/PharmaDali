@@ -110,3 +110,24 @@ export async function uploadCustomerPaymentReceipt(orderId, imageAsset) {
   });
 }
 
+export async function confirmInStorePayment(orderId) {
+  const numericId = Number(orderId);
+  return apiRequest(`/customer/orders/${numericId}/confirm-instore-payment`, {
+    method: 'POST',
+  });
+}
+
+export async function acknowledgeDiscountNotice(orderId) {
+  const numericId = Number(orderId);
+  return apiRequest(`/customer/orders/${numericId}/acknowledge-discount`, {
+    method: 'POST',
+  });
+}
+
+export async function removeRxItemsAndProceed(orderId) {
+  const numericId = Number(orderId);
+  return apiRequest(`/customer/orders/${numericId}/remove-rx-items`, {
+    method: 'POST',
+  });
+}
+

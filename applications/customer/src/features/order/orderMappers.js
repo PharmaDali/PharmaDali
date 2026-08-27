@@ -79,6 +79,7 @@ function mapOrderProduct(item) {
     : ''
 
   return {
+    id: Number(item?.id || 0),
     img: BetadineImg,
     product,
     categoryName,
@@ -97,6 +98,14 @@ export function mapApiOrderToViewModel(order) {
   const items = Array.isArray(order?.items) ? order.items : []
   const reason = order?.cancellation_reason || ''
 
+  const baseUrl = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/+$/, '').replace(/\/api$/, '')
+  const prescriptionItem = items.find((item) => {
+    const rx = item?.order_item_prescription || item?.orderItemPrescription
+    return rx?.prescription_image_path
+  })
+  const rxRecord = prescriptionItem?.order_item_prescription || prescriptionItem?.orderItemPrescription
+  const prescriptionImagePath = rxRecord?.prescription_image_path ? `${baseUrl}/storage/${rxRecord.prescription_image_path}` : null
+
   // Logic to distinguish between Rejected (by Pharmacist) and Cancelled (by Customer)
   let rawStatus = rawStatusFromApi
   if (rawStatusFromApi === 'cancelled') {
@@ -105,6 +114,11 @@ export function mapApiOrderToViewModel(order) {
     } else {
       rawStatus = 'cancelled'
     }
+  }
+
+  let onHoldReason = reason || order?.discount_remarks || order?.note || ''
+  if (onHoldReason.toLowerCase().startsWith('rejected by pharmacist: ')) {
+    onHoldReason = onHoldReason.replace(/^rejected by pharmacist:\s*/i, '')
   }
 
   return {
@@ -116,6 +130,12 @@ export function mapApiOrderToViewModel(order) {
     products: items.map(mapOrderProduct),
     orderSummary: formatCurrency(order?.total_amount ?? order?.subtotal ?? 0),
     reason: reason || null,
+    onHoldReason: onHoldReason || 'Your order is currently on hold by the pharmacist.',
+    cancellationReason: order?.cancellation_reason || '',
+    discountRemarks: order?.discount_remarks || '',
+    note: order?.note || '',
+    paymentStatus: order?.payment_status || '',
+    prescriptionImagePath,
   }
 }
 

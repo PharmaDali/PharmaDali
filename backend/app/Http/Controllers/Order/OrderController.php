@@ -67,7 +67,23 @@ class OrderController extends Controller
             $order,
             $payload['action'],
             $payload['reason'] ?? null,
+            $payload['section'] ?? null,
         );
+    }
+
+    public function confirmInStorePayment(Order $order): JsonResponse
+    {
+        return $this->orderService->confirmInStorePayment(request()->user(), $order);
+    }
+
+    public function acknowledgeDiscount(Order $order): JsonResponse
+    {
+        return $this->orderService->acknowledgeDiscount(request()->user(), $order);
+    }
+
+    public function removeRxItems(Order $order): JsonResponse
+    {
+        return $this->orderService->removeRxItemsAndProceed(request()->user(), $order);
     }
 
     public function getTodayStats(): JsonResponse
