@@ -58,7 +58,7 @@ class OrderObserver
         if ($event === 'created') {
             $message = "New order #{$order->order_number} placed by {$customerName} ({$fulfillment}).";
         } else {
-            $statusFormatted = ucfirst(str_replace('_', ' ', $order->status));
+            $statusFormatted = $order->status->label();
             $reasonInfo = $order->cancellation_reason ? " (Reason: {$order->cancellation_reason})" : "";
             $message = "Order #{$order->order_number} status updated to {$statusFormatted}{$reasonInfo}.";
         }

@@ -39,7 +39,7 @@ class OrderStatusNotification extends Notification implements ShouldQueue
      */
     private function getNotificationText(): array
     {
-        $status = strtolower((string) ($this->order->status ?? ''));
+        $status = strtolower((string) ($this->order->status?->value ?? ''));
         $orderNumber = $this->order->order_number ?? $this->order->id;
 
         return match ($status) {

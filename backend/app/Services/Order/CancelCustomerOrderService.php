@@ -8,6 +8,7 @@ use App\Services\Messaging\ConversationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Log;   
 use App\Notifications\OrderStatusNotification;
+use App\Enums\OrderStatus;
 
 class CancelCustomerOrderService
 {
@@ -15,7 +16,7 @@ class CancelCustomerOrderService
         private readonly ConversationService $conversationService,
     ) {}
 
-    private const CUSTOMER_EDITABLE_STATUSES = ['pending', 'reviewing'];
+    private const CUSTOMER_EDITABLE_STATUSES = [OrderStatus::PENDING, OrderStatus::REVIEWING];
 
     public function handle(?User $user, Order $order, string $reason): JsonResponse
     {
@@ -41,7 +42,7 @@ class CancelCustomerOrderService
         }
 
         $order->update([
-            'status' => 'cancelled',
+            'status' => OrderStatus::CANCELLED,
             'cancelled_at' => now(),
             'cancellation_reason' => $reason,
         ]);

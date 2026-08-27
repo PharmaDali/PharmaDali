@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Concerns\BelongsToPharmacy;
 
+use App\Enums\CartStatus;
+
 class Cart extends Model
 {
     use BelongsToPharmacy;
@@ -12,6 +14,10 @@ class Cart extends Model
         'customer_id',
         'pharmacy_id',
         'status',
+    ];
+
+    protected $casts = [
+        'status' => CartStatus::class,
     ];
 
     public function customer()

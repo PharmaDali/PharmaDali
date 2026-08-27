@@ -7,9 +7,11 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use \Illuminate\Support\Carbon;
 
+use App\Enums\OrderStatus;
+
 class UpdateCustomerOrderService
 {
-    private const CUSTOMER_EDITABLE_STATUSES = ['pending', 'reviewing'];
+    private const CUSTOMER_EDITABLE_STATUSES = [OrderStatus::PENDING, OrderStatus::REVIEWING];
 
     public function __construct(
         private readonly CancelCustomerOrderService $cancelCustomerOrderService,

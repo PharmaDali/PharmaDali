@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use App\Enums\PrescriptionStatus;
+
 class OrderItemPrescription extends Model
 {
     use HasFactory;
@@ -17,6 +19,11 @@ class OrderItemPrescription extends Model
         'verified_at',
         'status',
         'rejection_reason',
+    ];
+
+    protected $casts = [
+        'status' => PrescriptionStatus::class,
+        'verified_at' => 'datetime',
     ];
 
     public function orderItem()
