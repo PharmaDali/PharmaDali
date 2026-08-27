@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native'
 import React, { useState } from 'react'
 import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
@@ -53,7 +53,7 @@ function ActiveOrderCard({ order, onCancel }) {
   )
 }
 
-export default function ActiveOrdersScreen({ orders = [], onOrderCancelled }) {
+export default function ActiveOrdersScreen({ orders = [], onOrderCancelled, refreshing, onRefresh }) {
   const { optimisticOrders } = useOrderSubmission()
   const allOrders = [...optimisticOrders, ...orders]
   
@@ -91,17 +91,25 @@ export default function ActiveOrdersScreen({ orders = [], onOrderCancelled }) {
   if (!allOrders.length) {
     return (
       <View className="mx-4 mt-4 bg-white border border-gray-200 rounded-2xl p-5 items-center">
-        <Text className="text-sm text-gray-600" style={styles.textColorBold}>No active orders yet</Text>
-        <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>Your active orders will appear here.</Text>
+        <Text className="text-sm text-gray-600" style={styles.textColorBold}>No active orders</Text>
+        <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>Your active and pending orders will appear here.</Text>
       </View>
     )
   }
 
   return (
-    <View className="mt-4 mb-4">
-      {allOrders.map((order) => (
-        <ActiveOrderCard key={order.id || order.orderNumber} order={order} onCancel={() => handleCancelPress(order)} />
-      ))}
+    <>
+      <FlatList
+        data={allOrders}
+        keyExtractor={(item) => String(item.id || item.orderNumber)}
+        renderItem={({ item }) => (
+          <ActiveOrderCard order={item} onCancel={() => handleCancelPress(item)} />
+        )}
+        contentContainerStyle={{ paddingBottom: 24, paddingTop: 16 }}
+        showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+      />
 
       <CancelOrderOverlay
         visible={cancelVisible}
@@ -115,7 +123,7 @@ export default function ActiveOrdersScreen({ orders = [], onOrderCancelled }) {
         submitting={submitting}
         errorMessage={cancelError}
       />
-    </View>
+    </>
   )
 }
 

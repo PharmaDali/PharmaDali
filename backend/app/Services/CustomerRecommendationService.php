@@ -6,7 +6,9 @@ use App\Models\Order;
 use App\Models\PharmacyProduct;
 use App\Models\User;
 use App\Models\Customer;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use App\Jobs\GenerateAprioriRules;
 
 class CustomerRecommendationService
 {
@@ -150,9 +152,11 @@ class CustomerRecommendationService
 
         // --- POOL A: Product-Level Apriori Matching ---
         $productRulesKey = "apriori_rules_pharmacy_{$pharmacyId}";
-        $productRulesData = Cache::remember($productRulesKey, 60 * 60 * 24, function () use ($pharmacyId) {
-            return $this->aprioriService->generateFrequentlyBoughtTogether($pharmacyId, 6, 0.05, 0.2);
-        });
+        $productRulesData = Cache::get($productRulesKey);
+
+        if ($productRulesData === null) {
+            GenerateAprioriRules::dispatch($pharmacyId);
+        }
 
         $productRules = $productRulesData['rules'] ?? [];
         foreach ($productRules as $rule) {
@@ -167,9 +171,11 @@ class CustomerRecommendationService
         })->filter()->unique()->toArray();
 
         $categoryRulesKey = "apriori_category_rules_pharmacy_{$pharmacyId}";
-        $categoryRulesData = Cache::remember($categoryRulesKey, 60 * 60 * 24, function () use ($pharmacyId) {
-            return $this->aprioriService->generateCategoryRules($pharmacyId, 6, 0.05, 0.2);
-        });
+        $categoryRulesData = Cache::get($categoryRulesKey);
+
+        if ($categoryRulesData === null) {
+            GenerateAprioriRules::dispatch($pharmacyId);
+        }
 
         $categoryRules = $categoryRulesData['rules'] ?? [];
         $consequentCategoryIds = [];

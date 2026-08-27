@@ -28,7 +28,8 @@ class DiscountIdUploadController extends Controller
             $updatedOrder = $this->uploadDiscountIdImageService->handle(
                 $order,
                 $request->file('discount_id_image'),
-                $request->user()
+                $request->user(),
+                $request->input('discount_type')
             );
 
             return $this->successResponse([

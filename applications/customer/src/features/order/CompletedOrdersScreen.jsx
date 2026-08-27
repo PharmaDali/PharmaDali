@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native'
 import { useRouter } from 'expo-router'
 import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
@@ -38,7 +38,7 @@ function CompletedOrderCard({ order, onViewDetails }) {
   )
 }
 
-export default function CompletedOrdersScreen({ orders = [] }) {
+export default function CompletedOrdersScreen({ orders = [], refreshing, onRefresh }) {
   const router = useRouter()
 
   const handleViewDetails = (order) => {
@@ -61,11 +61,17 @@ export default function CompletedOrdersScreen({ orders = [] }) {
   }
 
   return (
-    <View className="mt-4 mb-4">
-      {orders.map((order) => (
-        <CompletedOrderCard key={order.id || order.orderNumber} order={order} onViewDetails={() => handleViewDetails(order)} />
-      ))}
-    </View>
+    <FlatList
+      data={orders}
+      keyExtractor={(item) => String(item.id || item.orderNumber)}
+      renderItem={({ item }) => (
+        <CompletedOrderCard order={item} onViewDetails={() => handleViewDetails(item)} />
+      )}
+      contentContainerStyle={{ paddingBottom: 24, paddingTop: 16 }}
+      showsVerticalScrollIndicator={false}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+    />
   )
 }
 

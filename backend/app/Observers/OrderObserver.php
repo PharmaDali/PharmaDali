@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Order;
 use App\Models\User;
 use App\Notifications\AdminAlertNotification;
+use Illuminate\Support\Facades\Log;
 
 class OrderObserver
 {
@@ -78,7 +79,7 @@ class OrderObserver
                         'fulfillment_type' => $order->fulfillment_type,
                     ]));
                 } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning('OrderObserver notification dispatch error: ' . $e->getMessage());
+                    Log::warning('OrderObserver notification dispatch error: ' . $e->getMessage());
                 }
             }
         }
