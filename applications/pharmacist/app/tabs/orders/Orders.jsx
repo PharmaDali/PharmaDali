@@ -49,6 +49,11 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       status: mapApiStatusToTabStatus(order?.status),
       apiStatus: String(order?.status || '').toLowerCase(),
       cancellationReason: order?.cancellation_reason || '',
+      discountType: order?.discount_type || null,
+      discountIdNumber: order?.discount_id_number || null,
+      discountIdImagePath: order?.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null,
+      paymentReceiptImagePath: order?.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null,
+      paymentMethod: order?.payment_method || null,
       items: (order?.items || []).map((item) => {
         const product = item?.pharmacy_product?.product;
         const prescription = item?.order_item_prescription;

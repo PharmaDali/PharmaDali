@@ -14,6 +14,8 @@ import PaymentMethodIcon from '@assets/icons/payment_method_icon.svg'
 import GcashIcon from '@assets/icons/gcash_icon.svg'
 import DownloadIcon from '@assets/icons/download_icon.svg'
 import GcashReceiptIcon from '@assets/icons/gcash_reciept_icon.svg'
+import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg'
+import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg'
 import QrCodeImage from '@assets/images/qrcode_dummy.png'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
@@ -52,6 +54,8 @@ const PickupDetailsScreen = () => {
   const [showTimePicker, setShowTimePicker] = useState(false)
   const [selectedTime, setSelectedTime] = useState(null)
   const [customerNote, setCustomerNote] = useState('')
+  const [discountType, setDiscountType] = useState(null)
+  const [showDiscountDropdown, setShowDiscountDropdown] = useState(false)
   const [discountIdImage, setDiscountIdImage] = useState(draftDiscountId || null)
   const [gcashReceiptImage, setGcashReceiptImage] = useState(draftGcashReceipt || null)
   const [paymentMethod, setPaymentMethod] = useState('cash')
@@ -299,6 +303,16 @@ const PickupDetailsScreen = () => {
       return
     }
 
+    if (discountIdImage && !discountType) {
+      setSubmitError('Please select your discount ID type.')
+      return
+    }
+
+    if (discountType && !discountIdImage) {
+      setSubmitError('Please upload your discount ID photo.')
+      return
+    }
+
     const scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, selectedTime)
     setSubmitError('')
 
@@ -309,6 +323,7 @@ const PickupDetailsScreen = () => {
       hasPrescription,
       prescriptionImage,
       discountIdImage,
+      discountType,
       gcashReceiptImage,
       selectedPharmacyLabel,
       scheduledPickupAt,
@@ -414,47 +429,77 @@ const PickupDetailsScreen = () => {
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 overflow-hidden">
           <View className="p-4">
             <Text className="text-sm" style={styles.fontSemiBold}>
-              Senior/PWD Discount (Optional)
+              Discount ID (Optional)
             </Text>
-            <Text className="text-xs text-gray-600 mt-1 mb-3" style={styles.fontMedium}>
-              If you are availing a Senior or PWD discount, please upload a valid ID.
+            <Text className="text-xs text-gray-600 mt-1 mb-4" style={styles.fontMedium}>
+              Select your discount ID type and upload a valid photo.
             </Text>
 
-            <View className="flex-row items-center mb-4 py-1">
-              <DiscountIcon width={28} height={28} />
-              <View className="ml-3 flex-1">
-                <Text className="text-xs" style={styles.fontMedium}>
-                  Accepted: Senior Citizen ID, PWD ID
-                </Text>
-                <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
-                  File Format: JPG PNG (Max. 5MB)
-                </Text>
+            {/* ID Type Dropdown */}
+            <Text className="text-xs text-gray-500 mb-1.5" style={styles.fontMedium}>ID Type</Text>
+            <TouchableOpacity
+              className="border rounded-xl px-4 py-3 flex-row items-center justify-between"
+              style={{ borderColor: discountType ? '#48AAD9' : '#D1D5DB', backgroundColor: '#FAFAFA' }}
+              onPress={() => setShowDiscountDropdown(!showDiscountDropdown)}
+              activeOpacity={0.7}
+            >
+              <Text className="text-xs" style={[styles.fontMedium, { color: discountType ? colors.textColor : '#9CA3AF' }]}>
+                {discountType
+                  ? ({ senior_citizen: 'Senior Citizen', pwd: 'PWD (Person with Disability)' }[discountType] ?? discountType)
+                  : 'Select discount type...'}
+              </Text>
+              {showDiscountDropdown
+                ? <ArrowUpIcon width={12} height={12} color="#48AAD9" />
+                : <ArrowDownIcon width={12} height={12} color="#9CA3AF" />}
+            </TouchableOpacity>
+
+            {showDiscountDropdown && (
+              <View className="border border-[#48AAD9] rounded-xl mt-1 overflow-hidden bg-white" style={{ elevation: 3 }}>
+                {[
+                  { key: 'senior_citizen', label: 'Senior Citizen' },
+                  { key: 'pwd', label: 'PWD (Person with Disability)' },
+                ].map((option, idx, arr) => (
+                  <TouchableOpacity
+                    key={option.key}
+                    className={`px-4 py-3 ${idx < arr.length - 1 ? 'border-b border-gray-100' : ''}`}
+                    style={{ backgroundColor: discountType === option.key ? '#EEF7FD' : '#FFFFFF' }}
+                    onPress={() => {
+                      setDiscountType(option.key)
+                      setShowDiscountDropdown(false)
+                    }}
+                  >
+                    <Text className="text-xs" style={[styles.fontMedium, { color: discountType === option.key ? '#48AAD9' : colors.textColor }]}>
+                      {option.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-            </View>
+            )}
 
-            <View className="flex-row justify-between gap-2.5">
-              <TouchableOpacity
-                className="flex-[1.25] border border-[#48AAD9] rounded-xl py-3 items-center justify-center bg-white"
-                onPress={handlePickDiscountIdFromGallery}
-              >
-                <Text className="text-xs" style={styles.primarySemiBold}>
-                  Upload from Gallery
-                </Text>
-              </TouchableOpacity>
+            {/* Upload buttons — only shown after type is selected */}
+            {discountType && !discountIdImage && (
+              <View className="mt-4">
+                <Text className="text-xs text-gray-500 mb-2" style={styles.fontMedium}>Upload ID Photo</Text>
+                <View className="flex-row gap-2.5">
+                  <TouchableOpacity
+                    className="flex-[1.25] border border-[#48AAD9] rounded-xl py-3 items-center justify-center bg-white"
+                    onPress={handlePickDiscountIdFromGallery}
+                  >
+                    <Text className="text-xs" style={styles.primarySemiBold}>Upload from Gallery</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    className="flex-1 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
+                    onPress={handleTakeDiscountIdPhoto}
+                  >
+                    <Text className="text-xs text-white" style={styles.confirmPickupText}>Take a Photo</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
 
-              <TouchableOpacity
-                className="flex-1 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
-                onPress={handleTakeDiscountIdPhoto}
-              >
-                <Text className="text-xs text-white" style={styles.confirmPickupText}>
-                  Take a Photo
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Post-Upload Image Preview Container */}
+            {/* Post-Upload Image Preview */}
             {discountIdImage ? (
-              <View className="mt-3 rounded-2xl bg-[#EEF7FD] p-4 flex-row items-center justify-between">
+              <View className="mt-4 rounded-2xl bg-[#EEF7FD] p-4 flex-row items-center justify-between">
                 <View className="relative">
                   <TouchableOpacity
                     onPress={() => setExpandedImageUri(discountIdImage.uri)}
@@ -474,20 +519,17 @@ const PickupDetailsScreen = () => {
                     <Text className="text-white text-[11px] font-bold leading-none">✕</Text>
                   </TouchableOpacity>
                 </View>
-
                 <TouchableOpacity
                   className="px-8 py-2.5 rounded-xl border border-[#48AAD9] bg-white items-center justify-center min-w-[96px]"
                   onPress={handlePickDiscountIdFromGallery}
                 >
-                  <Text className="text-xs" style={styles.primarySemiBold}>
-                    Upload
-                  </Text>
+                  <Text className="text-xs" style={styles.primarySemiBold}>Change</Text>
                 </TouchableOpacity>
               </View>
             ) : null}
           </View>
 
-          {/* Info Container with #CFE7F3 background */}
+          {/* Info footer */}
           <View className="bg-[#CFE7F3] px-4 py-3 flex-row items-center border-t border-[#B9DEEF]">
             <BlueInfoIcon width={18} height={18} />
             <Text className="text-xs ml-2.5 flex-1" style={styles.discountInfoText}>
