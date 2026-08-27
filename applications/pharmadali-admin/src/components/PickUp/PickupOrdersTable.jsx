@@ -17,32 +17,15 @@ export function PickupOrdersTable({
   activeOrder,
   statusFilter,
 }) {
-  const dummyOrders = [
-    { id: '1', order_number: 'ORD-1025', customer_name: 'Denmar Redondo', items_count: 2, total_amount: 1500, status: 'ready' },
-    { id: '2', order_number: 'ORD-1025', customer_name: 'Abigail Barrion', items_count: 4, total_amount: 2500, status: 'completed' },
-    { id: '3', order_number: 'ORD-1025', customer_name: 'Althea Alvarez', items_count: 6, total_amount: 3500, status: 'ready' },
-    { id: '4', order_number: 'ORD-1025', customer_name: 'Teodora Alonso', items_count: 7, total_amount: 4500, status: 'ready' },
-    { id: '5', order_number: 'ORD-1025', customer_name: 'James Orlanes', items_count: 10, total_amount: 5500, status: 'ready' },
-  ];
-
-  const displayOrders = (paginatedOrders && paginatedOrders.length > 0) 
-    ? paginatedOrders 
-    : dummyOrders.filter(order => {
-        if (!statusFilter || statusFilter === "All") return true;
-        if (statusFilter === "Completed") return order.status === "completed";
-        if (statusFilter === "Ready") return order.status === "ready_for_pickup" || order.status === "ready";
-        return true;
-      });
-
   return (
     <article className="h-100 d-flex flex-column flex-grow-1" style={{ backgroundColor: "transparent", minHeight: 0 }}>
       {/* Table Wrapper with horizontal scrolling */}
-      <div 
-        className="table-responsive flex-grow-1" 
-        style={{ 
+      <div
+        className="table-responsive flex-grow-1"
+        style={{
           overflowX: "auto",
           overflowY: "hidden",
-          backgroundColor: "transparent", 
+          backgroundColor: "transparent",
           borderTopLeftRadius: "0px",
           borderTopRightRadius: "0px",
           borderBottomLeftRadius: "10px",
@@ -81,7 +64,7 @@ export function PickupOrdersTable({
                   </div>
                 </td>
               </tr>
-            ) : displayOrders.length === 0 ? (
+            ) : paginatedOrders.length === 0 ? (
               <tr className="inventory-empty-row" style={{ cursor: "default", backgroundColor: "#ffffff" }}>
                 <td colSpan={6} className="text-center py-5" style={{ backgroundColor: "#ffffff", borderTopLeftRadius: "0px", borderTopRightRadius: "0px", borderBottomLeftRadius: "10px", borderBottomRightRadius: "10px" }}>
                   <div className="d-flex flex-column align-items-center justify-content-center py-4">
@@ -93,10 +76,10 @@ export function PickupOrdersTable({
                 </td>
               </tr>
             ) : (
-              displayOrders.map((order, index) => {
+              paginatedOrders.map((order, index) => {
                 const isActive = activeOrder && activeOrder.id === order.id;
                 const cellBgColor = isActive ? "#d8dce2" : "#ffffff";
-                const isLastRow = index === displayOrders.length - 1;
+                const isLastRow = index === paginatedOrders.length - 1;
                 const isFirstRow = index === 0;
 
                 // Calculate border radius for clean card rounding of the table body block
@@ -110,9 +93,9 @@ export function PickupOrdersTable({
                 const isReady = order.status === "ready_for_pickup" || order.status === "ready";
 
                 return (
-                  <tr 
-                    key={order.id} 
-                    style={{ cursor: "pointer", transition: "background-color 0.2s" }} 
+                  <tr
+                    key={order.id}
+                    style={{ cursor: "pointer", transition: "background-color 0.2s" }}
                     onClick={() => onSelectOrder(order)}
                   >
                     <td className="px-2 px-md-4 py-3 text-start text-dark text-nowrap" style={{ fontSize: "13px", borderBottom: bottomBorder, borderTopLeftRadius: topLeftRadius, borderBottomLeftRadius: bottomLeftRadius, backgroundColor: cellBgColor, borderLeft: "none" }}>
@@ -168,7 +151,7 @@ export function PickupOrdersTable({
       </div>
 
       {/* Pagination Footer outside Table scroll wrapper */}
-      {!loading && !fetchError && displayOrders.length > 0 && (
+      {!loading && !fetchError && paginatedOrders.length > 0 && (
         <div className="p-3 bg-transparent border-0 mt-auto">
           <Pagination
             currentPage={currentPage}
