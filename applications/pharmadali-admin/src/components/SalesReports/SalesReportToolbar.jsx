@@ -93,6 +93,7 @@ function SalesReportToolbar({
                 type="date"
                 className="report-date-input"
                 value={startDate}
+                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => onStartDateChange(e.target.value)}
               />
               <CalendarIcon />
@@ -106,6 +107,7 @@ function SalesReportToolbar({
                 type="date"
                 className="report-date-input"
                 value={endDate}
+                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => onEndDateChange(e.target.value)}
               />
               <CalendarIcon />
@@ -156,6 +158,7 @@ function SalesReportToolbar({
                 type="date"
                 className="report-date-input"
                 value={startDate}
+                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => onStartDateChange(e.target.value)}
               />
               <CalendarIcon />
@@ -169,6 +172,7 @@ function SalesReportToolbar({
                 type="date"
                 className="report-date-input"
                 value={endDate}
+                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => onEndDateChange(e.target.value)}
               />
               <CalendarIcon />

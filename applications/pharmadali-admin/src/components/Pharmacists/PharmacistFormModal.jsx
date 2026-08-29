@@ -124,7 +124,7 @@ export function PharmacistFormModal({
                 className={`form-control pharmacists-form-input ${fieldErrors.birthdate ? "is-invalid" : ""}`}
                 name="birthdate"
                 value={formData.birthdate}
-                max={`${new Date().getFullYear()}-12-31`}
+                max={new Date().toISOString().split('T')[0]}
                 onChange={handleInputChange}
               />
               {fieldErrors.birthdate && (
