@@ -124,6 +124,7 @@ export default function CartScreen() {
     toggleAll,
     viewState,
     pharmacyLabel,
+    pharmacyLocationLabel,
   } = useCartTab();
 
   const allSelected = viewState.allSelected;
@@ -142,6 +143,7 @@ export default function CartScreen() {
     setCheckoutDraft({
       items: selectedItems,
       pharmacyLabel,
+      pharmacyLocationLabel,
       total,
     });
 
@@ -178,6 +180,11 @@ export default function CartScreen() {
         <LocationIcon width={17} height={17} />
         <View className="flex-1 ml-2">
           <Text className="text-xs" style={styles.fontSemiBold}>Pickup at {pharmacyLabel}</Text>
+          {pharmacyLocationLabel ? (
+            <Text className="text-[10px] text-gray-600 mt-0.5" style={styles.fontMedium}>
+              {pharmacyLocationLabel}
+            </Text>
+          ) : null}
         </View>
       </View>
 

@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@shared/theme/colorPalette';
 import RedStoreIcon from '@assets/icons/red_store_icon.svg';
 import { getPharmacyDataInSelectionPhase } from '@shared/services/selectionPhaseService';
+import LocationIcon from '@assets/icons/red_location_icon.svg';
 
 const fallbackPharmacies = [];
 
@@ -66,36 +67,48 @@ function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
   return currentMinutes >= openingMinutes || currentMinutes < closingMinutes;
 }
 
+
 function PharmacyCard({ pharmacy, onSelect }) {
   return (
-    <View className="flex-row items-center border border-gray-300 rounded-xl px-3 py-3 mb-3" style={{ backgroundColor: '#F7FBFE' }}>
-      <View className="mr-3">
-        <RedStoreIcon width={32} height={32} />
-      </View>
-      <View className="flex-1">
-        <Text style={styles.pharmacyName}>{pharmacy.name}</Text>
-        <Text style={styles.pharmacyDetail}>{pharmacy.address}</Text>
-        <View className="flex-row items-center mt-1">
-          <Text style={styles.pharmacyDetail}>{pharmacy.hours}</Text>
-          {pharmacy.isOpen && (
-            <View className="bg-green-500 rounded-full px-2 py-0.5 ml-2">
-              <Text style={styles.openBadge}>Open now</Text>
-            </View>
-          )}
-          {!pharmacy.isOpen && (
-            <View className="bg-red-500 rounded-full px-2 py-0.5 ml-2">
-              <Text style={styles.closedBadge}>Closed</Text>
-            </View>
-          )}
+    <View className="border border-[#B8DEF0] rounded-xl px-3 py-3 mb-3 bg-[#E8F4FD]">
+      <View className="flex-row items-start">
+        <View className="mr-3 mt-1">
+          <RedStoreIcon width={24} height={24} />
         </View>
+        <View className="flex-1">
+          <Text style={styles.pharmacyName}>{pharmacy.name}</Text>
+          
+          {pharmacy.address ? (
+            <View className="flex-row items-start mt-1 pr-2">
+              <View className="mt-0.5 mr-1">
+                <LocationIcon width={12} height={12} />
+              </View>
+              <Text style={[styles.pharmacyDetail, { flex: 1 }]}>{pharmacy.address}</Text>
+            </View>
+          ) : null}
+
+          <View className="flex-row items-center mt-2">
+            <Text style={styles.pharmacyDetail}>{pharmacy.hours}</Text>
+            {pharmacy.isOpen && (
+              <View className="bg-green-500 rounded-full px-2 py-0.5 ml-2">
+                <Text style={styles.openBadge}>Open now</Text>
+              </View>
+            )}
+            {!pharmacy.isOpen && (
+              <View className="bg-red-500 rounded-full px-2 py-0.5 ml-2">
+                <Text style={styles.closedBadge}>Closed</Text>
+              </View>
+            )}
+          </View>
+        </View>
+        <Pressable
+          className="rounded-full px-4 py-1.5 ml-2 self-center"
+          style={{ backgroundColor: colors.buttonColor }}
+          onPress={() => onSelect(pharmacy)}
+        >
+          <Text style={styles.selectText}>Select</Text>
+        </Pressable>
       </View>
-      <Pressable
-        className="rounded-full px-4 py-1.5 ml-2"
-        style={{ backgroundColor: colors.buttonColor }}
-        onPress={() => onSelect(pharmacy)}
-      >
-        <Text style={styles.selectText}>Select</Text>
-      </Pressable>
     </View>
   );
 }

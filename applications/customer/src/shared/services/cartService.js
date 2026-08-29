@@ -176,12 +176,21 @@ export function buildCartViewState(items) {
     ),
   );
 
+  const pharmacyLocations = Array.from(
+    new Set(
+      items
+        .map((item) => item?.pharmacy?.location)
+        .filter(Boolean),
+    ),
+  );
+
   return {
     allSelected,
     hasPrescription,
     total,
     selectedCount: selectedItems.length,
     pharmacyNames,
+    pharmacyLocations,
   };
 }
 

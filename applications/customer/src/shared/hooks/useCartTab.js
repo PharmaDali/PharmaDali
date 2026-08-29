@@ -75,6 +75,14 @@ export function useCartTab() {
     return viewState.pharmacyNames[0] || 'No pharmacy selected';
   }, [viewState.pharmacyNames]);
 
+  const pharmacyLocationLabel = useMemo(() => {
+    if (viewState.pharmacyLocations.length > 1) {
+      return 'Multiple locations';
+    }
+
+    return viewState.pharmacyLocations[0] || '';
+  }, [viewState.pharmacyLocations]);
+
   return {
     cartItems,
     loading,
@@ -88,5 +96,6 @@ export function useCartTab() {
     toggleAll,
     viewState,
     pharmacyLabel,
+    pharmacyLocationLabel,
   };
 }
