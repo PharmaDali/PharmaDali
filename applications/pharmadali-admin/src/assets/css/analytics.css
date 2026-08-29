@@ -369,41 +369,21 @@
     display: none;
   }
 
-  .analytics-page > .row {
-    gap: 8px;
-    margin-right: 0;
-    margin-left: 0;
-  }
-
-  .analytics-page > .row > [class*="col-"] {
-    padding-right: 0;
-    padding-left: 0;
-  }
-
-  .analytics-page > .row:first-of-type {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .analytics-page > .row:first-of-type > [class*="col-"] {
-    width: auto;
-  }
-
-  .analytics-page > .row:first-of-type .card {
+  .analytics-metrics-row .card {
     min-height: 68px;
     padding: 10px !important;
   }
 
-  .analytics-page > .row:first-of-type .card span {
+  .analytics-metrics-row .card span {
     font-size: 9px !important;
   }
 
-  .analytics-page > .row:first-of-type .card > div:nth-child(2) {
+  .analytics-metrics-row .card > div:nth-child(2) {
     min-height: 23px !important;
     font-size: 17px !important;
   }
 
-  .analytics-page > .row:first-of-type .card > div:nth-child(2) span {
+  .analytics-metrics-row .card > div:nth-child(2) span {
     font-size: 10px !important;
   }
 

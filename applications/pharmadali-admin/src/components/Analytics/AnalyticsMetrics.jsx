@@ -3,9 +3,9 @@ import { WavingDots } from "../../shared/components/loading";
 
 export default function AnalyticsMetrics({ metrics, loading }) {
   return (
-    <div className="row g-3 mb-4">
+    <div className="row g-3 mb-4 analytics-metrics-row">
       {metrics.map((metric, idx) => (
-        <div key={metric.label || idx} className="col-12 col-sm-6 col-lg-3">
+        <div key={metric.label || idx} className="col-6 col-lg-3">
           <div className="card border-0 shadow-sm p-3 h-100 rounded-3" style={{ background: "#ffffff" }}>
             <div className="d-flex align-items-center justify-content-between mb-1">
               <span className="text-muted fw-semibold" style={{ fontSize: "12px" }}>
