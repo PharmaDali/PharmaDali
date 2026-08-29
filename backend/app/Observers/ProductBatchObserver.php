@@ -34,6 +34,8 @@ class ProductBatchObserver
             return;
         }
 
+        $batch->loadMissing(['pharmacyProduct.product', 'pharmacyProduct.pharmacy']);
+
         $today = Carbon::today();
         $expiryThresholdDays = $batch->pharmacyProduct?->pharmacy?->expiry_days_threshold ?? 30;
         $thresholdDate = Carbon::today()->addDays($expiryThresholdDays);
@@ -65,10 +67,10 @@ class ProductBatchObserver
         $message = "{$batch->stock} units of {$pp->product->product_name} (Batch: {$batch->batch_number}) will expire {$daysLeftText} (on {$expiryFormatted}).";
 
         foreach ($admins as $admin) {
-            $exists = $admin->notifications->contains(function ($n) use ($batch) {
-                return ($n->data['type'] ?? null) === 'Expiry Warning'
-                    && (int) ($n->data['batch_id'] ?? 0) === (int) $batch->id;
-            });
+            $exists = $admin->notifications()
+                ->where('data', 'like', '%"type":"Expiry Warning"%')
+                ->where('data', 'like', '%"batch_id":' . $batch->id . '%')
+                ->exists();
 
             if (!$exists) {
                 try {

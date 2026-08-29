@@ -86,10 +86,13 @@ class PharmacyProductObserver
             $message = "Only {$pharmacyProduct->stock} units of {$product->product_name} remaining — this stock will last {$daysLabel}.";
 
             foreach ($admins as $admin) {
-                $exists = $admin->notifications->contains(function ($n) use ($pharmacyProduct) {
-                    return in_array($n->data['type'] ?? null, ['Low Stocks', 'Shortage Alert'])
-                        && (int) ($n->data['product_id'] ?? 0) === (int) $pharmacyProduct->product_id;
-                });
+                $exists = $admin->notifications()
+                    ->where(function ($q) {
+                        $q->where('data', 'like', '%"type":"Low Stocks"%')
+                          ->orWhere('data', 'like', '%"type":"Shortage Alert"%');
+                    })
+                    ->where('data', 'like', '%"product_id":' . $pharmacyProduct->product_id . '%')
+                    ->exists();
 
                 if (!$exists) {
                     try {
