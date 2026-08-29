@@ -68,6 +68,8 @@ class RestockRepository
                 'category'       => $bp->category->category_name ?? 'Uncategorized',
                 'quantity'       => (int) $bp->stock,
                 'selling_price'  => (float) $bp->selling_price,
+                'lead_time_days' => $bp->lead_time_days,
+                'ordered_at'     => $bp->ordered_at,
                 'total_sold_30d' => (int) ($salesMap30d[$bp->id] ?? 0),
                 'total_sold_7d'  => (int) ($salesMap7d[$bp->id] ?? 0),
                 'batches'        => $bp->batches->map(fn($b) => ['batch_number' => $b->batch_number])->toArray(),

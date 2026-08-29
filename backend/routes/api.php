@@ -175,6 +175,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('products', [PharmacyProductController::class, 'store']);
         Route::post('products/import', [PharmacyProductController::class, 'importPharmacyProducts'])->middleware('throttle:batch-import');
         Route::put('products/{id}', [PharmacyProductController::class, 'update']);
+        Route::patch('products/{id}/mark-ordered', [PharmacyProductController::class, 'markOrdered']);
         Route::delete('products/{id}', [PharmacyProductController::class, 'destroy']);
         Route::post('products/{id}/image', [PharmacyProductController::class, 'uploadImage'])->middleware('throttle:file-upload');
 

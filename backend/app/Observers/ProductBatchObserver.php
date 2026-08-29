@@ -14,6 +14,7 @@ class ProductBatchObserver
      */
     public function created(ProductBatch $batch): void
     {
+        $this->evaluateAdaptiveLeadTime($batch);
         $this->evaluateExpiryAlert($batch);
     }
 
@@ -87,5 +88,32 @@ class ProductBatchObserver
                 }
             }
         }
+    }
+
+    /**
+     * Phase 3: Adaptive Lead Time automation.
+     * Calculates Exponential Moving Average (EMA) when a restock arrives.
+     */
+    private function evaluateAdaptiveLeadTime(ProductBatch $batch): void
+    {
+        $pp = $batch->pharmacyProduct;
+        if (!$pp || !$pp->ordered_at) {
+            return;
+        }
+
+        // 1. Calculate how many days it took to arrive (min 1 day)
+        $deliveryDays = max(1, (int) Carbon::parse($pp->ordered_at)->diffInDays(now()));
+
+        // 2. Fallback to 3 if we don't have a historical baseline
+        $oldLeadTime = $pp->lead_time_days ?? 3;
+
+        // 3. Exponential Smoothing formula (70% weight to history, 30% to this new arrival)
+        $newLeadTime = ($oldLeadTime * 0.7) + ($deliveryDays * 0.3);
+
+        // 4. Update the PharmacyProduct and stop the clock
+        $pp->update([
+            'lead_time_days' => max(1, (int) round($newLeadTime)),
+            'ordered_at'     => null, // Reset the stopwatch
+        ]);
     }
 }

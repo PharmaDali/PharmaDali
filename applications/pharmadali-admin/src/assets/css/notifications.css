@@ -151,3 +151,14 @@
   background-color: #2aabe2;
   display: inline-block;
 }
+
+.btn-theme-primary {
+  background-color: var(--pd-primary);
+  border-color: var(--pd-primary);
+  color: #fff;
+}
+.btn-theme-primary:hover {
+  background-color: #1f8ebf;
+  border-color: #1f8ebf;
+  color: #fff;
+}

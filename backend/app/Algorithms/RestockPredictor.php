@@ -31,6 +31,9 @@ class RestockPredictor
             $currentStock  = (int) $product['quantity'];
             $totalSold30d  = (int) ($product['total_sold_30d'] ?? 0);
             $totalSold7d   = (int) ($product['total_sold_7d'] ?? 0);
+            
+            // Phase 2: Use dynamic product-level lead time if available, fallback to global parameter
+            $dynamicLeadTime = $product['lead_time_days'] ?? $leadTimeDays;
 
             // Average Daily Sales (ADS) - 30 days and 7 days
             $ads30d = $totalSold30d / self::ADS_WINDOW_DAYS;
@@ -40,10 +43,10 @@ class RestockPredictor
             $ads = ($ads7d * 0.6) + ($ads30d * 0.4);
 
             // Dynamic Safety Stock: 50% of Lead Time Demand, absolute minimum 2
-            $safetyStock = max(2, ($ads * $leadTimeDays) * 0.5);
+            $safetyStock = max(2, ($ads * $dynamicLeadTime) * 0.5);
 
             // Dynamic Reorder Point (ROP)
-            $rop = ($ads * $leadTimeDays) + $safetyStock;
+            $rop = ($ads * $dynamicLeadTime) + $safetyStock;
 
             // Days of Stock (DOS) — how many days until stockout
             $daysOfStock = ($ads > 0) ? ($currentStock / $ads) : 999;
