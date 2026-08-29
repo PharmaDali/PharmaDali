@@ -42,11 +42,28 @@
     min-width: 0;
     max-width: none;
     flex: none;
-    padding: 12px 14px;
+    padding: 10px 10px;
+    overflow: hidden;
+  }
+
+  .summary-card-body {
+    flex-wrap: wrap;
+    gap: 2px;
   }
 
   .summary-amount {
-    font-size: 24px;
+    font-size: 14px !important;
+    letter-spacing: -0.5px;
+    word-break: break-all;
+    line-height: 1.2;
+  }
+
+  .summary-currency-text {
+    font-size: 9px !important;
+  }
+
+  .summary-card-label {
+    font-size: 11px;
   }
 }
 
