@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -64,23 +64,31 @@ export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCar
     Keyboard.dismiss();
   };
 
-  const renderProduct = useCallback(({ item }) => (
-    <View className="flex-1 p-1.5 items-center" style={{ maxWidth: '50%' }}>
-      <ProductCard
-        productId={item.product?.id}
-        pharmacyProductId={item.id}
-        pharmacyId={pharmacyId}
-        img={item.product?.image_url ? { uri: item.product.image_url } : null}
-        product={item.product}
-        categoryName={item.category?.category_name}
-        description={item.product?.brand_name || item.product?.generic_name || item.product?.product_name}
-        category={item.category?.category_name}
-        price={formatProductPrice(item.selling_price || item.price)}
-        onAddToCart={onAddToCart}
-        isPrescribed={Boolean(item.product?.is_prescribed)}
-      />
-    </View>
-  ), [pharmacyId, onAddToCart]);
+  const renderProduct = ({ item }) => {
+    const isAvailable =
+      (item.is_available === undefined ? true : Boolean(Number(item.is_available))) &&
+      (item.is_expired === undefined ? true : !Boolean(Number(item.is_expired))) &&
+      (item.stock === undefined || Number(item.stock) > 0);
+
+    return (
+      <View className="flex-1 p-1.5 items-center" style={{ maxWidth: '50%' }}>
+        <ProductCard
+          productId={item.product?.id}
+          pharmacyProductId={item.id}
+          pharmacyId={pharmacyId}
+          img={item.product?.image_url ? { uri: item.product.image_url } : null}
+          product={item.product}
+          categoryName={item.category?.category_name}
+          description={item.product?.brand_name || item.product?.generic_name || item.product?.product_name}
+          category={item.category?.category_name}
+          price={formatProductPrice(item.selling_price || item.price)}
+          onAddToCart={onAddToCart}
+          isPrescribed={Boolean(item.product?.is_prescribed)}
+          isAvailable={isAvailable}
+        />
+      </View>
+    );
+  };
 
   if (!visible) return null;
 
