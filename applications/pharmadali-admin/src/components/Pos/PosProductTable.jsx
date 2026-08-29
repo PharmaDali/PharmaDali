@@ -17,8 +17,8 @@ export default function PosProductTable() {
   };
 
   const getBrandName = (product) => {
-    if (!product) return "Generic";
-    return toTitleCase(product.brand_name || "Generic");
+    if (!product) return "";
+    return product.brand_name ? toTitleCase(product.brand_name) : "";
   };
 
   const getStrength = (product) => {
