@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 
 export function PharmacistFormModal({
   isOpen,
@@ -11,6 +11,8 @@ export function PharmacistFormModal({
   fieldErrors,
   formError,
 }) {
+  const birthdateRef = useRef(null);
+
   if (!isOpen) return null;
 
   return (
@@ -119,14 +121,39 @@ export function PharmacistFormModal({
             </div>
             <div className="pharmacists-form-group">
               <label className="pharmacists-form-label">Birthdate *</label>
-              <input
-                type="date"
-                className={`form-control pharmacists-form-input ${fieldErrors.birthdate ? "is-invalid" : ""}`}
-                name="birthdate"
-                value={formData.birthdate}
-                max={`${new Date().getFullYear()}-12-31`}
-                onChange={handleInputChange}
-              />
+              <div style={{ position: "relative" }}>
+                <input
+                  ref={birthdateRef}
+                  type="date"
+                  className={`form-control pharmacists-form-input ${fieldErrors.birthdate ? "is-invalid" : ""}`}
+                  name="birthdate"
+                  value={formData.birthdate}
+                  max={new Date().toISOString().split('T')[0]}
+                  onChange={handleInputChange}
+                  style={{ paddingRight: "2.5rem", cursor: "pointer" }}
+                />
+                <span
+                  onClick={() => {
+                    if (birthdateRef.current) {
+                      try { birthdateRef.current.showPicker(); }
+                      catch { birthdateRef.current.click(); }
+                    }
+                  }}
+                  style={{
+                    position: "absolute",
+                    right: "12px",
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    cursor: "pointer",
+                    color: "#9cb8cc",
+                    pointerEvents: "all",
+                    lineHeight: 1,
+                  }}
+                  title="Open calendar"
+                >
+                  <i className="fa-regular fa-calendar" style={{ fontSize: "15px" }} />
+                </span>
+              </div>
               {fieldErrors.birthdate && (
                 <span className="pharmacists-field-error">
                   <i className="fa-solid fa-circle-exclamation" style={{ fontSize: "11px" }} />
