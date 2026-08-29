@@ -41,4 +41,18 @@ class CustomerCartController extends Controller
 
         return $this->customerCartService->countCartItems(request()->user());
     }
+
+    public function removeItem($cartItemId): JsonResponse
+    {
+        Gate::authorize('viewAny', Cart::class);
+
+        return $this->customerCartService->removeItem(request()->user(), (int) $cartItemId);
+    }
+
+    public function clearCart(): JsonResponse
+    {
+        Gate::authorize('viewAny', Cart::class);
+
+        return $this->customerCartService->clearCart(request()->user());
+    }
 }
