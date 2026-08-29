@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'expo-router';
 import { Text, View } from 'react-native';
 import { colors } from '@shared/theme/colorPalette';
 import { useUnreadNotifications } from '@shared/hooks/useUnreadNotifications';
+import { useSearchContext } from '@shared/context/SearchContext';
 
 // Icons
 import homeIcon from '@assets/icons/home_icon.svg';
@@ -29,6 +30,7 @@ export default function BottomBar() {
   const router = useRouter();
   const pathname = usePathname();
   const { unreadCount } = useUnreadNotifications();
+  const { setSearchQuery } = useSearchContext();
   const [optimisticRead, setOptimisticRead] = useState(false);
 
   // If new notifications arrive, reset the optimistic state
@@ -54,6 +56,10 @@ export default function BottomBar() {
         if (route.key === 'notifications') {
           setOptimisticRead(true);
         }
+        
+        // Clear search input when switching to ANY tab
+        setSearchQuery('');
+        
         if (pathname === route.path) return;
         router.replace(route.path);
       }}
