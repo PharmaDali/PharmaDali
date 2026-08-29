@@ -21,7 +21,7 @@ export function PickupOrdersTable({
     <article className="h-100 d-flex flex-column flex-grow-1" style={{ backgroundColor: "transparent", minHeight: 0 }}>
       {/* Table Wrapper with horizontal scrolling */}
       <div
-        className="table-responsive flex-grow-1"
+        className="table-responsive flex-grow-1 pickup-table-scroll"
         style={{
           overflowX: "auto",
           overflowY: "hidden",

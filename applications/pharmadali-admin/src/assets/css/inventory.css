@@ -956,6 +956,31 @@ select.inventory-modal-input {
   scrollbar-color: var(--pd-primary, #2aabe2) #f0f4f8;
 }
 
+/* ── Pickup Orders table scrollbar ── */
+.pickup-table-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.pickup-table-scroll::-webkit-scrollbar-track {
+  background: #f0f4f8;
+  border-radius: 10px;
+}
+
+.pickup-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--pd-primary, #2aabe2);
+  border-radius: 10px;
+  transition: background-color 0.2s ease;
+}
+
+.pickup-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #1b8ec2;
+}
+
+.pickup-table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pd-primary, #2aabe2) #f0f4f8;
+}
+
 @media (max-width: 1199.98px) {
   .inventory-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
