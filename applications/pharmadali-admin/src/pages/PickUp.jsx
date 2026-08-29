@@ -59,11 +59,11 @@ export function PickUp() {
       <div className="row g-4 align-items-stretch">
         <div className={activeOrder ? "col-12 col-lg-8 col-xl-9 d-flex flex-column" : "col-12 d-flex flex-column"}>
           <div className="bg-white rounded-3 shadow-sm p-4 d-flex flex-column flex-grow-1">
-            <div className="d-flex flex-column flex-md-row align-items-start align-items-md-end justify-content-between gap-3 gap-md-0" style={{ marginBottom: "0" }}>
+            <div className="d-flex flex-column flex-md-row align-items-start align-items-md-end justify-content-between gap-2 gap-md-0" style={{ marginBottom: "0" }}>
               <h4 className="fw-bold text-dark m-0 pb-md-2" style={{ fontSize: "1.25rem", minWidth: "max-content" }}>
                 Pickup Orders
               </h4>
-              <div className="d-flex flex-wrap justify-content-end gap-1 w-100 w-md-auto" style={{ marginBottom: "-1px", zIndex: 2 }}>
+              <div className="d-flex flex-nowrap justify-content-end gap-1 ms-auto w-md-auto" style={{ marginBottom: "-1px", zIndex: 2, maxWidth: "75%" }}>
                 {(() => {
                   const orderedTabs = [
                     PICKUP_TABS.find(t => t.id === "All"),
@@ -81,7 +81,7 @@ export function PickUp() {
                       <button
                         key={tab.id}
                         type="button"
-                        className="btn btn-sm px-4 fw-semibold d-flex align-items-center position-relative"
+                        className="btn btn-sm fw-semibold d-flex align-items-center justify-content-center position-relative flex-grow-1 flex-md-grow-0"
                         style={{
                           backgroundColor: isActive ? "#e2f2fa" : "#e2e8f0",
                           color: isActive ? "#0f172a" : "#475569",
@@ -92,10 +92,13 @@ export function PickUp() {
                           borderTopRightRadius: "8px",
                           borderBottomLeftRadius: "0",
                           borderBottomRightRadius: "0",
-                          fontSize: "12px",
-                          paddingTop: "10px",
-                          paddingBottom: "10px",
-                          transition: "all 0.2s"
+                          fontSize: "clamp(10px, 2.5vw, 12px)",
+                          paddingTop: "7px",
+                          paddingBottom: "7px",
+                          paddingLeft: "clamp(8px, 3vw, 16px)",
+                          paddingRight: "clamp(8px, 3vw, 16px)",
+                          transition: "all 0.2s",
+                          whiteSpace: "nowrap",
                         }}
                         onClick={() => handleTabChange(tab.id)}
                       >
