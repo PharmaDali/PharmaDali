@@ -104,6 +104,12 @@
   padding: 24px;
 }
 
+@media (max-width: 575.98px) {
+  .sales-report-card {
+    padding: 10px 8px;
+  }
+}
+
 /* Toolbar */
 .report-toolbar-container {
   display: flex;
@@ -215,7 +221,7 @@
   .report-date-input {
     width: 100%;
     font-size: 12px;
-    padding: 6px 32px 6px 12px;
+    padding: 6px 28px 6px 10px;
   }
 }
 
@@ -224,11 +230,12 @@
   background-color: #48aad9 !important;
   color: #ffffff !important;
   border-radius: 20px !important;
-  padding: 7px 22px !important;
-  font-size: 13px !important;
+  padding: 5px 16px !important;
+  font-size: 12px !important;
   font-weight: 600 !important;
   border: none !important;
   transition: opacity 0.2s ease !important;
+  white-space: nowrap;
 }
 
 .search-button:hover {
@@ -260,6 +267,77 @@
 }
 
 .export-button:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Three-dot export button (mobile) */
+.report-dots-btn {
+  background: none !important;
+  border: none !important;
+  color: #475569 !important;
+  padding: 4px 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+}
+
+.report-dots-btn:hover {
+  color: #1e293b !important;
+  background: none !important;
+}
+
+/* Mobile date input flex stretch */
+.flex-1-mobile {
+  flex: 1;
+  min-width: 0;
+}
+
+.flex-1-mobile .report-date-wrap {
+  width: 100%;
+}
+
+.flex-1-mobile .report-date-input {
+  width: 100%;
+}
+
+/* From:/To: label above date input on mobile */
+.report-date-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 3px;
+  padding-left: 4px;
+}
+
+/* Shared size for Search + Clear Filter buttons on mobile */
+.report-mobile-action-btn {
+  border-radius: 20px !important;
+  padding: 5px 12px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  white-space: nowrap;
+}
+
+.report-search-btn {
+  background-color: #48aad9 !important;
+  color: #ffffff !important;
+}
+
+.report-search-btn:hover {
+  opacity: 0.9;
+  color: #ffffff !important;
+}
+
+.report-clear-btn {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.report-clear-btn:hover {
   background-color: #e2e8f0 !important;
 }
 
