@@ -64,7 +64,7 @@ class RestockRepository
             return [
                 'id'             => $bp->id,
                 'name'           => $bp->product->product_name ?? 'Unknown',
-                'brand'          => $bp->product->brand_name ?? 'Generic',
+                'brand'          => $bp->product->brand_name ?? '',
                 'category'       => $bp->category->category_name ?? 'Uncategorized',
                 'quantity'       => (int) $bp->stock,
                 'selling_price'  => (float) $bp->selling_price,
