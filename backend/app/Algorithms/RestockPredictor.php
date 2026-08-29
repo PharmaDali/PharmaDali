@@ -5,8 +5,8 @@ namespace App\Algorithms;
 class RestockPredictor
 {
     private const DEFAULT_LEAD_TIME_DAYS = 3;
-    private const MIN_SAFETY_STOCK = 10;
     private const ADS_WINDOW_DAYS = 30;
+    private const ADS_SHORT_WINDOW_DAYS = 7;
 
     /**
      * Run the restock prediction algorithm.
@@ -17,6 +17,7 @@ class RestockPredictor
      * Each product snapshot must contain:
      *   - id, name, brand, category, quantity (current stock), selling_price
      *   - total_sold_30d: sum of units sold in the last 30 days (0 if never sold)
+     *   - total_sold_7d: sum of units sold in the last 7 days (0 if never sold)
      *
      * @param  array $products   Raw product snapshot data from the repository
      * @param  int   $limit      Max number of results to return
@@ -28,15 +29,21 @@ class RestockPredictor
 
         foreach ($products as $product) {
             $currentStock  = (int) $product['quantity'];
-            $totalSold     = (int) ($product['total_sold_30d'] ?? 0);
+            $totalSold30d  = (int) ($product['total_sold_30d'] ?? 0);
+            $totalSold7d   = (int) ($product['total_sold_7d'] ?? 0);
 
-            // Average Daily Sales (ADS)
-            $ads = $totalSold / self::ADS_WINDOW_DAYS;
+            // Average Daily Sales (ADS) - 30 days and 7 days
+            $ads30d = $totalSold30d / self::ADS_WINDOW_DAYS;
+            $ads7d  = $totalSold7d / self::ADS_SHORT_WINDOW_DAYS;
+
+            // Weighted Average Daily Sales (60% weight to recent 7 days, 40% to 30 days)
+            $ads = ($ads7d * 0.6) + ($ads30d * 0.4);
+
+            // Dynamic Safety Stock: 50% of Lead Time Demand, absolute minimum 2
+            $safetyStock = max(2, ($ads * $leadTimeDays) * 0.5);
 
             // Dynamic Reorder Point (ROP)
-            $rop = ($ads > 0)
-                ? ($ads * $leadTimeDays) + self::MIN_SAFETY_STOCK
-                : self::MIN_SAFETY_STOCK;
+            $rop = ($ads * $leadTimeDays) + $safetyStock;
 
             // Days of Stock (DOS) — how many days until stockout
             $daysOfStock = ($ads > 0) ? ($currentStock / $ads) : 999;
