@@ -162,7 +162,8 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                     <p className="exchange-step-subheading mb-3">Choose the purchased items being returned and specify their condition.</p>
 
                     <div className="exchange-card-box mb-3">
-                      <table className="table exchange-table align-middle mb-0">
+                      <div className="table-responsive">
+                        <table className="table exchange-table align-middle mb-0" style={{ minWidth: "400px" }}>
                         <thead>
                           <tr>
                             <th>Product Name</th>
@@ -210,6 +211,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                           })}
                         </tbody>
                       </table>
+                      </div>
                     </div>
 
                     <div className="exchange-credit-summary-bar">

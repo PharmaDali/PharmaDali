@@ -105,7 +105,7 @@ function TransactionDetailModal({ row, onClose, onOpenExchange }) {
         </div>
 
         {/* Items grid header */}
-        <div className="report-modal-grid fw-semibold text-secondary mb-2" style={{ fontSize: "13px" }}>
+        <div className="report-modal-grid fw-semibold text-secondary mb-2">
           <span>Items</span>
           <span>Qty</span>
           <span>Price</span>
@@ -116,7 +116,7 @@ function TransactionDetailModal({ row, onClose, onOpenExchange }) {
         {/* Items list */}
         <div className="mb-3">
           {row.orderItems?.map((item, index) => (
-            <div key={index} className="report-modal-grid py-2 border-bottom align-items-center" style={{ fontSize: "13px" }}>
+            <div key={index} className="report-modal-grid py-2 border-bottom align-items-center">
               <span className="fw-medium text-dark">{item.name}</span>
               <span>{item.qty}</span>
               <span>PHP {Number(item.price).toFixed(2)}</span>
@@ -205,7 +205,7 @@ function TransactionDetailModal({ row, onClose, onOpenExchange }) {
               </div>
             ) : (
               <button
-                className="btn w-100 mt-3 d-flex align-items-center justify-content-center fw-semibold rounded-3 shadow-sm"
+                className="btn w-100 mt-3 d-flex align-items-center justify-content-center fw-semibold rounded-3 shadow-sm report-exchange-btn"
                 style={{
                   backgroundColor: btnHovered ? "#2aabe2" : "#ffffff",
                   color: btnHovered ? "#ffffff" : "#2aabe2",

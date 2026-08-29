@@ -457,10 +457,26 @@
   display: grid;
   grid-template-columns: 1fr 60px 80px 80px;
   gap: 12px;
+  font-size: 13px;
+}
+
+@media (max-width: 575.98px) {
+  .report-modal-grid {
+    grid-template-columns: 1fr 25px 70px 70px;
+    gap: 6px;
+    font-size: 11px;
+  }
+  
+  .report-exchange-btn {
+    font-size: 13px !important;
+    padding: 8px !important;
+    white-space: normal;
+  }
 }
 
 .report-modal-grid span:not(:first-child) {
   text-align: right;
+  word-break: break-word;
 }
 
 .section-title {
