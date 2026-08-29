@@ -129,9 +129,13 @@ const ProductView = () => {
     );
   }
 
-  const { product, selling_price, category } = productData;
+  const { product, selling_price, category, is_available, is_expired, stock } = productData;
   const name = product?.product_name || product?.brand_name || 'Unnamed Product';
   const description = product?.description || 'No description available.';
+  const isAvailable = 
+    (is_available === undefined ? true : (typeof is_available === 'boolean' ? is_available : Number(is_available) === 1)) && 
+    (is_expired === undefined ? true : !Boolean(Number(is_expired))) &&
+    (stock === undefined || Number(stock) > 0);
 
   return (
     <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
@@ -152,6 +156,7 @@ const ProductView = () => {
           <ProductImage
             product={product}
             categoryName={category?.category_name}
+            isAvailable={isAvailable}
             width={260}
             height={260}
           />
@@ -168,11 +173,12 @@ const ProductView = () => {
 
         <View className="px-5 mb-4">
           <TouchableOpacity
-            className="rounded-xl py-3 items-center flex-row justify-center bg-[#48AAD9]"
-            onPress={handleAddToCartPress}
+            className={`rounded-xl py-3 items-center flex-row justify-center ${isAvailable ? 'bg-[#48AAD9]' : 'bg-gray-400'}`}
+            onPress={isAvailable ? handleAddToCartPress : undefined}
+            disabled={!isAvailable}
           >
             <Text className="text-sm text-white" style={styles.fontSemiBold}>
-              Add to cart
+              {isAvailable ? 'Add to cart' : 'Out of Stock'}
             </Text>
           </TouchableOpacity>
         </View>

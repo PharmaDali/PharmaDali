@@ -20,6 +20,7 @@ class PharmacyProduct extends Model
         'selling_price',
         'is_discountable',
         'is_available',
+        'is_expired',
     ];
 
     public function pharmacy()

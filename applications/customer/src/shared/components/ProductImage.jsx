@@ -73,6 +73,7 @@ export default function ProductImage({
   product,
   categoryName,
   isPrescribed,
+  isAvailable = true,
   width = 64,
   height = 64,
   containerStyle,
@@ -97,30 +98,39 @@ export default function ProductImage({
   const categoryToUse = categoryName || productData?.category_name || categoryObj?.category_name;
   const colors = getCategoryColors(categoryToUse, categoryObj);
 
-  // Check if an uploaded product image exists
   const rawImageUri = typeof source === 'string'
     ? source
     : (source?.uri || productData?.image_url || productData?.product?.image_url || fallbackSource);
 
   const resolvedUri = resolveImageUrl(rawImageUri);
+  const scale = Math.min(width, height) / 100;
 
-  // If a valid uploaded image URL is present and hasn't failed to load, render the uploaded image!
+  // ─── Branch 1: Real uploaded image ──────────────────────────────────────
   if (resolvedUri && !imageError) {
     return (
-      <View style={[{ width, height, overflow: 'hidden', borderRadius: 8 * (Math.min(width, height) / 100) }, containerStyle]}>
+      <View
+        className="relative overflow-hidden"
+        style={[{ width, height, borderRadius: 8 * scale }, containerStyle]}
+      >
         <Image
           source={{ uri: resolvedUri }}
-          style={[{ width: '100%', height: '100%' }, imageStyle]}
+          className="w-full h-full"
+          style={imageStyle}
           resizeMode={resizeMode || 'cover'}
           onError={() => setImageError(true)}
         />
+        {!isAvailable && (
+          <View className="absolute inset-0 bg-black/60 items-center justify-center z-10">
+            <Text className="text-white font-bold" style={{ fontSize: 11 * scale, fontFamily: 'Poppins-Bold' }}>
+              Unavailable
+            </Text>
+          </View>
+        )}
       </View>
     );
   }
 
-  // Fallback: If no uploaded image exists, render the default HTML/CSS card layout
-  const scale = Math.min(width, height) / 100;
-
+  // ─── Branch 2: Fallback text card ───────────────────────────────────────
   const brandBaseFontSize = brand && brand.length > 11 ? 11 : 11.5;
   const brandFontSize = brandWrapped
     ? (brand && brand.length > 11 ? 8 : 9) * scale
@@ -130,10 +140,14 @@ export default function ProductImage({
     : (brand && brand.length > 11 ? 12 : 15) * scale;
 
   return (
-    <View
-      className="bg-white flex-col justify-between overflow-hidden relative"
-      style={[
-        {
+    // Outer wrapper: positioning context for the overlay.
+    // Must NOT have overflow:hidden — that would clip the overlay.
+    <View className="relative" style={[{ width, height }, containerStyle]}>
+
+      {/* Inner card: overflow-hidden clips content to the asymmetric border radii */}
+      <View
+        className="bg-white flex-col justify-between overflow-hidden"
+        style={{
           width,
           height,
           borderColor: colors.stroke,
@@ -144,96 +158,85 @@ export default function ProductImage({
           borderBottomLeftRadius: 24 * scale,
           paddingHorizontal: 6 * scale,
           paddingVertical: 6 * scale,
-        },
-        containerStyle,
-      ]}
-    >
-      <View className="flex-1 flex-col items-start">
-        {/* Generic name */}
-        {Boolean(generic) && (
-          <View
-            className="mb-1"
-            style={{
-              borderColor: colors.stroke,
-              borderWidth: 1 * scale,
-              borderRadius: 6 * scale,
-              paddingHorizontal: 4 * scale,
-              paddingVertical: 2 * scale,
-            }}
+        }}
+      >
+        <View className="flex-1 flex-col items-start">
+          {/* Generic name */}
+          {Boolean(generic) && (
+            <View
+              className="mb-1"
+              style={{
+                borderColor: colors.stroke,
+                borderWidth: 1 * scale,
+                borderRadius: 6 * scale,
+                paddingHorizontal: 4 * scale,
+                paddingVertical: 2 * scale,
+              }}
+            >
+              <Text
+                className="font-medium"
+                style={{ color: colors.fill, fontSize: 8.5 * scale, fontFamily: 'Poppins-Medium', lineHeight: 12 * scale }}
+                numberOfLines={3}
+              >
+                {generic}
+              </Text>
+            </View>
+          )}
+
+          {/* Brand name */}
+          <Text
+            className="font-bold"
+            style={{ color: colors.fill, fontSize: brandFontSize, fontFamily: 'Poppins-Bold', lineHeight: brandLineHeight }}
+            numberOfLines={2}
+            onTextLayout={(e) => { if (e.nativeEvent.lines.length > 1) setBrandWrapped(true); }}
           >
+            {brand}
+          </Text>
+
+          {/* Strength / form / size */}
+          {Boolean(strengthForm) && (
+            <Text
+              className="font-medium mt-[2px]"
+              style={{ color: colors.fill, fontSize: 7 * scale, fontFamily: 'Poppins-Medium' }}
+              numberOfLines={2}
+            >
+              {strengthForm}
+            </Text>
+          )}
+        </View>
+
+        <View className="flex-row justify-between items-end w-full relative">
+          {/* Unit */}
+          {Boolean(unit) ? (
             <Text
               className="font-medium"
-              style={{
-                color: colors.fill,
-                fontSize: 8.5 * scale,
-                fontFamily: 'Poppins-Medium',
-                lineHeight: 12 * scale,
-              }}
-              numberOfLines={3}
+              style={{ color: colors.fill, fontSize: 8 * scale, fontFamily: 'Poppins-Medium', maxWidth: '70%' }}
+              numberOfLines={1}
             >
-              {generic}
+              {unit}
             </Text>
-          </View>
-        )}
+          ) : <View />}
 
-        {/* Brand name */}
-        <Text
-          className="font-bold border-0"
-          style={{
-            color: colors.fill,
-            fontSize: brandFontSize,
-            fontFamily: 'Poppins-Bold',
-            lineHeight: brandLineHeight,
-          }}
-          numberOfLines={2}
+          {/* RX Icon */}
+          {prescribed && (
+            <View style={{ position: 'absolute', right: -5 * scale, bottom: -5 * scale }}>
+              <RxIcon width={26 * scale} height={26 * scale} fill={colors.fill} />
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Overlay sits OUTSIDE the overflow:hidden card — never gets clipped */}
+      {!isAvailable && (
+        <View
+          className="absolute inset-0 bg-black/60 items-center justify-center z-10"
+          style={{ borderTopRightRadius: 24 * scale, borderBottomLeftRadius: 24 * scale }}
         >
-          {brand}
-        </Text>
-
-        {/* Strength */}
-        {Boolean(strengthForm) && (
-          <Text
-            className="font-medium mt-[2px]"
-            style={{
-              color: colors.fill,
-              fontSize: 7 * scale,
-              fontFamily: 'Poppins-Medium',
-            }}
-            numberOfLines={2}
-          >
-            {strengthForm}
+          <Text className="text-white font-bold" style={{ fontSize: 11 * scale, fontFamily: 'Poppins-Bold' }}>
+            Unavailable
           </Text>
-        )}
-      </View>
-
-      <View className="flex-row justify-between items-end w-full relative">
-        {/* Unit */}
-        {Boolean(unit) ? (
-          <Text
-            className="font-medium"
-            style={{
-              color: colors.fill,
-              fontSize: 8 * scale,
-              fontFamily: 'Poppins-Medium',
-              maxWidth: '70%',
-            }}
-            numberOfLines={1}
-          >
-            {unit}
-          </Text>
-        ) : <View />}
-
-        {/* RX Icon */}
-        {prescribed && (
-          <View style={{ position: 'absolute', right: -5 * scale, bottom: -5 * scale }}>
-            <RxIcon
-              width={26 * scale}
-              height={26 * scale}
-              fill={colors.fill}
-            />
-          </View>
-        )}
-      </View>
+        </View>
+      )}
     </View>
   );
 }

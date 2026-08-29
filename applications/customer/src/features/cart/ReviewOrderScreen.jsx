@@ -31,6 +31,7 @@ function OrderItemRow({ item }) {
         categoryName={item?.category?.category_name}
         quantity={item.quantity}
         isPrescribed={item.prescriptionRequired}
+        isAvailable={item.isAvailable}
         width={64}
         height={64}
         containerStyle={{ borderRadius: 8 }}

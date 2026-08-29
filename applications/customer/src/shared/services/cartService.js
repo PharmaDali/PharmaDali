@@ -75,6 +75,25 @@ function mapCartApiItem(item) {
     product: item?.product || {},
     category: item?.category || {},
     availability: item?.availability || {},
+    isAvailable: (() => {
+      const isAvailFlag = item?.availability?.is_available ?? item?.is_available;
+      const isExpiredFlag = item?.availability?.is_expired ?? item?.is_expired;
+      const stock = item?.availability?.stock ?? item?.stock;
+      
+      const avail = isAvailFlag == null 
+        ? true 
+        : (typeof isAvailFlag === 'boolean' ? isAvailFlag : Number(isAvailFlag) === 1);
+        
+      const expired = isExpiredFlag != null && (typeof isExpiredFlag === 'boolean' ? isExpiredFlag : Number(isExpiredFlag) === 1);
+      
+      if (stock !== undefined && stock <= 0) {
+        return false;
+      }
+      if (expired) {
+        return false;
+      }
+      return avail;
+    })(),
   };
 }
 
@@ -135,7 +154,7 @@ export async function clearCart() {
 
 export function toggleCartItemSelection(items, id) {
   return items.map((item) =>
-    item.id === id ? { ...item, selected: !item.selected } : item,
+    item.id === id && item.isAvailable !== false ? { ...item, selected: !item.selected } : item,
   );
 }
 
@@ -159,14 +178,15 @@ export function changeCartItemQuantity(items, id, direction) {
 }
 
 export function toggleAllCartItems(items, selectedValue) {
-  return items.map((item) => ({ ...item, selected: selectedValue }));
+  return items.map((item) => (item.isAvailable ? { ...item, selected: selectedValue } : item));
 }
 
 export function buildCartViewState(items) {
+  const availableItems = items.filter((item) => item.isAvailable);
   const selectedItems = items.filter((item) => item.selected);
   const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const hasPrescription = items.some((item) => item.prescriptionRequired);
-  const allSelected = items.length > 0 && items.every((item) => item.selected);
+  const hasPrescription = items.some((item) => item.prescriptionRequired && item.selected);
+  const allSelected = availableItems.length > 0 && availableItems.every((item) => item.selected);
 
   const pharmacyNames = Array.from(
     new Set(

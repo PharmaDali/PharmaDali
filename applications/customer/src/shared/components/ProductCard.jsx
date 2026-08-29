@@ -93,6 +93,7 @@ const ProductCard = ({
           source={img}
           product={product}
           categoryName={categoryName}
+          isAvailable={isAvailable}
           width={120}
           height={120}
           containerStyle={{ borderRadius: 8, alignSelf: 'center' }}
