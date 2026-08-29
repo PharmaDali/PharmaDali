@@ -62,8 +62,14 @@ class CheckInventoryAlerts extends Command
             try {
                 $predictions = $restockPredictorService->getPriorityRestocks($pharmacy->id, 100);
 
+                $predictionIds = collect($predictions)->pluck('id')->filter()->toArray();
+                $pharmacyProducts = PharmacyProduct::with('product')
+                    ->whereIn('id', $predictionIds)
+                    ->get()
+                    ->keyBy('id');
+
                 foreach ($predictions as $pred) {
-                    $pp = PharmacyProduct::with('product')->find($pred['id'] ?? 0);
+                    $pp = $pharmacyProducts->get($pred['id'] ?? 0);
                     if (!$pp || !$pp->product) {
                         continue;
                     }
@@ -73,10 +79,11 @@ class CheckInventoryAlerts extends Command
                     $message = "Only {$pp->stock} units of {$pp->product->product_name} remaining — this stock will last {$daysLabel}.";
 
                     foreach ($admins as $admin) {
-                        $exists = $admin->notifications->contains(function ($notification) use ($pp) {
-                            return in_array($notification->data['type'] ?? null, ['Low Stocks', 'Shortage Alert'])
-                                && (int) ($notification->data['product_id'] ?? 0) === (int) $pp->product_id;
-                        });
+                        $exists = $admin->notifications()
+                            ->where('data', 'like', '%"type":"Shortage Alert"%')
+                            ->orWhere('data', 'like', '%"type":"Low Stocks"%')
+                            ->where('data', 'like', '%"product_id":' . $pp->product_id . '%')
+                            ->exists();
 
                         if (!$exists) {
                             try {
@@ -106,7 +113,7 @@ class CheckInventoryAlerts extends Command
         $today = Carbon::today();
 
         // Fetch active batches expiring within the pharmacy's configured expiry_days_threshold
-        $expiringBatches = ProductBatch::with(['pharmacyProduct.product', 'pharmacyProduct.pharmacy.admins'])
+        $expiringBatches = ProductBatch::with(['pharmacyProduct.product', 'pharmacyProduct.pharmacy'])
             ->where('stock', '>', 0)
             ->whereNotNull('expiry_date')
             ->where('expiry_date', '>=', $today->toDateString())
@@ -124,14 +131,20 @@ class CheckInventoryAlerts extends Command
             $expiryThresholdDays = $pharmacy->expiry_days_threshold ?? 30;
             $thresholdDate = Carbon::today()->addDays($expiryThresholdDays);
 
+            $admins = User::where(function ($q) use ($pharmacy) {
+                $q->where('pharmacy_id', $pharmacy->id)
+                  ->orWhereNull('pharmacy_id');
+            })
+            ->whereIn('role', ['pharmacy_admin', 'pharmacist', 'admin', 'system_admin'])
+            ->get();
+
+            if ($admins->isEmpty()) {
+                continue;
+            }
+
             foreach ($batches as $batch) {
                 $pp = $batch->pharmacyProduct;
                 if (!$pp || !$pp->product || $batch->expiry_date->isAfter($thresholdDate)) {
-                    continue;
-                }
-
-                $admins = $pharmacy->admins;
-                if ($admins->isEmpty()) {
                     continue;
                 }
 
@@ -140,10 +153,10 @@ class CheckInventoryAlerts extends Command
                 $message = "{$batch->stock} units of {$pp->product->product_name} (Batch: {$batch->batch_number}) will expire in {$daysLeft} days (on {$expiryFormatted}).";
 
                 foreach ($admins as $admin) {
-                    $exists = $admin->notifications->contains(function ($notification) use ($batch) {
-                        return ($notification->data['type'] ?? null) === 'Expiry Warning'
-                            && (int) ($notification->data['batch_id'] ?? 0) === (int) $batch->id;
-                    });
+                    $exists = $admin->notifications()
+                        ->where('data', 'like', '%"type":"Expiry Warning"%')
+                        ->where('data', 'like', '%"batch_id":' . $batch->id . '%')
+                        ->exists();
 
                     if (!$exists) {
                         $admin->notify(new AdminAlertNotification('Expiry Warning', $message, [
@@ -168,7 +181,13 @@ class CheckInventoryAlerts extends Command
         $pharmacies = Pharmacy::where('is_active', true)->get();
 
         foreach ($pharmacies as $pharmacy) {
-            $admins = $pharmacy->admins;
+            $admins = User::where(function ($q) use ($pharmacy) {
+                $q->where('pharmacy_id', $pharmacy->id)
+                  ->orWhereNull('pharmacy_id');
+            })
+            ->whereIn('role', ['pharmacy_admin', 'pharmacist', 'admin', 'system_admin'])
+            ->get();
+
             if ($admins->isEmpty()) {
                 continue;
             }
@@ -194,10 +213,10 @@ class CheckInventoryAlerts extends Command
                     $message = "{$productName} has {$restock['quantity']} units remaining — this stock will last {$daysLabel} based on current sales velocity ({$restock['averageDailySales']} units/day).";
 
                     foreach ($admins as $admin) {
-                        $exists = $admin->notifications->contains(function ($notification) use ($productId) {
-                            return ($notification->data['type'] ?? null) === 'Shortage Alert'
-                                && (int) ($notification->data['product_id'] ?? 0) === (int) $productId;
-                        });
+                        $exists = $admin->notifications()
+                            ->where('data', 'like', '%"type":"Shortage Alert"%')
+                            ->where('data', 'like', '%"product_id":' . $productId . '%')
+                            ->exists();
 
                         if (!$exists) {
                             $admin->notify(new AdminAlertNotification('Shortage Alert', $message, [

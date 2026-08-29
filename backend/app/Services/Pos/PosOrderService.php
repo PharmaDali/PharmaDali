@@ -3,6 +3,7 @@
 namespace App\Services\Pos;
 
 use App\Models\Pharmacy;
+use App\Models\PharmacyProduct;
 use App\Repositories\PosRepository;
 use App\Repositories\ProductBatchRepository;
 use App\Services\Inventory\InventoryLogService;
@@ -31,11 +32,14 @@ class PosOrderService
             $subtotal = 0;
             $items = $data['items'] ?? [];
 
+            $itemIds = collect($items)->pluck('id')->toArray();
+            $pharmacyProducts = PharmacyProduct::with('product')->whereIn('id', $itemIds)->get()->keyBy('id');
+
             // Calculate subtotal and validate stock
             foreach ($items as $item) {
-                $pharmacyProduct = $this->posRepository->findPharmacyProduct($item['id']);
+                $pharmacyProduct = $pharmacyProducts->get($item['id']);
                 
-                if ($pharmacyProduct->stock < $item['qty']) {
+                if (!$pharmacyProduct || $pharmacyProduct->stock < $item['qty']) {
                     throw new \Exception("Insufficient stock for product: " . ($pharmacyProduct->product->product_name ?? 'Item'));
                 }
 
@@ -86,7 +90,7 @@ class PosOrderService
 
             // Create order items and update stock
             foreach ($items as $item) {
-                $pharmacyProduct = $this->posRepository->findPharmacyProduct($item['id']);
+                $pharmacyProduct = $pharmacyProducts->get($item['id']);
                 
                 $this->posRepository->createOrderItem([
                     'order_id' => $order->id,

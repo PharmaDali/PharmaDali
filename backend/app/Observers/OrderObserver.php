@@ -65,9 +65,10 @@ class OrderObserver
         }
 
         foreach ($admins as $admin) {
-            $exists = $admin->notifications->contains(function ($n) use ($order) {
-                return ($n->data['order_id'] ?? 0) === $order->id;
-            });
+            $exists = $admin->notifications()
+                ->where('data', 'like', '%"order_id":' . $order->id . '%')
+                ->where('data', 'like', '%"event":"' . $event . '"%') 
+                ->exists();
 
             if (!$exists) {
                 try {
