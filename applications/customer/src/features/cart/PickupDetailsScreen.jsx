@@ -36,7 +36,7 @@ const PickupDetailsScreen = () => {
   const insets = useSafeAreaInsets()
   const { selectedPharmacy } = useSelectionPhase()
   const { submitOptimisticOrder } = useOrderSubmission()
-  const { items, total, prescriptionImage, discountIdImage: draftDiscountId, gcashReceiptImage: draftGcashReceipt } = getCheckoutDraft()
+  const { items, total, prescriptionImage, discountIdImage: draftDiscountId, gcashReceiptImage: draftGcashReceipt, pharmacyLabel, pharmacyLocationLabel } = getCheckoutDraft()
 
   const hasPrescription = items.some((item) => item.prescriptionRequired)
   const totalItems = items.reduce((sum, item) => sum + (Number(item?.quantity) || 0), 0)
@@ -317,7 +317,7 @@ const PickupDetailsScreen = () => {
     setSubmitError('')
 
     const normalizedCustomerNote = customerNote.trim()
-    const selectedPharmacyLabel = selectedPharmacy?.name || ''
+    const selectedPharmacyLabel = selectedPharmacy?.name || pharmacyLabel || ''
     const payload = {
       items,
       hasPrescription,
@@ -338,6 +338,8 @@ const PickupDetailsScreen = () => {
     router.replace('/tabs/cart/OrderSubmitted')
   }
 
+  const displayLocation = pharmacyLocationLabel || selectedPharmacy?.address || selectedPharmacy?.location || ''
+
   return (
     <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
       <LogoHeader />
@@ -348,11 +350,18 @@ const PickupDetailsScreen = () => {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-4 p-4">
-          <View className="flex-row items-center">
+          <View className="flex-row items-start">
             <RedLocationIcon width={18} height={18} />
-            <Text className="text-xs ml-2" style={styles.fontSemiBold}>
-              Pickup at {selectedPharmacy?.name || 'Selected pharmacy'}
-            </Text>
+            <View className="ml-2 flex-1">
+              <Text className="text-xs" style={styles.fontSemiBold}>
+                Pickup at {selectedPharmacy?.name || pharmacyLabel || 'Selected pharmacy'}
+              </Text>
+              {displayLocation ? (
+                <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
+                  {displayLocation}
+                </Text>
+              ) : null}
+            </View>
           </View>
         </View>
 

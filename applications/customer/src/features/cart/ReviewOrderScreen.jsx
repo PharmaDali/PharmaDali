@@ -62,7 +62,7 @@ function OrderItemRow({ item }) {
 const ReviewOrderScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
-  const { items: orderItems, pharmacyLabel, total: checkoutTotal } = getCheckoutDraft()
+  const { items: orderItems, pharmacyLabel, pharmacyLocationLabel, total: checkoutTotal } = getCheckoutDraft()
   const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const effectiveTotal = checkoutTotal > 0 ? checkoutTotal : total
   const hasPrescription = orderItems.some((item) => item.prescriptionRequired)
@@ -78,8 +78,13 @@ const ReviewOrderScreen = () => {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="flex-row items-start mx-4 mt-4 mb-3">
           <RedLocationIcon width={18} height={18} />
-          <View className="ml-2">
+          <View className="ml-2 flex-1">
             <Text className="text-xs" style={styles.fontSemiBold}>Pickup at {pharmacyLabel || 'Selected pharmacy'}</Text>
+            {pharmacyLocationLabel ? (
+              <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
+                {pharmacyLocationLabel}
+              </Text>
+            ) : null}
           </View>
         </View>
 

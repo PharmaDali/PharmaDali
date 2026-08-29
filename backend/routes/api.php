@@ -92,6 +92,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // Cart
         Route::post('customer/cart/items', [CustomerCartController::class, 'addItem']);
         Route::get('customer/cart/items', [CustomerCartController::class, 'viewCart']);
+        Route::delete('customer/cart/items', [CustomerCartController::class, 'clearCart']);
+        Route::delete('customer/cart/items/{cartItemId}', [CustomerCartController::class, 'removeItem']);
         Route::get('customer/cart/items/count', [CustomerCartController::class, 'countCartItems']);
 
         // Order

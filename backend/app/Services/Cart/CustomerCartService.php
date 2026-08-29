@@ -157,6 +157,52 @@ class CustomerCartService
         ], $result['was_created'] ? 201 : 200);
     }
 
+    public function removeItem(?User $user, int $cartItemId): JsonResponse
+    {
+        if (!$user || $user->role !== 'customer') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $customerId = $user->customer?->id;
+        if (!$customerId) {
+            return response()->json(['status' => 'error', 'message' => 'Customer profile not found.'], 403);
+        }
+
+        $cartItem = CartItem::where('id', $cartItemId)
+            ->whereHas('cart', function ($query) use ($customerId) {
+                $query->where('customer_id', $customerId)->where('status', 'active');
+            })->first();
+
+        if (!$cartItem) {
+            return response()->json(['status' => 'error', 'message' => 'Cart item not found.'], 404);
+        }
+
+        $cartItem->delete();
+
+        return response()->json(['status' => 'success', 'message' => 'Item removed from cart.']);
+    }
+
+    public function clearCart(?User $user): JsonResponse
+    {
+        if (!$user || $user->role !== 'customer') {
+            return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
+        }
+
+        $customerId = $user->customer?->id;
+        if (!$customerId) {
+            return response()->json(['status' => 'error', 'message' => 'Customer profile not found.'], 403);
+        }
+
+        $activeCarts = Cart::where('customer_id', $customerId)->where('status', 'active')->get();
+        $cartIds = $activeCarts->pluck('id');
+
+        if ($cartIds->isNotEmpty()) {
+            CartItem::whereIn('cart_id', $cartIds)->delete();
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'Cart cleared successfully.']);
+    }
+
     private function firstValidationMessage(ValidationException $exception): string
     {
         return collect($exception->errors())->flatten()->first() ?? 'Validation failed.';
