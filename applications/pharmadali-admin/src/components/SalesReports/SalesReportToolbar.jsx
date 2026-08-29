@@ -37,9 +37,9 @@ function SalesReportToolbar({
         Sales Report
       </h3>
 
-      <div className="d-flex flex-column align-items-end gap-2">
-        <div className="d-flex flex-wrap align-items-center gap-2">
-          {/* From date */}
+      <div className="report-controls-wrap">
+        {/* Date pickers */}
+        <div className="report-dates-group">
           <div className="report-date-wrap">
             <input
               type="date"
@@ -51,7 +51,6 @@ function SalesReportToolbar({
             <CalendarIcon />
           </div>
 
-          {/* To date */}
           <div className="report-date-wrap">
             <input
               type="date"
@@ -62,7 +61,10 @@ function SalesReportToolbar({
             />
             <CalendarIcon />
           </div>
+        </div>
 
+        {/* Action buttons */}
+        <div className="report-actions-group">
           <button
             type="button"
             className="search-button btn"
@@ -118,14 +120,14 @@ function SalesReportToolbar({
             )}
           </div>
         </div>
-
-        {/* Inline date validation error */}
-        {dateError && (
-          <p className="mb-0 text-danger" style={{ fontSize: "12px" }}>
-            {dateError}
-          </p>
-        )}
       </div>
+
+      {/* Inline date validation error */}
+      {dateError && (
+        <p className="mb-0 text-danger" style={{ fontSize: "12px" }}>
+          {dateError}
+        </p>
+      )}
     </div>
   );
 }

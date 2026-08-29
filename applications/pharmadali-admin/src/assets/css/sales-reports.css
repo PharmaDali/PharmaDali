@@ -31,6 +31,25 @@
   border: none;
 }
 
+@media (max-width: 575.98px) {
+  .summary-cards-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .summary-card {
+    min-width: 0;
+    max-width: none;
+    flex: none;
+    padding: 12px 14px;
+  }
+
+  .summary-amount {
+    font-size: 24px;
+  }
+}
+
 .summary-card-label {
   font-size: 12px;
   font-weight: 500;
@@ -77,6 +96,46 @@
   gap: 16px;
 }
 
+/* Mobile: dates row + actions row stacked */
+.report-controls-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+}
+
+.report-dates-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.report-actions-group {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Desktop (sm+): all in one row */
+@media (min-width: 576px) {
+  .report-controls-wrap {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    width: auto;
+  }
+
+  .report-dates-group,
+  .report-actions-group {
+    width: auto;
+  }
+}
+
 .report-title {
   font-size: 20px;
   font-weight: 700;
@@ -88,6 +147,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  flex: 1;
 }
 
 .report-date-input {
@@ -126,6 +186,20 @@
   width: 16px;
   height: 16px;
   pointer-events: none;
+}
+
+/* On mobile, each date input stretches to fill half the row */
+@media (max-width: 575.98px) {
+  .report-date-wrap {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .report-date-input {
+    width: 100%;
+    font-size: 12px;
+    padding: 6px 32px 6px 12px;
+  }
 }
 
 /* Action Buttons */
