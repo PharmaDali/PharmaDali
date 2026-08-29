@@ -149,24 +149,30 @@ function SalesReportToolbar({
 
       <div className="report-controls-wrap d-none d-sm-flex">
         <div className="report-dates-group">
-          <div className="report-date-wrap">
-            <input
-              type="date"
-              className="report-date-input"
-              value={startDate}
-              onChange={(e) => onStartDateChange(e.target.value)}
-            />
-            <CalendarIcon />
+          <div>
+            <span className="report-date-label">From:</span>
+            <div className="report-date-wrap">
+              <input
+                type="date"
+                className="report-date-input"
+                value={startDate}
+                onChange={(e) => onStartDateChange(e.target.value)}
+              />
+              <CalendarIcon />
+            </div>
           </div>
 
-          <div className="report-date-wrap">
-            <input
-              type="date"
-              className="report-date-input"
-              value={endDate}
-              onChange={(e) => onEndDateChange(e.target.value)}
-            />
-            <CalendarIcon />
+          <div>
+            <span className="report-date-label">To:</span>
+            <div className="report-date-wrap">
+              <input
+                type="date"
+                className="report-date-input"
+                value={endDate}
+                onChange={(e) => onEndDateChange(e.target.value)}
+              />
+              <CalendarIcon />
+            </div>
           </div>
         </div>
 
