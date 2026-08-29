@@ -73,3 +73,8 @@ export const uploadProductImage = async (productId, imageFile) => {
   return response.data;
 };
 
+export const markProductAsOrdered = async (productId) => {
+  const response = await apiRequest.patch(`/products/${productId}/mark-ordered`);
+  return response.data;
+};
+

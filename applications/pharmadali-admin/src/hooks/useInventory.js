@@ -225,6 +225,19 @@ export function useInventory() {
     return priorityRestocks;
   }, [priorityRestocks]);
 
+  const handleMarkOrdered = async (productId) => {
+    try {
+      await markProductAsOrdered(productId);
+      setSuccessModal({ isOpen: true, message: "Product marked as ordered." });
+      // Remove it optimistically or let it stay with a visual change.
+      // Refreshing the priority list is safest.
+      loadMetricsAndRestocks();
+    } catch (err) {
+      console.error(err);
+      setErrorModal({ isOpen: true, message: "Failed to mark as ordered." });
+    }
+  };
+
   const expiringItems = useMemo(() => {
     return decoratedItems
       .filter((item) => item.expiringInDays > 0 && item.expiringInDays <= 30)
@@ -813,6 +826,7 @@ export function useInventory() {
       lowStockItems,
       expiringItems,
       expiredItems,
+      handleMarkOrdered,
     },
     table: {
       loading: tableLoading,

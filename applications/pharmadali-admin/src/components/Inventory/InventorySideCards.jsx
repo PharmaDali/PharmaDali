@@ -1,7 +1,7 @@
 import React from "react";
 import { getWeeksLeft } from "../../utils/inventoryUtils";
 
-export function InventorySideCards({ lowStockItems, expiringItems, expiredItems }) {
+export function InventorySideCards({ lowStockItems, expiringItems, expiredItems, handleMarkOrdered }) {
   const cardStyle = { flex: "1 1 0", minHeight: 0 };
   const emptyStateStyle = { textAlign: "center", padding: "2rem 1rem", color: "#6c757d", fontSize: "0.9rem" };
 
@@ -18,14 +18,46 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems 
           {lowStockItems && lowStockItems.length > 0 ? (
             lowStockItems.map((item) => (
               <div key={item.id} className="inventory-side-row">
-                <span className="inventory-side-name">
-                  {item.name}
-                  {item.batches && item.batches.length > 0 && (
-                    <div style={{ fontSize: "10px", color: "#6c757d", fontWeight: "normal", marginTop: "2px" }}>
-                      {item.batches.map((b) => b.batch_number).filter(Boolean).join(", ")}
-                    </div>
+                <div className="d-flex flex-column gap-1">
+                  <span className="inventory-side-name">
+                    {item.name}
+                    {item.batches && item.batches.length > 0 && (
+                      <div style={{ fontSize: "10px", color: "#6c757d", fontWeight: "normal", marginTop: "2px" }}>
+                        {item.batches.map((b) => b.batch_number).filter(Boolean).join(", ")}
+                      </div>
+                    )}
+                  </span>
+                  {!item.ordered_at && handleMarkOrdered && (
+                    <button
+                      className="btn btn-sm py-0 px-2 mt-1"
+                      style={{ 
+                        fontSize: "10px", 
+                        width: "fit-content", 
+                        borderRadius: "10px",
+                        color: "var(--pd-primary)",
+                        border: "1px solid var(--pd-primary)",
+                        backgroundColor: "transparent"
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = "var(--pd-primary)";
+                        e.target.style.color = "white";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = "transparent";
+                        e.target.style.color = "var(--pd-primary)";
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleMarkOrdered(item.id);
+                      }}
+                    >
+                      Mark as Ordered
+                    </button>
                   )}
-                </span>
+                  {item.ordered_at && (
+                    <span style={{ fontSize: "10px", color: "#28a745", fontWeight: "600" }}>✓ Ordered</span>
+                  )}
+                </div>
                 <span className="inventory-side-sub">{item.quantity} left</span>
                 <span className="inventory-side-pill inventory-side-pill-warn">
                   {getWeeksLeft(item)}

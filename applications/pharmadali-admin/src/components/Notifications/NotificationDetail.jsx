@@ -85,8 +85,7 @@ export function NotificationDetail({ notification, onBack, onMarkAsRead, onDelet
           {!isRead && (
             <button
               type="button"
-              className="btn btn-sm btn-primary d-inline-flex align-items-center gap-1 px-3 py-2 rounded-3"
-              style={{ backgroundColor: "#2aabe2", borderColor: "#2aabe2" }}
+              className="btn btn-sm btn-theme-primary d-inline-flex align-items-center gap-1 px-3 py-2 rounded-3"
               onClick={handleMarkRead}
             >
               <i className="fa-solid fa-circle-check" />
