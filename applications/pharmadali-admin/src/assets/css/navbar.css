@@ -93,12 +93,17 @@
 
 @media (max-width: 575.98px) {
   .navbar-logo-wrap {
-    flex: 1 1 auto;
+    flex-shrink: 1;
     min-width: 0;
   }
 
+  .navbar-logo {
+    height: 22px;
+  }
+
   .navbar-meta-wrap {
-    gap: 0.45rem !important;
+    gap: 0.35rem !important;
+    flex-shrink: 0;
   }
 
   .navbar-greeting-text {
@@ -107,12 +112,13 @@
 
   .navbar-datetime {
     text-align: right;
-    max-width: 115px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.68rem;
+    line-height: 1.2;
   }
 
   .hamburger-menu {
-    width: 26px;
+    width: 24px;
+    flex-shrink: 0;
   }
 }
