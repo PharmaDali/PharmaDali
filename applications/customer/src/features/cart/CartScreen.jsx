@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -12,6 +12,9 @@ import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
 import { useCartTab } from '@shared/hooks/useCartTab';
 import { setCheckoutDraft } from '@shared/services/checkoutDraft';
 import ProductImage from '@shared/components/ProductImage';
+import ClearCartOverlay from '@shared/components/ClearCartOverlay';
+
+import DeleteIcon from '@assets/icons/delete.svg';
 
 function Checkbox({ checked, onPress }) {
   return (
@@ -29,19 +32,19 @@ function Checkbox({ checked, onPress }) {
 
 function QuantityControl({ quantity, onIncrement, onDecrement }) {
   return (
-    <View className="flex-row items-center">
+    <View className="flex-row items-center border-2 border-[#48AAD9] rounded-full px-3 py-0.5 min-w-[80px] justify-between">
       <TouchableOpacity
         onPress={onDecrement}
-        className="w-7 h-7 rounded-lg border border-[#48AAD9] items-center justify-center"
+        className="items-center justify-center"
       >
-        <Text className="text-[#48AAD9] text-base" style={styles.fontBold}>−</Text>
+        <Text className="text-[#48AAD9] text-base" style={styles.fontSemiBold}>−</Text>
       </TouchableOpacity>
-      <Text className="mx-3 text-sm" style={styles.fontSemiBold}>{quantity}</Text>
+      <Text className="text-[#48AAD9] text-sm mx-2" style={styles.fontSemiBold}>{quantity}</Text>
       <TouchableOpacity
         onPress={onIncrement}
-        className="w-7 h-7 rounded-lg bg-[#48AAD9] items-center justify-center"
+        className="items-center justify-center"
       >
-        <Text className="text-white text-base" style={styles.fontBold}>+</Text>
+        <Text className="text-[#48AAD9] text-base" style={styles.fontSemiBold}>+</Text>
       </TouchableOpacity>
     </View>
   );
@@ -56,7 +59,7 @@ function truncateText(value, maxLength = 48) {
   return `${text.slice(0, Math.max(0, maxLength - 3)).trimEnd()}...`;
 }
 
-function CartItem({ item, onToggle, onIncrement, onDecrement }) {
+function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
   const displayName = truncateText(item.description);
 
   return (
@@ -73,9 +76,14 @@ function CartItem({ item, onToggle, onIncrement, onDecrement }) {
         containerStyle={{ borderRadius: 8 }}
       />
       <View className="flex-1 ml-3">
-        <Text className="text-xs" style={styles.fontSemiBold} numberOfLines={2}>
-          {displayName}
-        </Text>
+        <View className="flex-row justify-between items-start">
+          <Text className="text-xs flex-1 pr-2" style={styles.fontSemiBold} numberOfLines={2}>
+            {displayName}
+          </Text>
+          <TouchableOpacity onPress={onRemove} className="p-1">
+            <DeleteIcon width={18} height={18} />
+          </TouchableOpacity>
+        </View>
         {item.prescriptionRequired && (
           <View className="flex-row items-center mt-1">
             <RxIcon width={12} height={12} />
@@ -85,7 +93,7 @@ function CartItem({ item, onToggle, onIncrement, onDecrement }) {
         <Text className="text-[10px] text-gray-500 mt-1" style={styles.fontMedium}>
           {item.sizeLabel || 'Size'}: {item.size}
         </Text>
-        <View className="flex-row justify-between items-center mt-1">
+        <View className="flex-row justify-between items-center mt-2">
           <Text className="text-sm" style={styles.priceText}>
             PHP {item.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
           </Text>
@@ -111,6 +119,7 @@ export default function CartScreen() {
     toggleItem,
     incrementQty,
     decrementQty,
+    removeItem,
     clearAll,
     toggleAll,
     viewState,
@@ -122,6 +131,8 @@ export default function CartScreen() {
   const hasPrescription = viewState.hasPrescription;
   const canProceed = viewState.selectedCount > 0;
   const selectedItems = cartItems.filter((item) => item.selected);
+
+  const [showClearModal, setShowClearModal] = useState(false);
 
   const handleProceed = () => {
     if (!selectedItems.length) {
@@ -137,8 +148,18 @@ export default function CartScreen() {
     router.push('/tabs/cart/ReviewOrder');
   };
 
+  const handleConfirmClear = () => {
+    setShowClearModal(false);
+    clearAll();
+  };
+
   return (
     <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
+      <ClearCartOverlay
+        visible={showClearModal}
+        onClose={() => setShowClearModal(false)}
+        onConfirm={handleConfirmClear}
+      />
       <View className="flex-row items-center justify-between px-5 pt-12 pb-4" style={styles.header}>
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
@@ -148,18 +169,15 @@ export default function CartScreen() {
             Shopping Cart ({cartItems.length})
           </Text>
         </View>
-        <TouchableOpacity onPress={clearAll}>
+        <TouchableOpacity onPress={() => setShowClearModal(true)}>
           <Text className="text-white text-sm" style={styles.fontMedium}>Clear all</Text>
         </TouchableOpacity>
       </View>
 
       <View className="flex-row items-start bg-[#E8F4FD] rounded-xl mx-4 mt-4 p-3 border border-[#B8DEF0]">
         <LocationIcon width={17} height={17} />
-        <View className="flex-1">
+        <View className="flex-1 ml-2">
           <Text className="text-xs" style={styles.fontSemiBold}>Pickup at {pharmacyLabel}</Text>
-          <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
-            Cart is grouped by your pharmacy selections.
-          </Text>
         </View>
       </View>
 
@@ -196,38 +214,50 @@ export default function CartScreen() {
             onToggle={() => toggleItem(item.id)}
             onIncrement={() => incrementQty(item.id)}
             onDecrement={() => decrementQty(item.id)}
+            onRemove={() => removeItem(item.id)}
           />
         ))}
 
         {hasPrescription && (
-          <View className="flex-row items-center mx-4 mt-1 mb-4 gap-1">
+          <View className="flex-row items-center mx-4 mt-1 mb-2 gap-1">
             <InfoIcon width={15} height={15} />
             <Text className="text-[10px] text-gray-500" style={styles.fontMedium}>
               Prescription required for some items.
             </Text>
           </View>
         )}
+
       </ScrollView>
 
-      <View className="flex-row items-center justify-between bg-white px-4 py-3 border-t border-gray-200">
-        <View className="flex-row items-center">
-          <Checkbox checked={allSelected} onPress={toggleAll} />
-          <Text className="text-sm" style={styles.fontMedium}>All</Text>
-        </View>
-        <View className="flex-row items-center">
-          <View className="mr-4">
-            <Text className="text-xs text-gray-500" style={styles.fontMedium}>Total:</Text>
-            <Text className="text-base" style={styles.totalPrice}>
-              PHP {total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+      <View className="bg-white border-t border-gray-200">
+        {!loading && !errorMessage && cartItems.length > 0 && (
+          <View className="flex-row items-center bg-[#F9F9F9] px-4 py-1.5 border-b border-gray-100">
+            <InfoIcon width={12} height={12} />
+            <Text className="text-[10px] text-gray-500 ml-1.5" style={styles.fontMedium}>
+              Cart is grouped by your pharmacy selections.
             </Text>
           </View>
-          <TouchableOpacity
-            className={`${canProceed ? 'bg-[#48AAD9]' : 'bg-gray-300'} rounded-xl px-6 py-2.5`}
-            onPress={handleProceed}
-            disabled={!canProceed}
-          >
-            <Text className="text-sm text-white" style={styles.fontSemiBold}>Proceed</Text>
-          </TouchableOpacity>
+        )}
+        <View className="flex-row items-center justify-between px-4 py-3">
+          <View className="flex-row items-center">
+            <Checkbox checked={allSelected} onPress={toggleAll} />
+            <Text className="text-sm" style={styles.fontMedium}>All</Text>
+          </View>
+          <View className="flex-row items-center">
+            <View className="mr-4">
+              <Text className="text-xs text-gray-500" style={styles.fontMedium}>Total:</Text>
+              <Text className="text-base" style={styles.totalPrice}>
+                PHP {total.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              </Text>
+            </View>
+            <TouchableOpacity
+              className={`${canProceed ? 'bg-[#48AAD9]' : 'bg-gray-300'} rounded-xl px-6 py-2.5`}
+              onPress={handleProceed}
+              disabled={!canProceed}
+            >
+              <Text className="text-sm text-white" style={styles.fontSemiBold}>Proceed</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

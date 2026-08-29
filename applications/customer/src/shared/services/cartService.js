@@ -111,6 +111,28 @@ export async function addCartItem({ pharmacyId, pharmacyProductId, quantity = 1 
   };
 }
 
+export async function removeCartItem(cartItemId) {
+  const payload = await apiRequest(`/customer/cart/items/${cartItemId}`, {
+    method: 'DELETE',
+  });
+
+  return {
+    message: payload?.message || 'Item removed from cart.',
+    data: payload?.data || null,
+  };
+}
+
+export async function clearCart() {
+  const payload = await apiRequest('/customer/cart/items', {
+    method: 'DELETE',
+  });
+
+  return {
+    message: payload?.message || 'Cart cleared.',
+    data: payload?.data || null,
+  };
+}
+
 export function toggleCartItemSelection(items, id) {
   return items.map((item) =>
     item.id === id ? { ...item, selected: !item.selected } : item,

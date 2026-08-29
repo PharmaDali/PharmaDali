@@ -43,8 +43,22 @@ export function useCartTab() {
     setCartItems((prev) => changeCartItemQuantity(prev, id, 'decrement'));
   }, []);
 
-  const clearAll = useCallback(() => {
-    setCartItems([]);
+  const clearAll = useCallback(async () => {
+    try {
+      await import('@shared/services/cartService').then(m => m.clearCart());
+      setCartItems([]);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to clear cart.');
+    }
+  }, []);
+
+  const removeItem = useCallback(async (id) => {
+    try {
+      await import('@shared/services/cartService').then(m => m.removeCartItem(id));
+      setCartItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Unable to remove item.');
+    }
   }, []);
 
   const viewState = useMemo(() => buildCartViewState(cartItems), [cartItems]);
@@ -69,6 +83,7 @@ export function useCartTab() {
     toggleItem,
     incrementQty,
     decrementQty,
+    removeItem,
     clearAll,
     toggleAll,
     viewState,
