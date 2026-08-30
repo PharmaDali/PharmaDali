@@ -25,15 +25,17 @@ class CustomerOrderActionService
             return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
         }
 
-        if ($order->status !== OrderStatus::STAND_BY) {
-            return response()->json(['status' => 'error', 'message' => 'Order is not awaiting confirmation.'], 422);
+        if (in_array($order->status, [OrderStatus::COMPLETED, OrderStatus::CANCELLED, OrderStatus::OVERDUE])) {
+            return response()->json(['status' => 'error', 'message' => 'Order is already closed.'], 422);
         }
 
         $order->update([
-            'status' => OrderStatus::REVIEWING,
+            'note' => trim(str_replace('Payment receipt rejected: ', 'Customer acknowledged payment issue: ', $order->note ?? '')),
         ]);
 
         $this->conversationService->appendSystemMessage($order, 'Customer acknowledged in-store payment upon pickup.');
+
+        $this->notifyPharmacists($order, 'Receipt');
 
         return response()->json([
             'status' => 'success',
@@ -51,15 +53,17 @@ class CustomerOrderActionService
             return response()->json(['status' => 'error', 'message' => 'Unauthorized.'], 403);
         }
 
-        if ($order->status !== OrderStatus::STAND_BY) {
-            return response()->json(['status' => 'error', 'message' => 'Order is not awaiting confirmation.'], 422);
+        if (in_array($order->status, [OrderStatus::COMPLETED, OrderStatus::CANCELLED, OrderStatus::OVERDUE])) {
+            return response()->json(['status' => 'error', 'message' => 'Order is already closed.'], 422);
         }
 
         $order->update([
-            'status' => OrderStatus::REVIEWING,
+            'discount_remarks' => trim(str_replace('rejected:', 'acknowledged_rejected:', $order->discount_remarks ?? '')),
         ]);
 
         $this->conversationService->appendSystemMessage($order, 'Customer acknowledged requirement to present physical ID upon pickup.');
+
+        $this->notifyPharmacists($order, 'ID');
 
         return response()->json([
             'status' => 'success',
@@ -154,6 +158,27 @@ class CustomerOrderActionService
         }
 
         return (int) ($user->customer->id ?? 0) === (int) $order->customer_id;
+    }
+
+    private function notifyPharmacists(Order $order, string $issueType): void
+    {
+        $pharmacyId = $order->pharmacy_id;
+        if (!$pharmacyId) return;
+
+        $pharmacists = User::where(function ($q) use ($pharmacyId) {
+            $q->where('pharmacy_id', $pharmacyId)
+              ->orWhereNull('pharmacy_id');
+        })
+        ->where('role', 'pharmacist')
+        ->get();
+
+        foreach ($pharmacists as $pharmacist) {
+            try {
+                $pharmacist->notify(new \App\Notifications\CustomerAcknowledgedNotification($order, $issueType));
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed to notify pharmacist of customer acknowledgement: ' . $e->getMessage());
+            }
+        }
     }
 }
 
