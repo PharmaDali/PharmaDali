@@ -127,7 +127,11 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                     </div>
                   )}
                 </span>
-                <span className="inventory-side-sub">{item.quantity} left</span>
+                <span className="inventory-side-sub">
+                  {item.batches && item.batches.length > 0
+                    ? item.batches.filter(b => b.status === "Expired").reduce((sum, b) => sum + (Number(b.stock) || 0), 0)
+                    : item.quantity}
+                </span>
                 <span className="inventory-side-pill inventory-side-pill-danger">
                   {Math.abs(item.expiringInDays)}
                 </span>
