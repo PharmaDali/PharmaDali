@@ -29,7 +29,8 @@ class DiscountIdUploadController extends Controller
                 $order,
                 $request->file('discount_id_image'),
                 $request->user(),
-                $request->input('discount_type')
+                $request->input('discount_type'),
+                $request->input('discount_id_number')
             );
 
             return $this->successResponse([

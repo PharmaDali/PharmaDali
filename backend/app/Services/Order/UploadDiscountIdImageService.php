@@ -26,7 +26,8 @@ class UploadDiscountIdImageService
      * @return Order
      * @throws \Exception
      */
-    public function handle(Order $order, UploadedFile $file, $user, ?string $discountType = null): Order
+    
+    public function handle(Order $order, UploadedFile $file, $user, ?string $discountType = null, ?string $discountIdNumber = null): Order
     {
         if (!$user) {
             throw new \Exception("Unauthorized", 401);
@@ -66,6 +67,9 @@ class UploadDiscountIdImageService
         $order->discount_id_image_path = $relativePath;
         if ($discountType) {
             $order->discount_type = $discountType;
+        }
+        if ($discountIdNumber) {
+            $order->discount_id_number = $discountIdNumber;
         }
         $order->save();
 
