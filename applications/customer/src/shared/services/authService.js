@@ -76,4 +76,35 @@ export async function resetPasswordWithOtp({ email, resetToken, password, passwo
   });
 }
 
+export async function sendCustomerChangePasswordOtp(email) {
+  return apiRequest('/customer/change-password/send-otp', {
+    method: 'POST',
+    body: {
+      email: email.trim(),
+    },
+  });
+}
+
+export async function verifyCustomerChangePasswordOtp(email, otp) {
+  return apiRequest('/customer/change-password/verify-otp', {
+    method: 'POST',
+    body: {
+      email: email.trim(),
+      otp: otp.trim(),
+    },
+  });
+}
+
+export async function resetCustomerPassword({ email, resetToken, password, passwordConfirmation }) {
+  return apiRequest('/customer/change-password/reset-password', {
+    method: 'POST',
+    body: {
+      email: email.trim(),
+      reset_token: resetToken,
+      password,
+      password_confirmation: passwordConfirmation,
+    },
+  });
+}
+
 

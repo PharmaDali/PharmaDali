@@ -2,14 +2,16 @@ import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'rea
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router';
 import { colors } from '@src/shared/theme/colorPalette'
-import AccountIcon from '@assets/icons/account_icon.svg'
+import PersonalDetailsIcon from '@assets/icons/account/personal_details.svg'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import EditIcon from '@assets/icons/edit_icon.svg'
 import { useProfile } from '@src/shared/hooks/useProfile';
 import { toTitleCase } from '@src/shared/utils/stringUtils';
-import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { MaterialCommunityIcons, Ionicons } from '@expo/vector-icons'
 import { logoutCustomer } from '@shared/services/authService'
 import LogoutOverlay from '@shared/components/LogoutOverlay'
+import LogoutIcon from '@assets/icons/account/logout.svg'
+import ChangePassIcon from '@assets/icons/account/change-password/change_pass.svg'
 
 const Account = () => {
   const router = useRouter();
@@ -63,27 +65,30 @@ const Account = () => {
       </View>
 
       <TouchableOpacity
-        style={styles.card}
-        className="mx-4 px-4 py-4 rounded-xl border border-gray-200 flex-row items-center"
+        className="mx-4 mb-3 mt-4 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
         onPress={() => router.push('/tabs/account/PersonalDetails')}
       >
-        <AccountIcon width={28} height={28} />
-        <Text style={styles.textMedium} className="flex-1 text-base ml-3">Personal Details</Text>
-        <ArrowForwardIcon width={18} height={18} />
+        <PersonalDetailsIcon width={26} height={26} />
+        <Text style={styles.textMedium} className="flex-1 text-base ml-3.5">Personal Details</Text>
+        <Ionicons name="chevron-forward" size={20} color="#48AAD9" />
       </TouchableOpacity>
 
       <TouchableOpacity
-        className="mx-4 mt-4 px-4 py-4 rounded-xl border border-red-200 bg-white flex-row items-center active:bg-red-50 shadow-sm"
+        className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
+        onPress={() => router.push('/tabs/account/ChangePassword')}
+      >
+        <ChangePassIcon width={26} height={26} />
+        <Text style={styles.textMedium} className="flex-1 text-base ml-3.5">Change Password</Text>
+        <Ionicons name="chevron-forward" size={20} color="#48AAD9" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
         onPress={() => setIsLogoutOverlayVisible(true)}
       >
-        <MaterialCommunityIcons name="logout" size={24} color="#EF4444" />
-        <Text
-          className="flex-1 text-base ml-3 text-red-500 font-semibold"
-          style={{ fontFamily: 'Poppins-SemiBold' }}
-        >
-          Log Out
-        </Text>
-        <ArrowForwardIcon width={18} height={18} color="#EF4444" />
+        <LogoutIcon width={26} height={26} />
+        <Text style={styles.textMedium} className="flex-1 text-base ml-3.5">Logout</Text>
+        <Ionicons name="chevron-forward" size={20} color="#48AAD9" />
       </TouchableOpacity>
 
       <LogoutOverlay
