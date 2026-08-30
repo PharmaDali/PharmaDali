@@ -13,12 +13,26 @@ import {
 import { colors } from '@shared/theme/colorPalette';
 import { Ionicons } from '@expo/vector-icons';
 
-const REJECT_REASONS = [
+const REJECT_REASONS_GENERAL = [
   'Invalid Prescription - Please re-order OTC items separately',
   'Fake or Expired Prescription',
   'Mismatched Patient Information',
   'Product Out of Stock',
   'Incorrect Item Information',
+];
+
+const REJECT_REASONS_DISCOUNT = [
+  'Invalid or Unrecognized ID',
+  'Expired Discount ID',
+  'ID Details Do Not Match Patient',
+  'Blurry or Unreadable ID Photo',
+];
+
+const REJECT_REASONS_RECEIPT = [
+  'Invalid Payment Receipt',
+  'Amount Does Not Match Order Total',
+  'Reference Number Not Found',
+  'Blurry or Unreadable Receipt Photo',
 ];
 
 const PENDING_REASONS = [
@@ -34,13 +48,24 @@ export default function ActionReasonOverlay({
   onClose,
   onSubmit,
   actionType, // 'reject' or 'pending'
+  section,    // 'discount', 'receipt', or null
 }) {
   const [reason, setReason] = useState('');
   const [selectedPrewritten, setSelectedPrewritten] = useState('');
 
   const isReject = actionType === 'reject';
-  const title = isReject ? 'Reject Order' : 'Move to Pending';
-  const options = isReject ? REJECT_REASONS : PENDING_REASONS;
+  
+  let title = isReject ? 'Reject Order' : 'Move to Pending';
+  if (isReject && section === 'discount') title = 'Reject Discount ID';
+  if (isReject && section === 'receipt') title = 'Reject Payment Receipt';
+
+  let options = PENDING_REASONS;
+  if (isReject) {
+    if (section === 'discount') options = REJECT_REASONS_DISCOUNT;
+    else if (section === 'receipt') options = REJECT_REASONS_RECEIPT;
+    else options = REJECT_REASONS_GENERAL;
+  }
+
   const themeColor = isReject ? '#DC3545' : '#EAB308'; // Red for reject, Yellow for pending
 
   const handleSelectOption = (opt) => {

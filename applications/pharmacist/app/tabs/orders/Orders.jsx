@@ -51,9 +51,12 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       cancellationReason: order?.cancellation_reason || '',
       discountType: order?.discount_type || null,
       discountIdNumber: order?.discount_id_number || null,
+      discountRemarks: order?.discount_remarks || null,
       discountIdImagePath: order?.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null,
       paymentReceiptImagePath: order?.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null,
       paymentMethod: order?.payment_method || null,
+      paymentStatus: order?.payment_status || null,
+      note: order?.note || null,
       items: (order?.items || []).map((item) => {
         const product = item?.pharmacy_product?.product;
         const prescription = item?.order_item_prescription;
@@ -243,41 +246,43 @@ export default function Orders() {
     await fetchTabOrders(activeTab, 1);
   };
 
-  const handleApprove = async (order) => {
+  const handleApprove = async (order, section = null) => {
     const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
     if (!orderId) return;
 
     setError('');
     const previousTabStates = JSON.parse(JSON.stringify(tabStates));
 
-    // Optimistic UI: Immediately remove order from 'For Review' UI list
-    setTabStates((prev) => {
-      const forReview = prev['For Review'];
-      const updatedItems = (forReview.items || []).filter((item) => item.id !== order.id);
-      return {
-        ...prev,
-        'For Review': {
-          ...forReview,
-          items: updatedItems,
-          total: Math.max(0, (forReview.total || 1) - 1),
-        },
-        'Preparing': {
-          ...prev['Preparing'],
-          loaded: false,
-        },
-      };
-    });
+    if (!section) {
+      // Optimistic UI: Immediately remove order from 'For Review' UI list for general approval
+      setTabStates((prev) => {
+        const forReview = prev['For Review'];
+        const updatedItems = (forReview.items || []).filter((item) => item.id !== order.id);
+        return {
+          ...prev,
+          'For Review': {
+            ...forReview,
+            items: updatedItems,
+            total: Math.max(0, (forReview.total || 1) - 1),
+          },
+          'Preparing': {
+            ...prev['Preparing'],
+            loaded: false,
+          },
+        };
+      });
 
-    setFeedbackAction('approve');
-    setFeedbackVisible(true);
+      setFeedbackAction('approve');
+      setFeedbackVisible(true);
+    }
 
     try {
-      await updateOrderStatusByPharmacist(orderId, 'approve');
+      await updateOrderStatusByPharmacist(orderId, 'approve', null, section);
       fetchTabOrders(activeTab, 1, true);
     } catch (e) {
       console.error('[Orders] Error approving order:', e);
       setError(e?.message || 'Failed to approve order.');
-      setTabStates(previousTabStates);
+      if (!section) setTabStates(previousTabStates);
     }
   };
 
@@ -462,6 +467,7 @@ export default function Orders() {
       <ActionReasonOverlay
         visible={overlayVisible}
         actionType={overlayAction}
+        section={selectedSection}
         onClose={() => setOverlayVisible(false)}
         onSubmit={handleReasonSubmit}
       />

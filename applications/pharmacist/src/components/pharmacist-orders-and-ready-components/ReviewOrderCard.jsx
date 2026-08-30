@@ -29,6 +29,24 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
   const rxItems = order.items.filter((item) => item.prescriptionRequired);
   const prescriptionImage = rxItems.find(item => item.prescriptionImage)?.prescriptionImage;
 
+  const isAwaitingCustomerAcknowledgement = 
+    (order.discountRemarks?.toLowerCase()?.startsWith('rejected:') && !order.discountRemarks?.toLowerCase()?.startsWith('acknowledged_rejected:')) || 
+    (order.paymentStatus === 'failed' && order.note?.includes('Payment receipt rejected:'));
+  
+  const effectiveMuteActions = muteActions || isAwaitingCustomerAcknowledgement;
+
+  const AwaitingAcknowledgementNote = () => {
+    if (!isAwaitingCustomerAcknowledgement) return null;
+    return (
+      <View className="flex-row items-center bg-[#FFF4E5] p-3 rounded-xl mb-3 mt-1">
+        <InfoIcon width={16} height={16} color="#E67E22" />
+        <Text className="text-xs ml-2 flex-1 text-[#D35400]" style={{ fontFamily: 'Poppins-Medium' }}>
+          Waiting for customer's acknowledgement of rejected ID/Receipt.
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <OrderCard order={order}>
       {!expanded ? (
@@ -62,30 +80,37 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                 <OrderItemRow key={idx} item={item} />
               ))}
 
-              <View className="flex-row justify-end gap-2 mt-4">
+              <View className="flex-row justify-between items-center mt-3 pt-3 border-t border-gray-100 mb-2">
+                <Text className="text-sm text-gray-500" style={{ fontFamily: 'Poppins-Medium' }}>Total</Text>
+                <Text className="text-base text-gray-900" style={{ fontFamily: 'Poppins-SemiBold' }}>PHP {order.orderTotal}</Text>
+              </View>
+
+              <AwaitingAcknowledgementNote />
+              
+              <View className="flex-row justify-end gap-2 mt-2 mb-2">
                 <TouchableOpacity
                   className="rounded-xl px-5 py-1.5"
-                  style={muteActions ? styles.mutedPendingButton : styles.pendingButton}
-                  disabled={muteActions}
+                  style={effectiveMuteActions ? styles.mutedPendingButton : styles.pendingButton}
+                  disabled={effectiveMuteActions}
                   onPress={() => onPending?.(order)}
                 >
-                  <Text className="text-sm" style={muteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
+                  <Text className="text-sm" style={effectiveMuteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="rounded-xl px-5 py-1.5"
-                  style={muteActions ? styles.mutedApproveButton : styles.discountApproveButton}
-                  disabled={muteActions}
+                  style={effectiveMuteActions ? styles.mutedApproveButton : styles.discountApproveButton}
+                  disabled={effectiveMuteActions}
                   onPress={() => onApprove?.(order)}
                 >
                   <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Approve</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="rounded-xl px-4 py-1.5 border"
-                  style={muteActions ? styles.mutedRejectButton : styles.discountRejectButton}
-                  disabled={muteActions}
+                  style={effectiveMuteActions ? styles.mutedRejectButton : styles.discountRejectButton}
+                  disabled={effectiveMuteActions}
                   onPress={() => onReject?.(order)}
                 >
-                  <Text className="text-sm" style={muteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
+                  <Text className="text-sm" style={effectiveMuteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -128,50 +153,53 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     </TouchableOpacity>
 
                     <View className="gap-2">
+                      <AwaitingAcknowledgementNote />
                       <TouchableOpacity
                         className="rounded-xl px-6 py-2"
-                        style={muteActions ? styles.mutedPendingButton : styles.pendingButton}
-                        disabled={muteActions}
+                        style={effectiveMuteActions ? styles.mutedPendingButton : styles.pendingButton}
+                        disabled={effectiveMuteActions}
                         onPress={() => onPending?.(order)}
                       >
                         <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Pending</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         className="rounded-xl px-6 py-2"
-                        style={muteActions ? styles.mutedApproveButton : styles.discountApproveButton}
-                        disabled={muteActions}
+                        style={effectiveMuteActions ? styles.mutedApproveButton : styles.discountApproveButton}
+                        disabled={effectiveMuteActions}
                         onPress={() => onApprove?.(order)}
                       >
                         <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Approve</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         className="rounded-xl px-6 py-2 border"
-                        style={muteActions ? styles.mutedRejectButton : styles.discountRejectButton}
-                        disabled={muteActions}
+                        style={effectiveMuteActions ? styles.mutedRejectButton : styles.discountRejectButton}
+                        disabled={effectiveMuteActions}
                         onPress={() => onReject?.(order, 'prescription')}
                       >
-                        <Text className="text-sm" style={muteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
+                        <Text className="text-sm" style={effectiveMuteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
                 )}
 
                 {!prescriptionImage && (
-                  <View className="flex-row justify-end gap-2 mb-2 mt-2">
-                    <TouchableOpacity
-                      className="rounded-xl px-5 py-1.5"
-                      style={muteActions ? styles.mutedPendingButton : styles.pendingButton}
-                      disabled={muteActions}
+                  <View className="mt-2">
+                    <AwaitingAcknowledgementNote />
+                    <View className="flex-row justify-end gap-2 mb-2">
+                      <TouchableOpacity
+                        className="rounded-xl px-5 py-1.5"
+                        style={effectiveMuteActions ? styles.mutedPendingButton : styles.pendingButton}
+                        disabled={effectiveMuteActions}
                       onPress={() => onPending?.(order)}
                     >
                       <View className="flex-row items-center">
-                        <Text className="text-sm" style={muteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
+                        <Text className="text-sm" style={effectiveMuteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
                       </View>
                     </TouchableOpacity>
                     <TouchableOpacity
                       className="rounded-xl px-5 py-1.5"
-                      style={muteActions ? styles.mutedApproveButton : styles.discountApproveButton}
-                      disabled={muteActions}
+                      style={effectiveMuteActions ? styles.mutedApproveButton : styles.discountApproveButton}
+                      disabled={effectiveMuteActions}
                       onPress={() => onApprove?.(order)}
                     >
                       <View className="flex-row items-center">
@@ -180,14 +208,15 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     </TouchableOpacity>
                     <TouchableOpacity
                       className="rounded-xl px-4 py-1.5 border"
-                      style={muteActions ? styles.mutedRejectButton : styles.discountRejectButton}
-                      disabled={muteActions}
+                      style={effectiveMuteActions ? styles.mutedRejectButton : styles.discountRejectButton}
+                      disabled={effectiveMuteActions}
                       onPress={() => onReject?.(order, 'prescription')}
                     >
                       <View className="flex-row items-center">
-                        <Text className="text-sm" style={muteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
+                        <Text className="text-sm" style={effectiveMuteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
                       </View>
                     </TouchableOpacity>
+                  </View>
                   </View>
                 )}
               </View>
@@ -195,16 +224,18 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
           )}
 
           {/* Discount ID Approval Section */}
-          {order.discountIdImagePath && (
+          {order.discountIdImagePath && (() => {
+            const isDiscountRejected = order.discountRemarks?.toLowerCase().includes('rejected');
+            return (
             <View className="mx-2 mb-4 mt-2">
-              <View className="p-3 rounded-2xl" style={{ backgroundColor: '#EBF3F7' }}>
+              <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
                 <Text className="text-sm mb-3" style={styles.sectionTitle}>
                   {order.discountType ? `Discount (${DISCOUNT_TYPE_LABELS[order.discountType] ?? order.discountType})` : 'Discount ID'}
                 </Text>
 
                 <View className="flex-row items-center gap-3">
                   <TouchableOpacity
-                    className="flex-1 rounded-lg overflow-hidden border border-gray-300"
+                    className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative"
                     activeOpacity={0.8}
                     onPress={() => setPreviewImage({ uri: order.discountIdImagePath })}
                   >
@@ -213,54 +244,75 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                       className="w-full h-24"
                       resizeMode="cover"
                     />
+
+                    {isDiscountRejected && (
+                      <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
+                        <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>ID Rejected</Text>
+                        <Text className="text-[#DC3545] text-[11px] text-center mb-1" style={{ fontFamily: 'Poppins-SemiBold' }}>
+                          Reason: {order.discountRemarks?.replace(/^(?:acknowledged_)?rejected(?: by pharmacist)?:\s*/i, '') || 'Rejected'}
+                        </Text>
+                        <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
+                          Customer has been notified to bring physical ID.
+                        </Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
 
-                  <View className="gap-2">
-                    <TouchableOpacity
-                      className="rounded-xl px-6 py-2"
-                      style={styles.discountApproveButton}
-                    >
-                      <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Approve</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className="rounded-xl px-6 py-2 border"
-                      style={styles.discountRejectButton}
-                      disabled={muteActions}
-                      onPress={() => onReject?.(order, 'discount')}
-                    >
-                      <Text className="text-sm" style={styles.discountRejectText}>Reject</Text>
-                    </TouchableOpacity>
-                  </View>
+                  {!isDiscountRejected && (
+                    <View className="gap-2">
+                      <TouchableOpacity
+                        className="rounded-xl px-6 py-2"
+                        style={styles.discountApproveButton}
+                        disabled={muteActions}
+                        onPress={() => onApprove?.(order, 'discount')}
+                      >
+                        <Text className="text-sm text-white text-center" style={{ fontFamily: 'Poppins-SemiBold' }}>Approve</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="rounded-xl px-6 py-2 border"
+                        style={styles.discountRejectButton}
+                        disabled={muteActions}
+                        onPress={() => onReject?.(order, 'discount')}
+                      >
+                        <Text className="text-sm text-center" style={styles.discountRejectText}>Reject</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
 
                 {/* Checkbox */}
-                <TouchableOpacity 
-                  className="flex-row items-center mt-4 mb-1" 
-                  activeOpacity={0.7}
-                  onPress={() => setRememberDiscount(!rememberDiscount)}
-                >
-                  <View className="w-5 h-5 rounded-md items-center justify-center mr-3" style={{ backgroundColor: rememberDiscount ? '#48AAD9' : '#FFFFFF', borderColor: '#48AAD9', borderWidth: 1.5 }}>
-                    {rememberDiscount && (
-                      <Svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                        <Path d="M5 13l4 4L19 7" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
-                      </Svg>
-                    )}
-                  </View>
-                  <Text className="text-xs text-gray-700" style={{ fontFamily: 'Poppins-Medium' }}>Remember this ID for future orders</Text>
-                </TouchableOpacity>
+                {!isDiscountRejected && (
+                  <TouchableOpacity 
+                    className="flex-row items-center mt-4 mb-1" 
+                    activeOpacity={0.7}
+                    onPress={() => setRememberDiscount(!rememberDiscount)}
+                  >
+                    <View className="w-5 h-5 rounded-md items-center justify-center mr-3" style={{ backgroundColor: rememberDiscount ? '#48AAD9' : '#FFFFFF', borderColor: '#48AAD9', borderWidth: 1.5 }}>
+                      {rememberDiscount && (
+                        <Svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                          <Path d="M5 13l4 4L19 7" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                        </Svg>
+                      )}
+                    </View>
+                    <Text className="text-xs text-gray-700" style={{ fontFamily: 'Poppins-Medium' }}>Remember this ID for future orders</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
-          )}
+            );
+          })()}
 
           {/* Payment Receipt Section */}
-          {order.paymentReceiptImagePath && (
+          {order.paymentReceiptImagePath && (() => {
+            const isReceiptRejected = order.paymentStatus === 'failed';
+            return (
             <View className="mx-2 mb-4 mt-2">
-              <View className="p-3 rounded-2xl" style={{ backgroundColor: '#EBF3F7' }}>
+              <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
                 <Text className="text-sm mb-3" style={styles.sectionTitle}>Payment Receipt</Text>
 
                 <View className="flex-row items-center gap-3">
                   <TouchableOpacity
-                    className="flex-1 rounded-lg overflow-hidden border border-gray-300"
+                    className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative"
                     activeOpacity={0.8}
                     onPress={() => setPreviewImage({ uri: order.paymentReceiptImagePath })}
                   >
@@ -269,28 +321,45 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                       className="w-full h-28"
                       resizeMode="cover"
                     />
+
+                    {isReceiptRejected && (
+                      <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
+                        <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>Receipt Rejected</Text>
+                        <Text className="text-[#DC3545] text-[11px] text-center mb-1" style={{ fontFamily: 'Poppins-SemiBold' }}>
+                          Reason: {order.note?.replace(/^(?:customer acknowledged payment issue|payment receipt unverified):\s*/i, '') || 'Rejected'}
+                        </Text>
+                        <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
+                          Customer notified to pay upon pickup.
+                        </Text>
+                      </View>
+                    )}
                   </TouchableOpacity>
 
-                  <View className="gap-2">
-                    <TouchableOpacity
-                      className="rounded-xl px-6 py-2"
-                      style={styles.discountApproveButton}
-                    >
-                      <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Approve</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      className="rounded-xl px-6 py-2 border"
-                      style={styles.discountRejectButton}
-                      disabled={muteActions}
-                      onPress={() => onReject?.(order, 'receipt')}
-                    >
-                      <Text className="text-sm" style={styles.discountRejectText}>Reject</Text>
-                    </TouchableOpacity>
-                  </View>
+                  {!isReceiptRejected && (
+                    <View className="gap-2">
+                      <TouchableOpacity
+                        className="rounded-xl px-6 py-2"
+                        style={styles.discountApproveButton}
+                        disabled={muteActions}
+                        onPress={() => onApprove?.(order, 'receipt')}
+                      >
+                        <Text className="text-sm text-white text-center" style={{ fontFamily: 'Poppins-SemiBold' }}>Approve</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        className="rounded-xl px-6 py-2 border"
+                        style={styles.discountRejectButton}
+                        disabled={muteActions}
+                        onPress={() => onReject?.(order, 'receipt')}
+                      >
+                        <Text className="text-sm text-center" style={styles.discountRejectText}>Reject</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
                 </View>
               </View>
             </View>
-          )}
+            );
+          })()}
 
           <View className="flex-row justify-between items-center px-4 py-3 border-t border-gray-100">
             <Text className="text-sm" style={styles.sectionTitle}>Order Summary</Text>
