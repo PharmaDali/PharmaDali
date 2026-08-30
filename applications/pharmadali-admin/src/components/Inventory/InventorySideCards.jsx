@@ -10,14 +10,15 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
       <article className="card border-0 shadow-sm p-3 d-flex flex-column inventory-side-card">
         <h6 className="inventory-side-title mb-3">Priority Restocks</h6>
         <div className="inventory-side-table flex-fill overflow-auto">
-          <div className="inventory-side-head">
+          <div className="inventory-side-head" style={{ gridTemplateColumns: '1.2fr 0.6fr 0.9fr 0.9fr' }}>
             <span>Product</span>
             <span>Qty.</span>
             <span>Will Last (Weeks)</span>
+            <span style={{ textAlign: 'center' }}>Action</span>
           </div>
           {lowStockItems && lowStockItems.length > 0 ? (
             lowStockItems.map((item) => (
-              <div key={item.id} className="inventory-side-row">
+              <div key={item.id} className="inventory-side-row" style={{ gridTemplateColumns: '1.2fr 0.6fr 0.9fr 0.9fr' }}>
                 <div className="d-flex flex-column gap-1">
                   <span className="inventory-side-name">
                     {item.name}
@@ -27,6 +28,12 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                       </div>
                     )}
                   </span>
+                </div>
+                <span className="inventory-side-sub">{item.quantity} left</span>
+                <span className="inventory-side-pill inventory-side-pill-warn">
+                  {getWeeksLeft(item)}
+                </span>
+                <div className="d-flex flex-column gap-1 align-items-center justify-content-center">
                   {!item.ordered_at && handleMarkOrdered && (
                     <button
                       className="btn btn-sm py-0 px-2 mt-1"
@@ -36,7 +43,8 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                         borderRadius: "10px",
                         color: "var(--pd-primary)",
                         border: "1px solid var(--pd-primary)",
-                        backgroundColor: "transparent"
+                        backgroundColor: "transparent",
+                        whiteSpace: "nowrap"
                       }}
                       onMouseEnter={(e) => {
                         e.target.style.backgroundColor = "var(--pd-primary)";
@@ -55,13 +63,9 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                     </button>
                   )}
                   {item.ordered_at && (
-                    <span style={{ fontSize: "10px", color: "#28a745", fontWeight: "600" }}>✓ Ordered</span>
+                    <span style={{ fontSize: "10px", color: "#28a745", fontWeight: "600", whiteSpace: "nowrap" }}>✓ Ordered</span>
                   )}
                 </div>
-                <span className="inventory-side-sub">{item.quantity} left</span>
-                <span className="inventory-side-pill inventory-side-pill-warn">
-                  {getWeeksLeft(item)}
-                </span>
               </div>
             ))
           ) : (
