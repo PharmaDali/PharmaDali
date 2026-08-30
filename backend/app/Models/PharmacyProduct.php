@@ -20,6 +20,9 @@ class PharmacyProduct extends Model
         'selling_price',
         'is_discountable',
         'is_available',
+        'is_expired',
+        'lead_time_days',
+        'ordered_at',
     ];
 
     public function pharmacy()

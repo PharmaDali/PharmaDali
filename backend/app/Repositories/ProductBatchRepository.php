@@ -59,6 +59,11 @@ class ProductBatchRepository
         $batches = ProductBatch::where('pharmacy_product_id', $pharmacyProductId)->get();
 
         $totalStock = $batches->sum('stock');
+        
+        $today = Carbon::today();
+        $sellableStock = $batches->filter(function ($batch) use ($today) {
+            return $batch->stock > 0 && (!$batch->expiry_date || $batch->expiry_date->greaterThanOrEqualTo($today));
+        })->sum('stock');
 
         // Nearest upcoming expiry among all batches
         $nearestExpiry = $batches
@@ -69,6 +74,15 @@ class ProductBatchRepository
         $pharmacyProduct = PharmacyProduct::find($pharmacyProductId);
         if ($pharmacyProduct) {
             $pharmacyProduct->stock = $totalStock;
+            
+            // Auto-mark unavailable if no sellable stock is left
+            if ($sellableStock <= 0) {
+                $pharmacyProduct->is_available = false;
+            }
+
+            // Auto-mark as expired if there is physical stock but none of it is sellable
+            $pharmacyProduct->is_expired = ($totalStock > 0 && $sellableStock <= 0);
+
             $pharmacyProduct->save();
         }
     }

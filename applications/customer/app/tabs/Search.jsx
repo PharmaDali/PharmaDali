@@ -88,23 +88,31 @@ export default function SearchTab() {
     });
   }, [pharmacyId, showError]);
 
-  const renderProduct = useCallback(({ item }) => (
-    <View style={styles.productWrapper}>
-      <ProductCard
-        productId={item.product?.id}
-        pharmacyProductId={item.id}
-        pharmacyId={pharmacyId}
-        img={item.product?.image_url ? { uri: item.product.image_url } : null}
-        product={item.product}
-        categoryName={item.category?.category_name}
-        description={item.product?.brand_name || item.product?.generic_name || item.product?.product_name}
-        category={item.category?.category_name}
-        price={formatProductPrice(item.selling_price || item.price)}
-        onAddToCart={handleAddToCart}
-        isPrescribed={Boolean(item.product?.is_prescribed)}
-      />
-    </View>
-  ), [pharmacyId, handleAddToCart]);
+  const renderProduct = useCallback(({ item }) => {
+    const isAvailable =
+      (item.is_available === undefined ? true : Boolean(Number(item.is_available))) &&
+      (item.is_expired === undefined ? true : !Boolean(Number(item.is_expired))) &&
+      (item.stock === undefined || Number(item.stock) > 0);
+
+    return (
+      <View style={styles.productWrapper}>
+        <ProductCard
+          productId={item.product?.id}
+          pharmacyProductId={item.id}
+          pharmacyId={pharmacyId}
+          img={item.product?.image_url ? { uri: item.product.image_url } : null}
+          product={item.product}
+          categoryName={item.category?.category_name}
+          description={item.product?.brand_name || item.product?.generic_name || item.product?.product_name}
+          category={item.category?.category_name}
+          price={formatProductPrice(item.selling_price || item.price)}
+          onAddToCart={handleAddToCart}
+          isPrescribed={Boolean(item.product?.is_prescribed)}
+          isAvailable={isAvailable}
+        />
+      </View>
+    );
+  }, [pharmacyId, handleAddToCart]);
 
   return (
     <View style={styles.container}>

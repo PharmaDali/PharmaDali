@@ -63,17 +63,20 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
   const displayName = truncateText(item.description);
 
   return (
-    <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-3 mx-4">
-      <Checkbox checked={item.selected} onPress={onToggle} />
+    <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-3" style={{ opacity: item.isAvailable === false ? 0.7 : 1 }}>
+      {item.isAvailable !== false && (
+        <Checkbox checked={item.selected} onPress={onToggle} />
+      )}
       <ProductImage
         source={BandaidImg}
         product={item?.product}
         categoryName={item?.category?.category_name}
         quantity={item?.quantity}
         isPrescribed={item?.prescriptionRequired}
+        isAvailable={item?.isAvailable}
         width={80}
         height={80}
-        containerStyle={{ borderRadius: 8 }}
+        containerStyle={{ borderRadius: 8, marginLeft: item.isAvailable !== false ? 0 : 8 }}
       />
       <View className="flex-1 ml-3">
         <View className="flex-row justify-between items-start">
@@ -97,11 +100,15 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
           <Text className="text-sm" style={styles.priceText}>
             PHP {item.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
           </Text>
-          <QuantityControl
-            quantity={item.quantity}
-            onIncrement={onIncrement}
-            onDecrement={onDecrement}
-          />
+          {item.isAvailable !== false ? (
+            <QuantityControl
+              quantity={item.quantity}
+              onIncrement={onIncrement}
+              onDecrement={onDecrement}
+            />
+          ) : (
+            <Text className="text-xs text-gray-400" style={styles.fontMedium}>Qty: {item.quantity}</Text>
+          )}
         </View>
       </View>
     </View>
@@ -214,16 +221,48 @@ export default function CartScreen() {
           </View>
         )}
 
-        {!loading && !errorMessage && cartItems.map((item) => (
-          <CartItem
-            key={item.id}
-            item={item}
-            onToggle={() => toggleItem(item.id)}
-            onIncrement={() => incrementQty(item.id)}
-            onDecrement={() => decrementQty(item.id)}
-            onRemove={() => removeItem(item.id)}
-          />
-        ))}
+        {!loading && !errorMessage && (() => {
+          const availableItems = cartItems.filter(i => i.isAvailable);
+          const unavailableItems = cartItems.filter(i => !i.isAvailable);
+
+          return (
+            <View>
+              <View className="px-4">
+                {availableItems.map((item) => (
+                  <CartItem
+                    key={item.id}
+                    item={item}
+                    onToggle={() => toggleItem(item.id)}
+                    onIncrement={() => incrementQty(item.id)}
+                    onDecrement={() => decrementQty(item.id)}
+                    onRemove={() => removeItem(item.id)}
+                  />
+                ))}
+              </View>
+
+              {unavailableItems.length > 0 && (
+                <View className="mt-4 border-t border-gray-200 pt-4 px-4">
+                  <Text className="text-sm mb-3" style={styles.fontBold}>Unavailable Items</Text>
+                  <View className="bg-gray-100 rounded-xl p-3 mb-4">
+                    <Text className="text-xs text-gray-600" style={styles.fontMedium}>
+                      These items are out of stock and cannot be checked out.
+                    </Text>
+                  </View>
+                  {unavailableItems.map((item) => (
+                    <CartItem
+                      key={item.id}
+                      item={item}
+                      onToggle={() => toggleItem(item.id)}
+                      onIncrement={() => incrementQty(item.id)}
+                      onDecrement={() => decrementQty(item.id)}
+                      onRemove={() => removeItem(item.id)}
+                    />
+                  ))}
+                </View>
+              )}
+            </View>
+          );
+        })()}
 
         {hasPrescription && (
           <View className="flex-row items-center mx-4 mt-1 mb-2 gap-1">

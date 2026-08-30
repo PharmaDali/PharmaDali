@@ -137,7 +137,7 @@ class GetInventoryProductsService
         return [
             'id'               => $bp->id,
             'name'             => $product->product_name ?? 'Unknown',
-            'brand'            => $product->brand_name ?? 'Generic',
+            'brand'            => $product->brand_name ?? '',
             'form'             => !empty($strengthFormParts) ? implode(' ', $strengthFormParts) : ($product->form ?? 'Medicine'),
             'raw_form'         => $product->form ?? '',
             'strength'         => $product->strength ?? '',

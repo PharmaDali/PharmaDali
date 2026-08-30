@@ -256,11 +256,13 @@ export default function HomeScreen() {
                 price={formatProductPrice(item?.selling_price)}
                 isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
                 isAvailable={
-                  item?.is_available == null
+                  (item?.is_available == null
                     ? true
                     : (typeof item?.is_available === 'boolean'
                       ? item.is_available
-                      : Number(item.is_available) === 1)
+                      : Number(item.is_available) === 1)) &&
+                  (item?.is_expired == null ? true : !Boolean(Number(item.is_expired))) &&
+                  (item?.stock === undefined || Number(item?.stock) > 0)
                 }
                 onAddToCart={handleAddToCart}
                 style={{ width: '100%' }}

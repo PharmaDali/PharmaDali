@@ -170,6 +170,29 @@ class PharmacyProductController extends Controller
     }
 
     /**
+     * Mark the product as ordered (Phase 3: Adaptive Lead Time).
+     */
+    public function markOrdered(Request $request, string $id)
+    {
+        $product = $this->productRepository->find((int) $id);
+        Gate::authorize('update', $product);
+
+        $product->update([
+            'ordered_at' => now(),
+        ]);
+
+        if ($product->pharmacy_id) {
+            app(\App\Services\Inventory\RestockPredictorService::class)->clearPriorityRestocksCache($product->pharmacy_id);
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Product marked as ordered. Waiting for stock arrival to calculate lead time.',
+            'data' => clone $product
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)

@@ -57,6 +57,11 @@ class PlaceOrderService
             return $this->errorResponse('Some selected cart items are invalid for this checkout.', 422);
         }
 
+        $unavailableItems = $cartItems->filter(fn($item) => !$item->pharmacyProduct || !$item->pharmacyProduct->is_available || $item->pharmacyProduct->stock < $item->quantity);
+        if ($unavailableItems->isNotEmpty()) {
+            return $this->errorResponse('Some selected items are currently out of stock or unavailable for checkout. Please review your cart.', 422);
+        }
+
         try {
             $order = $this->createOrderAction->execute(
                 activeCart: $activeCart,
