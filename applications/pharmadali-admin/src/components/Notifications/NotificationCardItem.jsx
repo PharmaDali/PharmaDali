@@ -17,9 +17,9 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
       className={`notification-card ${isUnread ? "is-unread" : "is-read"}`}
     >
       <div className="d-flex align-items-start gap-3">
-        {/* Category Avatar Icon */}
+        {/* Category Avatar Icon (Desktop Only) */}
         <div
-          className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 mt-1"
+          className="rounded-circle d-none d-md-flex align-items-center justify-content-center flex-shrink-0 mt-1"
           style={{
             width: "42px",
             height: "42px",
@@ -63,8 +63,8 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
               )}
             </div>
 
-            {/* Unread Status & Timestamp */}
-            <div className="d-flex align-items-center gap-2">
+            {/* Unread Status & Timestamp (Desktop Only) */}
+            <div className="d-none d-md-flex align-items-center gap-2">
               {isUnread && <span className="unread-pulse" title="Unread notification" />}
               <span className="text-muted small">
                 <i className="fa-solid fa-clock me-1 text-muted" />
@@ -74,19 +74,58 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
           </div>
 
           {/* Main Message */}
-          <h6 className={`mb-1 ${isUnread ? "fw-bold text-dark" : "fw-normal text-secondary"}`}>
+          <h6 className={`mb-1 mt-2 mt-md-0 ${isUnread ? "fw-bold text-dark" : "fw-normal text-secondary"}`}>
             {item.message || item.data?.message}
           </h6>
 
           {productName && (
-            <span className="text-muted small">
+            <div className="text-muted small mb-2 mb-md-0">
               Product: <strong className="text-dark">{productName}</strong>
-            </span>
+            </div>
           )}
+
+          {/* Mobile Bottom Action Row (Mobile Only) */}
+          <div className="d-flex d-md-none justify-content-end align-items-center gap-2 mt-3 border-top pt-2">
+            {isUnread && <span className="unread-pulse" title="Unread notification" />}
+            <span className="text-muted small me-2" style={{ fontSize: "0.75rem" }}>
+              <i className="fa-solid fa-clock me-1 text-muted" />
+              {item.dateTime || "Just now"}
+            </span>
+
+            {/* Action Buttons (Mobile) */}
+            <div className="d-flex gap-1 align-items-center flex-shrink-0">
+              {isUnread && (
+                <button
+                  type="button"
+                  className="btn-action-icon"
+                  title="Mark as read"
+                  style={{ width: "28px", height: "28px" }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onMarkAsRead(item.id);
+                  }}
+                >
+                  <i className="fa-solid fa-circle-check" style={{ fontSize: "12px" }} />
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn-action-icon btn-delete"
+                title="Delete"
+                style={{ width: "28px", height: "28px" }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(item.id);
+                }}
+              >
+                <i className="fa-solid fa-trash-can" style={{ fontSize: "12px" }} />
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="d-flex gap-1 align-items-center ms-2 flex-shrink-0">
+        {/* Action Buttons (Desktop Only) */}
+        <div className="d-none d-md-flex gap-1 align-items-center ms-2 flex-shrink-0">
           {isUnread && (
             <button
               type="button"
