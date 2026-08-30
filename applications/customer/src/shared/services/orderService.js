@@ -62,7 +62,7 @@ export async function cancelCustomerOrder(orderId, reason = 'Cancelled by custom
   });
 }
 
-export async function uploadCustomerDiscountId(orderId, imageAsset, discountType) {
+export async function uploadCustomerDiscountId(orderId, imageAsset, discountType, discountIdNumber) {
   const numericId = Number(orderId);
   if (!Number.isFinite(numericId) || numericId <= 0 || !imageAsset?.uri) {
     return null;
@@ -80,6 +80,10 @@ export async function uploadCustomerDiscountId(orderId, imageAsset, discountType
 
   if (discountType) {
     formData.append('discount_type', discountType);
+  }
+
+  if (discountIdNumber) {
+    formData.append('discount_id_number', discountIdNumber);
   }
 
   return apiRequest(`/customer/orders/${numericId}/discount-id`, {

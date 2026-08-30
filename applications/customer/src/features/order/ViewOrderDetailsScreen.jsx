@@ -230,89 +230,16 @@ export default function ViewOrderDetailsScreen() {
   }
 
   const isStandBy = order.rawStatus === 'stand_by'
-  const isCancellable = isStandBy || ['pending', 'reviewing'].includes(order.rawStatus)
+  const isCancellable = isStandBy || ['pending', 'reviewing', 'id_rejected', 'receipt_rejected'].includes(order.rawStatus)
   const onHoldNote = order.onHoldReason || order.cancellationReason || order.discountRemarks || order.note || order.reason || 'Order is on hold awaiting review.'
 
-  const isReceiptRejected = isStandBy && (order.note?.toLowerCase().includes('receipt') || order.paymentStatus === 'failed')
-  const isDiscountRejected = isStandBy && order.discountRemarks?.toLowerCase().includes('rejected')
-  const isPrescriptionRejected = isStandBy && !isReceiptRejected && !isDiscountRejected
+  const isReceiptRejected = order.rawStatus === 'receipt_rejected' || (isStandBy && (order.note?.toLowerCase().includes('receipt') || order.paymentStatus === 'failed'))
+  const isDiscountRejected = order.rawStatus === 'id_rejected' || (isStandBy && order.discountRemarks?.toLowerCase().includes('rejected'))
+  const isPrescriptionRejected = (order.rawStatus === 'stand_by' || order.status === 'Rejected') && !isReceiptRejected && !isDiscountRejected && (order.reason?.toLowerCase().includes('prescription') || order.cancellationReason?.toLowerCase().includes('prescription'))
 
   return (
     <ScrollView className="flex-1 bg-[#F1F4FF]" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
-      {/* On Hold Banner Notice: Prescription Issue */}
-      {isPrescriptionRejected && (
-        <View className="bg-[#FFF0F0] border border-[#FFC1C1] rounded-2xl mx-4 mt-4 p-4">
-          <Text className="text-sm font-bold text-[#C53030] mb-1">Prescription Issue</Text>
-          <Text className="text-xs text-gray-700 leading-5" style={styles.fontMedium}>
-            {onHoldNote}
-          </Text>
-          {actionError ? <Text className="text-xs text-red-500 mt-1">{actionError}</Text> : null}
-          <View className="flex-row gap-3 mt-3">
-            <TouchableOpacity
-              className="flex-1 bg-[#48AAD9] rounded-xl py-2.5 items-center px-2"
-              disabled={actionLoading}
-              onPress={handleRemoveRxItems}
-            >
-              {actionLoading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text className="text-xs text-white text-center" style={styles.fontSemiBold}>Remove RX & Proceed</Text>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="flex-1 border border-[#DC3545] rounded-xl py-2.5 items-center px-2 bg-white"
-              disabled={actionLoading}
-              onPress={() => setCancelVisible(true)}
-            >
-              <Text className="text-xs text-[#DC3545] text-center" style={styles.fontSemiBold}>Cancel Order</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
 
-      {/* On Hold Banner Notice: Payment Receipt Issue */}
-      {isReceiptRejected && (
-        <View className="bg-[#FFF8E6] border border-[#FFE082] rounded-2xl mx-4 mt-4 p-4">
-          <Text className="text-sm font-bold text-[#996500] mb-1">Payment Receipt Notice</Text>
-          <Text className="text-xs text-gray-700 leading-5" style={styles.fontMedium}>
-            {onHoldNote}
-          </Text>
-          {actionError ? <Text className="text-xs text-red-500 mt-1">{actionError}</Text> : null}
-          <TouchableOpacity
-            className="mt-3 bg-[#48AAD9] rounded-xl py-2.5 items-center w-full"
-            disabled={actionLoading}
-            onPress={handleConfirmReceipt}
-          >
-            {actionLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text className="text-xs text-white" style={styles.fontSemiBold}>Acknowledge & Pay in Store</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* On Hold Banner Notice: Discount ID Issue */}
-      {isDiscountRejected && (
-        <View className="bg-[#EEF7FD] border border-[#B9DEEF] rounded-2xl mx-4 mt-4 p-4">
-          <Text className="text-sm font-bold text-[#1E5676] mb-1">Discount ID Notice</Text>
-          <Text className="text-xs text-gray-700 leading-5" style={styles.fontMedium}>
-            {onHoldNote}
-          </Text>
-          {actionError ? <Text className="text-xs text-red-500 mt-1">{actionError}</Text> : null}
-          <TouchableOpacity
-            className="mt-3 bg-[#48AAD9] rounded-xl py-2.5 items-center w-full"
-            disabled={actionLoading}
-            onPress={handleConfirmDiscount}
-          >
-            {actionLoading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text className="text-xs text-white" style={styles.fontSemiBold}>Acknowledge & Confirm</Text>
-            )}
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Main Order Card */}
       <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-4 p-4">
@@ -354,10 +281,171 @@ export default function ViewOrderDetailsScreen() {
           <Text className="text-sm" style={styles.textBold}>Order Summary</Text>
           <Text className="text-sm" style={styles.primarySemiBold}>{order.orderSummary}</Text>
         </View>
+
+        {isPrescriptionRejected && (
+          <View className="mt-4 pt-3 border-t border-gray-100">
+            <Text className="text-[11px] text-gray-400 mb-1" style={styles.fontMedium}>Reason:</Text>
+            <Text className="text-xs text-gray-700 leading-5" style={styles.fontMedium}>
+              Your order has been rejected for the following reason: {onHoldNote}
+            </Text>
+
+            <View className="border-t border-dashed border-gray-200 my-4" />
+
+            <Text className="text-[13px] mb-3" style={styles.textBold}>Upload Prescription</Text>
+            
+            <View className="flex-row gap-3 mb-3">
+              <TouchableOpacity
+                className="flex-1 rounded-xl border border-[#48AAD9] py-2.5 items-center"
+                onPress={handlePickFromGallery}
+              >
+                <Text className="text-xs" style={styles.primarySemiBold}>Upload from Gallery</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 rounded-xl bg-[#48AAD9] py-2.5 items-center"
+                onPress={handleTakePhoto}
+              >
+                <Text className="text-xs text-white" style={styles.fontSemiBold}>Take a Photo</Text>
+              </TouchableOpacity>
+            </View>
+
+            {reuploadImage && (
+              <View className="mt-2 items-center bg-[#F4F9FD] p-2 rounded-xl border border-dashed border-[#B9DEEF]">
+                <View className="w-full relative">
+                  <Image
+                    source={{ uri: reuploadImage.uri }}
+                    className="w-full h-32 rounded-lg"
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    className="absolute top-2 right-2 bg-[#48AAD9] w-7 h-7 rounded-full items-center justify-center border-2 border-white"
+                    onPress={() => setReuploadImage(null)}
+                  >
+                    <Text className="text-white text-[10px]" style={styles.fontSemiBold}>✕</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity
+                  className="bg-[#48AAD9] rounded-xl px-8 py-2.5 items-center w-full mt-3"
+                  disabled={reuploading}
+                  onPress={handleUploadPhotoSubmit}
+                >
+                  {reuploading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text className="text-xs text-white" style={styles.fontSemiBold}>Upload</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <View className="flex-row items-center mt-3 mx-1">
+              <View className="w-[18px] h-[18px] rounded items-center justify-center bg-[#48AAD9] mr-2">
+                <Text className="text-white" style={{ fontSize: 10 }}>✓</Text>
+              </View>
+              <Text className="text-[11px] text-gray-700 flex-1 leading-4" style={styles.fontMedium}>
+                I confirm that this prescription is valid and issued by a licensed physician.
+              </Text>
+            </View>
+
+            {!!reuploadSuccess && <Text className="text-xs text-green-600 mt-3 text-center" style={styles.fontMedium}>{reuploadSuccess}</Text>}
+            {!!reuploadError && <Text className="text-xs text-red-500 mt-3 text-center" style={styles.fontMedium}>{reuploadError}</Text>}
+          </View>
+        )}
+
+        {isDiscountRejected && (
+          <View className="mt-4 pt-3 border-t border-gray-100">
+            <Text className="text-[11px] text-gray-400 mb-1" style={styles.fontMedium}>Reason:</Text>
+            <Text className="text-xs text-gray-700 leading-5" style={styles.fontMedium}>
+              Your Discount ID has been rejected for the following reason: {onHoldNote}
+            </Text>
+
+            {order.discountIdImagePath && (
+              <View className="mt-3">
+                <Text className="text-xs mb-2" style={styles.textBold}>Submitted ID</Text>
+                <TouchableOpacity activeOpacity={0.85} onPress={() => setModalImage({ uri: order.discountIdImagePath })}>
+                  <Image source={{ uri: order.discountIdImagePath }} className="w-full h-32 rounded-lg border border-gray-200" resizeMode="cover" />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {!order.discountRemarks?.toLowerCase().includes('acknowledged') && (
+              <>
+                <View className="border-t border-dashed border-gray-200 my-4" />
+
+                <View className="flex-row items-center mb-3 mx-1">
+                  <View className="w-[18px] h-[18px] rounded items-center justify-center bg-[#48AAD9] mr-2">
+                    <Text className="text-white" style={{ fontSize: 10 }}>!</Text>
+                  </View>
+                  <Text className="text-[11px] text-gray-700 flex-1 leading-4" style={styles.fontMedium}>
+                    By clicking Acknowledge & Confirm, you agree to bring your physical ID to the pharmacy upon pickup.
+                  </Text>
+                </View>
+
+                {actionError ? <Text className="text-xs text-red-500 mt-1 mb-2">{actionError}</Text> : null}
+                <TouchableOpacity
+                  className="bg-[#48AAD9] rounded-xl py-2.5 items-center w-full"
+                  disabled={actionLoading}
+                  onPress={handleConfirmDiscount}
+                >
+                  {actionLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text className="text-xs text-white" style={styles.fontSemiBold}>Acknowledge & Confirm</Text>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        )}
+
+        {isReceiptRejected && (
+          <View className="mt-4 pt-3 border-t border-gray-100">
+            <Text className="text-[11px] text-gray-400 mb-1" style={styles.fontMedium}>Reason:</Text>
+            <Text className="text-xs text-gray-700 leading-5" style={styles.fontMedium}>
+              Your Payment Receipt has been rejected for the following reason: {onHoldNote}
+            </Text>
+
+            {order.paymentReceiptImagePath && (
+              <View className="mt-3">
+                <Text className="text-xs mb-2" style={styles.textBold}>Submitted Receipt</Text>
+                <TouchableOpacity activeOpacity={0.85} onPress={() => setModalImage({ uri: order.paymentReceiptImagePath })}>
+                  <Image source={{ uri: order.paymentReceiptImagePath }} className="w-full h-32 rounded-lg border border-gray-200" resizeMode="cover" />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {!order.note?.toLowerCase().includes('acknowledged payment') && (
+              <>
+                <View className="border-t border-dashed border-gray-200 my-4" />
+
+                <View className="flex-row items-center mb-3 mx-1">
+                  <View className="w-[18px] h-[18px] rounded items-center justify-center bg-[#48AAD9] mr-2">
+                    <Text className="text-white" style={{ fontSize: 10 }}>!</Text>
+                  </View>
+                  <Text className="text-[11px] text-gray-700 flex-1 leading-4" style={styles.fontMedium}>
+                    By clicking Acknowledge & Pay in Store, you agree to pay for your order physically at the pharmacy upon pickup.
+                  </Text>
+                </View>
+
+                {actionError ? <Text className="text-xs text-red-500 mt-1 mb-2">{actionError}</Text> : null}
+                <TouchableOpacity
+                  className="bg-[#48AAD9] rounded-xl py-2.5 items-center w-full"
+                  disabled={actionLoading}
+                  onPress={handleConfirmReceipt}
+                >
+                  {actionLoading ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text className="text-xs text-white" style={styles.fontSemiBold}>Acknowledge & Pay in Store</Text>
+                  )}
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        )}
       </View>
 
       {/* Re-Upload Photo Section for On-Hold Orders */}
-      {isStandBy && (
+      {isStandBy && !isPrescriptionRejected && (
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-4 p-4">
           <Text className="text-sm mb-1" style={styles.textBold}>Upload Another Photo</Text>
           <Text className="text-xs text-gray-500 mb-3" style={styles.fontMedium}>

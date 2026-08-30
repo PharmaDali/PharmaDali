@@ -77,6 +77,9 @@ function mapOrderProduct(item) {
   const rxDescription = prescriptionRequired
     ? (product?.description || 'Please provide a valid prescription for this medicine.')
     : ''
+  if (product && pharmacyProduct?.category) {
+    product.category = pharmacyProduct.category;
+  }
 
   return {
     id: Number(item?.id || 0),
@@ -117,14 +120,43 @@ export function mapApiOrderToViewModel(order) {
   }
 
   let onHoldReason = reason || order?.discount_remarks || order?.note || ''
-  if (onHoldReason.toLowerCase().startsWith('rejected by pharmacist: ')) {
-    onHoldReason = onHoldReason.replace(/^rejected by pharmacist:\s*/i, '')
+  onHoldReason = onHoldReason
+    .replace(/^rejected by pharmacist:\s*/i, '')
+    .replace(/^rejected:\s*/i, '')
+    .replace(/^acknowledged_rejected:\s*/i, '')
+    .replace(/^payment receipt unverified:\s*/i, '')
+    .replace(/^.*payment receipt rejected:\s*/i, '')
+    .replace(/^.*customer acknowledged payment issue:\s*/i, '')
+
+  // Determine specialized badges based on section rejections
+  let displayStatus = toStatusLabel(rawStatus);
+  let customRawStatus = rawStatus;
+
+  // If order is stand_by because of a prescription issue
+  if (rawStatus === 'stand_by' && reason.toLowerCase().includes('prescription rejected')) {
+    displayStatus = 'Rejected';
+  }
+
+  // If ID is rejected, show ID Rejected (but don't override completed/cancelled states)
+  const isDiscountRejected = order?.discount_remarks?.toLowerCase().includes('rejected');
+  const isReceiptRejected = order?.payment_status === 'failed';
+
+  if (!COMPLETED_STATUSES.has(rawStatus) && rawStatus !== 'rejected') {
+    if (isDiscountRejected && isReceiptRejected) {
+      displayStatus = 'Action Required';
+    } else if (isDiscountRejected) {
+      displayStatus = 'ID Rejected';
+      customRawStatus = 'id_rejected';
+    } else if (isReceiptRejected) {
+      displayStatus = 'Receipt Rejected';
+      customRawStatus = 'receipt_rejected';
+    }
   }
 
   return {
     id: Number(order?.id || 0),
-    rawStatus,
-    status: toStatusLabel(rawStatus),
+    rawStatus: customRawStatus,
+    status: displayStatus,
     orderNumber: order?.order_number || String(order?.id || '-'),
     date: formatOrderDate(order?.placed_at || order?.created_at),
     products: items.map(mapOrderProduct),
@@ -136,6 +168,8 @@ export function mapApiOrderToViewModel(order) {
     note: order?.note || '',
     paymentStatus: order?.payment_status || '',
     prescriptionImagePath,
+    discountIdImagePath: order?.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null,
+    paymentReceiptImagePath: order?.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null,
   }
 }
 
