@@ -14,6 +14,7 @@ export async function submitCheckoutOrder({
   prescriptionImage,
   discountIdImage,
   discountType,
+  discountIdNumber,
   gcashReceiptImage,
   selectedPharmacyLabel,
   scheduledPickupAt,
@@ -43,7 +44,7 @@ export async function submitCheckoutOrder({
 
   if (orderId && discountIdImage?.uri) {
     try {
-      await uploadCustomerDiscountId(orderId, discountIdImage, discountType)
+      await uploadCustomerDiscountId(orderId, discountIdImage, discountType, discountIdNumber)
     } catch (err) {
       console.warn('Failed to upload discount ID image:', err)
     }
