@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Analytics\AnalyticsController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\CustomerChangePasswordController;
 use App\Http\Controllers\Auth\CustomerForgotPasswordController;
 use App\Http\Controllers\Auth\PharmacistChangePasswordController;
 use App\Http\Controllers\Customer\CustomerCartController;
@@ -42,6 +43,11 @@ Route::post('admin/login', [AuthController::class, 'adminLogin']);
 Route::post('customer/forgot-password/send-otp', [CustomerForgotPasswordController::class, 'sendOtp']);
 Route::post('customer/forgot-password/verify-otp', [CustomerForgotPasswordController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
 Route::post('customer/forgot-password/reset-password', [CustomerForgotPasswordController::class, 'resetPassword']);
+
+// Customer Change Password routes (Email OTP stored in Redis)
+Route::post('customer/change-password/send-otp', [CustomerChangePasswordController::class, 'sendOtp']);
+Route::post('customer/change-password/verify-otp', [CustomerChangePasswordController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
+Route::post('customer/change-password/reset-password', [CustomerChangePasswordController::class, 'changePassword']);
 
 // Pharmacist Change Password routes (Email OTP stored in Redis)
 Route::post('pharmacist/change-password/send-otp', [PharmacistChangePasswordController::class, 'sendOtp']);
