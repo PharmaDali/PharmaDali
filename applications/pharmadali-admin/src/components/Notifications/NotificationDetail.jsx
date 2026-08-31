@@ -11,94 +11,89 @@ export function NotificationDetail({ notification, onBack, onMarkAsRead, onDelet
   const currentStock = notification.data?.current_stock ?? notification.current_stock;
   const productName = notification.data?.product_name ?? notification.product_name;
 
-  const handleMarkRead = () => {
-    onMarkAsRead(notification.id);
-  };
-
   const handleDelete = () => {
     onDelete(notification.id);
     onBack();
   };
 
+  const displayTime = notification.dateTime || "Aug. 23, 2026 9:36 A.M";
+
   return (
     <section className="py-2">
       <button
         type="button"
-        className="btn btn-link p-0 mb-4 d-inline-flex align-items-center gap-2 text-decoration-none fw-semibold"
-        style={{ color: "#2aabe2" }}
+        className="btn btn-link p-0 mb-4 d-inline-flex align-items-center gap-2 text-decoration-none fw-bold"
+        style={{ color: "#2aabe2", fontSize: "0.95rem" }}
         onClick={onBack}
       >
         <i className="fa-solid fa-arrow-left" />
         <span>Back to Notifications</span>
       </button>
 
-      <div className="card border-0 shadow-sm rounded-4 p-4 p-md-5 bg-white">
-        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
-          <div className="d-flex align-items-center gap-2">
-            <span className={`alert-badge ${meta.bgClass}`}>
-              <i className={`fa-solid ${meta.icon}`} />
+      <div className="card border-0 shadow-sm p-3 p-md-5 bg-white notification-detail-card" style={{ borderRadius: "12px" }}>
+        <div className="d-flex flex-column flex-md-row align-items-md-start justify-content-between gap-2 mb-3">
+          
+          {/* Timestamp: Top Right on Mobile, Right on Desktop */}
+          <div className="d-flex justify-content-end order-1 order-md-2 mb-1 mb-md-0">
+            <span className="text-dark d-flex align-items-center gap-2 fw-semibold detail-timestamp-text">
+              <i className="fa-regular fa-clock" />
+              {displayTime}
+            </span>
+          </div>
+
+          {/* Badges: Below Timestamp on Mobile, Left on Desktop */}
+          <div className="d-flex align-items-center gap-2 order-2 order-md-1">
+            <span className="detail-category-badge">
               {meta.fullTitle}
             </span>
             {isRead ? (
-              <span className="badge bg-light text-muted border">Read</span>
+              <span className="detail-read-badge">Read</span>
             ) : (
-              <span className="badge bg-primary-subtle text-primary border border-primary-subtle">Unread</span>
+              <span className="detail-unread-badge">Unread</span>
             )}
           </div>
 
-          <span className="text-muted small d-flex align-items-center gap-1">
-            <i className="fa-solid fa-clock text-muted" />
-            {notification.dateTime || "Just now"}
-          </span>
         </div>
 
-        <h4 className="fw-bold mb-4 text-dark" style={{ lineHeight: 1.4 }}>
+        <h4 className="fw-bold mb-4 text-dark detail-main-text" style={{ lineHeight: 1.4 }}>
           {notification.message || notification.data?.message}
         </h4>
 
         {(productName || currentStock !== undefined || daysOfStock !== undefined) && (
-          <div className="p-3 rounded-3 mb-4 bg-light border">
-            <div className="row g-3 text-sm">
+          <div className="p-3 mb-4" style={{ backgroundColor: "#f8fafc", borderRadius: "8px" }}>
+            <div className="row g-3">
               {productName && (
-                <div className="col-6 col-md-4">
-                  <span className="text-muted d-block small">Product Name</span>
-                  <span className="fw-bold text-dark">{productName}</span>
+                <div className="col-12 col-md-4">
+                  <span className="d-block mb-1 detail-label-text" style={{ color: "#475569" }}>Product Name</span>
+                  <span className="fw-bold text-dark detail-value-text">{productName}</span>
                 </div>
               )}
               {currentStock !== undefined && (
-                <div className="col-6 col-md-4">
-                  <span className="text-muted d-block small">Current Stock</span>
-                  <span className="fw-bold text-danger">{currentStock} units</span>
+                <div className="col-12 col-md-4">
+                  <span className="d-block mb-1 detail-label-text" style={{ color: "#475569" }}>Current Stock</span>
+                  <span className="fw-bold text-danger detail-value-text">{currentStock} Units</span>
                 </div>
               )}
               {daysOfStock !== undefined && (
-                <div className="col-6 col-md-4">
-                  <span className="text-muted d-block small">Stock Forecast</span>
-                  <span className="fw-bold text-warning-emphasis">Will last less than {daysOfStock <= 1 ? "1 day" : "7 days"} ({daysOfStock} days left)</span>
+                <div className="col-12 col-md-4">
+                  <span className="d-block mb-1 detail-label-text" style={{ color: "#475569" }}>Stock Forecast</span>
+                  <span className="fw-bold detail-value-text" style={{ color: "#854d0e" }}>
+                    Will last less than {daysOfStock <= 1 ? "1 day" : "7 days"} ({daysOfStock} days left)
+                  </span>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        <div className="d-flex gap-2 flex-wrap pt-3 border-top mt-3">
-          {!isRead && (
-            <button
-              type="button"
-              className="btn btn-sm btn-theme-primary d-inline-flex align-items-center gap-1 px-3 py-2 rounded-3"
-              onClick={handleMarkRead}
-            >
-              <i className="fa-solid fa-circle-check" />
-              Mark as Read
-            </button>
-          )}
+        <div className="d-flex gap-2 gap-md-3 flex-nowrap flex-md-wrap pt-3 mt-2 justify-content-center justify-content-md-start w-100" style={{ borderTop: "1px solid #e2e8f0" }}>
           <button
             type="button"
-            className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 px-3 py-2 rounded-3"
+            className="detail-btn-delete d-inline-flex align-items-center justify-content-center gap-1 gap-md-2 flex-grow-1 flex-md-grow-0"
             onClick={handleDelete}
           >
-            <i className="fa-solid fa-trash-can" />
-            Delete Notification
+            <i className="fa-solid fa-trash" />
+            Delete Notifications
           </button>
         </div>
       </div>
