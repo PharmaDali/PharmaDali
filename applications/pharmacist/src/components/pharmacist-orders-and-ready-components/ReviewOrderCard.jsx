@@ -35,13 +35,36 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
     (order.discountRemarks?.toLowerCase()?.startsWith('rejected:') && !hasAcknowledgedDiscount) || 
     (order.paymentStatus === 'failed' && order.note?.toLowerCase()?.includes('payment receipt rejected:'));
   
-  const effectiveMuteActions = muteActions || isAwaitingCustomerAcknowledgement;
+  const isAwaitingPayment = order.apiStatus === 'awaiting_payment';
+
+  // Docs are pending if prescription not yet reviewed, or discount ID not approved/rejected
+  const hasPendingPrescription = rxItems.some(item => item.prescriptionRequired && (!item.prescriptionImage || item.prescriptionStatus === 'pending' || item.prescriptionStatus == null));
+  const hasDiscountPending = order.discountIdImagePath && !order.discountRemarks?.match(/^(approved|rejected|acknowledged_rejected)/i);
+  const hasPendingReceipt = order.paymentMethod === 'gcash' && order.paymentReceiptImagePath && order.paymentStatus === 'unpaid';
+
+  // "Approve Order" is disabled when: awaiting payment, docs not yet individually approved, or awaiting customer ack
+  const muteApproveOrder = muteActions || isAwaitingPayment || hasPendingPrescription || hasDiscountPending || hasPendingReceipt || isAwaitingCustomerAcknowledgement;
+
+  // "Pending" and "Reject" order buttons: only disabled when awaiting customer ack (NOT awaiting payment)
+  const muteOtherActions = muteActions || isAwaitingCustomerAcknowledgement;
 
   let statusBadge = null;
   if (isAwaitingCustomerAcknowledgement) {
     statusBadge = (
       <View className="px-2 py-0.5 rounded-lg border" style={{ borderColor: '#E67E22', backgroundColor: '#FFF4E5' }}>
         <Text className="text-[10px]" style={{ fontFamily: 'Poppins-SemiBold', color: '#D35400' }}>Awaiting Acknowledgement</Text>
+      </View>
+    );
+  } else if (isAwaitingPayment) {
+    statusBadge = (
+      <View className="px-2 py-0.5 rounded-lg border" style={{ borderColor: '#DAB55A', backgroundColor: 'rgba(254,244,192,0.81)' }}>
+        <Text className="text-[10px]" style={{ fontFamily: 'Poppins-SemiBold', color: '#7A5C00' }}>Awaiting Payment</Text>
+      </View>
+    );
+  } else if (order.paymentStatus === 'paid') {
+    statusBadge = (
+      <View className="px-2 py-0.5 rounded-lg border" style={{ borderColor: '#10B981', backgroundColor: '#ECFDF5' }}>
+        <Text className="text-[10px]" style={{ fontFamily: 'Poppins-SemiBold', color: '#059669' }}>Paid</Text>
       </View>
     );
   }
@@ -87,27 +110,27 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
               <View className="flex-row justify-end gap-2 mt-2 mb-2">
                 <TouchableOpacity
                   className="rounded-xl px-5 py-1.5"
-                  style={effectiveMuteActions ? styles.mutedPendingButton : styles.pendingButton}
-                  disabled={effectiveMuteActions}
+                  style={muteOtherActions ? styles.mutedPendingButton : styles.pendingButton}
+                  disabled={muteOtherActions}
                   onPress={() => onPending?.(order)}
                 >
-                  <Text className="text-sm" style={effectiveMuteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
+                  <Text className="text-sm" style={muteOtherActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="rounded-xl px-5 py-1.5"
-                  style={effectiveMuteActions ? styles.mutedApproveButton : styles.discountApproveButton}
-                  disabled={effectiveMuteActions}
+                  style={muteApproveOrder ? styles.mutedApproveButton : styles.discountApproveButton}
+                  disabled={muteApproveOrder}
                   onPress={() => onApprove?.(order)}
                 >
                   <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Approve</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="rounded-xl px-4 py-1.5 border"
-                  style={effectiveMuteActions ? styles.mutedRejectButton : styles.discountRejectButton}
-                  disabled={effectiveMuteActions}
+                  style={muteOtherActions ? styles.mutedRejectButton : styles.discountRejectButton}
+                  disabled={muteOtherActions}
                   onPress={() => onReject?.(order)}
                 >
-                  <Text className="text-sm" style={effectiveMuteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
+                  <Text className="text-sm" style={muteOtherActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -153,27 +176,27 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
         
                       <TouchableOpacity
                         className="rounded-xl px-6 py-2"
-                        style={effectiveMuteActions ? styles.mutedPendingButton : styles.pendingButton}
-                        disabled={effectiveMuteActions}
+                        style={muteOtherActions ? styles.mutedPendingButton : styles.pendingButton}
+                        disabled={muteOtherActions}
                         onPress={() => onPending?.(order)}
                       >
                         <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Pending</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         className="rounded-xl px-6 py-2"
-                        style={effectiveMuteActions ? styles.mutedApproveButton : styles.discountApproveButton}
-                        disabled={effectiveMuteActions}
+                        style={muteApproveOrder ? styles.mutedApproveButton : styles.discountApproveButton}
+                        disabled={muteApproveOrder}
                         onPress={() => onApprove?.(order)}
                       >
                         <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Approve</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         className="rounded-xl px-6 py-2 border"
-                        style={effectiveMuteActions ? styles.mutedRejectButton : styles.discountRejectButton}
-                        disabled={effectiveMuteActions}
+                        style={muteOtherActions ? styles.mutedRejectButton : styles.discountRejectButton}
+                        disabled={muteOtherActions}
                         onPress={() => onReject?.(order, 'prescription')}
                       >
-                        <Text className="text-sm" style={effectiveMuteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
+                        <Text className="text-sm" style={muteOtherActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -185,18 +208,18 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     <View className="flex-row justify-end gap-2 mb-2">
                       <TouchableOpacity
                         className="rounded-xl px-5 py-1.5"
-                        style={effectiveMuteActions ? styles.mutedPendingButton : styles.pendingButton}
-                        disabled={effectiveMuteActions}
+                        style={muteOtherActions ? styles.mutedPendingButton : styles.pendingButton}
+                        disabled={muteOtherActions}
                       onPress={() => onPending?.(order)}
                     >
                       <View className="flex-row items-center">
-                        <Text className="text-sm" style={effectiveMuteActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
+                        <Text className="text-sm" style={muteOtherActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
                       </View>
                     </TouchableOpacity>
                     <TouchableOpacity
                       className="rounded-xl px-5 py-1.5"
-                      style={effectiveMuteActions ? styles.mutedApproveButton : styles.discountApproveButton}
-                      disabled={effectiveMuteActions}
+                      style={muteApproveOrder ? styles.mutedApproveButton : styles.discountApproveButton}
+                      disabled={muteApproveOrder}
                       onPress={() => onApprove?.(order)}
                     >
                       <View className="flex-row items-center">
@@ -205,12 +228,12 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     </TouchableOpacity>
                     <TouchableOpacity
                       className="rounded-xl px-4 py-1.5 border"
-                      style={effectiveMuteActions ? styles.mutedRejectButton : styles.discountRejectButton}
-                      disabled={effectiveMuteActions}
+                      style={muteOtherActions ? styles.mutedRejectButton : styles.discountRejectButton}
+                      disabled={muteOtherActions}
                       onPress={() => onReject?.(order, 'prescription')}
                     >
                       <View className="flex-row items-center">
-                        <Text className="text-sm" style={effectiveMuteActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
+                        <Text className="text-sm" style={muteOtherActions ? styles.mutedRejectText : styles.discountRejectText}>Reject</Text>
                       </View>
                     </TouchableOpacity>
                   </View>

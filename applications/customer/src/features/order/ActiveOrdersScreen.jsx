@@ -8,7 +8,7 @@ import CancelOrderOverlay from '@src/shared/components/CancelOrderOverlay'
 import { cancelCustomerOrder, confirmInStorePayment, acknowledgeDiscountNotice, removeRxItemsAndProceed } from '@shared/services/orderService'
 import { useOrderSubmission } from '@shared/context/OrderSubmissionContext'
 
-function ActiveOrderCard({ order, onViewDetails }) {
+function ActiveOrderCard({ order, onViewDetails, onPay, onCancel }) {
   const isOptimistic = order._isOptimistic;
 
   return (
@@ -24,37 +24,62 @@ function ActiveOrderCard({ order, onViewDetails }) {
         </View>
       )}
 
+      {/* Header: Order number + date + badge */}
       <View className="flex-row justify-between items-start">
         <View className="flex-1 mr-2">
           <Text className="text-sm" style={styles.textColorBold}>Order #{order.orderNumber}</Text>
-          <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>{order.date}</Text>
+          <Text className="text-xs text-gray-500 mt-0.5" style={styles.fontMedium}>{order.date}</Text>
         </View>
         {!isOptimistic && <StatusBadge status={order.status} />}
       </View>
 
       <View className="border-b border-gray-200 my-3" />
 
+      {/* Product rows */}
       {order.products.map((product, idx) => (
         <ProductRow key={idx} product={product} />
       ))}
 
       <View className="border-b border-gray-200 my-3" />
 
+      {/* Order Summary row */}
       <View className="flex-row justify-between items-center">
         <Text className="text-sm" style={styles.textColorBold}>Order Summary</Text>
         <Text className="text-sm" style={styles.primaryLabelBold}>{order.orderSummary}</Text>
       </View>
 
+      {/* Action buttons */}
       {!isOptimistic && (
-        <View className="items-center mt-4 mb-1">
-          <TouchableOpacity
-            className="flex-row items-center rounded-xl px-6 py-2"
-            style={styles.viewDetailsButton}
-            onPress={onViewDetails}
-          >
-            <Text className="text-sm text-white mr-1" style={styles.fontSemiBold}>View Details</Text>
-            <ArrowForwardIcon width={13} height={13} color="#FFFFFF" />
-          </TouchableOpacity>
+        <View className="mt-4 mb-1">
+          {order.rawStatus === 'awaiting_payment' ? (
+            <View className="flex-row w-full gap-2.5">
+              <TouchableOpacity
+                className="flex-1 rounded-xl py-2.5 items-center justify-center border border-gray-400"
+                style={{ backgroundColor: '#FFFFFF' }}
+                onPress={onCancel}
+              >
+                <Text className="text-sm text-gray-700" style={styles.fontSemiBold}>Cancel Order</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 rounded-xl py-2.5 items-center justify-center"
+                style={{ backgroundColor: '#48AAD9' }}
+                onPress={onPay}
+              >
+                <Text className="text-sm text-white" style={styles.fontSemiBold}>Pay</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View className="items-center">
+              <TouchableOpacity
+                className="flex-row items-center rounded-xl px-6 py-2"
+                style={styles.viewDetailsButton}
+                onPress={onViewDetails}
+              >
+                <Text className="text-sm text-white mr-1" style={styles.fontSemiBold}>View Details</Text>
+                <ArrowForwardIcon width={13} height={13} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       )}
     </View>
@@ -107,6 +132,16 @@ export default function ActiveOrdersScreen({ orders = [], onOrderCancelled, refr
     }
   }
 
+  const handlePayOrder = (order) => {
+    router.push({
+      pathname: '/tabs/orders/PayOrder',
+      params: {
+        orderId: String(order.id || ''),
+        orderNumber: order.orderNumber,
+      },
+    })
+  }
+
   if (!allOrders.length) {
     return (
       <View className="mx-4 mt-4 bg-white border border-gray-200 rounded-2xl p-5 items-center">
@@ -125,8 +160,8 @@ export default function ActiveOrdersScreen({ orders = [], onOrderCancelled, refr
           <ActiveOrderCard
             order={item}
             onViewDetails={() => handleViewDetails(item)}
+            onPay={() => handlePayOrder(item)}
             onCancel={() => handleCancelPress(item)}
-            onActionSuccess={onRefresh || onOrderCancelled}
           />
         )}
         contentContainerStyle={{ paddingBottom: 24, paddingTop: 16 }}

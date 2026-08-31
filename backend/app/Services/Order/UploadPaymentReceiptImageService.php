@@ -64,6 +64,14 @@ class UploadPaymentReceiptImageService
 
         // Update and save order (instantiating Eloquent model save so observers fire)
         $order->payment_receipt_image_path = $relativePath;
+        $order->payment_status = \App\Enums\PaymentStatus::UNPAID; // Reset to unpaid when a new receipt is uploaded
+        
+        if (in_array($order->status, [\App\Enums\OrderStatus::AWAITING_PAYMENT, \App\Enums\OrderStatus::STAND_BY, \App\Enums\OrderStatus::PENDING])) {
+            $order->status = \App\Enums\OrderStatus::REVIEWING;
+        }
+
+        app(\App\Services\Messaging\ConversationService::class)->appendSystemMessage($order, 'Customer uploaded GCash payment receipt.');
+
         $order->save();
 
         return $order->fresh();

@@ -24,11 +24,11 @@ class UpdateOrderStatusByPharmacistService
     ];
 
     private const ACTION_ALLOWED_CURRENT_STATUSES = [
-        'approve'     => [OrderStatus::PENDING, OrderStatus::REVIEWING],
+        'approve'     => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::AWAITING_PAYMENT],
         'ready'       => [OrderStatus::PREPARING],
         'pending'     => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP],
         'out_pending' => [OrderStatus::STAND_BY, OrderStatus::PENDING],
-        'reject'      => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP],
+        'reject'      => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP, OrderStatus::AWAITING_PAYMENT],
     ];
 
     public function __construct(
@@ -92,6 +92,15 @@ class UpdateOrderStatusByPharmacistService
         }
 
         $nextStatus = self::ACTION_TO_STATUS[$action];
+
+        if ($action === 'approve' && $order->payment_method === 'gcash' && $order->payment_status === \App\Enums\PaymentStatus::UNPAID) {
+            // Only go to awaiting_payment if discount ID (if present) is already approved
+            $discountPending = $order->discount_id_image_path
+                && !preg_match('/^(approved|rejected|acknowledged_rejected)/i', $order->discount_remarks ?? '');
+            if (!$discountPending) {
+                $nextStatus = OrderStatus::AWAITING_PAYMENT;
+            }
+        }
 
         $updatePayload = [
             'status'      => $nextStatus,
@@ -228,7 +237,21 @@ class UpdateOrderStatusByPharmacistService
                     'discount_remarks' => 'approved',
                 ]);
                 $systemMsg = 'Discount ID approved by pharmacist.';
-                $order = $order->fresh();
+                $order = $order->fresh()->load(['items.orderItemPrescription']);
+
+                // Auto-transition to awaiting_payment for GCash orders if no pending prescriptions remain
+                if ($order->payment_method === 'gcash' && $order->payment_status === \App\Enums\PaymentStatus::UNPAID) {
+                    $hasPendingPrescription = $order->items->contains(function ($item) {
+                        $rx = $item->orderItemPrescription;
+                        return $rx && in_array($rx->status, ['pending', null]);
+                    });
+                    if (!$hasPendingPrescription) {
+                        $order->status = OrderStatus::AWAITING_PAYMENT;
+                        $order->save();
+                        $order = $order->fresh();
+                    }
+                }
+
                 $order->customer->user->notify(new DiscountIdVerifiedNotification($order, true));
                 break;
 
