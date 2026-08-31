@@ -74,12 +74,6 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
                 <span className="d-none d-md-inline">&nbsp;({daysOfStock}d remaining)</span>
               </span>
             )}
-
-            {!isUnread && (
-              <span className="badge bg-light text-muted border" style={{ fontSize: "0.7rem" }}>
-                Read
-              </span>
-            )}
           </div>
 
           <div className="d-none d-md-flex align-items-center gap-3">
