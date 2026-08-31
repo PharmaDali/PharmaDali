@@ -9,8 +9,8 @@ use Illuminate\Http\JsonResponse;
 class ListOrdersService
 {
     private const TAB_STATUS_MAP = [
-        'for_review'  => ['pending', 'reviewing'],
-        'For Review'  => ['pending', 'reviewing'],
+        'for_review'  => ['pending', 'reviewing', 'awaiting_payment'],
+        'For Review'  => ['pending', 'reviewing', 'awaiting_payment'],
         'preparing'   => ['preparing'],
         'Preparing'   => ['preparing'],
         'issues'      => ['cancelled', 'rejected', 'stand_by'],

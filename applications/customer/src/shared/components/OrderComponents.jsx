@@ -17,6 +17,7 @@ const statusColors = {
   id_rejected: { bg: '#FFF0F0', border: '#FFC1C1', text: '#C53030' },
   receipt_rejected: { bg: '#FFF0F0', border: '#FFC1C1', text: '#C53030' },
   action_required: { bg: '#FFF0F0', border: '#FFC1C1', text: '#C53030' },
+  awaiting_payment: { bg: 'rgba(254,244,192,0.81)', border: '#DAB55A', text: '#7A5C00' },
 };
 
 export function StatusBadge({ status }) {

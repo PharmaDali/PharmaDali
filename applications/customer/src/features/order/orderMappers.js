@@ -13,6 +13,7 @@ const STATUS_LABELS = {
   cancelled: 'Cancelled',
   rejected: 'Rejected',
   approved: 'Approved',
+  awaiting_payment: 'Awaiting Payment',
 }
 
 function formatCurrency(value) {
@@ -146,7 +147,11 @@ export function mapApiOrderToViewModel(order) {
   
   const hasAcknowledged = hasAcknowledgedDiscount || hasAcknowledgedPayment;
 
-  if (!COMPLETED_STATUSES.has(rawStatus) && rawStatus !== 'rejected') {
+  // awaiting_payment should never be overridden by rejection logic
+  if (rawStatus === 'awaiting_payment') {
+    displayStatus = 'Awaiting Payment';
+    customRawStatus = 'awaiting_payment';
+  } else if (!COMPLETED_STATUSES.has(rawStatus) && rawStatus !== 'rejected') {
     if (isDiscountRejected && isReceiptRejected) {
       displayStatus = 'Action Required';
     } else if (isDiscountRejected) {
@@ -175,6 +180,7 @@ export function mapApiOrderToViewModel(order) {
     discountRemarks: order?.discount_remarks || '',
     note: order?.note || '',
     paymentStatus: order?.payment_status || '',
+    paymentMethod: order?.payment_method || '',
     prescriptionImagePath,
     discountIdImagePath: order?.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null,
     paymentReceiptImagePath: order?.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null,

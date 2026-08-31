@@ -8,15 +8,13 @@ import { colors } from '@src/shared/theme/colorPalette'
 import RedLocationIcon from '@assets/icons/red_location_icon.svg'
 import LogoHeader from '@src/shared/components/LogoHeader'
 import RedInfoIcon from '@assets/icons/red_info_icon.svg'
+import GcashPaymentSection from '@shared/components/GcashPaymentSection'
 import DiscountIcon from '@assets/icons/discount_icon.svg'
 import BlueInfoIcon from '@assets/icons/blue_info_icon.svg'
 import PaymentMethodIcon from '@assets/icons/payment_method_icon.svg'
 import GcashIcon from '@assets/icons/gcash_icon.svg'
-import DownloadIcon from '@assets/icons/download_icon.svg'
-import GcashReceiptIcon from '@assets/icons/gcash_reciept_icon.svg'
 import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg'
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg'
-import QrCodeImage from '@assets/images/qrcode_dummy.png'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
 import { useOrderSubmission } from '@shared/context/OrderSubmissionContext'
@@ -316,6 +314,11 @@ const PickupDetailsScreen = () => {
       return
     }
 
+    if (!hasPrescription && !discountIdImage && paymentMethod === 'gcash' && !gcashReceiptImage) {
+      setSubmitError('Please upload your GCash payment receipt.')
+      return
+    }
+
     const scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, selectedTime)
     setSubmitError('')
 
@@ -332,7 +335,7 @@ const PickupDetailsScreen = () => {
       selectedPharmacyLabel,
       scheduledPickupAt,
       customerNote: normalizedCustomerNote,
-      paymentMethod: hasPrescription ? 'cash' : paymentMethod,
+      paymentMethod,
     }
 
     // Submit optimistically in the background
@@ -639,16 +642,6 @@ const PickupDetailsScreen = () => {
           <View className="p-4">
             <Text className="text-sm mb-3" style={styles.fontSemiBold}>Payment Method</Text>
 
-            {hasPrescription ? (
-              /* Prescribed items: Fixed Pay at Pharmacy (Cash/GCash) row */
-              <View className="flex-row items-center py-1">
-                <PaymentMethodIcon width={22} height={22} />
-                <Text className="text-xs ml-3" style={styles.fontMedium}>
-                  Pay at Pharmacy (Cash/GCash)
-                </Text>
-              </View>
-            ) : (
-              /* OTC items: Selectable Cash and GCash QR options */
               <View className="gap-3">
                 <TouchableOpacity
                   className="flex-row items-center justify-between py-1"
@@ -686,7 +679,6 @@ const PickupDetailsScreen = () => {
                   </View>
                 </TouchableOpacity>
               </View>
-            )}
 
             <View className="border-t border-gray-100 my-3" />
 
@@ -710,96 +702,16 @@ const PickupDetailsScreen = () => {
           </View>
         </View>
 
-        {/* QR Code Container (Only appears when OTC items AND GCash selected) */}
-        {!hasPrescription && paymentMethod === 'gcash' && (
-          <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-5 items-center justify-center relative">
-            <TouchableOpacity className="absolute top-4 right-4 p-1" activeOpacity={0.7}>
-              <DownloadIcon width={24} height={24} />
-            </TouchableOpacity>
-            <Image
-              source={QrCodeImage}
-              className="w-60 h-60"
-              resizeMode="contain"
-            />
-          </View>
-        )}
-
-        {/* GCash Receipt Upload Container (Only appears when OTC items AND GCash selected) */}
-        {!hasPrescription && paymentMethod === 'gcash' && (
-          <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-4">
-            <Text className="text-sm" style={styles.fontSemiBold}>
-              GCash QR / Scan to Pay Receipt
-            </Text>
-            <Text className="text-xs text-gray-600 mt-1 mb-3" style={styles.fontMedium}>
-              Upload a screenshot or photo of your Gcash payment receipt. Make sure the payment details are visible.
-            </Text>
-
-            <View className="flex-row items-center mb-4 py-1">
-              <GcashReceiptIcon width={28} height={28} />
-              <View className="ml-3 flex-1">
-                <Text className="text-xs" style={styles.fontMedium}>
-                  Accepted: Gcash receipt screenshot or photo
-                </Text>
-                <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
-                  File Format: JPG PNG (Max. 5MB)
-                </Text>
-              </View>
-            </View>
-
-            <View className="flex-row justify-between gap-2.5">
-              <TouchableOpacity
-                className="flex-[1.25] border border-[#48AAD9] rounded-xl py-3 items-center justify-center bg-white"
-                onPress={handlePickGcashReceiptFromGallery}
-              >
-                <Text className="text-xs" style={styles.primarySemiBold}>
-                  Upload from Gallery
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="flex-1 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
-                onPress={handleTakeGcashReceiptPhoto}
-              >
-                <Text className="text-xs text-white" style={styles.confirmPickupText}>
-                  Take a Photo
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Post-Upload Image Preview Container */}
-            {gcashReceiptImage ? (
-              <View className="mt-3 rounded-2xl bg-[#EEF7FD] p-4 flex-row items-center justify-between">
-                <View className="relative">
-                  <TouchableOpacity
-                    onPress={() => setExpandedImageUri(gcashReceiptImage.uri)}
-                    activeOpacity={0.9}
-                  >
-                    <Image
-                      source={{ uri: gcashReceiptImage.uri }}
-                      className="w-36 h-24 rounded-xl"
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleRemoveGcashReceipt}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#48AAD9] items-center justify-center border-2 border-white"
-                    activeOpacity={0.8}
-                  >
-                    <Text className="text-white text-[11px] font-bold leading-none">✕</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <TouchableOpacity
-                  className="px-8 py-2.5 rounded-xl border border-[#48AAD9] bg-white items-center justify-center min-w-[96px]"
-                  onPress={handlePickGcashReceiptFromGallery}
-                >
-                  <Text className="text-xs" style={styles.primarySemiBold}>
-                    Upload
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            ) : null}
-          </View>
+        {/* GCash Payment Section */}
+        {!hasPrescription && !discountIdImage && paymentMethod === 'gcash' && (
+          <GcashPaymentSection
+            onPickFromGallery={handlePickGcashReceiptFromGallery}
+            onTakeImage={handleTakeGcashReceiptPhoto}
+            receiptImage={gcashReceiptImage}
+            onRemoveReceipt={handleRemoveGcashReceipt}
+            wrapperStyle={{ marginHorizontal: 16 }}
+            qrStyle={{ width: 240, height: 240 }}
+          />
         )}
 
         {isPharmacyClosed && (

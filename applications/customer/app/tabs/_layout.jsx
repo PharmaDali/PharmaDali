@@ -18,6 +18,7 @@ configureForegroundNotifications();
 
 const detailHeaders = {
   '/tabs/orders/ViewOrderDetails': 'Order Details',
+  '/tabs/orders/PayOrder': 'Awaiting Payment',
 }
 
 const fullScreenRoutes = [

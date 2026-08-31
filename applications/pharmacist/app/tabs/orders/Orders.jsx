@@ -21,7 +21,7 @@ const tabApiMap = {
 
 const mapApiStatusToTabStatus = (status) => {
   const s = String(status || '').toLowerCase();
-  if (['pending', 'reviewing'].includes(s)) return 'For Review';
+  if (['pending', 'reviewing', 'awaiting_payment'].includes(s)) return 'For Review';
   if (s === 'preparing') return 'Preparing';
   if (['cancelled', 'rejected', 'stand_by'].includes(s)) return 'Issues';
   if (['completed', 'ready_for_pickup', 'overdue'].includes(s)) return null;
@@ -80,6 +80,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
         let itemDisplayStatus = 'For Review';
         if (apiStatus === 'cancelled' || apiStatus === 'rejected') itemDisplayStatus = 'Rejected';
         if (apiStatus === 'stand_by') itemDisplayStatus = 'Awaiting Customer Response';
+        if (apiStatus === 'awaiting_payment') itemDisplayStatus = 'Awaiting Payment';
         if (apiStatus === 'preparing') itemDisplayStatus = 'Preparing';
 
         return {
@@ -93,6 +94,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
           size: product?.size || product?.strength || '-',
           prescriptionRequired,
           prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,
+          prescriptionStatus: prescription?.status || null,
           status: itemDisplayStatus,
           rejectionReason: order?.cancellation_reason || 'Requires attention',
         };
@@ -294,7 +296,12 @@ export default function Orders() {
     setError('');
     const previousTabStates = JSON.parse(JSON.stringify(tabStates));
 
-    if (!section) {
+    // A GCash order with unpaid payment will become awaiting_payment (stays in For Review)
+    const isGcashAwaitingPayment = !section
+      && order.paymentMethod === 'gcash'
+      && order.paymentStatus !== 'paid';
+
+    if (!section && !isGcashAwaitingPayment) {
       // Optimistic UI: Immediately remove order from 'For Review' UI list for general approval
       setTabStates((prev) => {
         const forReview = prev['For Review'];
@@ -319,7 +326,7 @@ export default function Orders() {
 
     try {
       await updateOrderStatusByPharmacist(orderId, 'approve', null, section);
-      if (!section) {
+      if (!section && !isGcashAwaitingPayment) {
         setActiveTab('Preparing');
         fetchTabOrders('Preparing', 1, true);
       } else {

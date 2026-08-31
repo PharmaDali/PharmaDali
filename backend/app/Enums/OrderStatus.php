@@ -12,6 +12,7 @@ enum OrderStatus: string
     case OVERDUE = 'overdue';
     case CANCELLED = 'cancelled';
     case STAND_BY = 'stand_by';
+    case AWAITING_PAYMENT = 'awaiting_payment';
 
     public function label(): string
     {
@@ -24,6 +25,7 @@ enum OrderStatus: string
             self::OVERDUE => 'Overdue',
             self::CANCELLED => 'Cancelled',
             self::STAND_BY => 'Stand By',
+            self::AWAITING_PAYMENT => 'Awaiting Payment',
         };
     }
 }
