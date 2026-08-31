@@ -10,7 +10,7 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
   const rawDays = item.data?.days_of_stock ?? item.days_of_stock;
   const daysOfStock = rawDays !== undefined && rawDays !== null ? rawDays : (meta.label === "Stocks" ? 7 : undefined);
   const productName = item.data?.product_name ?? item.product_name;
-  
+
   const displayTime = item.dateTime || "Aug. 23, 2026 9:36 A.M";
 
   const renderActions = () => (
@@ -21,7 +21,7 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
           {displayTime}
         </span>
       </div>
-      
+
       <div className="d-flex gap-2 align-items-center">
         <button
           type="button"
@@ -55,9 +55,7 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
       className={`notification-card ${isUnread ? "is-unread" : "is-read"}`}
     >
       <div className="d-flex flex-column gap-2">
-        {/* Top Row: Badges and Actions */}
         <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
-          {/* Left: Badges */}
           <div className="d-flex align-items-center gap-2 flex-wrap">
             <span className={`alert-badge ${meta.bgClass}`}>
               {meta.label}
@@ -76,35 +74,31 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
                 <span className="d-none d-md-inline">&nbsp;({daysOfStock}d remaining)</span>
               </span>
             )}
-            
+
             {!isUnread && (
-                <span className="badge bg-light text-muted border" style={{ fontSize: "0.7rem" }}>
-                  Read
-                </span>
+              <span className="badge bg-light text-muted border" style={{ fontSize: "0.7rem" }}>
+                Read
+              </span>
             )}
           </div>
 
-          {/* Right: Timestamp and Action Buttons (Desktop Only) */}
           <div className="d-none d-md-flex align-items-center gap-3">
-             {renderActions()}
+            {renderActions()}
           </div>
         </div>
-
-        {/* Message and Product Info */}
         <div className="mt-1">
-          <p className={`mb-1 ${isUnread ? "fw-bold text-dark" : "fw-medium text-secondary"}`} style={{fontSize: "0.95rem"}}>
+          <p className={`mb-1 ${isUnread ? "fw-bold text-dark" : "fw-medium text-secondary"}`} style={{ fontSize: "0.95rem" }}>
             {item.message || item.data?.message}
           </p>
           {productName && (
-            <p className="text-muted small mb-0" style={{fontSize: "0.85rem"}}>
+            <p className="text-muted small mb-0" style={{ fontSize: "0.85rem" }}>
               Product: <span className="fw-semibold text-dark">{productName}</span>
             </p>
           )}
         </div>
 
-        {/* Bottom: Timestamp and Action Buttons (Mobile Only) */}
         <div className="d-flex d-md-none justify-content-end align-items-center gap-3 mt-1">
-           {renderActions()}
+          {renderActions()}
         </div>
       </div>
     </div>
