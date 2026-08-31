@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BottomNavigation, Badge } from 'react-native-paper';
 import { useRouter, usePathname } from 'expo-router';
-import { Text, View } from 'react-native';
+import { Text, View, Keyboard } from 'react-native';
 import { colors } from '@shared/theme/colorPalette';
 import { useUnreadNotifications } from '@shared/hooks/useUnreadNotifications';
 import { useSearchContext } from '@shared/context/SearchContext';
@@ -53,6 +53,7 @@ export default function BottomBar() {
     <BottomNavigation.Bar
       navigationState={{ index: index >= 0 ? index : 0, routes }}
       onTabPress={({ route }) => {
+        Keyboard.dismiss();
         if (route.key === 'notifications') {
           setOptimisticRead(true);
         }
