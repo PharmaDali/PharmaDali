@@ -138,8 +138,13 @@ export function mapApiOrderToViewModel(order) {
   }
 
   // If ID is rejected, show ID Rejected (but don't override completed/cancelled states)
-  const isDiscountRejected = order?.discount_remarks?.toLowerCase().includes('rejected');
-  const isReceiptRejected = order?.payment_status === 'failed';
+  const hasAcknowledgedDiscount = order?.discount_remarks?.toLowerCase().startsWith('acknowledged_rejected:');
+  const hasAcknowledgedPayment = order?.note?.toLowerCase().includes('customer acknowledged payment issue');
+  
+  const isDiscountRejected = order?.discount_remarks?.toLowerCase().includes('rejected') && !hasAcknowledgedDiscount;
+  const isReceiptRejected = order?.payment_status === 'failed' && !hasAcknowledgedPayment;
+  
+  const hasAcknowledged = hasAcknowledgedDiscount || hasAcknowledgedPayment;
 
   if (!COMPLETED_STATUSES.has(rawStatus) && rawStatus !== 'rejected') {
     if (isDiscountRejected && isReceiptRejected) {
@@ -150,6 +155,9 @@ export function mapApiOrderToViewModel(order) {
     } else if (isReceiptRejected) {
       displayStatus = 'Receipt Rejected';
       customRawStatus = 'receipt_rejected';
+    } else if (hasAcknowledged && (rawStatus === 'pending' || rawStatus === 'reviewing' || rawStatus === 'stand_by')) {
+      displayStatus = 'Reviewing';
+      customRawStatus = 'reviewing';
     }
   }
 

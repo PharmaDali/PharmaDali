@@ -1,6 +1,7 @@
 import { View, FlatList, Text, RefreshControl, ActivityIndicator } from 'react-native';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useLocalSearchParams, useFocusEffect } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
+import { useLocalSearchParams, useFocusEffect, useRouter } from 'expo-router';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
 import StatusFeedbackModal from '@shared/components/StatusFeedbackModal';
@@ -42,8 +43,8 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       customerName: `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim() || 'Customer',
       customerAvatar: MaleIcon,
       pickupTime: (order?.scheduled_pickup_at || order?.placed_at || order?.created_at)
-        ? formatDateToMMDDYYYY(order?.scheduled_pickup_at || order?.placed_at || order?.created_at)
-        : 'Schedule not set',
+        ? (formatDateToMMDDYYYY(order?.scheduled_pickup_at || order?.placed_at || order?.created_at) || 'Waiting...')
+        : 'Waiting...',
       submittedAgo: formatDateToMMDDYYYY(order?.created_at) || 'Recently',
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
@@ -101,11 +102,21 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
 };
 
 export default function Orders() {
+  const router = useRouter();
   const params = useLocalSearchParams();
   const initialTab = params?.tab && orderTabs.includes(params.tab) ? params.tab : 'For Review';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+
+  const [hasNewIssues, setHasNewIssues] = useState(false);
+  const [lastSeenIssuesStr, setLastSeenIssuesStr] = useState(null);
+
+  useEffect(() => {
+    SecureStore.getItemAsync('lastSeenIssues').then(val => {
+      setLastSeenIssuesStr(val || '[]');
+    });
+  }, []);
 
   useEffect(() => {
     if (params?.tab && orderTabs.includes(params.tab)) {
@@ -202,10 +213,20 @@ export default function Orders() {
   // Real-time Auto-Sync: Auto-refresh on screen focus and poll silently every 6s
   useFocusEffect(
     useCallback(() => {
-      fetchTabOrders(activeTab, 1, true);
+      // Initially fetch all tabs to hydrate counts and the issues array
+      fetchTabOrders('For Review', 1, true).then(() => {
+        fetchTabOrders('Preparing', 1, true).then(() => {
+          fetchTabOrders('Issues', 1, true);
+        });
+      });
 
       const interval = setInterval(() => {
-        fetchTabOrders(activeTab, 1, true);
+        // Fetch all tabs sequentially to keep counts and the new issue badge in sync
+        fetchTabOrders('For Review', 1, true).then(() => {
+          fetchTabOrders('Preparing', 1, true).then(() => {
+            fetchTabOrders('Issues', 1, true);
+          });
+        });
       }, 6000);
 
       return () => clearInterval(interval);
@@ -226,6 +247,26 @@ export default function Orders() {
       fetchTabOrders(activeTab, currentState.page + 1);
     }
   };
+
+  useEffect(() => {
+    const issuesData = tabStates['Issues'].items.map(i => ({
+      id: i.id,
+      discountRemarks: i.discountRemarks,
+      note: i.note,
+      status: i.status
+    }));
+    const currentStr = JSON.stringify(issuesData);
+
+    if (activeTab === 'Issues') {
+      setHasNewIssues(false);
+      setLastSeenIssuesStr(currentStr);
+      SecureStore.setItemAsync('lastSeenIssues', currentStr);
+    } else {
+      if (lastSeenIssuesStr !== null && currentStr !== lastSeenIssuesStr && issuesData.length > 0) {
+        setHasNewIssues(true);
+      }
+    }
+  }, [activeTab, tabStates['Issues'].items, lastSeenIssuesStr]);
 
   const currentTabState = tabStates[activeTab] || { items: [], loading: false, loadingMore: false, total: 0 };
   const activeOrders = currentTabState.items;
@@ -278,7 +319,12 @@ export default function Orders() {
 
     try {
       await updateOrderStatusByPharmacist(orderId, 'approve', null, section);
-      fetchTabOrders(activeTab, 1, true);
+      if (!section) {
+        setActiveTab('Preparing');
+        fetchTabOrders('Preparing', 1, true);
+      } else {
+        fetchTabOrders(activeTab, 1, true);
+      }
     } catch (e) {
       console.error('[Orders] Error approving order:', e);
       setError(e?.message || 'Failed to approve order.');
@@ -392,6 +438,7 @@ export default function Orders() {
     try {
       await updateOrderStatusByPharmacist(orderId, 'ready');
       fetchTabOrders(activeTab, 1, true);
+      router.push('/tabs/ready/Ready');
     } catch (e) {
       console.error('[Orders] Error marking order as ready:', e);
       setError(e?.message || 'Failed to mark order as ready.');
@@ -430,6 +477,7 @@ export default function Orders() {
         onTabChange={setActiveTab} 
         tabs={orderTabs} 
         counts={tabCounts}
+        hasNewIssueMarker={hasNewIssues}
       />
 
       {!!error && (

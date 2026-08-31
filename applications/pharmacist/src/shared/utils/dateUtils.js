@@ -4,10 +4,10 @@
  * @returns {string} - The formatted date string (mm-dd-yyyy).
  */
 export const formatDateToMMDDYYYY = (dateValue) => {
-  if (!dateValue) return 'N/A';
+  if (!dateValue) return null;
   
   const date = new Date(dateValue);
-  if (isNaN(date.getTime())) return 'N/A';
+  if (isNaN(date.getTime())) return null;
 
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');

@@ -29,26 +29,25 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
   const rxItems = order.items.filter((item) => item.prescriptionRequired);
   const prescriptionImage = rxItems.find(item => item.prescriptionImage)?.prescriptionImage;
 
+  const hasAcknowledgedDiscount = order.discountRemarks?.toLowerCase()?.startsWith('acknowledged_rejected:');
+
   const isAwaitingCustomerAcknowledgement = 
-    (order.discountRemarks?.toLowerCase()?.startsWith('rejected:') && !order.discountRemarks?.toLowerCase()?.startsWith('acknowledged_rejected:')) || 
-    (order.paymentStatus === 'failed' && order.note?.includes('Payment receipt rejected:'));
+    (order.discountRemarks?.toLowerCase()?.startsWith('rejected:') && !hasAcknowledgedDiscount) || 
+    (order.paymentStatus === 'failed' && order.note?.toLowerCase()?.includes('payment receipt rejected:'));
   
   const effectiveMuteActions = muteActions || isAwaitingCustomerAcknowledgement;
 
-  const AwaitingAcknowledgementNote = () => {
-    if (!isAwaitingCustomerAcknowledgement) return null;
-    return (
-      <View className="flex-row items-center bg-[#FFF4E5] p-3 rounded-xl mb-3 mt-1">
-        <InfoIcon width={16} height={16} color="#E67E22" />
-        <Text className="text-xs ml-2 flex-1 text-[#D35400]" style={{ fontFamily: 'Poppins-Medium' }}>
-          Waiting for customer's acknowledgement of rejected ID/Receipt.
-        </Text>
+  let statusBadge = null;
+  if (isAwaitingCustomerAcknowledgement) {
+    statusBadge = (
+      <View className="px-2 py-0.5 rounded-lg border" style={{ borderColor: '#E67E22', backgroundColor: '#FFF4E5' }}>
+        <Text className="text-[10px]" style={{ fontFamily: 'Poppins-SemiBold', color: '#D35400' }}>Awaiting Acknowledgement</Text>
       </View>
     );
-  };
+  }
 
   return (
-    <OrderCard order={order}>
+    <OrderCard order={order} statusBadge={statusBadge}>
       {!expanded ? (
         <View className="flex-row items-center justify-between px-4 pb-4 pt-2">
           {hasPrescription && (
@@ -85,8 +84,6 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                 <Text className="text-base text-gray-900" style={{ fontFamily: 'Poppins-SemiBold' }}>PHP {order.orderTotal}</Text>
               </View>
 
-              <AwaitingAcknowledgementNote />
-              
               <View className="flex-row justify-end gap-2 mt-2 mb-2">
                 <TouchableOpacity
                   className="rounded-xl px-5 py-1.5"
@@ -153,7 +150,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     </TouchableOpacity>
 
                     <View className="gap-2">
-                      <AwaitingAcknowledgementNote />
+        
                       <TouchableOpacity
                         className="rounded-xl px-6 py-2"
                         style={effectiveMuteActions ? styles.mutedPendingButton : styles.pendingButton}
@@ -184,7 +181,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
 
                 {!prescriptionImage && (
                   <View className="mt-2">
-                    <AwaitingAcknowledgementNote />
+      
                     <View className="flex-row justify-end gap-2 mb-2">
                       <TouchableOpacity
                         className="rounded-xl px-5 py-1.5"
@@ -226,6 +223,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
           {/* Discount ID Approval Section */}
           {order.discountIdImagePath && (() => {
             const isDiscountRejected = order.discountRemarks?.toLowerCase().includes('rejected');
+            const isDiscountApproved = order.discountRemarks?.toLowerCase() === 'approved';
             return (
             <View className="mx-2 mb-4 mt-2">
               <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
@@ -248,9 +246,6 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     {isDiscountRejected && (
                       <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
                         <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>ID Rejected</Text>
-                        <Text className="text-[#DC3545] text-[11px] text-center mb-1" style={{ fontFamily: 'Poppins-SemiBold' }}>
-                          Reason: {order.discountRemarks?.replace(/^(?:acknowledged_)?rejected(?: by pharmacist)?:\s*/i, '') || 'Rejected'}
-                        </Text>
                         <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
                           Customer has been notified to bring physical ID.
                         </Text>
@@ -258,7 +253,11 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     )}
                   </TouchableOpacity>
 
-                  {!isDiscountRejected && (
+                  {isDiscountApproved ? (
+                    <View className="gap-2 items-center justify-center bg-[#E8F5E9] px-4 py-2 rounded-xl border border-[#C8E6C9]">
+                      <Text className="text-[#2E7D32] text-xs text-center" style={{ fontFamily: 'Poppins-Bold' }}>✓ Approved</Text>
+                    </View>
+                  ) : !isDiscountRejected ? (
                     <View className="gap-2">
                       <TouchableOpacity
                         className="rounded-xl px-6 py-2"
@@ -277,7 +276,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                         <Text className="text-sm text-center" style={styles.discountRejectText}>Reject</Text>
                       </TouchableOpacity>
                     </View>
-                  )}
+                  ) : null}
                 </View>
 
                 {/* Checkbox */}
@@ -305,6 +304,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
           {/* Payment Receipt Section */}
           {order.paymentReceiptImagePath && (() => {
             const isReceiptRejected = order.paymentStatus === 'failed';
+            const isReceiptApproved = order.paymentStatus === 'paid';
             return (
             <View className="mx-2 mb-4 mt-2">
               <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
@@ -325,9 +325,6 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     {isReceiptRejected && (
                       <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
                         <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>Receipt Rejected</Text>
-                        <Text className="text-[#DC3545] text-[11px] text-center mb-1" style={{ fontFamily: 'Poppins-SemiBold' }}>
-                          Reason: {order.note?.replace(/^(?:customer acknowledged payment issue|payment receipt unverified):\s*/i, '') || 'Rejected'}
-                        </Text>
                         <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
                           Customer notified to pay upon pickup.
                         </Text>
@@ -335,7 +332,11 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     )}
                   </TouchableOpacity>
 
-                  {!isReceiptRejected && (
+                  {isReceiptApproved ? (
+                    <View className="gap-2 items-center justify-center bg-[#E8F5E9] px-4 py-2 rounded-xl border border-[#C8E6C9]">
+                      <Text className="text-[#2E7D32] text-xs text-center" style={{ fontFamily: 'Poppins-Bold' }}>✓ Approved</Text>
+                    </View>
+                  ) : !isReceiptRejected ? (
                     <View className="gap-2">
                       <TouchableOpacity
                         className="rounded-xl px-6 py-2"
@@ -354,7 +355,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                         <Text className="text-sm text-center" style={styles.discountRejectText}>Reject</Text>
                       </TouchableOpacity>
                     </View>
-                  )}
+                  ) : null}
                 </View>
               </View>
             </View>
