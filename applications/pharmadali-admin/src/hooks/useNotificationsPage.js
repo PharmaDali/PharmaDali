@@ -45,7 +45,7 @@ export const getMeta = (typeKey) => TYPE_META[typeKey] ?? TYPE_META["System Aler
 
 export const TAB_CATEGORIES = [
   { id: "All", label: "Primary", types: null, icon: "fa-star" },
-  { id: "Stocks", label: "Stocks", types: ["Low Stocks", "Shortage Alert"], icon: "fa-boxes-stacked" },
+  { id: "Stocks", label: "Stocks", types: ["Low Stocks", "Shortage Alert"], icon: "" },
   { id: "Expiry Warning", label: "Expiring", types: ["Expiry Warning"], icon: "fa-clock" },
   { id: "System Alert", label: "Alerts", types: ["System Alert"], icon: "fa-circle-info" },
 ];

@@ -41,20 +41,21 @@ export function Notifications() {
 
   return (
     <section className="py-2">
-      {/* Header */}
       <header className="mb-4">
-        <div className="d-flex align-items-center justify-content-between mb-2">
-          <h4 className="notifications-page-title mb-0">Notifications</h4>
+        <div className="d-flex align-items-start justify-content-between mb-2">
+          <div>
+            <h4 className="notifications-page-title mb-1">Notifications</h4>
+            <p className="notifications-page-subtitle mb-0">
+              Real -time pharmacy alerts, stocks, threshold warnings, and system updates.
+            </p>
+          </div>
           {unreadCount > 0 && (
-            <span className="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fw-semibold d-flex align-items-center gap-1">
+            <div className="header-unread-badge d-flex align-items-center gap-1">
               <i className="fa-regular fa-bell" />
-              {unreadCount} Unread
-            </span>
+              <span>{unreadCount} Unread</span>
+            </div>
           )}
         </div>
-        <p className="notifications-page-subtitle mb-0">
-          Real-time pharmacy alerts, stock threshold warnings, and system updates.
-        </p>
       </header>
 
       {/* Bootstrap Filter Nav Pills */}
@@ -70,7 +71,7 @@ export function Notifications() {
               className={`nav-link position-relative ${isActive ? "active" : ""}`}
               onClick={() => handleTabChange(tab.id)}
             >
-              <i className={`fa-solid ${tab.icon}`} />
+              {tab.icon && <i className={`fa-solid ${tab.icon}`} />}
               <span>{tab.label}</span>
               {count > 0 && (
                 <>
@@ -88,8 +89,8 @@ export function Notifications() {
         {unreadCount > 0 && (
           <button
             type="button"
-            className="btn btn-sm btn-outline-success d-inline-flex align-items-center gap-1 rounded-pill px-3 py-1"
-            style={{ fontSize: "0.75rem", fontWeight: "600" }}
+            className="btn btn-sm d-inline-flex align-items-center gap-1 rounded-pill px-3 py-1"
+            style={{ fontSize: "0.8rem", fontWeight: "600", color: "#2aabe2", backgroundColor: "#ffffff", border: "1px solid #2aabe2" }}
             onClick={markAllAsRead}
           >
             <i className="fa-solid fa-circle-check" />
@@ -100,15 +101,15 @@ export function Notifications() {
         {unreadNotifications.length > 0 && (
           <button
             type="button"
-            className="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 rounded-pill px-3 py-1"
-            style={{ fontSize: "0.75rem", fontWeight: "600" }}
+            className="btn btn-sm d-inline-flex align-items-center gap-1 rounded-pill px-3 py-1"
+            style={{ fontSize: "0.8rem", fontWeight: "600", color: "#ef4444", backgroundColor: "#ffffff", border: "1px solid #ef4444" }}
             onClick={() => {
               if (window.confirm("Are you sure you want to delete all notifications?")) {
                 deleteAllNotifications();
               }
             }}
           >
-            <i className="fa-solid fa-trash-can" />
+            <i className="fa-regular fa-trash-can" />
             <span>Delete all</span>
           </button>
         )}
