@@ -13,6 +13,42 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
   
   const displayTime = item.dateTime || "Aug. 23, 2026 9:36 A.M";
 
+  const renderActions = () => (
+    <>
+      <div className="d-flex align-items-center gap-1">
+        {isUnread && <span className="unread-dot me-1" />}
+        <span className="timestamp-text">
+          {displayTime}
+        </span>
+      </div>
+      
+      <div className="d-flex gap-2 align-items-center">
+        <button
+          type="button"
+          className="card-action-btn"
+          title="Mark as read"
+          onClick={(e) => {
+            e.stopPropagation();
+            onMarkAsRead(item.id);
+          }}
+        >
+          <i className="fa-solid fa-circle-check" />
+        </button>
+        <button
+          type="button"
+          className="card-action-btn"
+          title="Delete"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(item.id);
+          }}
+        >
+          <i className="fa-solid fa-trash-can" />
+        </button>
+      </div>
+    </>
+  );
+
   return (
     <div
       onClick={() => onSelect(item)}
@@ -20,7 +56,7 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
     >
       <div className="d-flex flex-column gap-2">
         {/* Top Row: Badges and Actions */}
-        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
           {/* Left: Badges */}
           <div className="d-flex align-items-center gap-2 flex-wrap">
             <span className={`alert-badge ${meta.bgClass}`}>
@@ -36,7 +72,8 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
             {daysOfStock !== undefined && daysOfStock !== null && (
               <span className="alert-badge-warning">
                 <i className="fa-regular fa-clock me-1" />
-                Will last less than {daysOfStock <= 1 ? "1 day" : "7 days"} ({daysOfStock}d remaining)
+                Will last less than {daysOfStock <= 1 ? "1 day" : "7 days"}
+                <span className="d-none d-md-inline">&nbsp;({daysOfStock}d remaining)</span>
               </span>
             )}
             
@@ -47,39 +84,9 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
             )}
           </div>
 
-          {/* Right: Timestamp and Action Buttons */}
-          <div className="d-flex align-items-center gap-3">
-             <div className="d-flex align-items-center gap-1">
-               {isUnread && <span className="unread-dot me-1" />}
-               <span className="timestamp-text">
-                 {displayTime}
-               </span>
-             </div>
-             
-             <div className="d-flex gap-2 align-items-center">
-               <button
-                  type="button"
-                  className="card-action-btn"
-                  title="Mark as read"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onMarkAsRead(item.id);
-                  }}
-                >
-                  <i className="fa-solid fa-circle-check" />
-                </button>
-                <button
-                  type="button"
-                  className="card-action-btn"
-                  title="Delete"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(item.id);
-                  }}
-                >
-                  <i className="fa-solid fa-trash-can" />
-                </button>
-             </div>
+          {/* Right: Timestamp and Action Buttons (Desktop Only) */}
+          <div className="d-none d-md-flex align-items-center gap-3">
+             {renderActions()}
           </div>
         </div>
 
@@ -93,6 +100,11 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
               Product: <span className="fw-semibold text-dark">{productName}</span>
             </p>
           )}
+        </div>
+
+        {/* Bottom: Timestamp and Action Buttons (Mobile Only) */}
+        <div className="d-flex d-md-none justify-content-end align-items-center gap-3 mt-1">
+           {renderActions()}
         </div>
       </div>
     </div>

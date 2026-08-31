@@ -42,20 +42,18 @@ export function Notifications() {
   return (
     <section className="py-2">
       <header className="mb-4">
-        <div className="d-flex align-items-start justify-content-between mb-2">
-          <div>
-            <h4 className="notifications-page-title mb-1">Notifications</h4>
-            <p className="notifications-page-subtitle mb-0">
-              Real -time pharmacy alerts, stocks, threshold warnings, and system updates.
-            </p>
-          </div>
+        <div className="d-flex align-items-center justify-content-between mb-2 gap-2">
+          <h4 className="notifications-page-title mb-0">Notifications</h4>
           {unreadCount > 0 && (
-            <div className="header-unread-badge d-flex align-items-center gap-1">
+            <div className="header-unread-badge d-flex align-items-center gap-1 flex-shrink-0">
               <i className="fa-regular fa-bell" />
               <span>{unreadCount} Unread</span>
             </div>
           )}
         </div>
+        <p className="notifications-page-subtitle mb-0">
+          Real -time pharmacy alerts, stocks, threshold warnings, and system updates.
+        </p>
       </header>
 
       {/* Bootstrap Filter Nav Pills */}
