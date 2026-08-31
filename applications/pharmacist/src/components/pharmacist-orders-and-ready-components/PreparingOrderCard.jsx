@@ -48,9 +48,6 @@ export default function PreparingOrderCard({ order, onMarkAsReady }) {
                 {isDiscountRejected && (
                   <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
                     <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>ID Rejected</Text>
-                    <Text className="text-[#DC3545] text-[11px] text-center mb-1" style={{ fontFamily: 'Poppins-SemiBold' }}>
-                      Reason: {order.discountRemarks?.replace(/^(?:acknowledged_)?rejected(?: by pharmacist)?:\s*/i, '') || 'Rejected'}
-                    </Text>
                     <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
                       Customer has been notified to bring physical ID.
                     </Text>
@@ -86,9 +83,6 @@ export default function PreparingOrderCard({ order, onMarkAsReady }) {
                 {isReceiptRejected && (
                   <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
                     <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>Receipt Rejected</Text>
-                    <Text className="text-[#DC3545] text-[11px] text-center mb-1" style={{ fontFamily: 'Poppins-SemiBold' }}>
-                      Reason: {order.note?.replace(/^(?:customer acknowledged payment issue|payment receipt unverified):\s*/i, '') || 'Rejected'}
-                    </Text>
                     <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
                       Customer notified to pay upon pickup.
                     </Text>

@@ -1,6 +1,6 @@
 import { ActivityIndicator, Text, View, ScrollView, TouchableOpacity, Image, StyleSheet, Modal, Pressable } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { useLocalSearchParams, useRouter } from 'expo-router'
+import React, { useEffect, useState, useCallback } from 'react'
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
@@ -58,9 +58,20 @@ export default function ViewOrderDetailsScreen() {
     }
   }
 
-  useEffect(() => {
-    loadOrder()
-  }, [resolvedOrderId])
+  useFocusEffect(
+    useCallback(() => {
+      loadOrder()
+
+      const intervalId = setInterval(() => {
+        if (!resolvedOrderId) return
+        fetchCustomerOrderDetails(resolvedOrderId)
+          .then(payload => setOrder(mapApiOrderToViewModel(payload)))
+          .catch(console.error)
+      }, 10000)
+
+      return () => clearInterval(intervalId)
+    }, [resolvedOrderId])
+  )
 
   const handleConfirmReceipt = async () => {
     if (!order?.id) return
