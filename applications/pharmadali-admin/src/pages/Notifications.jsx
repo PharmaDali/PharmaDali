@@ -87,8 +87,7 @@ export function Notifications() {
         {unreadCount > 0 && (
           <button
             type="button"
-            className="btn btn-sm d-inline-flex align-items-center gap-1 rounded-pill px-3 py-1"
-            style={{ fontSize: "0.8rem", fontWeight: "600", color: "#2aabe2", backgroundColor: "#ffffff", border: "1px solid #2aabe2" }}
+            className="btn btn-sm d-inline-flex align-items-center gap-1 rounded-pill list-action-btn-mark"
             onClick={markAllAsRead}
           >
             <i className="fa-solid fa-circle-check" />
@@ -99,8 +98,7 @@ export function Notifications() {
         {unreadNotifications.length > 0 && (
           <button
             type="button"
-            className="btn btn-sm d-inline-flex align-items-center gap-1 rounded-pill px-3 py-1"
-            style={{ fontSize: "0.8rem", fontWeight: "600", color: "#ef4444", backgroundColor: "#ffffff", border: "1px solid #ef4444" }}
+            className="btn btn-sm d-inline-flex align-items-center gap-1 rounded-pill list-action-btn-delete"
             onClick={() => {
               if (window.confirm("Are you sure you want to delete all notifications?")) {
                 deleteAllNotifications();
