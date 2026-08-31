@@ -181,6 +181,72 @@
   border-radius: 50px;
 }
 
+.detail-category-badge {
+  background-color: #e2e8f0;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.detail-unread-badge {
+  background-color: #e0f2fe;
+  color: #2aabe2;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.detail-read-badge {
+  background-color: #f1f5f9;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+}
+
+.detail-btn-mark {
+  background-color: #4dbff0; /* Matches typical primary brand color slightly adjusted */
+  background-color: #2aabe2;
+  color: white;
+  border: none;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.detail-btn-mark:hover {
+  background-color: #1a9bd1;
+  color: white;
+}
+
+.detail-btn-delete {
+  background-color: #ffffff;
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.detail-btn-delete:hover {
+  background-color: #fef2f2;
+}
+
 @media (max-width: 767.98px) {
   .notifications-nav-pills {
     justify-content: space-between;
