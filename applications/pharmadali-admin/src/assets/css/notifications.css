@@ -193,7 +193,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.4rem 0.8rem;
-  border-radius: 6px;
+  border-radius: 50px;
   display: inline-flex;
   align-items: center;
 }
@@ -243,7 +243,7 @@
   border: 1px solid #ef4444;
   font-weight: 600;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-radius: 50px;
   font-size: 0.85rem;
   transition: all 0.15s ease;
 }
@@ -375,6 +375,7 @@
   background-color: #ffffff;
   border: 1px solid #2aabe2;
   padding: 0.25rem 1rem;
+  border-radius: 50px;
   transition: all 0.15s ease;
 }
 
@@ -385,5 +386,6 @@
   background-color: #ffffff;
   border: 1px solid #ef4444;
   padding: 0.25rem 1rem;
+  border-radius: 50px;
   transition: all 0.15s ease;
 }

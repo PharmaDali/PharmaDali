@@ -128,7 +128,12 @@ export function Notifications() {
               <NotificationCardItem
                 key={item.id}
                 item={item}
-                onSelect={setSelectedNotification}
+                onSelect={(item) => {
+                  setSelectedNotification(item);
+                  if (!item.read_at) {
+                    markAsRead(item.id);
+                  }
+                }}
                 onMarkAsRead={markAsRead}
                 onDelete={deleteNotification}
               />

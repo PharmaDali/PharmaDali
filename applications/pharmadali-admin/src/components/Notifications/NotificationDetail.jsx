@@ -46,11 +46,6 @@ export function NotificationDetail({ notification, onBack, onMarkAsRead, onDelet
             <span className="detail-category-badge">
               {meta.fullTitle}
             </span>
-            {isRead ? (
-              <span className="detail-read-badge">Read</span>
-            ) : (
-              <span className="detail-unread-badge">Unread</span>
-            )}
           </div>
 
         </div>
