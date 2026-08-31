@@ -248,6 +248,9 @@ export default function ViewOrderDetailsScreen() {
   const isDiscountRejected = order.rawStatus === 'id_rejected' || (isStandBy && order.discountRemarks?.toLowerCase().includes('rejected'))
   const isPrescriptionRejected = (order.rawStatus === 'stand_by' || order.status === 'Rejected') && !isReceiptRejected && !isDiscountRejected && (order.reason?.toLowerCase().includes('prescription') || order.cancellationReason?.toLowerCase().includes('prescription'))
 
+  const isDiscountApproved = order.discountRemarks?.toLowerCase() === 'approved'
+  const isReceiptApproved = order.paymentStatus === 'paid'
+
   return (
     <ScrollView className="flex-1 bg-[#F1F4FF]" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }}>
 
@@ -270,9 +273,31 @@ export default function ViewOrderDetailsScreen() {
           <ProductRow key={idx} product={product} />
         ))}
 
+        <View className="border-b border-gray-200 my-3" />
+
+        <View className="flex-row justify-between items-center">
+          <Text className="text-sm" style={styles.textBold}>Order Summary</Text>
+          <Text className="text-sm" style={styles.primarySemiBold}>{order.orderSummary}</Text>
+        </View>
+
         {order.prescriptionImagePath && (
           <View className="mt-4 pt-3 border-t border-gray-200">
-            <Text className="text-xs mb-2" style={styles.textBold}>Submitted Prescription</Text>
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-xs" style={styles.textBold}>Submitted Prescription</Text>
+              {isPrescriptionRejected ? (
+                <View className="bg-red-100 px-2 py-0.5 rounded flex-row items-center">
+                  <Text className="text-red-700" style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>✗ Rejected</Text>
+                </View>
+              ) : !['pending', 'reviewing', 'stand_by', 'cancelled'].includes(order.rawStatus) ? (
+                <View className="bg-green-100 px-2 py-0.5 rounded flex-row items-center">
+                  <Text className="text-green-700" style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>✓ Approved</Text>
+                </View>
+              ) : (
+                <View className="bg-yellow-100 px-2 py-0.5 rounded flex-row items-center">
+                  <Text className="text-yellow-700" style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>Pending</Text>
+                </View>
+              )}
+            </View>
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => setModalImage({ uri: order.prescriptionImagePath })}
@@ -286,12 +311,67 @@ export default function ViewOrderDetailsScreen() {
           </View>
         )}
 
-        <View className="border-b border-gray-200 my-3" />
+        {order.discountIdImagePath && (
+          <View className="mt-4 pt-3 border-t border-gray-200">
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-xs" style={styles.textBold}>Submitted Discount ID</Text>
+              {isDiscountApproved ? (
+                <View className="bg-green-100 px-2 py-0.5 rounded flex-row items-center">
+                  <Text className="text-green-700" style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>✓ Approved</Text>
+                </View>
+              ) : isDiscountRejected ? (
+                <View className="bg-red-100 px-2 py-0.5 rounded flex-row items-center">
+                  <Text className="text-red-700" style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>✗ Rejected</Text>
+                </View>
+              ) : (
+                <View className="bg-yellow-100 px-2 py-0.5 rounded flex-row items-center">
+                  <Text className="text-yellow-700" style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>Pending</Text>
+                </View>
+              )}
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => setModalImage({ uri: order.discountIdImagePath })}
+            >
+              <Image
+                source={{ uri: order.discountIdImagePath }}
+                className="w-full h-32 rounded-xl border border-gray-200"
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
 
-        <View className="flex-row justify-between items-center">
-          <Text className="text-sm" style={styles.textBold}>Order Summary</Text>
-          <Text className="text-sm" style={styles.primarySemiBold}>{order.orderSummary}</Text>
-        </View>
+        {order.paymentReceiptImagePath && (
+          <View className="mt-4 pt-3 border-t border-gray-200">
+            <View className="flex-row justify-between items-center mb-2">
+              <Text className="text-xs" style={styles.textBold}>Submitted Receipt</Text>
+              {isReceiptApproved ? (
+                <View className="bg-green-100 px-2 py-0.5 rounded flex-row items-center">
+                  <Text className="text-green-700" style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>✓ Approved</Text>
+                </View>
+              ) : isReceiptRejected ? (
+                <View className="bg-red-100 px-2 py-0.5 rounded flex-row items-center">
+                  <Text className="text-red-700" style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>✗ Rejected</Text>
+                </View>
+              ) : (
+                <View className="bg-yellow-100 px-2 py-0.5 rounded flex-row items-center">
+                  <Text className="text-yellow-700" style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>Pending</Text>
+                </View>
+              )}
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => setModalImage({ uri: order.paymentReceiptImagePath })}
+            >
+              <Image
+                source={{ uri: order.paymentReceiptImagePath }}
+                className="w-full h-32 rounded-xl border border-gray-200"
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {isPrescriptionRejected && (
           <View className="mt-4 pt-3 border-t border-gray-100">
@@ -369,15 +449,6 @@ export default function ViewOrderDetailsScreen() {
               Your Discount ID has been rejected for the following reason: {onHoldNote}
             </Text>
 
-            {order.discountIdImagePath && (
-              <View className="mt-3">
-                <Text className="text-xs mb-2" style={styles.textBold}>Submitted ID</Text>
-                <TouchableOpacity activeOpacity={0.85} onPress={() => setModalImage({ uri: order.discountIdImagePath })}>
-                  <Image source={{ uri: order.discountIdImagePath }} className="w-full h-32 rounded-lg border border-gray-200" resizeMode="cover" />
-                </TouchableOpacity>
-              </View>
-            )}
-
             {!order.discountRemarks?.toLowerCase().includes('acknowledged') && (
               <>
                 <View className="border-t border-dashed border-gray-200 my-4" />
@@ -414,15 +485,6 @@ export default function ViewOrderDetailsScreen() {
             <Text className="text-xs text-gray-700 leading-5" style={styles.fontMedium}>
               Your Payment Receipt has been rejected for the following reason: {onHoldNote}
             </Text>
-
-            {order.paymentReceiptImagePath && (
-              <View className="mt-3">
-                <Text className="text-xs mb-2" style={styles.textBold}>Submitted Receipt</Text>
-                <TouchableOpacity activeOpacity={0.85} onPress={() => setModalImage({ uri: order.paymentReceiptImagePath })}>
-                  <Image source={{ uri: order.paymentReceiptImagePath }} className="w-full h-32 rounded-lg border border-gray-200" resizeMode="cover" />
-                </TouchableOpacity>
-              </View>
-            )}
 
             {!order.note?.toLowerCase().includes('acknowledged payment') && (
               <>
