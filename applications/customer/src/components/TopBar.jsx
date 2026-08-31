@@ -1,5 +1,5 @@
-import { Text, View, TouchableOpacity } from 'react-native'
-import { useRouter } from 'expo-router'
+import { Text, View, TouchableOpacity, Keyboard, Animated } from 'react-native'
+import { useRouter, usePathname } from 'expo-router'
 import MainLogo from '@shared/components/MainLogo'
 import { colors } from '@shared/theme/colorPalette'
 import { TextInput } from 'react-native-paper'
@@ -10,9 +10,6 @@ import { getCartItemCount } from '@shared/services/cartService'
 import { subscribeCartCountUpdates } from '@shared/services/cartCountEvents'
 import { resetCartProductIdsCache, initializeCartProductIdsCache } from '@shared/utils/cartUtils'
 import { useSearchContext } from '@shared/context/SearchContext'
-import { usePathname } from 'expo-router'
-
-import { Animated } from 'react-native'
 import { useFlyToCart } from '@shared/context/FlyToCartContext'
 
 const TopBar = () => {
@@ -20,11 +17,23 @@ const TopBar = () => {
   const pathname = usePathname();
   const { searchQuery, setSearchQuery } = useSearchContext();
   const { setCartTargetPos, registerLandingListener } = useFlyToCart();
+  const searchInputRef = useRef(null);
 
   const [cartCount, setCartCount] = useState(0);
   const cartIconRef = useRef(null);
   const badgeScale = useRef(new Animated.Value(1)).current;
   const cartShakeAnim = useRef(new Animated.Value(0)).current;
+
+  // Unactivate search bar whenever navigating away from the Search tab
+  useEffect(() => {
+    if (pathname !== '/tabs/Search') {
+      searchInputRef.current?.blur();
+      Keyboard.dismiss();
+      if (searchQuery) {
+        setSearchQuery('');
+      }
+    }
+  }, [pathname, searchQuery, setSearchQuery]);
 
   const shakeCart = useCallback(() => {
     Animated.sequence([
@@ -123,9 +132,20 @@ const TopBar = () => {
         </TouchableOpacity>
       </View>
       <TextInput
+        ref={searchInputRef}
         placeholder="Search"
         mode="outlined"
         left={<TextInput.Icon icon="magnify" />}
+        right={
+          searchQuery ? (
+            <TextInput.Icon
+              icon="close"
+              onPress={() => {
+                setSearchQuery('');
+              }}
+            />
+          ) : null
+        }
         theme={theme}
         value={searchQuery}
         onChangeText={(text) => {
