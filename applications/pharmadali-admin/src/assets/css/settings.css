@@ -622,7 +622,7 @@
   transform: translateX(14px);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 991.98px) {
   .settings-list-item {
     padding: 1rem 1.25rem;
   }
@@ -637,12 +637,18 @@
   }
 
   .settings-section-row {
-    grid-template-columns: 1fr;
-    gap: 12px;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
   }
 
   .settings-section-right {
     justify-content: flex-start;
+  }
+
+  .settings-form-input {
+    border: none;
+    background-color: #f1f5f9;
   }
 
   .settings-button-group {
