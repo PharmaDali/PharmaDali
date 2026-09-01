@@ -10,6 +10,8 @@ function Login() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
   };
@@ -45,9 +47,9 @@ function Login() {
             <h2 className="text-[var(--color-primary-blue)] text-2xl font-semibold m-0 mb-2.5 text-center">Log In</h2>
 
             <Input
-              type="text"
+              type="email"
               name="email"
-              placeholder="Admin ID"
+              placeholder="Email"
               value={credentials.email}
               onChange={handleChange}
               className="bg-[var(--color-input-bg)] hover:bg-[var(--color-input-bg-focus)] focus:bg-[var(--color-input-bg-focus)] border-none rounded-lg px-4 py-3.5 text-[var(--color-text-white)] text-sm font-medium outline-none transition-colors placeholder:text-[var(--color-placeholder)] font-[var(--font-primary)]"
@@ -55,13 +57,32 @@ function Login() {
             />
 
             <Input
-              type="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               placeholder="Password"
               value={credentials.password}
               onChange={handleChange}
               className="bg-[var(--color-input-bg)] hover:bg-[var(--color-input-bg-focus)] focus:bg-[var(--color-input-bg-focus)] border-none rounded-lg px-4 py-3.5 text-[var(--color-text-white)] text-sm font-medium outline-none transition-colors placeholder:text-[var(--color-placeholder)] font-[var(--font-primary)]"
               required
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-[var(--color-placeholder)] hover:text-[var(--color-text-white)] transition-colors focus:outline-none"
+                >
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                      <line x1="1" y1="1" x2="23" y2="23"></line>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  )}
+                </button>
+              }
             />
 
             {error && <p className="text-[var(--color-danger-red)] text-sm m-0 text-center font-medium">{error}</p>}
