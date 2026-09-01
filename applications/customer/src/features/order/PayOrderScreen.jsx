@@ -207,24 +207,22 @@ export default function PayOrderScreen() {
           receiptImage={gcashReceiptImage}
           onRemoveReceipt={handleRemoveGcashReceipt}
           wrapperStyle={{ marginHorizontal: 16, shadowColor: '#000', elevation: 2 }}
+          footer={
+            <TouchableOpacity
+              className={`rounded-xl py-3.5 items-center justify-center ${gcashReceiptImage ? 'bg-[#48AAD9]' : 'bg-[#65B7DF] opacity-80'}`}
+              disabled={!gcashReceiptImage || submitting}
+              onPress={handleUpload}
+            >
+              {submitting ? (
+                <ActivityIndicator color="#FFFFFF" size="small" />
+              ) : (
+                <Text className="text-[13px] text-white" style={styles.fontSemiBold}>
+                  Upload
+                </Text>
+              )}
+            </TouchableOpacity>
+          }
         />
-
-        <View className="mx-4 mt-2">
-
-          <TouchableOpacity
-            className={`mt-4 rounded-xl py-3.5 items-center justify-center ${gcashReceiptImage ? 'bg-[#48AAD9]' : 'bg-gray-300'}`}
-            disabled={!gcashReceiptImage || submitting}
-            onPress={handleUpload}
-          >
-            {submitting ? (
-              <ActivityIndicator color="#FFFFFF" size="small" />
-            ) : (
-              <Text className="text-sm text-white" style={styles.fontSemiBold}>
-                Upload
-              </Text>
-            )}
-          </TouchableOpacity>
-        </View>
       </ScrollView>
     </SafeAreaView>
   )
