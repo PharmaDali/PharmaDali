@@ -4,7 +4,16 @@ import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
 import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 
+import { LinearGradient } from 'expo-linear-gradient'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import React, { useState } from 'react'
+
 function CompletedOrderCard({ order, onViewDetails }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const hasMultipleProducts = order.products?.length > 1;
+  const displayedProducts = isExpanded ? order.products : order.products?.slice(0, 1);
+
   return (
     <View className="border border-gray-200 bg-white rounded-2xl py-4 px-4 mt-4 mx-4 shadow-md elevation-2">
       <View className="flex-row justify-between items-start">
@@ -17,9 +26,42 @@ function CompletedOrderCard({ order, onViewDetails }) {
 
       <View className="border-b border-gray-200 my-3" />
 
-      {order.products.map((product, idx) => (
-        <ProductRow key={idx} product={product} />
-      ))}
+      {/* Product rows */}
+      <View className="relative overflow-hidden pb-3">
+        {displayedProducts?.map((product, idx) => (
+          <ProductRow key={idx} product={product} />
+        ))}
+        
+        {hasMultipleProducts && !isExpanded && (
+          <TouchableOpacity 
+            className="absolute bottom-0 left-0 right-0 items-center justify-end z-10" 
+            style={{ height: 45 }}
+            onPress={() => setIsExpanded(true)}
+            activeOpacity={0.9}
+          >
+            <LinearGradient
+              colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.9)', '#FFFFFF']}
+              style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 45 }}
+              pointerEvents="none"
+            />
+            <View className="flex-row items-center mb-0">
+              <Text className="text-[12px] text-[#48AAD9]" style={{ fontFamily: 'Poppins-Bold' }}>See {order.products.length - 1} more</Text>
+              <MaterialCommunityIcons name="chevron-down" size={14} color="#48AAD9" style={{ marginLeft: 2 }} />
+            </View>
+          </TouchableOpacity>
+        )}
+        
+        {hasMultipleProducts && isExpanded && (
+          <TouchableOpacity 
+            className="items-center justify-center py-2 mt-2 flex-row" 
+            onPress={() => setIsExpanded(false)}
+            activeOpacity={0.7}
+          >
+            <Text className="text-[12px] text-[#48AAD9]" style={{ fontFamily: 'Poppins-Bold' }}>See less</Text>
+            <MaterialCommunityIcons name="chevron-up" size={16} color="#48AAD9" style={{ marginLeft: 2 }} />
+          </TouchableOpacity>
+        )}
+      </View>
 
       <View className="border-b border-gray-200 my-3" />
 
