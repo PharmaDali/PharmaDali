@@ -22,10 +22,10 @@ const statusConfig = {
     textColor: '#3F8A56',
   },
   Expired: {
-    label: 'Expired',
-    borderColor: '#D9A1A1',
-    backgroundColor: '#FAEEEE',
-    textColor: '#B15A5A',
+    label: 'Overdue',
+    borderColor: 'rgba(255, 178, 89, 0.70)',
+    backgroundColor: '#FF9114',
+    textColor: '#FFFFFF',
   },
 };
 
@@ -88,6 +88,35 @@ export default function ReadyOrderCard({ order }) {
               <OrderItemRow key={idx} item={item} />
             ))}
           </View>
+
+          {/* Prescription Document Section */}
+          {(() => {
+            const rxItems = order.items.filter(item => item.prescriptionRequired);
+            const prescriptionImage = rxItems.find(item => item.prescriptionImage)?.prescriptionImage;
+            if (!prescriptionImage) return null;
+
+            return (
+              <View className="mx-2 mb-4 mt-2">
+                <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
+                  <Text className="text-sm mb-3" style={styles.sectionTitle}>Prescription</Text>
+
+                  <View className="flex-row items-center gap-3">
+                    <TouchableOpacity
+                      className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative"
+                      activeOpacity={0.8}
+                      onPress={() => setPreviewImage(prescriptionImage)}
+                    >
+                      <Image
+                        source={prescriptionImage}
+                        className="w-full h-24"
+                        resizeMode="cover"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            );
+          })()}
 
           {/* Discount ID Approval Section */}
           {order.discountIdImagePath && (() => {

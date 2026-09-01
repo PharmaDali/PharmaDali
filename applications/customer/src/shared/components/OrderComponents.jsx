@@ -13,7 +13,7 @@ const statusColors = {
   rejected: { bg: '#333333', border: '#444444', text: '#FFFFFF' },
   cancelled: { bg: '#FEE2E2', border: '#EF4444', text: '#991B1B' },
   completed: { bg: '#48AAD9', border: '#96D2EE', text: '#FFFFFF' },
-  overdue: { bg: '#FFF7ED', border: '#FB923C', text: '#9A3412' },
+  overdue: { bg: '#FF9114', border: 'rgba(255, 178, 89, 0.70)', text: '#FFFFFF' },
   id_rejected: { bg: '#FFF0F0', border: '#FFC1C1', text: '#C53030' },
   receipt_rejected: { bg: '#FFF0F0', border: '#FFC1C1', text: '#C53030' },
   action_required: { bg: '#FFF0F0', border: '#FFC1C1', text: '#C53030' },
