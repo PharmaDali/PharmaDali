@@ -63,6 +63,7 @@ const PickupDetailsScreen = () => {
   const [expandedImageUri, setExpandedImageUri] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
 
   const operatingMinutes = useMemo(() => parsePharmacyOperatingMinutes(selectedPharmacy), [selectedPharmacy])
   const openingMinutes = operatingMinutes.openingMinutes
@@ -321,9 +322,15 @@ const PickupDetailsScreen = () => {
 
     const scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, selectedTime)
     setSubmitError('')
+    setShowConfirmModal(true)
+  }
 
+  const actuallySubmitOrder = () => {
+    setShowConfirmModal(false)
     const normalizedCustomerNote = customerNote.trim()
     const selectedPharmacyLabel = selectedPharmacy?.name || pharmacyLabel || ''
+    
+    const scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, selectedTime)
     const payload = {
       items,
       hasPrescription,
@@ -338,11 +345,38 @@ const PickupDetailsScreen = () => {
       paymentMethod,
     }
 
+    // Build summary for OrderSubmittedScreen
+    const now = new Date()
+    const orderDateFormatted = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+
+    let pickupDateFormatted = ''
+    if (scheduledPickupAt) {
+      const pDate = `${scheduledPickupAt.getFullYear()}-${String(scheduledPickupAt.getMonth() + 1).padStart(2, '0')}-${String(scheduledPickupAt.getDate()).padStart(2, '0')}`
+      const pTime = scheduledPickupAt.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      pickupDateFormatted = `${pDate} ${pTime}`
+    }
+
+    const summary = {
+      orderDate: orderDateFormatted,
+      pickupDate: pickupDateFormatted,
+      paymentMethod: paymentMethod === 'gcash' ? 'Pay Upfront (GCash Payment)' : 'Pay In-Store (Cash)',
+      items: items.map(i => ({
+        name: i.description || i.product?.name || 'Product',
+        qty: i.quantity,
+        rx: i.prescriptionRequired,
+        price: i.price
+      })),
+      total: effectiveTotal
+    }
+
     // Submit optimistically in the background
     submitOptimisticOrder(payload)
 
-    // Instantly navigate
-    router.replace('/tabs/cart/OrderSubmitted')
+    // Instantly navigate with summary params
+    router.replace({
+      pathname: '/tabs/cart/OrderSubmitted',
+      params: { summary: JSON.stringify(summary) }
+    })
   }
 
   const displayLocation = pharmacyLocationLabel || selectedPharmacy?.address || selectedPharmacy?.location || ''
@@ -746,6 +780,38 @@ const PickupDetailsScreen = () => {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <Modal
+        visible={showConfirmModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowConfirmModal(false)}
+      >
+        <View className="flex-1 justify-center items-center px-4" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View className="bg-white rounded-2xl w-full p-6 shadow-xl">
+            <Text className="text-lg text-center mb-4" style={styles.fontBold}>
+              Confirm Pickup Request?
+            </Text>
+            <Text className="text-sm text-center mb-6" style={styles.fontMediumGray}>
+              Are you sure you want to submit this pickup request? Once submitted, it cannot be edited.
+            </Text>
+            <View className="flex-row justify-between gap-3">
+              <TouchableOpacity
+                className="flex-1 rounded-xl py-3 items-center border border-[#48AAD9] bg-white"
+                onPress={() => setShowConfirmModal(false)}
+              >
+                <Text className="text-sm" style={[styles.fontSemiBold, { color: '#48AAD9' }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                className="flex-1 rounded-xl py-3 items-center bg-[#48AAD9]"
+                onPress={actuallySubmitOrder}
+              >
+                <Text className="text-sm" style={[styles.fontSemiBold, { color: '#ffffff' }]}>Yes, Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   )
 }

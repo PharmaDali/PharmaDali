@@ -75,7 +75,8 @@ class PosRepository
         $query = Order::with([
             'customer.user',
             'items.pharmacyProduct.product',
-            'items.pharmacyProduct.category'
+            'items.pharmacyProduct.category',
+            'items.orderItemPrescription'
         ])
         ->whereNotNull('customer_id');
 
