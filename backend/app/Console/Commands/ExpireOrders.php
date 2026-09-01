@@ -36,7 +36,8 @@ class ExpireOrders extends Command
         OrderStatus::REVIEWING, 
         OrderStatus::PREPARING, 
         OrderStatus::STAND_BY, 
-        OrderStatus::READY_FOR_PICKUP
+        OrderStatus::READY_FOR_PICKUP,
+        OrderStatus::AWAITING_PAYMENT
     ];
 
     public function handle(): int
