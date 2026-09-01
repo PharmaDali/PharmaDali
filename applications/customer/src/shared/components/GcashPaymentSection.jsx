@@ -11,6 +11,7 @@ export default function GcashPaymentSection({
   onRemoveReceipt,
   wrapperStyle = {},
   qrStyle = { width: 224, height: 224 },
+  footer = null,
 }) {
   return (
     <>
@@ -45,43 +46,43 @@ export default function GcashPaymentSection({
           </View>
         </View>
 
-        {!receiptImage ? (
-          <View className="flex-row justify-between gap-2.5">
-            <TouchableOpacity
-              className="flex-[1.25] border border-[#48AAD9] rounded-xl py-3 items-center justify-center bg-white"
-              onPress={onPickFromGallery}
-            >
-              <Text className="text-xs text-[#48AAD9]" style={styles.fontSemiBold}>
-                Upload from Gallery
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              className="flex-[0.75] bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
-              onPress={onTakeImage}
-            >
-              <Text className="text-xs text-white" style={styles.fontSemiBold}>
-                Take Image
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View className="flex-row items-center justify-between border border-gray-200 rounded-xl p-3">
-            <View className="flex-row items-center flex-1">
-              <Image source={receiptImage} className="w-10 h-10 rounded-md bg-gray-100" resizeMode="cover" />
-              <View className="ml-3 flex-1">
-                <Text className="text-xs text-gray-800" style={styles.fontSemiBold} numberOfLines={1}>
-                  payment_receipt.jpg
-                </Text>
-                <Text className="text-[10px] text-[#10B981] mt-0.5" style={styles.fontMedium}>
-                  ✓ Attached successfully
-                </Text>
-              </View>
+        <View className="flex-row justify-between gap-3 mb-4">
+          <TouchableOpacity
+            className="flex-1 border border-[#48AAD9] rounded-xl py-3 items-center justify-center bg-white"
+            onPress={onPickFromGallery}
+          >
+            <Text className="text-[13px] text-[#48AAD9]" style={styles.fontMedium}>
+              Upload from Gallery
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            className="flex-1 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
+            onPress={onTakeImage}
+          >
+            <Text className="text-[13px] text-white" style={styles.fontMedium}>
+              Take a Photo
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {receiptImage && (
+          <View className="border border-[#89C5E5] rounded-2xl p-3" style={{ borderStyle: 'dashed', backgroundColor: '#F4FAFD' }}>
+            <View className="relative w-full rounded-xl overflow-hidden" style={{ height: 180, backgroundColor: '#E2E8F0' }}>
+              <Image source={receiptImage} className="w-full h-full" resizeMode="contain" />
+              
+              <TouchableOpacity 
+                onPress={onRemoveReceipt} 
+                className="absolute top-0 right-0 bg-[#65B7DF] w-8 h-8 items-center justify-center z-10"
+                style={{ borderBottomLeftRadius: 12 }}
+                activeOpacity={0.8}
+              >
+                <Text style={{ color: '#fff', fontSize: 18, fontFamily: 'Poppins-Bold', lineHeight: 22, marginTop: -2 }}>×</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={onRemoveReceipt} className="p-2 ml-2">
-              <Text className="text-[11px] text-[#DC3545]" style={styles.fontMedium}>Remove</Text>
-            </TouchableOpacity>
           </View>
         )}
+        
+        {footer && <View className="mt-4">{footer}</View>}
       </View>
     </>
   )

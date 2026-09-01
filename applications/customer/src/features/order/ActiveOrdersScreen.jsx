@@ -7,9 +7,15 @@ import ArrowForwardIcon from '@assets/icons/arrow_forward_icon.svg'
 import CancelOrderOverlay from '@src/shared/components/CancelOrderOverlay'
 import { cancelCustomerOrder, confirmInStorePayment, acknowledgeDiscountNotice, removeRxItemsAndProceed } from '@shared/services/orderService'
 import { useOrderSubmission } from '@shared/context/OrderSubmissionContext'
+import { LinearGradient } from 'expo-linear-gradient'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 
 function ActiveOrderCard({ order, onViewDetails, onPay, onCancel }) {
   const isOptimistic = order._isOptimistic;
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const hasMultipleProducts = order.products?.length > 1;
+  const displayedProducts = isExpanded ? order.products : order.products?.slice(0, 1);
 
   return (
     <View className={`border ${isOptimistic ? 'border-[#48AAD9]' : 'border-gray-200'} bg-white rounded-2xl py-4 px-4 mt-4 mx-4 shadow-md elevation-2`}>
@@ -36,9 +42,41 @@ function ActiveOrderCard({ order, onViewDetails, onPay, onCancel }) {
       <View className="border-b border-gray-200 my-3" />
 
       {/* Product rows */}
-      {order.products.map((product, idx) => (
-        <ProductRow key={idx} product={product} />
-      ))}
+      <View className="relative overflow-hidden pb-3">
+        {displayedProducts?.map((product, idx) => (
+          <ProductRow key={idx} product={product} />
+        ))}
+        
+        {hasMultipleProducts && !isExpanded && (
+          <TouchableOpacity 
+            className="absolute bottom-0 left-0 right-0 items-center justify-end z-10" 
+            style={{ height: 45 }}
+            onPress={() => setIsExpanded(true)}
+            activeOpacity={0.9}
+          >
+            <LinearGradient
+              colors={['rgba(255,255,255,0)', 'rgba(255,255,255,0.9)', '#FFFFFF']}
+              style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 45 }}
+              pointerEvents="none"
+            />
+            <View className="flex-row items-center mb-0">
+              <Text className="text-[12px] text-[#48AAD9]" style={{ fontFamily: 'Poppins-Bold' }}>See {order.products.length - 1} more</Text>
+              <MaterialCommunityIcons name="chevron-down" size={14} color="#48AAD9" style={{ marginLeft: 2 }} />
+            </View>
+          </TouchableOpacity>
+        )}
+        
+        {hasMultipleProducts && isExpanded && (
+          <TouchableOpacity 
+            className="items-center justify-center py-2 mt-2 flex-row" 
+            onPress={() => setIsExpanded(false)}
+            activeOpacity={0.7}
+          >
+            <Text className="text-[12px] text-[#48AAD9]" style={{ fontFamily: 'Poppins-Bold' }}>See less</Text>
+            <MaterialCommunityIcons name="chevron-up" size={16} color="#48AAD9" style={{ marginLeft: 2 }} />
+          </TouchableOpacity>
+        )}
+      </View>
 
       <View className="border-b border-gray-200 my-3" />
 

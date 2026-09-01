@@ -14,7 +14,7 @@ export default function OrderItemRow({ item }) {
         isPrescribed={item.prescriptionRequired}
         width={64}
         height={64}
-        containerStyle={{ borderRadius: 8, backgroundColor: '#F3F4F6' }}
+        containerStyle={{ borderRadius: 8, backgroundColor: '#FFFFFF' }}
       />
       <View className="flex-1 ml-3 justify-center">
         <View className="flex-row justify-between items-start">

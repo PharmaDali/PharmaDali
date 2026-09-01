@@ -99,10 +99,9 @@ export default function HomeScreen() {
           onAddToCart={handleAddToCart}
         />
       )}
-      <View className="flex-row items-center justify-between px-4 pt-6">
-        <Text className="text-3xl text-start" style={styles.greetingMedium}>
-          Magandang Araw, <Text style={styles.greetingBold}>{toTitleCase(profile?.first_name) || 'User'}!</Text>
-        </Text>
+      <View className="flex-row flex-wrap items-center px-4 pt-6">
+        <Text style={styles.greetingMedium}>Magandang Araw, </Text>
+        <Text style={styles.greetingBold}>{toTitleCase(profile?.first_name) || 'User'}!</Text>
       </View>
 
       <View className="px-4 mt-6">
@@ -293,10 +292,16 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   greetingMedium: {
     fontFamily: 'Modulus-Medium',
+    fontWeight: 'normal',
+    fontSize: 30,
+    lineHeight: 36,
   },
   greetingBold: {
     fontFamily: 'Modulus-Bold',
+    fontWeight: 'normal',
     color: colors.buttonColor,
+    fontSize: 30,
+    lineHeight: 36,
   },
   seeAllLink: {
     color: colors.buttonColor,
