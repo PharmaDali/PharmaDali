@@ -6,14 +6,18 @@ import { View, ActivityIndicator } from "react-native";
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
-    "Modulus-Medium": require("@assets/fonts/Arkitype - Modulus Pro Medium.otf"),
-    "Modulus-Bold": require("@assets/fonts/Arkitype - Modulus Pro Bold.otf"),
+    "Modulus-Medium": require("@assets/fonts/Modulus-Medium.otf"),
+    "Modulus-Bold": require("@assets/fonts/Modulus-Bold.otf"),
     "Poppins-Medium": require("@assets/fonts/Poppins-Medium.ttf"),
     "Poppins-Bold": require("@assets/fonts/Poppins-Bold.ttf"),
     "Poppins-SemiBold": require("@assets/fonts/Poppins-SemiBold.ttf"),
   });
 
   // If fonts are still loading (and there's no error), show a spinner
+  if (fontError) {
+    console.error("Font loading error:", fontError);
+  }
+
   if (!fontsLoaded && !fontError) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#ffffff" }}>
