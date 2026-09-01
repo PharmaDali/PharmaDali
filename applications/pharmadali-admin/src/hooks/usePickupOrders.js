@@ -137,6 +137,12 @@ export function usePickupOrders() {
     setCurrentPage(1);
   }, [loadOrders]);
 
+  useEffect(() => {
+    if (activeOrder) {
+      setPaymentMethod(activeOrder.payment_method || 'cash');
+    }
+  }, [activeOrder]);
+
   const subtotalAmount = useMemo(() => {
     if (!activeOrder) return 0;
     if (Array.isArray(activeOrder.items) && activeOrder.items.length > 0) {
@@ -167,8 +173,11 @@ export function usePickupOrders() {
   }, [discountType, discountPercentage, subtotalAmount]);
 
   const finalPayableAmount = useMemo(() => {
+    if (activeOrder && activeOrder.total_amount !== undefined) {
+      return Number(activeOrder.total_amount);
+    }
     return Math.max(0, subtotalAmount - computedDiscountAmount);
-  }, [subtotalAmount, computedDiscountAmount]);
+  }, [activeOrder, subtotalAmount, computedDiscountAmount]);
 
   const changeAmount = useMemo(() => {
     if (paymentMethod !== "cash") return 0;
@@ -176,13 +185,19 @@ export function usePickupOrders() {
     return Math.max(0, received - finalPayableAmount);
   }, [cashReceived, finalPayableAmount, paymentMethod]);
 
+  const [isPaymentEntered, setIsPaymentEntered] = useState(false);
+
+  useEffect(() => {
+    setIsPaymentEntered(false);
+  }, [activeOrder]);
+
   const handleOpenPaymentModal = () => {
     setIsPaymentModalOpen(true);
     setCashReceived(finalPayableAmount.toFixed(2));
     setGcashReference("");
   };
 
-  const handleCompleteOrderClick = () => {
+  const handlePaymentModalConfirm = () => {
     if (paymentMethod === "cash") {
       const received = parseFloat(cashReceived) || 0;
       if (received < finalPayableAmount) {
@@ -200,15 +215,11 @@ export function usePickupOrders() {
       }
     }
 
-    if (discountType !== "none" && discountType !== "custom") {
-      if (!discountIdNumber.trim()) {
-        setErrorMessage("Please enter a valid ID Number for the selected discount type.");
-        setPaymentResult("error");
-        setIsPaymentResultModalOpen(true);
-        return;
-      }
-    }
+    setIsPaymentEntered(true);
+    setIsPaymentModalOpen(false);
+  };
 
+  const handleCompleteOrderClick = () => {
     setIsConfirmModalOpen(true);
   };
 
@@ -310,6 +321,8 @@ export function usePickupOrders() {
     computedDiscountAmount,
     finalPayableAmount,
     changeAmount,
+    isPaymentEntered,
+    handlePaymentModalConfirm,
     handleOpenPaymentModal,
     handleCompleteOrderClick,
     confirmCompleteOrder,

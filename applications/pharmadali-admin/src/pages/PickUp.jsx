@@ -49,6 +49,8 @@ export function PickUp() {
     computedDiscountAmount,
     finalPayableAmount,
     changeAmount,
+    isPaymentEntered,
+    handlePaymentModalConfirm,
     handleOpenPaymentModal,
     handleCompleteOrderClick,
     confirmCompleteOrder,
@@ -179,6 +181,8 @@ export function PickUp() {
               paymentMethod={paymentMethod}
               setPaymentMethod={setPaymentMethod}
               onOpenPaymentModal={handleOpenPaymentModal}
+              isPaymentEntered={isPaymentEntered}
+              onCompleteSale={handleCompleteOrderClick}
             />
           </div>
         )}
@@ -193,7 +197,7 @@ export function PickUp() {
         setCashReceived={setCashReceived}
         gcashReference={gcashReference}
         setGcashReference={setGcashReference}
-        onConfirm={handleCompleteOrderClick}
+        onConfirm={handlePaymentModalConfirm}
       />
 
       <ConfirmOrderModal

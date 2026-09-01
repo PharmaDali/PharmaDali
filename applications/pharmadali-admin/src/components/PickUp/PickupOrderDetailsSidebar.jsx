@@ -18,12 +18,17 @@ export function PickupOrderDetailsSidebar({
   paymentMethod,
   setPaymentMethod,
   onOpenPaymentModal,
+  isPaymentEntered,
+  onCompleteSale,
 }) {
-  if (!activeOrder) return null;
+  const isReady = activeOrder && activeOrder.status === 'ready_for_pickup';
 
-  const isReady = activeOrder.status === "ready_for_pickup";
+  const requiresPaymentInput = paymentMethod === 'cash' || (activeOrder?.payment_method === 'gcash' && activeOrder?.payment_status === 'unpaid');
+  const showEnterPayment = requiresPaymentInput && !isPaymentEntered;
   const customerName = formatCustomerName(activeOrder);
   const customerPhone = formatCustomerPhone(activeOrder);
+
+  if (!activeOrder) return null;
 
   return (
     <aside className="pickup-order-sidebar card border-0 shadow-sm p-4 h-100 d-flex flex-column justify-content-between" style={{ borderRadius: 16, backgroundColor: "#ffffff" }}>
@@ -126,23 +131,69 @@ export function PickupOrderDetailsSidebar({
         </div>
       )}
 
-      {/* Payment & Discount Controls for Ready Orders */}
-      {isReady && (
-        <>
-          <DiscountControl
-            discountType={discountType}
-            setDiscountType={setDiscountType}
-            discountPercentage={discountPercentage}
-            setDiscountPercentage={setDiscountPercentage}
-            discountIdNumber={discountIdNumber}
-            setDiscountIdNumber={setDiscountIdNumber}
-          />
+      {/* Attachments Container */}
+      {(() => {
+        const resolveImageUrl = (path) => {
+          if (!path) return null;
+          if (path.startsWith('http')) return path;
+          const apiUrl = import.meta.env.VITE_API_BASE_URL || '';
+          const baseUrl = apiUrl.replace(/\/api\/?$/, '');
+          const cleanPath = path.startsWith('/') ? path : `/${path}`;
+          // Laravel storage paths are often 'storage/...' in the DB
+          // but sometimes just relative paths. Let's ensure it maps to the public URL
+          return baseUrl + (cleanPath.startsWith('/storage') ? cleanPath : `/storage${cleanPath}`);
+        };
 
-          <PaymentMethodSelect
-            paymentMethod={paymentMethod}
-            setPaymentMethod={setPaymentMethod}
-          />
-        </>
+        const attachments = [];
+        
+        // Find prescription if it exists
+        const rxItem = activeOrder.items?.find(i => i.order_item_prescription?.image_path);
+        if (rxItem) attachments.push(resolveImageUrl(rxItem.order_item_prescription.image_path));
+        
+        // Discount ID and Payment Receipt
+        if (activeOrder.discount_id_image_path) attachments.push(resolveImageUrl(activeOrder.discount_id_image_path));
+        if (activeOrder.payment_receipt_image_path) attachments.push(resolveImageUrl(activeOrder.payment_receipt_image_path));
+
+        const validAttachments = attachments.filter(Boolean);
+        if (validAttachments.length === 0) return null;
+
+        return (
+          <div className="p-3 mb-3 rounded-4 border" style={{ backgroundColor: "#f4f9fd", borderColor: "#e6f0f9" }}>
+            <h6 className="fw-bold mb-3" style={{ fontSize: 14, color: "#64748b" }}>Attachments</h6>
+            <div className={`d-flex gap-2 ${validAttachments.length === 1 ? 'justify-content-center' : 'justify-content-start overflow-x-auto'}`}>
+              {validAttachments.map((url, idx) => (
+                <a 
+                  key={idx} 
+                  href={url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className={`d-block flex-shrink-0 ${validAttachments.length === 1 ? 'w-75' : 'flex-fill'}`}
+                  style={{ maxWidth: validAttachments.length === 1 ? '80%' : 'calc(50% - 4px)' }}
+                >
+                  <div className="border overflow-hidden bg-white" style={{ borderColor: "#2aabe2", borderWidth: 1.5, borderRadius: 12, height: 90 }}>
+                    <img src={url} alt="Attachment" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Payment Method Select (Conditional) */}
+      {isReady && activeOrder.payment_method === 'gcash' && activeOrder.payment_status === 'unpaid' && (activeOrder.discount_id_image_path || (activeOrder.items && activeOrder.items.some(i => i.order_item_prescription?.image_path))) && (
+        <PaymentMethodSelect
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+        />
+      )}
+
+      {/* Approved GCash Indication */}
+      {isReady && activeOrder.payment_method === 'gcash' && activeOrder.payment_status === 'paid' && (
+        <div className="p-3 bg-light rounded-3 mb-3 border border-light-subtle d-flex justify-content-between align-items-center">
+          <span className="fw-semibold text-dark" style={{ fontSize: 14 }}>Payment Method</span>
+          <span className="badge bg-primary px-3 py-2 rounded-pill" style={{ fontSize: 12 }}>GCash (Paid)</span>
+        </div>
       )}
 
       {/* Bottom Action Button (Only shown when Ready) */}
@@ -151,9 +202,9 @@ export function PickupOrderDetailsSidebar({
           type="button"
           className="btn w-100 py-2 text-white fw-bold rounded-3 mt-auto"
           style={{ backgroundColor: "#2aabe2", borderColor: "#2aabe2", fontSize: 15 }}
-          onClick={onOpenPaymentModal}
+          onClick={showEnterPayment ? onOpenPaymentModal : onCompleteSale}
         >
-          Complete Sale
+          {showEnterPayment ? "Enter Payment" : "Complete Sale"}
         </button>
       )}
     </aside>

@@ -164,7 +164,7 @@ export function usePos() {
 
       const response = await createPosOrder(orderData);
 
-      if (response.status === "success") {
+      if (response.status === "success" || response.status === "Success") {
         setPaymentResult("success");
         setOrderItems([]);
         setSelectedProduct(null);
