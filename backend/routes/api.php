@@ -216,6 +216,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 
     Route::middleware(['ability:super_admin'])->group(function () {
+        Route::get('admin/dashboard/metrics', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'metrics']);
         Route::post('admin/register', [AuthController::class, 'adminRegister'])->middleware('throttle:auth-register');
 
         Route::apiResource('pharmacies', PharmacyController::class)->except(['index', 'show']);
