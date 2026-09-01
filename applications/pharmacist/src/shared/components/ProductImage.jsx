@@ -129,6 +129,7 @@ export default function ProductImage({
         {
           width,
           height,
+          backgroundColor: '#FFFFFF',
           borderColor: colors.stroke,
           borderWidth: 2 * scale,
           borderTopLeftRadius: 0,
