@@ -43,6 +43,12 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       submittedAgo: formatDateToMMDDYYYY(order?.created_at) || 'Recently',
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
+      discountIdImagePath: order.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null,
+      discountType: order.discount_type,
+      discountRemarks: order.discount_remarks,
+      paymentReceiptImagePath: order.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null,
+      paymentStatus: order.payment_status,
+      paymentMethod: order.payment_method,
       items: (order?.items || []).map((item) => {
         const product = item?.pharmacy_product?.product;
         const categoryName = item?.pharmacy_product?.category?.category_name || '';
