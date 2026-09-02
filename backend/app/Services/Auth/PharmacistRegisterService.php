@@ -49,7 +49,7 @@ class PharmacistRegisterService
             $user->pharmacist()->create([
                 'employee_number'          => $employeeNumber,
                 'license_number'           => $data['license_number'] ?? null,
-                'requires_password_change' => true,
+                'requires_password_change' => 1,
             ]);
 
             return $user;
