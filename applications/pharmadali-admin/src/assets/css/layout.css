@@ -72,20 +72,21 @@
   width: 6px;
   height: 6px;
 }
+
 .pos-scroll::-webkit-scrollbar-track {
   background: #f0f4f8;
   border-radius: 10px;
 }
+
 .pos-scroll::-webkit-scrollbar-thumb {
   background: var(--pd-primary);
   border-radius: 10px;
 }
+
 .pos-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--pd-primary-dark);
 }
 
-
-/* --- Global UI Design System --- */
 
 .admin-card {
   background: #ffffff;
@@ -172,119 +173,136 @@
 .admin-btn-secondary:hover {
   background-color: #e2e8f0;
   color: var(--pd-text-dark);
-@media (max-width: 767.98px) {
-  /* Specific admin buttons */
-  .admin-btn-primary,
-  .admin-btn-secondary {
-    padding: 8px 16px;
-    font-size: 13px;
-    border-radius: 6px;
-    min-height: 40px; 
-    gap: 6px;
-  }
 
-  /* Global enhancement for all standard Bootstrap buttons to ensure QA touch standards */
-  .btn:not(.btn-link):not(.btn-close):not(.dropdown-item):not(.nav-link):not(.report-dots-btn) {
-    min-height: 40px !important; /* Ensure accessible touch target for all buttons */
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-  }
-  
-  /* Regular sized buttons */
-  .btn:not(.btn-link):not(.btn-close):not(.btn-sm):not(.btn-lg):not(.dropdown-item):not(.nav-link):not(.report-dots-btn) {
-    padding: 8px 16px !important;
-    font-size: 13px !important;
-    border-radius: 6px !important;
-  }
+  @media (max-width: 767.98px) {
 
-  /* Small buttons (often used in tables/lists) */
-  .btn.btn-sm:not(.btn-link):not(.btn-close):not(.dropdown-item) {
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-    border-radius: 6px !important;
-    white-space: nowrap !important;
-  }
+    .admin-btn-primary,
+    .admin-btn-secondary {
+      padding: 8px 16px;
+      font-size: 13px;
+      border-radius: 6px;
+      min-height: 40px;
+      gap: 6px;
+    }
 
-  /* --- Global Mobile Typography & Spacing --- */
-  
-  /* Root scaling for anything using rems */
-  html, body {
-    font-size: 14px !important;
-  }
-  
-  /* Downscale headings gracefully */
-  h1, .h1 { font-size: 1.75rem !important; }
-  h2, .h2 { font-size: 1.5rem !important; }
-  h3, .h3 { font-size: 1.25rem !important; }
-  h4, .h4 { font-size: 1.15rem !important; }
-  h5, .h5 { font-size: 1.05rem !important; }
-  h6, .h6 { font-size: 0.95rem !important; }
+    .btn:not(.btn-link):not(.btn-close):not(.dropdown-item):not(.nav-link):not(.report-dots-btn) {
+      min-height: 40px !important;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
 
-  /* Compact forms for mobile */
-  .form-control, .form-select {
-    font-size: 13px !important;
-  }
+    .btn:not(.btn-link):not(.btn-close):not(.btn-sm):not(.btn-lg):not(.dropdown-item):not(.nav-link):not(.report-dots-btn) {
+      padding: 8px 16px !important;
+      font-size: 13px !important;
+      border-radius: 6px !important;
+    }
 
-  /* Compact tables for mobile */
-  .admin-table th {
-    font-size: 11px !important;
-    padding: 10px 12px !important;
-    white-space: nowrap !important;
-  }
-  .admin-table td {
-    font-size: 12.5px !important;
-    padding: 10px 12px !important;
-    white-space: nowrap !important;
-  }
+    .btn.btn-sm:not(.btn-link):not(.btn-close):not(.dropdown-item) {
+      padding: 6px 12px !important;
+      font-size: 12px !important;
+      border-radius: 6px !important;
+      white-space: nowrap !important;
+    }
 
-  /* Compact cards for mobile */
-  .admin-card {
-    padding: 16px !important;
-  }
+    html,
+    body {
+      font-size: 14px !important;
+    }
 
-  /* Compact and responsive pagination for mobile */
-  .inventory-pagination-bar {
-    padding: 10px 4px !important;
-    gap: 8px !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
+    h1,
+    .h1 {
+      font-size: 1.75rem !important;
+    }
 
-  .inventory-pagination-info {
-    font-size: 11.5px !important;
-    text-align: center !important;
-    color: #64748b !important;
-  }
+    h2,
+    .h2 {
+      font-size: 1.5rem !important;
+    }
 
-  .inventory-pagination {
-    gap: 3px !important;
-    padding: 0 !important;
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-  }
+    h3,
+    .h3 {
+      font-size: 1.25rem !important;
+    }
 
-  .inventory-page-link {
-    min-width: 28px !important;
-    height: 28px !important;
-    padding: 0 4px !important;
-    font-size: 11px !important;
-    border-radius: 6px !important;
-  }
+    h4,
+    .h4 {
+      font-size: 1.15rem !important;
+    }
 
-  .inventory-page-nav {
-    min-width: 28px !important;
-    font-size: 9px !important;
-  }
+    h5,
+    .h5 {
+      font-size: 1.05rem !important;
+    }
 
-  .inventory-page-ellipsis {
-    min-width: 14px !important;
-    height: 28px !important;
-  }
+    h6,
+    .h6 {
+      font-size: 0.95rem !important;
+    }
 
-  .inventory-page-ellipsis span {
-    font-size: 10px !important;
+    .form-control,
+    .form-select {
+      font-size: 13px !important;
+    }
+
+    .admin-table th {
+      font-size: 11px !important;
+      padding: 10px 12px !important;
+      white-space: nowrap !important;
+    }
+
+    .admin-table td {
+      font-size: 12.5px !important;
+      padding: 10px 12px !important;
+      white-space: nowrap !important;
+    }
+
+    .admin-card {
+      padding: 16px !important;
+    }
+
+    .inventory-pagination-bar {
+      padding: 10px 4px !important;
+      gap: 8px !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+
+    .inventory-pagination-info {
+      font-size: 11.5px !important;
+      text-align: center !important;
+      color: #64748b !important;
+    }
+
+    .inventory-pagination {
+      gap: 3px !important;
+      padding: 0 !important;
+      flex-wrap: wrap !important;
+      justify-content: center !important;
+    }
+
+    .inventory-page-link {
+      min-width: 28px !important;
+      height: 28px !important;
+      padding: 0 4px !important;
+      font-size: 11px !important;
+      border-radius: 6px !important;
+    }
+
+    .inventory-page-nav {
+      min-width: 28px !important;
+      font-size: 9px !important;
+    }
+
+    .inventory-page-ellipsis {
+      min-width: 14px !important;
+      height: 28px !important;
+    }
+
+    .inventory-page-ellipsis span {
+      font-size: 10px !important;
+    }
   }
 }
