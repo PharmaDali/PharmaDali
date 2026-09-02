@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { resolveCoordinates } from '../utils/geocoding'
 import api from '../shared/api'
 
 export interface Pharmacy {
@@ -59,13 +58,37 @@ export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   }
 
   const addPharmacy = async (newPharmacyData: Omit<Pharmacy, 'id'>) => {
-    // Note: To fully support this, a POST /pharmacies endpoint is needed
-    console.warn('addPharmacy requires POST /pharmacies backend integration')
+    try {
+      await api.post('/pharmacies', {
+        pharmacy_name: newPharmacyData.name,
+        location: newPharmacyData.location,
+        contact_number: newPharmacyData.contact,
+        is_active: newPharmacyData.status === 'Active',
+      })
+      
+      // Fetch fresh list to get the generated relationships and correct ID
+      await fetchPharmacies()
+    } catch (error) {
+      console.error('Error adding pharmacy:', error)
+      throw error
+    }
   }
 
   const updatePharmacy = async (updated: Pharmacy) => {
-    // Note: To fully support this, a PUT /pharmacies/{id} endpoint is needed
-    console.warn('updatePharmacy requires PUT /pharmacies backend integration')
+    try {
+      await api.put(`/pharmacies/${updated.id}`, {
+        pharmacy_name: updated.name,
+        location: updated.location,
+        contact_number: updated.contact,
+        is_active: updated.status === 'Active',
+      })
+      
+      // Fetch fresh list to reflect changes
+      await fetchPharmacies()
+    } catch (error) {
+      console.error('Error updating pharmacy:', error)
+      throw error
+    }
   }
 
   const deletePharmacy = async (id: number) => {
