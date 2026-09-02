@@ -21,10 +21,10 @@ export default function AnalyticsTable({
         
         <div className="analytics-filter ms-auto d-flex align-items-center gap-3">
           {periodInfo && (
-            <div className="d-flex align-items-center gap-1 bg-light px-2 py-1 rounded" style={{ border: '1px solid #e2e8f0' }}>
+            <div className="d-flex align-items-center gap-1 bg-light px-2 py-1 rounded analytics-period-box" style={{ border: '1px solid #e2e8f0' }}>
               <button 
                 type="button"
-                className="btn btn-sm btn-link p-0 text-decoration-none text-secondary" 
+                className="btn btn-sm btn-link p-0 text-decoration-none text-secondary analytics-period-arrow" 
                 onClick={onPrevPeriod}
                 disabled={loading}
                 title="Previous Period"
@@ -32,12 +32,12 @@ export default function AnalyticsTable({
               >
                 &#9664;
               </button>
-              <span className="fw-semibold text-dark px-1" style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
+              <span className="fw-semibold text-dark px-1 analytics-period-label" style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
                 {periodInfo.label}
               </span>
               <button 
                 type="button"
-                className="btn btn-sm btn-link p-0 text-decoration-none text-secondary" 
+                className="btn btn-sm btn-link p-0 text-decoration-none text-secondary analytics-period-arrow" 
                 onClick={onNextPeriod}
                 disabled={loading || periodInfo.isCurrentPeriod}
                 title="Next Period"

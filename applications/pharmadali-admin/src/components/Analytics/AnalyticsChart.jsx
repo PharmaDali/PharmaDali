@@ -95,13 +95,19 @@ export default function AnalyticsChart({
       scales: {
         x: {
           grid: { display: false, drawBorder: false },
-          ticks: { font: { size: 12 }, color: "#a0aabe" },
+          ticks: { 
+            font: { size: typeof window !== "undefined" && window.innerWidth < 768 ? 10 : 12 }, 
+            color: "#a0aabe",
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: typeof window !== "undefined" && window.innerWidth < 768 ? 6 : 10,
+          },
         },
         y: {
           border: { display: false },
           grid: { color: "#f0f2f5", drawBorder: false },
           ticks: {
-            font: { size: 12 },
+            font: { size: typeof window !== "undefined" && window.innerWidth < 768 ? 10 : 12 },
             color: "#a0aabe",
             maxTicksLimit: 6,
             callback: function (value) {
