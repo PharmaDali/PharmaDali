@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createTicket } from "../../services/ticketService";
 import successIcon from "../../assets/icons/help-icons/success.svg";
 
 function ReportIssue({ setView }) {
@@ -12,7 +13,7 @@ function ReportIssue({ setView }) {
     const [issueSteps, setIssueSteps] = useState("");
     const [issueAttachments, setIssueAttachments] = useState([]);
 
-    const handleReportSubmit = (e) => {
+    const handleReportSubmit = async (e) => {
         e.preventDefault();
         if (!issueSummary.trim() || !issueProblem.trim()) return;
 
@@ -20,16 +21,29 @@ function ReportIssue({ setView }) {
         const refId = "TICK-" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
         setTicketRefId(refId);
 
-        // Fetch logged in user email if available
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            try {
+        try {
+            // Fetch logged in user email if available
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
                 const parsed = JSON.parse(storedUser);
                 if (parsed.email) setUserEmail(parsed.email);
-            } catch (err) {}
+            }
+            
+            const payload = {
+                title: issueSummary,
+                category: issueCategory || "technical",
+                priority: issuePriority || "medium",
+                description: issueProblem,
+                steps_taken: issueSteps ? issueSteps.split('\n').filter(s => s.trim()) : [],
+            };
+            
+            const res = await createTicket(payload);
+            setTicketRefId(res?.id ? ('#' + res.id) : refId);
+            setShowSuccessModal(true);
+        } catch (err) {
+            console.error(err);
+            alert("Error submitting ticket");
         }
-
-        setShowSuccessModal(true);
     };
 
     const handleDoneModal = () => {
@@ -165,7 +179,7 @@ function ReportIssue({ setView }) {
                         <div className="modal-header-gradient">
                             <div></div>
                             <button className="modal-close-btn" onClick={() => setShowSuccessModal(false)}>
-                                ✕
+                                Ã¢Å“â€¢
                             </button>
                         </div>
                         <div className="p-4 text-center">

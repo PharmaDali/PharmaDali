@@ -13,6 +13,8 @@ import Inventory from "../pages/Inventory";
 import InventoryLogs from "../pages/InventoryLogs";
 import Pharmacists from "../pages/Pharmacists";
 import GetTechnicalHelp from "../pages/GetTechnicalHelp";
+
+
 import Profile from "../pages/Profile";
 
 import PermissionGuard from "../shared/components/PermissionGuard";
@@ -47,7 +49,8 @@ function AppRouter() {
           <Route path="inventory" element={<RouteGuard permission="view_inventory" element={<Inventory />} />} />
           <Route path="inventory/logs" element={<RouteGuard permission="view_inventory" element={<InventoryLogs />} />} />
           <Route path="pharmacists" element={<RouteGuard permission="manage_pharmacists" element={<Pharmacists />} />} />
-          <Route path="get-technical-help" element={<GetTechnicalHelp />} />
+                    <Route path="get-technical-help" element={<GetTechnicalHelp />} />
+
           <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>

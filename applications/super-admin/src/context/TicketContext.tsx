@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useTickets as useApiTickets } from '../hooks/useTickets';
 
 export interface Ticket {
   id: string
@@ -6,7 +7,7 @@ export interface Ticket {
   requester: string
   pharmacy: string
   status: 'Open' | 'Closed' | 'In progress' | 'Resolved'
-  priority: 'High' | 'Medium' | 'Low'
+  priority: 'High' | 'Medium' | 'Low' | 'Urgent'
   createdAt: string
   description: string
   assignee: string
@@ -17,196 +18,101 @@ export interface Ticket {
   contactNumber: string
   preferredContactMethod: string
   resolutionDetails?: string
+  messages?: any[]
+  originalId?: string | number
 }
-
-export const INITIAL_TICKETS: Ticket[] = [
-  {
-    id: '#1234',
-    subject: 'Cannot Process Sale',
-    requester: 'Denmar Redondo',
-    pharmacy: 'PureMed Pharmacy',
-    status: 'Open',
-    priority: 'High',
-    createdAt: '2026-08-12 10:00',
-    description:
-      'We are unable to complete a sale transaction in the POS. After clicking "Continue" to confirm customer payment, it shows "payment unsuccessful." This happens to all sales, even if the inputs are correct.',
-    assignee: 'James Mercado',
-    stepsTaken: [
-      '1. Go to POS',
-      '2. Go to Pickup Orders',
-      '3. View order details',
-      '4. Select Payment Method',
-      '5. Enter details',
-      '6. System shows payment unsuccessful',
-      '7. Transaction does not proceed',
-    ],
-    category: 'POS',
-    subcategory: 'Transaction Error',
-    affectedModule: 'Point of Sale',
-    contactNumber: '09123456789',
-    preferredContactMethod: 'Email',
-  },
-  {
-    id: '#1235',
-    subject: 'Inventory not updating',
-    requester: 'Denmar Redondo',
-    pharmacy: 'PureMed Pharmacy',
-    status: 'Closed',
-    priority: 'High',
-    createdAt: '2026-08-14 14:15',
-    description:
-      'Stock count does not deduct automatically after completing orders in the inventory management module.',
-    assignee: 'Abigail Barrion',
-    stepsTaken: [
-      '1. Open Inventory',
-      '2. Process checkout sale',
-      '3. Check stock count',
-      '4. Observe stock remains unchanged',
-    ],
-    category: 'Inventory',
-    subcategory: 'Sync Error',
-    affectedModule: 'Stock Management',
-    contactNumber: '09541790778',
-    preferredContactMethod: 'Phone Call',
-  },
-  {
-    id: '#1236',
-    subject: 'Unable to login',
-    requester: 'Denmar Redondo',
-    pharmacy: 'PureMed Pharmacy',
-    status: 'In progress',
-    priority: 'High',
-    createdAt: '2026-08-15 08:45',
-    description:
-      'Pharmacist account receives an unexpected invalid credentials error despite using correct password.',
-    assignee: 'Althea Alvarez',
-    stepsTaken: [
-      '1. Go to Login page',
-      '2. Enter email and password',
-      '3. Click Sign In',
-      '4. Error message appears',
-    ],
-    category: 'Authentication',
-    subcategory: 'Login Failure',
-    affectedModule: 'User Login',
-    contactNumber: '09171234567',
-    preferredContactMethod: 'Email',
-  },
-  {
-    id: '#1237',
-    subject: 'Report not generating',
-    requester: 'Denmar Redondo',
-    pharmacy: 'PureMed Pharmacy',
-    status: 'Resolved',
-    priority: 'High',
-    createdAt: '2026-08-13 11:20',
-    description:
-      'Monthly sales PDF export fails with 500 server error response when date range spans multiple months.',
-    assignee: 'James Mercado',
-    stepsTaken: [
-      '1. Open Reports module',
-      '2. Select date range',
-      '3. Click Export PDF',
-      '4. Page crashes with error 500',
-    ],
-    category: 'Reports',
-    subcategory: 'Export Error',
-    affectedModule: 'Analytics & Reports',
-    contactNumber: '09987654321',
-    preferredContactMethod: 'Email',
-    resolutionDetails:
-      'The reported issue has been reviewed and addressed. The necessary actions have been taken to resolve the concern. The issue has been resolved accordingly.',
-  },
-  {
-    id: '#1238',
-    subject: 'System slow',
-    requester: 'Denmar Redondo',
-    pharmacy: 'PureMed Pharmacy',
-    status: 'Open',
-    priority: 'High',
-    createdAt: '2026-08-15 16:00',
-    description:
-      'Dashboard takes over 10 seconds to load during peak store hours.',
-    assignee: 'James Mercado',
-    stepsTaken: [
-      '1. Navigate to Dashboard',
-      '2. Wait for cards and map to render',
-      '3. Notice high loading latency',
-    ],
-    category: 'Performance',
-    subcategory: 'Latency',
-    affectedModule: 'Dashboard Overview',
-    contactNumber: '09223334444',
-    preferredContactMethod: 'SMS',
-  },
-]
 
 interface TicketContextType {
   tickets: Ticket[]
   updateTicket: (ticket: Ticket) => void
   getTicketById: (id: string) => Ticket | undefined
+  fetchTickets: () => void
+  fetchTicket: (id: string | number) => void
+  sendMessage: (id: string | number, formData: FormData) => Promise<void>
+  updateStatus: (id: string | number, status: string) => Promise<void>
 }
 
-const TicketContext = createContext<TicketContextType | undefined>(undefined)
-
-const STORAGE_KEY = 'pharmadali_tickets'
+const TicketContext = createContext<TicketContextType | undefined>(undefined);
 
 export const TicketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [tickets, setTickets] = useState<Ticket[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        return JSON.parse(saved)
-      }
-    } catch (error) {
-      console.error('Error loading tickets from localStorage:', error)
-    }
-    return INITIAL_TICKETS
-  })
+  const { 
+    tickets: apiTickets, 
+    ticket: apiTicketDetail, 
+    fetchTickets: loadTickets, 
+    fetchTicket: loadTicket,
+    updateStatus: apiUpdateStatus,
+    sendMessage: apiSendMessage
+  } = useApiTickets();
+
+  const [formattedTickets, setFormattedTickets] = useState<Ticket[]>([]);
+
+  const mapApiTicket = (apiTicket: any): Ticket => {
+    return {
+      id: `#${apiTicket.id}`,
+      subject: apiTicket.title,
+      requester: apiTicket.user ? `${apiTicket.user.first_name} ${apiTicket.user.last_name}` : 'Unknown',
+      pharmacy: 'Pharmacy',
+      status: apiTicket.status === 'in_progress' ? 'In progress' : (apiTicket.status.charAt(0).toUpperCase() + apiTicket.status.slice(1)) as any,
+      priority: apiTicket.priority.charAt(0).toUpperCase() + apiTicket.priority.slice(1) as any,
+      createdAt: new Date(apiTicket.created_at).toLocaleString(),
+      description: apiTicket.description,
+      assignee: apiTicket.assignee ? `${apiTicket.assignee.first_name} ${apiTicket.assignee.last_name}` : 'Unassigned',
+      stepsTaken: apiTicket.steps_taken || [],
+      category: apiTicket.category,
+      subcategory: apiTicket.subcategory || '',
+      affectedModule: apiTicket.affected_module || '',
+      contactNumber: apiTicket.contact_number || '',
+      preferredContactMethod: apiTicket.preferred_contact_method || 'Email',
+      resolutionDetails: apiTicket.resolution_details,
+      messages: apiTicket.messages || [],
+      originalId: apiTicket.id
+    };
+  };
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tickets))
-    } catch (error) {
-      console.error('Error saving tickets to localStorage:', error)
-    }
-  }, [tickets])
+    loadTickets();
+  }, [loadTickets]);
 
-  const updateTicket = (updated: Ticket) => {
-    setTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
-  }
+  useEffect(() => {
+    if (apiTickets) {
+      setFormattedTickets(apiTickets.map(mapApiTicket));
+    }
+  }, [apiTickets]);
+
+  const updateTicket = async (_updated: Ticket) => {
+    // Optimistic local update not fully needed since we have api integration now,
+    // but we can support it if the UI relies on it synchronously.
+  };
 
   const getTicketById = (id: string) => {
-    const formattedId = id.startsWith('#') ? id : `#${id}`
-    return tickets.find((t) => t.id === formattedId || t.id.replace('#', '') === id)
-  }
+    if (apiTicketDetail && `#${apiTicketDetail.id}` === (id.startsWith('#') ? id : `#${id}`)) {
+      return mapApiTicket(apiTicketDetail);
+    }
+    const formattedId = id.startsWith('#') ? id : `#${id}`;
+    return formattedTickets.find((t) => t.id === formattedId || t.id.replace('#', '') === id);
+  };
 
   return (
     <TicketContext.Provider
       value={{
-        tickets,
+        tickets: formattedTickets,
         updateTicket,
         getTicketById,
+        fetchTickets: loadTickets,
+        fetchTicket: loadTicket,
+        sendMessage: apiSendMessage,
+        updateStatus: apiUpdateStatus
       }}
     >
       {children}
     </TicketContext.Provider>
-  )
-}
-
-const DEFAULT_FALLBACK: TicketContextType = {
-  tickets: INITIAL_TICKETS,
-  updateTicket: () => {},
-  getTicketById: (id: string) => {
-    const formattedId = id.startsWith('#') ? id : `#${id}`
-    return INITIAL_TICKETS.find((t) => t.id === formattedId || t.id.replace('#', '') === id)
-  },
-}
+  );
+};
 
 export const useTickets = () => {
-  const context = useContext(TicketContext)
+  const context = useContext(TicketContext);
   if (!context) {
-    return DEFAULT_FALLBACK
+    throw new Error('useTickets must be used within TicketProvider');
   }
-  return context
-}
+  return context;
+};
