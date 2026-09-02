@@ -1,5 +1,6 @@
 import React from "react";
 import { TableSkeleton } from "../../shared/components/loading";
+import Pagination from "../../shared/components/Pagination";
 
 function SalesReportTable({
   rows,
@@ -97,27 +98,17 @@ function SalesReportTable({
       )}
 
       {/* Pagination */}
-      {meta && meta.last_page > 1 && (
-        <div className="d-flex justify-content-between align-items-center pt-3" style={{ fontSize: "12px" }}>
-          <span className="text-secondary">
-            Page {meta.current_page} of {meta.last_page} &middot; {meta.total} records
-          </span>
-          <div className="d-flex gap-2">
-            <button
-              className="btn btn-sm btn-outline-secondary"
-              disabled={meta.current_page <= 1 || loading}
-              onClick={() => onPageChange(meta.current_page - 1, startDate, endDate)}
-            >
-              &lsaquo; Prev
-            </button>
-            <button
-              className="btn btn-sm btn-outline-secondary"
-              disabled={meta.current_page >= meta.last_page || loading}
-              onClick={() => onPageChange(meta.current_page + 1, startDate, endDate)}
-            >
-              Next &rsaquo;
-            </button>
-          </div>
+      {!loading && meta && meta.total > 0 && (
+        <div className="pt-3">
+          <Pagination
+            currentPage={meta.current_page || 1}
+            totalPages={meta.last_page || 1}
+            totalItems={meta.total}
+            itemsPerPage={meta.per_page || 10}
+            onPageChange={(page) => onPageChange(page, startDate, endDate)}
+            containerClassName="bg-transparent border-0 p-0"
+            ariaLabel="Sales report table pagination"
+          />
         </div>
       )}
     </>

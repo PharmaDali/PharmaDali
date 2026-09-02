@@ -243,4 +243,48 @@
   .admin-card {
     padding: 16px !important;
   }
+
+  /* Compact and responsive pagination for mobile */
+  .inventory-pagination-bar {
+    padding: 10px 4px !important;
+    gap: 8px !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .inventory-pagination-info {
+    font-size: 11.5px !important;
+    text-align: center !important;
+    color: #64748b !important;
+  }
+
+  .inventory-pagination {
+    gap: 3px !important;
+    padding: 0 !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+  }
+
+  .inventory-page-link {
+    min-width: 28px !important;
+    height: 28px !important;
+    padding: 0 4px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+  }
+
+  .inventory-page-nav {
+    min-width: 28px !important;
+    font-size: 9px !important;
+  }
+
+  .inventory-page-ellipsis {
+    min-width: 14px !important;
+    height: 28px !important;
+  }
+
+  .inventory-page-ellipsis span {
+    font-size: 10px !important;
+  }
 }

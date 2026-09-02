@@ -16,11 +16,11 @@ export function Pagination({
     if (customVisiblePages && Array.isArray(customVisiblePages)) {
       return customVisiblePages;
     }
-    if (totalPages <= 5) {
+    if (totalPages <= 4) {
       return Array.from({ length: totalPages }, (_, index) => index + 1);
     }
-    const startPage = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
-    const endPage = Math.min(totalPages, startPage + 4);
+    const startPage = Math.max(1, Math.min(currentPage - 1, totalPages - 2));
+    const endPage = Math.min(totalPages, startPage + 2);
     return Array.from({ length: endPage - startPage + 1 }, (_, index) => startPage + index);
   }, [currentPage, totalPages, customVisiblePages]);
 
