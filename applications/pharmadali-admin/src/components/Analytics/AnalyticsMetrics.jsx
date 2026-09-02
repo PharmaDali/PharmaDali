@@ -17,11 +17,11 @@ export default function AnalyticsMetrics({ metrics, loading }) {
                 </span>
               )}
             </div>
-            <div className="fw-bold" style={{ fontSize: "20px", color: "#1e293b", minHeight: "32px", display: "flex", alignItems: "center" }}>
+            <div className="fw-bold analytics-metric-value" style={{ color: "#1e293b", minHeight: "32px", display: "flex", alignItems: "center", wordBreak: "break-word", lineHeight: 1.2 }}>
               {loading ? (
                 <WavingDots />
               ) : (
-                <span className="text-truncate" title={typeof metric.value === "string" ? metric.value : ""}>
+                <span title={typeof metric.value === "string" ? metric.value : ""}>
                   {metric.prefix && <span style={{ fontSize: "14px", fontWeight: "700", marginRight: "4px" }}>{metric.prefix}</span>}
                   {metric.value}
                 </span>

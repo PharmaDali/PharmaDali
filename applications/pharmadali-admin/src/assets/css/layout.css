@@ -172,4 +172,75 @@
 .admin-btn-secondary:hover {
   background-color: #e2e8f0;
   color: var(--pd-text-dark);
+@media (max-width: 767.98px) {
+  /* Specific admin buttons */
+  .admin-btn-primary,
+  .admin-btn-secondary {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: 6px;
+    min-height: 40px; 
+    gap: 6px;
+  }
+
+  /* Global enhancement for all standard Bootstrap buttons to ensure QA touch standards */
+  .btn:not(.btn-link):not(.btn-close):not(.dropdown-item):not(.nav-link):not(.report-dots-btn) {
+    min-height: 40px !important; /* Ensure accessible touch target for all buttons */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  
+  /* Regular sized buttons */
+  .btn:not(.btn-link):not(.btn-close):not(.btn-sm):not(.btn-lg):not(.dropdown-item):not(.nav-link):not(.report-dots-btn) {
+    padding: 8px 16px !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
+  }
+
+  /* Small buttons (often used in tables/lists) */
+  .btn.btn-sm:not(.btn-link):not(.btn-close):not(.dropdown-item) {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+    white-space: nowrap !important;
+  }
+
+  /* --- Global Mobile Typography & Spacing --- */
+  
+  /* Root scaling for anything using rems */
+  html, body {
+    font-size: 14px !important;
+  }
+  
+  /* Downscale headings gracefully */
+  h1, .h1 { font-size: 1.75rem !important; }
+  h2, .h2 { font-size: 1.5rem !important; }
+  h3, .h3 { font-size: 1.25rem !important; }
+  h4, .h4 { font-size: 1.15rem !important; }
+  h5, .h5 { font-size: 1.05rem !important; }
+  h6, .h6 { font-size: 0.95rem !important; }
+
+  /* Compact forms for mobile */
+  .form-control, .form-select {
+    font-size: 13px !important;
+  }
+
+  /* Compact tables for mobile */
+  .admin-table th {
+    font-size: 11px !important;
+    padding: 10px 12px !important;
+    white-space: nowrap !important;
+  }
+  .admin-table td {
+    font-size: 12.5px !important;
+    padding: 10px 12px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Compact cards for mobile */
+  .admin-card {
+    padding: 16px !important;
+  }
 }
