@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import dashboardOverviewImg from "../../assets/images/dashboard_overview.png";
+import dashboardMobileViewImg from "../../assets/images/dashboard_mobile_view.png";
+import dashboardMobileOverview2Img from "../../assets/images/dashboard_mobile_overview_2.png";
 
 const MANUAL_ITEMS = [
     {
@@ -28,6 +30,16 @@ const MANUAL_ITEMS = [
                         <li>Summary Cards - View important business information at a glance.</li>
                         <li>Sales Overview - Monitor sales performance over a selected period.</li>
                     </ol>
+
+                    {/* Mobile Only Dashboard Images */}
+                    <div className="row g-3 mt-3 d-flex d-lg-none justify-content-center">
+                        <div className="col-6 text-center">
+                            <img src={dashboardMobileViewImg} alt="Dashboard Mobile" className="img-fluid rounded shadow-sm" style={{ border: "1px solid #e2e8f0" }} />
+                        </div>
+                        <div className="col-6 text-center">
+                            <img src={dashboardMobileOverview2Img} alt="Dashboard Mobile 2" className="img-fluid rounded shadow-sm" style={{ border: "1px solid #e2e8f0" }} />
+                        </div>
+                    </div>
                 </div>
                 <div className="col-12 col-lg-5 d-none d-lg-block text-center">
                     <img src={dashboardOverviewImg} alt="Dashboard Overview" className="img-fluid rounded shadow-sm" style={{ objectFit: "contain", border: "1px solid #e2e8f0" }} />
