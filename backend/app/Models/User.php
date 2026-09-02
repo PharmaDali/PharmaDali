@@ -141,4 +141,10 @@ class User extends Authenticatable
             'is_active' => 'boolean',
         ];
     }
+
+    public function tickets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\Ticket::class);
+    }
 }
+
