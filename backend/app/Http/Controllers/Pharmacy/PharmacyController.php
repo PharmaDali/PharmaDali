@@ -20,7 +20,7 @@ class PharmacyController extends Controller
     public function index()
     {
         $pharmacies = Cache::remember('pharmacies_all', 3600, function () {
-            return Pharmacy::all();
+            return Pharmacy::with(['admins', 'pharmacists.pharmacist'])->get();
         });
 
         return response()->json($pharmacies);

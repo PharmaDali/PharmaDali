@@ -138,9 +138,9 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
               <tbody>
                 {pharmacies.map((p) => (
                   <tr key={p.id} className="border-b border-[rgba(255,255,255,0.03)] last:border-b-0">
-                    <td className="py-4 px-6 text-gray-100 text-base">{p.name}</td>
-                    <td className="py-4 px-6 text-gray-200 text-base">{p.location}</td>
-                    <td className={`py-4 px-6 text-base text-center ${p.status === 'Active' ? 'text-[#4ade80]' : p.status === 'Pending' ? 'text-amber-400' : 'text-red-400 font-medium'}`}>{p.status}</td>
+                    <td className="py-4 px-6 text-gray-100 text-sm">{p.name}</td>
+                    <td className="py-4 px-6 text-gray-200 text-sm">{p.location}</td>
+                    <td className={`py-4 px-6 text-sm text-center ${p.status === 'Active' ? 'text-[#4ade80]' : p.status === 'Pending' ? 'text-amber-400' : 'text-red-400 font-medium'}`}>{p.status}</td>
                   </tr>
                 ))}
               </tbody>
@@ -177,7 +177,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full bg-[#2f3338]/90 placeholder:text-gray-400 text-gray-100 pl-10 pr-10 py-3 rounded-[12px] border border-[rgba(255,255,255,0.06)] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] focus:outline-none focus:border-[#2aa6e0] transition-all duration-200"
-                    placeholder="Search by Pharmacy Name, Owner, Location, or Status"
+                    placeholder="Search by Pharmacy Name, Manager, Location, or Status"
                   />
                   {searchTerm && (
                     <button
@@ -214,7 +214,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                   <thead>
                     <tr className="bg-[#8ccfed] text-[#22313b]">
                       <th className="py-3 px-5 font-semibold text-xs rounded-tl-md w-1/6">Pharmacy Name</th>
-                      <th className="py-3 px-5 font-semibold text-xs w-1/6">Owner Name</th>
+                      <th className="py-3 px-5 font-semibold text-xs w-1/6">Manager</th>
                       <th className="py-3 px-5 font-semibold text-xs w-1/6">Location</th>
                       <th className="py-3 px-5 font-semibold text-xs w-1/6">Contact Number</th>
                       <th className="py-3 px-5 font-semibold text-xs w-1/6">
@@ -301,7 +301,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
               <h3 className="text-[#8ccfed] font-semibold text-sm mb-3">Basic Information</h3>
               <div className="space-y-2 text-xs text-gray-200">
                 <p><span className="text-gray-300">Pharmacy:</span> {selectedPharmacy.name}</p>
-                <p><span className="text-gray-300">Owner:</span> {selectedPharmacy.owner}</p>
+                <p><span className="text-gray-300">Manager:</span> {selectedPharmacy.owner}</p>
                 <p><span className="text-gray-300">Contact Number:</span> {selectedPharmacy.contact}</p>
               </div>
             </div>
@@ -316,10 +316,15 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                   Pharmacists
                 </div>
                 <div className="divide-y divide-[rgba(255,255,255,0.06)]">
-                  <div className="px-3 py-2 text-xs text-gray-200">Denmar Redondo</div>
-                  <div className="px-3 py-2 text-xs text-gray-200">Denmar Redondo</div>
-                  <div className="px-3 py-2 text-xs text-gray-200">Denmar Redondo</div>
-                  <div className="px-3 py-2 text-xs text-gray-200">Denmar Redondo</div>
+                  {selectedPharmacy.pharmacists && selectedPharmacy.pharmacists.length > 0 ? (
+                    selectedPharmacy.pharmacists.map((empNum, idx) => (
+                      <div key={idx} className="px-3 py-2 text-xs text-gray-200">
+                        {empNum}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-xs text-gray-400 italic">No pharmacists assigned</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -351,7 +356,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
             name="owner"
             value={formData.owner}
             onChange={handleInputChange}
-            placeholder="Owner Name"
+            placeholder="Manager"
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -429,7 +434,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
             name="owner"
             value={editFormData.owner}
             onChange={handleEditInputChange}
-            placeholder="Owner Name"
+            placeholder="Manager"
           />
 
           <div className="grid grid-cols-2 gap-4">
@@ -545,7 +550,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                   <span className="text-white font-semibold text-xs">{deletingPharmacy.name}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400 block text-[10px]">Owner</span>
+                  <span className="text-gray-400 block text-[10px]">Manager</span>
                   <span className="text-gray-200 text-xs">{deletingPharmacy.owner || '—'}</span>
                 </div>
                 <div>
