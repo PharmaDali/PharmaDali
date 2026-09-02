@@ -369,22 +369,17 @@
     display: none;
   }
 
+  .analytics-metrics-row .admin-card,
   .analytics-metrics-row .card {
     min-height: 68px;
-    padding: 10px !important;
+    padding: 12px !important;
   }
 
-  .analytics-metrics-row .card span {
-    font-size: 9px !important;
-  }
-
-  .analytics-metrics-row .card > div:nth-child(2) {
-    min-height: 23px !important;
-    font-size: 17px !important;
-  }
-
-  .analytics-metrics-row .card > div:nth-child(2) span {
-    font-size: 10px !important;
+  .analytics-metric-subtitle {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word !important;
   }
 
   .analytics-panel,

@@ -28,7 +28,7 @@ export default function AnalyticsMetrics({ metrics, loading }) {
               )}
             </div>
             {metric.subtitle && (
-              <div className="text-secondary mt-1 text-truncate" style={{ fontSize: "11px" }}>
+              <div className="text-secondary mt-1 analytics-metric-subtitle" style={{ fontSize: "11px", lineHeight: "1.3" }}>
                 {metric.subtitle}
               </div>
             )}
