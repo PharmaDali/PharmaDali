@@ -39,6 +39,7 @@ class User extends Authenticatable
         'role',
         'pharmacy_id',
         'is_active',
+        'requires_password_change',
         'date_of_birth',
         'mobile_number',
         'address',

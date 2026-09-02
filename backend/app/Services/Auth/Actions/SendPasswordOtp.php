@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Services\Auth\Actions;
 
@@ -24,6 +24,9 @@ class SendPasswordOtp
         // Generate 6-digit numeric OTP code
         $otp = (string) random_int(100000, 999999);
         $hashedOtp = hash('sha256', $otp);
+        if (app()->environment('local')) {
+            \Illuminate\Support\Facades\Log::info("OTP for {$user->email}: {$otp}");
+        }
 
         // Store hashed OTP in Redis with 5-minute TTL (300 seconds)
         $this->cacheStore()->put($otpKey, $hashedOtp, now()->addMinutes(5));
@@ -42,3 +45,5 @@ class SendPasswordOtp
         ], 200);
     }
 }
+
+

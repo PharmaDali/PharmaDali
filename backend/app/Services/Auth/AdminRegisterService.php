@@ -26,6 +26,7 @@ class AdminRegisterService
                 'role'          => $role,
                 'pharmacy_id'     => $data['pharmacy_id'] ?? null,
                 'is_active'     => $data['is_active'] ?? true,
+                'requires_password_change' => $data['requires_password_change'] ?? false,
             ]);
         });
 
