@@ -41,7 +41,7 @@ export function DashBoard() {
   return (
     <section className="dashboard-page" aria-label="Dashboard overview">
       <header className="dashboard-page-header mb-4">
-        <h4 className="fw-bold mb-1 dashboard-title">Dashboard</h4>
+        <h4 className="fw-bold mb-1 admin-page-title">Dashboard</h4>
         <p className="dashboard-subtitle mb-0">A quick operational snapshot of pharmacy sales, inventory, and analytics.</p>
       </header>
 

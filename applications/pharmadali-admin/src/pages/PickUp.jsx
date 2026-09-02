@@ -62,7 +62,7 @@ export function PickUp() {
         <div className={activeOrder ? "col-12 col-lg-8 col-xl-9 d-flex flex-column" : "col-12 d-flex flex-column"}>
           <div className="bg-white rounded-3 shadow-sm p-4 d-flex flex-column flex-grow-1">
             <div className="d-flex flex-column flex-md-row align-items-start align-items-md-end justify-content-between gap-2 gap-md-0" style={{ marginBottom: "0" }}>
-              <h4 className="fw-bold text-dark m-0 pb-md-2" style={{ fontSize: "1.25rem", minWidth: "max-content" }}>
+              <h4 className="admin-page-title m-0 pb-md-2" style={{ minWidth: "max-content" }}>
                 Pickup Orders
               </h4>
               <div className="d-flex flex-nowrap justify-content-end gap-1 ms-auto w-md-auto" style={{ marginBottom: "-1px", zIndex: 2, maxWidth: "75%" }}>

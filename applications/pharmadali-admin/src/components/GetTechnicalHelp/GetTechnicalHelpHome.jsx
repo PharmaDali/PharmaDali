@@ -94,7 +94,7 @@ function GetTechnicalHelpHome({ setView }) {
         <section className="dashboard-page tech-help-page p-4">
             {/* Header Section */}
             <header className="mb-4">
-                <h2 className="fw-bold mb-1 tech-help-title">Get Technical Help</h2>
+                <h2 className="fw-bold mb-1 admin-page-title">Get Technical Help</h2>
                 <p className="tech-help-subtitle mb-0">
                     search for solutions or connect with the developers.
                 </p>

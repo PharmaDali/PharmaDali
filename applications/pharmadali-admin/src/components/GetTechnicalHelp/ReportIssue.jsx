@@ -56,7 +56,7 @@ function ReportIssue({ setView }) {
                         Get Technical Help
                     </span>
                     <i className="fa-solid fa-chevron-right tech-help-breadcrumb-icon" aria-hidden="true" />
-                    <span className="tech-help-title">Report an Issue</span>
+                    <span className="admin-page-title">Report an Issue</span>
                 </h2>
                 <p className="tech-help-subtitle mb-0">
                     Access assistance for troubleshooting, feature use, and other technical concerns.

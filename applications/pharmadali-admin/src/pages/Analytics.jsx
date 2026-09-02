@@ -12,7 +12,7 @@ export default function Analytics() {
   return (
     <section className="analytics-page" aria-label="Analytics overview">
       <header className="mb-4">
-        <h4 className="fw-bold mb-1 analytics-title">Analytics</h4>
+        <h4 className="fw-bold mb-1 admin-page-title">Analytics</h4>
         <p className="analytics-subtitle mb-0">Analytics and sales trends related to the pharmacy.</p>
       </header>
 

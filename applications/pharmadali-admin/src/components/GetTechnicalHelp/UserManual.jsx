@@ -89,7 +89,7 @@ function UserManual({ setView }) {
                         Get Technical Help
                     </span>
                     <i className="fa-solid fa-chevron-right tech-help-breadcrumb-icon" aria-hidden="true" />
-                    <span className="tech-help-title">User Manual</span>
+                    <span className="admin-page-title">User Manual</span>
                 </h2>
                 <p className="tech-help-subtitle mb-0">
                     Learn and explore the key features to get the most out of the system.

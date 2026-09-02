@@ -47,7 +47,7 @@ export function Notifications() {
     <section className="py-2">
       <header className="mb-4">
         <div className="d-flex align-items-center justify-content-between mb-2 gap-2">
-          <h4 className="notifications-page-title mb-0">Notifications</h4>
+          <h4 className="admin-page-title mb-0">Notifications</h4>
           {unreadCount > 0 && (
             <div className="header-unread-badge d-flex align-items-center gap-1 flex-shrink-0">
               <i className="fa-regular fa-bell" />
