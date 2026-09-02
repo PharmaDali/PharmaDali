@@ -93,7 +93,22 @@ export function usePharmacists() {
   }, []);
 
   const rows = useMemo(() => {
-    const list = Array.isArray(pharmacists) ? pharmacists : (pharmacists?.data || []);
+    const rawList = Array.isArray(pharmacists) ? pharmacists : (pharmacists?.data || []);
+    
+    // Explicitly sort in descending LIFO order (newest first)
+    const list = [...rawList].sort((a, b) => {
+      if (b.created_at && a.created_at) {
+        const timeDiff = new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        if (timeDiff !== 0) return timeDiff;
+      }
+      const numA = Number(a.id);
+      const numB = Number(b.id);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numB - numA;
+      }
+      return String(b.id || "").localeCompare(String(a.id || ""), undefined, { numeric: true });
+    });
+
     const q = search.trim().toLowerCase();
 
     if (!q) {
@@ -101,7 +116,7 @@ export function usePharmacists() {
     }
 
     return list.filter((item) => {
-      const fullName = `${item.first_name} ${item.last_name}`.toLowerCase();
+      const fullName = `${item.first_name || ""} ${item.last_name || ""}`.toLowerCase();
       const empNumber = item.pharmacist?.employee_number?.toLowerCase() || "";
       return fullName.includes(q) || empNumber.includes(q) || (item.mobile_number || "").includes(q);
     });
@@ -228,12 +243,26 @@ export function usePharmacists() {
 
       if (editingId) {
         const updated = await updatePharmacist(editingId, payload);
+        const updatedUser = updated?.user || updated?.data || updated;
+        const normalizedUpdated = {
+          ...updatedUser,
+          is_active: updatedUser.is_active !== undefined && updatedUser.is_active !== null 
+            ? Boolean(updatedUser.is_active) 
+            : payload.is_active,
+        };
         setPharmacists((prev) =>
-          prev.map((item) => (item.id === editingId ? { ...item, ...updated } : item))
+          prev.map((item) => (item.id === editingId ? { ...item, ...normalizedUpdated } : item))
         );
       } else {
         const created = await createPharmacist(payload);
-        setPharmacists((prev) => [created, ...prev]);
+        const newUser = created?.user || created?.data || created;
+        const normalizedNew = {
+          ...newUser,
+          is_active: newUser.is_active !== undefined && newUser.is_active !== null 
+            ? Boolean(newUser.is_active) 
+            : payload.is_active,
+        };
+        setPharmacists((prev) => [normalizedNew, ...prev]);
       }
 
       handleCloseModal();

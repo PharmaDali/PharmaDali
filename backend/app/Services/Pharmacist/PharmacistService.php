@@ -15,6 +15,7 @@ class PharmacistService
         return User::where('pharmacy_id', $admin->pharmacy_id)
             ->where('role', 'pharmacist')
             ->with('pharmacist')
+            ->latest('id')
             ->get();
     }
 

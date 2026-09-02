@@ -44,11 +44,11 @@ export function PharmacistsTable({
         ) : rows.length === 0 ? (
           <div className="p-4 bg-white rounded-3 text-center text-muted shadow-sm">No pharmacist records found.</div>
         ) : (
-          rows.map((item) => (
-            <div key={item.id} className="bg-white rounded-3 p-3 mb-3 shadow-sm d-flex flex-column">
+          rows.map((item, index) => (
+            <div key={`${item.id}-${index}`} className="bg-white rounded-3 p-3 mb-3 shadow-sm d-flex flex-column">
               <div className="d-flex justify-content-between align-items-center mb-2">
                 <span className="fw-semibold text-dark" style={{ fontSize: "15px" }}>
-                  {item.first_name} {item.last_name}
+                  {`${item.first_name || ""} ${item.last_name || ""}`.trim() || "—"}
                 </span>
                 <span 
                   className="badge rounded-pill" 
@@ -133,11 +133,11 @@ export function PharmacistsTable({
                 </td>
               </tr>
             ) : (
-              rows.map((item) => (
-                <tr key={item.id}>
+              rows.map((item, index) => (
+                <tr key={`${item.id}-${index}`}>
                   <td>{item.pharmacist?.employee_number || "—"}</td>
-                  <td>{`${item.first_name} ${item.last_name}`}</td>
-                  <td>{item.mobile_number}</td>
+                  <td>{`${item.first_name || ""} ${item.last_name || ""}`.trim() || "—"}</td>
+                  <td>{item.mobile_number || "—"}</td>
                   <td className="text-center">{item.date_of_birth ? calculateAge(item.date_of_birth) : "N/A"}</td>
                   <td className="text-center">
                     <span className={`pharmacists-status-badge pharmacists-status-${item.is_active ? "active" : "inactive"}`}>
