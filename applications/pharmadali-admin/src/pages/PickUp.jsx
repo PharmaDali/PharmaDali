@@ -62,7 +62,7 @@ export function PickUp() {
         <div className={activeOrder ? "col-12 col-lg-8 col-xl-9 d-flex flex-column" : "col-12 d-flex flex-column"}>
           <div className="bg-white rounded-3 shadow-sm p-4 d-flex flex-column flex-grow-1">
             <div className="d-flex flex-column flex-md-row align-items-start align-items-md-end justify-content-between gap-2 gap-md-0" style={{ marginBottom: "0" }}>
-              <h4 className="fw-bold text-dark m-0 pb-md-2" style={{ fontSize: "1.25rem", minWidth: "max-content" }}>
+              <h4 className="admin-page-title m-0 pb-md-2" style={{ minWidth: "max-content" }}>
                 Pickup Orders
               </h4>
               <div className="d-flex flex-nowrap justify-content-end gap-1 ms-auto w-md-auto" style={{ marginBottom: "-1px", zIndex: 2, maxWidth: "75%" }}>
@@ -112,7 +112,7 @@ export function PickUp() {
                               width: "18px",
                               height: "18px",
                               padding: 0,
-                              backgroundColor: "#ef4444",
+                              backgroundColor: "var(--pd-risk-high)",
                               color: "#ffffff",
                               fontSize: "10px",
                               zIndex: 3,
@@ -128,17 +128,17 @@ export function PickUp() {
               </div>
             </div>
 
-            <div className="d-flex flex-column flex-grow-1" style={{ backgroundColor: "#e2f2fa", border: "1px solid #cce4f2", borderTopLeftRadius: "12px", borderTopRightRadius: "0px", borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px", zIndex: 1, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)", paddingTop: "24px", paddingBottom: "0px", paddingLeft: "0px", paddingRight: "0px", overflow: "hidden" }}>
+            <div className="d-flex flex-column flex-grow-1" style={{ backgroundColor: "var(--pd-bg-main)", border: "1px solid var(--pd-border)", borderTopLeftRadius: "12px", borderTopRightRadius: "0px", borderBottomLeftRadius: "12px", borderBottomRightRadius: "12px", zIndex: 1, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)", paddingTop: "24px", paddingBottom: "0px", paddingLeft: "0px", paddingRight: "0px", overflow: "hidden" }}>
 
               <div className="mb-4 px-4">
                 <div className="input-group">
-                  <span className="input-group-text border-end-0" style={{ borderColor: "#cce4f2", backgroundColor: "#edf4f9" }}>
+                  <span className="input-group-text border-end-0" style={{ borderColor: "var(--pd-border)", backgroundColor: "var(--pd-bg-sidebar)" }}>
                     <i className="fa-solid fa-magnifying-glass text-muted"></i>
                   </span>
                   <input
                     type="text"
                     className="form-control border-start-0 ps-0"
-                    style={{ borderColor: "#cce4f2", backgroundColor: "#edf4f9", fontSize: "14px", height: "42px" }}
+                    style={{ borderColor: "var(--pd-border)", backgroundColor: "var(--pd-bg-sidebar)", fontSize: "14px", height: "42px" }}
                     placeholder="Search an order by order ID or Customer Name"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}

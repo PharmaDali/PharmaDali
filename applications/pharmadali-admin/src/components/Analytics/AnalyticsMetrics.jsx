@@ -6,7 +6,7 @@ export default function AnalyticsMetrics({ metrics, loading }) {
     <div className="row g-3 mb-4 analytics-metrics-row">
       {metrics.map((metric, idx) => (
         <div key={metric.label || idx} className="col-6 col-lg-3">
-          <div className="card border-0 shadow-sm p-3 h-100 rounded-3" style={{ background: "#ffffff" }}>
+          <div className="admin-card h-100" style={{ padding: "16px" }}>
             <div className="d-flex align-items-center justify-content-between mb-1">
               <span className="text-muted fw-semibold" style={{ fontSize: "12px" }}>
                 {metric.label}
@@ -17,11 +17,11 @@ export default function AnalyticsMetrics({ metrics, loading }) {
                 </span>
               )}
             </div>
-            <div className="fw-bold" style={{ fontSize: "20px", color: "#1e293b", minHeight: "32px", display: "flex", alignItems: "center" }}>
+            <div className="fw-bold analytics-metric-value" style={{ color: "#1e293b", minHeight: "32px", display: "flex", alignItems: "center", wordBreak: "break-word", lineHeight: 1.2 }}>
               {loading ? (
                 <WavingDots />
               ) : (
-                <span className="text-truncate" title={typeof metric.value === "string" ? metric.value : ""}>
+                <span title={typeof metric.value === "string" ? metric.value : ""}>
                   {metric.prefix && <span style={{ fontSize: "14px", fontWeight: "700", marginRight: "4px" }}>{metric.prefix}</span>}
                   {metric.value}
                 </span>

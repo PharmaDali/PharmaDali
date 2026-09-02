@@ -144,8 +144,7 @@ export function DiscountSettings({ onNavigate }) {
           </p>
         </div>
         <button
-          className="btn btn-sm text-white px-3 py-2 fw-semibold rounded-3 shadow-sm d-flex align-items-center gap-2"
-          style={{ backgroundColor: "#2aabe2", border: "none" }}
+          className="admin-btn-primary"
           onClick={handleOpenAddModal}
         >
           <i className="fa-solid fa-plus" />
@@ -153,8 +152,8 @@ export function DiscountSettings({ onNavigate }) {
         </button>
       </div>
 
-      <div className="card border-0 shadow-sm rounded-4 overflow-hidden">
-        <div className="card-body p-0">
+      <div className="admin-card overflow-hidden p-0">
+        <div className="p-0">
           {loading ? (
             <div className="p-3">
               <ListSkeleton count={4} />
@@ -163,8 +162,8 @@ export function DiscountSettings({ onNavigate }) {
             <div className="text-center py-5 text-muted">No discount policies configured.</div>
           ) : (
             <div className="table-responsive">
-              <table className="table align-middle mb-0" style={{ fontSize: "14px" }}>
-                <thead style={{ backgroundColor: "#f8fafc", color: "#444444" }}>
+              <table className="admin-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3 border-0">Policy Name</th>
                     <th className="px-3 py-3 border-0 text-center">Code</th>
@@ -176,7 +175,7 @@ export function DiscountSettings({ onNavigate }) {
                 </thead>
                 <tbody>
                   {discounts.map((discount) => (
-                    <tr key={discount.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    <tr key={discount.id}>
                       <td className="px-4 py-3">
                         <div className="fw-semibold" style={{ color: "#444444" }}>
                           {discount.name}

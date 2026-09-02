@@ -15,21 +15,20 @@ export function PharmacistsTable({
   onDelete,
 }) {
   return (
-    <article className="pharmacists-card bg-transparent border-0 shadow-none">
+    <article className="pharmacists-card bg-transparent border-0 shadow-none d-flex flex-column flex-grow-1">
       {/* Mobile Toolbar (Search + Add) */}
-      <div className="d-flex d-md-none gap-2 mb-3">
-        <div className="flex-grow-1" style={{ backgroundColor: "#edf4f9", borderRadius: "6px" }}>
+      <div className="d-flex flex-column d-md-none gap-2 mb-3">
+        <div className="w-100" style={{ backgroundColor: "var(--pd-bg-sidebar)", borderRadius: "6px" }}>
           <SearchBar
             id="pharmacists-search-mobile"
             value={search}
             onChange={(val) => setSearch(val)}
-            placeholder="Search by"
+            placeholder="Search by name, phone..."
           />
         </div>
         <button 
           type="button" 
-          className="btn text-white rounded-2 px-3 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" 
-          style={{ backgroundColor: "#48aad9", fontSize: "13px", border: "none" }}
+          className="admin-btn-primary w-100" 
           onClick={() => onOpenModal()}
         >
           + Add new pharmacist
@@ -73,10 +72,10 @@ export function PharmacistsTable({
               </div>
               <div className="d-flex justify-content-end gap-3 border-top pt-2 mt-1">
                 <button type="button" className="btn btn-link p-0 text-primary" onClick={() => onOpenDetailsModal(item)}>
-                  <i className="fa-regular fa-pen-to-square" style={{ fontSize: "16px", color: "#48aad9" }} />
+                  <i className="fa-regular fa-pen-to-square" style={{ fontSize: "16px", color: "var(--pd-primary-dark)" }} />
                 </button>
                 <button type="button" className="btn btn-link p-0 text-danger" onClick={() => onDelete(item.id)}>
-                  <i className="fa-regular fa-trash-can" style={{ fontSize: "16px", color: "#ef4444" }} />
+                  <i className="fa-regular fa-trash-can" style={{ fontSize: "16px", color: "var(--pd-danger)" }} />
                 </button>
               </div>
             </div>
@@ -85,7 +84,7 @@ export function PharmacistsTable({
       </div>
 
       {/* Desktop View */}
-      <div className="d-none d-md-block bg-white rounded-3 shadow-sm p-3">
+      <div className="d-none d-md-flex flex-column flex-grow-1 admin-card h-100">
         <div className="pharmacists-toolbar">
           <div className="pharmacists-toolbar-left">
             <h6 className="pharmacists-title mb-0">Pharmacist</h6>
@@ -102,16 +101,16 @@ export function PharmacistsTable({
           </div>
         </div>
 
-        <div className="pharmacists-table-scroll">
-        <table className="table mb-0 pharmacists-table">
+        <div className="pharmacists-table-scroll flex-grow-1" style={{ minHeight: 0 }}>
+        <table className="admin-table" style={{ tableLayout: "fixed" }}>
           <thead>
             <tr>
-              <th>Employee Number</th>
-              <th>Pharmacist Name</th>
-              <th>Mobile Number</th>
-              <th>Age</th>
-              <th>Status</th>
-              <th>Action</th>
+              <th style={{ width: "15%" }}>Employee Number</th>
+              <th style={{ width: "20%" }}>Pharmacist Name</th>
+              <th style={{ width: "15%" }}>Mobile Number</th>
+              <th className="text-center" style={{ width: "10%" }}>Age</th>
+              <th className="text-center" style={{ width: "15%" }}>Status</th>
+              <th className="text-center" style={{ width: "25%" }}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -139,24 +138,24 @@ export function PharmacistsTable({
                   <td>{item.pharmacist?.employee_number || "—"}</td>
                   <td>{`${item.first_name} ${item.last_name}`}</td>
                   <td>{item.mobile_number}</td>
-                  <td>{item.date_of_birth ? calculateAge(item.date_of_birth) : "N/A"}</td>
-                  <td>
+                  <td className="text-center">{item.date_of_birth ? calculateAge(item.date_of_birth) : "N/A"}</td>
+                  <td className="text-center">
                     <span className={`pharmacists-status-badge pharmacists-status-${item.is_active ? "active" : "inactive"}`}>
                       {item.is_active ? "Active" : "Inactive"}
                     </span>
                   </td>
                   <td>
-                    <div className="d-flex align-items-center gap-2">
+                    <div className="d-flex justify-content-center align-items-center gap-2">
                       <button
                         type="button"
-                        className="btn btn-sm pharmacists-btn-details"
+                        className="admin-btn-secondary btn-sm"
                         onClick={() => onOpenDetailsModal(item)}
                       >
                         View Details
                       </button>
                       <button
                         type="button"
-                        className="btn btn-sm pharmacists-btn-permissions d-flex align-items-center gap-1"
+                        className="admin-btn-secondary btn-sm"
                         onClick={() => onOpenPermissionsModal(item)}
                         title="Manage Staff Permissions"
                       >

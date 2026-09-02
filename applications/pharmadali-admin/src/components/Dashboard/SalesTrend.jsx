@@ -119,7 +119,7 @@ export function SalesTrend({ initialTrend, loading }) {
   };
 
   return (
-    <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
+    <div className="admin-card h-100 dashboard-panel">
       <div className="d-flex align-items-center justify-content-between mb-3">
         <h6 className="fw-bold mb-0" style={{ fontSize: 16, color: "#2aabe2" }}>Sales Trend Overview</h6>
         <div style={{ minWidth: 120 }}>

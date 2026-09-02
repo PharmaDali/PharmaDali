@@ -35,7 +35,7 @@ export function useSalesReports() {
   const loadSales = useCallback((filters = {}) => {
     setSalesLoading(true);
     setSalesError(null);
-    fetchSalesList(filters)
+    fetchSalesList({ ...filters, per_page: 10 })
       .then((data) => {
         setSalesRows(data.data ?? []);
         setSalesMeta(data.meta ?? null);

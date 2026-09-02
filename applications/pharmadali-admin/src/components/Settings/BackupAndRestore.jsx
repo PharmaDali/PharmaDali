@@ -54,7 +54,7 @@ const BackupAndRestore = ({ onNavigate }) => {
     >
       <div className="settings-flex-column" style={{ gap: "2rem" }}>
         {/* Backup Pharmacy Database Card */}
-        <div className="settings-card" style={{ marginBottom: 0 }}>
+        <div className="admin-card" style={{ marginBottom: 0 }}>
           <div className="mb-4">
             <h6 className="settings-section-title" style={{ fontSize: "1.1rem" }}>
               Pharmacy Tenant Data Backup
@@ -117,7 +117,7 @@ const BackupAndRestore = ({ onNavigate }) => {
         </div>
 
         {/* Restore System Card */}
-        <div className="settings-card" style={{ marginBottom: 0 }}>
+        <div className="admin-card" style={{ marginBottom: 0 }}>
           <div className="mb-4">
             <h6 className="settings-section-title" style={{ fontSize: "1.1rem" }}>
               Restore Pharmacy Tenant Data

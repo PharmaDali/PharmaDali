@@ -101,13 +101,13 @@ function InventoryLogs() {
         </div>
       </div>
 
-      <article className="inventory-table-card">
+      <article className="admin-card">
         <div className="inventory-table-actions">
           <h6 className="inventory-side-title mb-0">Inventory Logs</h6>
         </div>
 
         <div className="inventory-table-scroll">
-          <table className="table inventory-table mb-0">
+          <table className="admin-table">
             <thead>
               <tr>
                 <th>Product Name</th>
@@ -237,8 +237,8 @@ function InventoryLogs() {
             {selectedLog.reason && (
               <div className="inventory-modal-section">
                 <h6 className="inventory-modal-section-title">Reason / Context</h6>
-                <div style={{ background: "#f8fafc", padding: "10px 14px", borderRadius: "6px", borderLeft: "4px solid #cbd5e1" }}>
-                  <p className="inventory-log-detail-value mb-0" style={{ fontStyle: "italic", color: "#475569" }}>
+                <div style={{ background: "var(--pd-bg-sidebar)", padding: "10px 14px", borderRadius: "6px", borderLeft: "4px solid var(--pd-text-light)" }}>
+                  <p className="inventory-log-detail-value mb-0" style={{ fontStyle: "italic", color: "var(--pd-text-medium)" }}>
                     {selectedLog.reason}
                   </p>
                 </div>

@@ -71,7 +71,7 @@ export function InventoryHealth({ data, onKnowMore }) {
   const expiringSoon = (data?.expiring_soon ?? []).slice(0, 5);
 
   return (
-    <div className="card border-0 shadow-sm rounded-3 p-4 h-100 d-flex flex-column dashboard-panel">
+    <div className="admin-card h-100 d-flex flex-column dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Inventory Health</h6>
       
       <div className="d-flex flex-column flex-md-row gap-4 flex-grow-1" style={{ minHeight: 0 }}>
