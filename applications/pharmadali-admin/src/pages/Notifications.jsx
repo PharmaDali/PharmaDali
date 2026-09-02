@@ -1,11 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNotificationsPage, TAB_CATEGORIES } from "../hooks/useNotificationsPage";
 import NotificationDetail from "../components/Notifications/NotificationDetail";
 import NotificationCardItem from "../components/Notifications/NotificationCardItem";
+import DeleteConfirmationModal from "../components/Notifications/DeleteConfirmationModal";
 import { ListSkeleton } from "../shared/components/loading";
 import Pagination from "../shared/components/Pagination";
 
 export function Notifications() {
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false);
+  const [notificationToDelete, setNotificationToDelete] = useState(null);
+
   const {
     unreadNotifications,
     unreadCount,
@@ -34,7 +38,7 @@ export function Notifications() {
         notification={selectedNotification}
         onBack={() => setSelectedNotification(null)}
         onMarkAsRead={markAsRead}
-        onDelete={deleteNotification}
+        onDelete={(id) => setNotificationToDelete(id)}
       />
     );
   }
@@ -99,11 +103,7 @@ export function Notifications() {
           <button
             type="button"
             className="btn btn-sm d-inline-flex align-items-center gap-1 rounded-pill list-action-btn-delete"
-            onClick={() => {
-              if (window.confirm("Are you sure you want to delete all notifications?")) {
-                deleteAllNotifications();
-              }
-            }}
+            onClick={() => setShowDeleteAllModal(true)}
           >
             <i className="fa-regular fa-trash-can" />
             <span>Delete all</span>
@@ -135,7 +135,7 @@ export function Notifications() {
                   }
                 }}
                 onMarkAsRead={markAsRead}
-                onDelete={deleteNotification}
+                onDelete={(id) => setNotificationToDelete(id)}
               />
             ))}
 
@@ -156,6 +156,35 @@ export function Notifications() {
           </>
         )}
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={showDeleteAllModal}
+        onClose={() => setShowDeleteAllModal(false)}
+        onConfirm={deleteAllNotifications}
+        title="Delete All Notifications?"
+        messageLines={[
+          "Are you sure you want to delete all notifications?",
+          "All read and unread notifications",
+          "will be permanently deleted."
+        ]}
+        confirmText="Delete All"
+      />
+
+      <DeleteConfirmationModal
+        isOpen={!!notificationToDelete}
+        onClose={() => setNotificationToDelete(null)}
+        onConfirm={() => {
+          if (notificationToDelete) {
+            deleteNotification(notificationToDelete);
+          }
+        }}
+        title="Delete Notification?"
+        messageLines={[
+          "Are you sure you want to delete this notification?",
+          "This notification will be permanently deleted."
+        ]}
+        confirmText="Delete"
+      />
     </section>
   );
 }
