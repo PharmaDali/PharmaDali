@@ -384,7 +384,7 @@ export function ProductDetailsModal({
                     <span>
                       {isModalEditing ? (
                         <FormattedDateInput
-                          className="form-control inventory-batch-stock-input"
+                          className="form-control inventory-batch-date-input"
                           value={batchEditDates?.[batch.id]?.manufactured_date !== undefined ? batchEditDates[batch.id].manufactured_date : batch.manufactured_date}
                           onChange={(val) => handleBatchDateChange(batch.id, 'manufactured_date', val)}
                         />
@@ -400,7 +400,7 @@ export function ProductDetailsModal({
                     <span>
                       {isModalEditing ? (
                         <FormattedDateInput
-                          className="form-control inventory-batch-stock-input"
+                          className="form-control inventory-batch-date-input"
                           value={batchEditDates?.[batch.id]?.expiry_date !== undefined ? batchEditDates[batch.id].expiry_date : batch.expiry_date}
                           onChange={(val) => handleBatchDateChange(batch.id, 'expiry_date', val)}
                         />

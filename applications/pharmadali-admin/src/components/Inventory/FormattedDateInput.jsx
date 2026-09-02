@@ -100,7 +100,7 @@ export function FormattedDateInput({
         type="text"
         className={className}
         placeholder={placeholder}
-        style={{ ...style, paddingRight: "2.5rem", backgroundImage: "none" }}
+        style={{ ...style, paddingRight: "1.75rem", backgroundImage: "none" }}
         value={textValue}
         onChange={handleTextChange}
         disabled={disabled}
@@ -116,7 +116,7 @@ export function FormattedDateInput({
           position: "absolute",
           right: "0",
           top: "0",
-          width: "40px",
+          width: "28px",
           height: "100%",
           opacity: 0,
           cursor: disabled ? "not-allowed" : "pointer",
@@ -131,7 +131,7 @@ export function FormattedDateInput({
         onClick={handleIconClick}
         style={{
           position: "absolute",
-          right: "12px",
+          right: "8px",
           top: "50%",
           transform: "translateY(-50%)",
           color: "#48aad9",
