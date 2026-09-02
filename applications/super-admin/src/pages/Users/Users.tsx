@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal, ConfirmModal, Input, Select } from '../../components/common'
+import api from '../../shared/api'
+import { usePharmacies } from '../../context/PharmacyContext'
 
 export interface User {
   id: number
@@ -9,22 +11,41 @@ export interface User {
   role: string
   branchName: string
   status: 'Active' | 'Inactive'
+  pharmacyId?: number
+  firstName: string
+  lastName: string
 }
 
-const INITIAL_USERS: User[] = [
-  { id: 1, fullName: 'Sarah Geronimo', email: 'sarah@gmail.com', phoneNumber: '09123456789', role: 'Pharmacist', branchName: 'Landicho Drugstore', status: 'Active' },
-  { id: 2, fullName: 'Lisa Manoban', email: 'lisa@gmail.com', phoneNumber: '09223334444', role: 'Users', branchName: 'Landicho Drugstore', status: 'Active' },
-  { id: 3, fullName: 'Sabrina Carpenter', email: 'sabrina@gmail.com', phoneNumber: '09334445555', role: 'Manager(Admin)', branchName: 'Puremed', status: 'Active' },
-  { id: 4, fullName: 'Bini Maloi', email: 'maloi@gmail.com', phoneNumber: '09445556666', role: 'Manager(Admin)', branchName: 'Puremed', status: 'Active' },
-  { id: 5, fullName: 'Hev abi', email: 'hevabi@gmail.com', phoneNumber: '09556667777', role: 'Assistant Pharmacist', branchName: 'TGP', status: 'Active' },
-]
-
-const ROLES = ['All', 'Pharmacist', 'Users', 'Manager(Admin)', 'Assistant Pharmacist']
-const BRANCHES = ['All', 'Branches', 'Landicho Drugstore', 'Puremed', 'TGP']
+const ROLES = ['All', 'Pharmacist', 'Manager(Admin)', 'System Admin', 'Customer']
 const STATUSES = ['All', 'Status', 'Active', 'Inactive']
 
+const mapRoleToDisplay = (role: string) => {
+  switch (role) {
+    case 'pharmacy_admin': return 'Manager(Admin)'
+    case 'pharmacist': return 'Pharmacist'
+    case 'system_admin': return 'System Admin'
+    case 'super_admin': return 'Super Admin'
+    case 'customer': return 'Customer'
+    default: return role
+  }
+}
+
+const mapDisplayToRole = (display: string) => {
+  switch (display) {
+    case 'Manager(Admin)': return 'pharmacy_admin'
+    case 'Pharmacist': return 'pharmacist'
+    case 'System Admin': return 'system_admin'
+    case 'Super Admin': return 'super_admin'
+    case 'Customer': return 'customer'
+    default: return display
+  }
+}
+
 const Users: React.FC = () => {
-  const [users, setUsers] = useState<User[]>(INITIAL_USERS)
+  const [users, setUsers] = useState<User[]>([])
+  const { pharmacies } = usePharmacies()
+  const BRANCHES = ['All', ...pharmacies.map(p => p.name)]
+  
   const [searchInput, setSearchInput] = useState('')
   const [appliedSearchTerm, setAppliedSearchTerm] = useState('')
 
@@ -39,40 +60,79 @@ const Users: React.FC = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [formData, setFormData] = useState({
-    fullName: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phoneNumber: '',
     role: '',
     branchName: '',
-    status: '',
+    status: 'Active',
   })
-
 
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [togglingStatusUser, setTogglingStatusUser] = useState<User | null>(null)
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
 
-  const handleConfirmSave = () => {
-    if (!editingUser) return
-    setUsers((prev) =>
-      prev.map((user) => (user.id === editingUser.id ? editingUser : user))
-    )
-    setIsConfirmModalOpen(false)
-    setEditingUser(null)
-    setIsSuccessModalOpen(true)
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/users')
+      const data = response.data.data || response.data // Handle both wrapped and unwrapped arrays safely
+      const mappedUsers = data.map((u: any) => ({
+        id: u.id,
+        firstName: u.first_name,
+        lastName: u.last_name || '',
+        fullName: `${u.first_name} ${u.last_name || ''}`.trim(),
+        email: u.email,
+        phoneNumber: u.mobile_number,
+        role: mapRoleToDisplay(u.role),
+        branchName: u.pharmacy ? u.pharmacy.pharmacy_name : 'N/A',
+        status: u.is_active ? 'Active' : 'Inactive',
+        pharmacyId: u.pharmacy_id,
+      }))
+      setUsers(mappedUsers)
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    }
   }
 
-  const handleConfirmToggleStatus = () => {
+  const handleConfirmSave = async () => {
+    if (!editingUser) return
+    try {
+      const pharmacyId = pharmacies.find(p => p.name === editingUser.branchName)?.id
+      await api.put(`/users/${editingUser.id}`, {
+        first_name: editingUser.firstName,
+        last_name: editingUser.lastName,
+        email: editingUser.email,
+        mobile_number: editingUser.phoneNumber,
+        role: mapDisplayToRole(editingUser.role),
+        pharmacy_id: pharmacyId,
+        is_active: editingUser.status === 'Active'
+      })
+      await fetchUsers()
+      setIsConfirmModalOpen(false)
+      setEditingUser(null)
+      setIsSuccessModalOpen(true)
+    } catch (error) {
+      console.error('Error updating user:', error)
+    }
+  }
+
+  const handleConfirmToggleStatus = async () => {
     if (!togglingStatusUser) return
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === togglingStatusUser.id
-          ? { ...user, status: user.status === 'Active' ? 'Inactive' : 'Active' }
-          : user
-      )
-    )
-    setTogglingStatusUser(null)
+    try {
+      await api.put(`/users/${togglingStatusUser.id}`, {
+        is_active: togglingStatusUser.status !== 'Active'
+      })
+      await fetchUsers()
+      setTogglingStatusUser(null)
+    } catch (error) {
+      console.error('Error toggling status:', error)
+    }
   }
 
   const handleSearch = () => {
@@ -85,54 +145,56 @@ const Users: React.FC = () => {
   const handleResetFilters = () => {
     setSearchInput('')
     setAppliedSearchTerm('')
-
     setSelectedRole('All')
     setAppliedRole('All')
-
     setSelectedBranch('All')
     setAppliedBranch('All')
-
     setSelectedStatus('All')
     setAppliedStatus('All')
   }
 
-
-  const handleAddUser = (e: React.FormEvent) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.fullName.trim()) return
+    if (!formData.firstName.trim()) return
 
-    const newUser: User = {
-      id: Date.now(),
-      fullName: formData.fullName,
-      email: formData.email,
-      phoneNumber: formData.phoneNumber,
-      role: formData.role || 'Pharmacist',
-      branchName: formData.branchName || 'Landicho Drugstore',
-      status: (formData.status as 'Active' | 'Inactive') || 'Active',
+    try {
+      const pharmacyId = pharmacies.find(p => p.name === formData.branchName)?.id
+      await api.post('/users', {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        mobile_number: formData.phoneNumber,
+        role: mapDisplayToRole(formData.role || 'Pharmacist'),
+        pharmacy_id: pharmacyId,
+        is_active: formData.status === 'Active'
+      })
+      await fetchUsers()
+      setFormData({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phoneNumber: '',
+        role: '',
+        branchName: '',
+        status: 'Active',
+      })
+      setIsAddModalOpen(false)
+    } catch (error) {
+      console.error('Error adding user:', error)
     }
-
-    setUsers((prev) => [newUser, ...prev])
-    setFormData({
-      fullName: '',
-      email: '',
-      phoneNumber: '',
-      role: '',
-      branchName: '',
-      status: '',
-    })
-    setIsAddModalOpen(false)
   }
 
   const handleUpdateUser = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!editingUser || !editingUser.fullName.trim()) return
+    if (!editingUser || !editingUser.firstName.trim()) return
     setIsConfirmModalOpen(true)
   }
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       !appliedSearchTerm ||
-      user.fullName.toLowerCase().includes(appliedSearchTerm.toLowerCase().trim())
+      user.fullName.toLowerCase().includes(appliedSearchTerm.toLowerCase().trim()) ||
+      user.email?.toLowerCase().includes(appliedSearchTerm.toLowerCase().trim())
     const matchesRole = appliedRole === 'All' || appliedRole === 'Roles' || user.role === appliedRole
     const matchesBranch = appliedBranch === 'All' || appliedBranch === 'Branches' || user.branchName === appliedBranch
     const matchesStatus = appliedStatus === 'All' || appliedStatus === 'Status' || user.status === appliedStatus
@@ -367,17 +429,28 @@ const Users: React.FC = () => {
             <h3 className="text-[#48aad9] font-bold text-base mb-3">
               Basic Info
             </h3>
-            <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
               <Input
                 type="text"
                 required
-                value={formData.fullName}
+                value={formData.firstName}
                 onChange={(e) =>
-                  setFormData({ ...formData, fullName: e.target.value })
+                  setFormData({ ...formData, firstName: e.target.value })
                 }
-                placeholder="Full Name"
+                placeholder="First Name"
                 className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
               />
+              <Input
+                type="text"
+                value={formData.lastName}
+                onChange={(e) =>
+                  setFormData({ ...formData, lastName: e.target.value })
+                }
+                placeholder="Last Name"
+                className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+              />
+            </div>
+            <div className="space-y-3 mt-3">
               <Input
                 type="email"
                 value={formData.email}
@@ -501,16 +574,27 @@ const Users: React.FC = () => {
         </h2>
         {editingUser && (
           <form onSubmit={handleUpdateUser} className="space-y-4">
-            <Input
-              label="Full Name"
-              type="text"
-              required
-              value={editingUser.fullName}
-              onChange={(e) =>
-                setEditingUser({ ...editingUser, fullName: e.target.value })
-              }
-              className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
-            />
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="First Name"
+                type="text"
+                required
+                value={editingUser.firstName}
+                onChange={(e) =>
+                  setEditingUser({ ...editingUser, firstName: e.target.value })
+                }
+                className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+              />
+              <Input
+                label="Last Name"
+                type="text"
+                value={editingUser.lastName}
+                onChange={(e) =>
+                  setEditingUser({ ...editingUser, lastName: e.target.value })
+                }
+                className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+              />
+            </div>
 
             <Select
               label="Role"
