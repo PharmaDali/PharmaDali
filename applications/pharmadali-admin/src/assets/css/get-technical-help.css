@@ -181,6 +181,15 @@
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
 }
 
+.tech-help-manual-list {
+  padding-left: 20px;
+  margin-bottom: 0;
+}
+
+.tech-help-manual-list li {
+  margin-bottom: 6px;
+}
+
 .tech-help-version-title {
   color: #2aabe2;
   font-size: 14px;
