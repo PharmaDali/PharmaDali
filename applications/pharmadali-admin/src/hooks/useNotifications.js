@@ -50,7 +50,7 @@ export const useNotifications = () => {
       wsHost: REVERB_HOST,
       wsPort: Number(REVERB_PORT),
       wssPort: Number(REVERB_PORT),
-      forceTLS: false,
+      forceTLS: (Number(REVERB_PORT) === 443),
       enabledTransports: ["ws", "wss"],
       disableStats: true,
       authEndpoint: `${API_BASE_URL.replace(/\/$/, "")}/broadcasting/auth`,
@@ -61,7 +61,7 @@ export const useNotifications = () => {
               socket_id: socketId,
               channel_name: channel.name,
             })
-            .then((res) => callback(false, res.data))
+            .then((res) => callback(false, res))
             .catch((err) => {
               console.warn("Real-time notification socket auth unavailable:", err?.message || err);
               callback(true, err);
@@ -72,7 +72,7 @@ export const useNotifications = () => {
 
     echoRef.current = echo;
 
-    // Each user has a private channel — Laravel broadcasts notifications here
+    // Each user has a private channel Ã¢â‚¬â€ Laravel broadcasts notifications here
     const userId = localStorage.getItem("user_id");
     if (userId) {
       echo.private(`App.Models.User.${userId}`)
