@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { resolveCoordinates } from '../utils/geocoding'
+import api from '../shared/api'
 
 export interface Pharmacy {
   id: number
@@ -11,15 +11,8 @@ export interface Pharmacy {
   status: string
   lat?: number
   lng?: number
+  pharmacists?: string[]
 }
-
-const INITIAL_PHARMACIES: Pharmacy[] = [
-  { id: 1, name: 'Landicho Drugstore', owner: 'Abigail Barrion', location: 'Lipa City', contact: '09123456789', status: 'Active', lat: 13.9416, lng: 121.1622 },
-  { id: 2, name: 'Puremed Pharmacy', owner: 'Althea Alvarez', location: 'Tanauan City', contact: '09541790778', status: 'Active', lat: 14.0833, lng: 121.1500 },
-  { id: 3, name: 'Generika Drugstore', owner: 'Denmar Redondo', location: 'Batangas City', contact: '09171234567', status: 'Inactive', lat: 13.7565, lng: 121.0583 },
-  { id: 4, name: 'Mercury Drug', owner: 'James Mercado', location: 'Calamba City', contact: '09987654321', status: 'Active', lat: 14.2141, lng: 121.1656 },
-  { id: 5, name: 'Southstar Drug', owner: 'James Orlanes', location: 'Santo Tomas', contact: '09223334444', status: 'Pending', lat: 14.1086, lng: 121.1417 },
-]
 
 interface PharmacyContextType {
   pharmacies: Pharmacy[]
@@ -32,60 +25,79 @@ interface PharmacyContextType {
 
 const PharmacyContext = createContext<PharmacyContextType | undefined>(undefined)
 
-const STORAGE_KEY = 'pharmadali_pharmacies'
-
 export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [pharmacies, setPharmacies] = useState<Pharmacy[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        return JSON.parse(saved)
-      }
-    } catch (error) {
-      console.error('Error loading pharmacies from localStorage:', error)
-    }
-    return INITIAL_PHARMACIES
-  })
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>([])
 
   useEffect(() => {
+    fetchPharmacies()
+  }, [])
+
+  const fetchPharmacies = async () => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(pharmacies))
+      const response = await api.get('/pharmacies')
+      const mapped = response.data.map((p: any) => ({
+        id: p.id,
+        name: p.pharmacy_name,
+        owner: p.admins && p.admins.length > 0 
+          ? `${p.admins[0].first_name} ${p.admins[0].last_name}` 
+          : 'N/A',
+        location: p.location,
+        contact: p.contact_number,
+        email: p.email || '',
+        status: p.is_active ? 'Active' : 'Inactive',
+        lat: undefined,
+        lng: undefined,
+        pharmacists: p.pharmacists 
+          ? p.pharmacists.filter((ph: any) => ph.pharmacist).map((ph: any) => ph.pharmacist.employee_number)
+          : [],
+      }))
+      setPharmacies(mapped)
     } catch (error) {
-      console.error('Error saving pharmacies to localStorage:', error)
+      console.error('Error fetching pharmacies:', error)
     }
-  }, [pharmacies])
+  }
 
   const addPharmacy = async (newPharmacyData: Omit<Pharmacy, 'id'>) => {
-    let { lat, lng } = newPharmacyData
-    if (lat === undefined || lng === undefined) {
-      const coords = await resolveCoordinates(newPharmacyData.location)
-      lat = coords.lat
-      lng = coords.lng
+    try {
+      await api.post('/pharmacies', {
+        pharmacy_name: newPharmacyData.name,
+        location: newPharmacyData.location,
+        contact_number: newPharmacyData.contact,
+        is_active: newPharmacyData.status === 'Active',
+      })
+      
+      // Fetch fresh list to get the generated relationships and correct ID
+      await fetchPharmacies()
+    } catch (error) {
+      console.error('Error adding pharmacy:', error)
+      throw error
     }
-
-    const newPharmacy: Pharmacy = {
-      ...newPharmacyData,
-      id: Date.now(),
-      lat,
-      lng,
-    }
-    setPharmacies((prev) => [newPharmacy, ...prev])
   }
 
   const updatePharmacy = async (updated: Pharmacy) => {
-    let { lat, lng } = updated
-    if (lat === undefined || lng === undefined) {
-      const coords = await resolveCoordinates(updated.location)
-      lat = coords.lat
-      lng = coords.lng
+    try {
+      await api.put(`/pharmacies/${updated.id}`, {
+        pharmacy_name: updated.name,
+        location: updated.location,
+        contact_number: updated.contact,
+        is_active: updated.status === 'Active',
+      })
+      
+      // Fetch fresh list to reflect changes
+      await fetchPharmacies()
+    } catch (error) {
+      console.error('Error updating pharmacy:', error)
+      throw error
     }
-
-    const finalUpdated = { ...updated, lat, lng }
-    setPharmacies((prev) => prev.map((p) => (p.id === updated.id ? finalUpdated : p)))
   }
 
-  const deletePharmacy = (id: number) => {
-    setPharmacies((prev) => prev.filter((p) => p.id !== id))
+  const deletePharmacy = async (id: number) => {
+    try {
+      await api.delete(`/pharmacies/${id}`)
+      setPharmacies((prev) => prev.filter((p) => p.id !== id))
+    } catch (error) {
+      console.error('Error deleting pharmacy:', error)
+    }
   }
 
   const totalPharmacies = pharmacies.length
@@ -108,12 +120,12 @@ export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 }
 
 const DEFAULT_FALLBACK_CONTEXT: PharmacyContextType = {
-  pharmacies: INITIAL_PHARMACIES,
+  pharmacies: [],
   addPharmacy: async () => {},
   updatePharmacy: async () => {},
   deletePharmacy: () => {},
-  totalPharmacies: INITIAL_PHARMACIES.length,
-  totalActivePharmacies: INITIAL_PHARMACIES.filter((p) => p.status === 'Active').length,
+  totalPharmacies: 0,
+  totalActivePharmacies: 0,
 }
 
 export const usePharmacies = () => {
