@@ -30,6 +30,7 @@ class AdminUserService
     public function store(array $validated, User $creator): JsonResponse
     {
         $validated['password'] = Str::password(12);
+        $validated['requires_password_change'] = true;
 
         if ($validated['role'] === 'pharmacist') {
             $response = $this->pharmacistRegisterService->handle($validated, $creator);

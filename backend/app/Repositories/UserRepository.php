@@ -24,4 +24,11 @@ class UserRepository
             ->whereIn('role', ['pharmacist', 'pharmacy_admin'])
             ->first();
     }
+
+    public function findPharmacyAdminByEmail(string $email): ?User
+    {
+        return User::where('email', $email)
+            ->where('role', 'pharmacy_admin')
+            ->first();
+    }
 }

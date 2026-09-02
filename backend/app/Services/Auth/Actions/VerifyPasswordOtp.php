@@ -6,6 +6,7 @@ use App\Traits\ApiResponseTrait;
 use App\Traits\HasCacheStore;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Log;
 
 class VerifyPasswordOtp
 {
@@ -16,12 +17,14 @@ class VerifyPasswordOtp
         $storedHashedOtp = $this->cacheStore()->get($otpKey);
 
         if (!$storedHashedOtp) {
+            Log::info("VerifyPasswordOtp failed: storedHashedOtp not found for key {$otpKey}");
             return $this->errorResponse('Invalid or expired OTP code. Please request a new one.', 422);
         }
 
         $inputHashedOtp = hash('sha256', $otp);
 
         if (!hash_equals($storedHashedOtp, $inputHashedOtp)) {
+            Log::info("VerifyPasswordOtp failed: OTP mismatch. Input: {$otp}, HashedInput: {$inputHashedOtp}, Stored: {$storedHashedOtp}");
             return $this->errorResponse('Incorrect OTP code. Please try again.', 422);
         }
 

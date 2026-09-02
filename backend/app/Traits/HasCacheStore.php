@@ -16,7 +16,9 @@ trait HasCacheStore
         }
 
         try {
-            return Cache::store('redis');
+            $store = Cache::store('redis');
+            $store->has('ping');
+            return $store;
         } catch (\Throwable $e) {
             return Cache::store();
         }
