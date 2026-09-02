@@ -26,17 +26,6 @@ export function NotificationCardItem({ item, onSelect, onMarkAsRead, onDelete })
         <button
           type="button"
           className="card-action-btn"
-          title="Mark as read"
-          onClick={(e) => {
-            e.stopPropagation();
-            onMarkAsRead(item.id);
-          }}
-        >
-          <i className="fa-solid fa-circle-check" />
-        </button>
-        <button
-          type="button"
-          className="card-action-btn"
           title="Delete"
           onClick={(e) => {
             e.stopPropagation();
