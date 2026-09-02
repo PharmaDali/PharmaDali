@@ -312,58 +312,49 @@ function GetTechnicalHelp() {
             </header>
 
             {/* Top Cards Row */}
-            <div className="row g-4 mb-4">
+            <div className="row g-3 mb-4">
                 {/* User Manual Card */}
                 <div className="col-12 col-md-6">
                     <article className="tech-help-hero-card h-100 d-flex flex-column justify-content-between">
                         <div>
-                            <div className="tech-help-icon-wrapper mb-3">
-                                <img src={userManualIcon} alt="User Manual Icon" width="24" height="24" />
+                            <div className="d-flex align-items-center gap-2 mb-2">
+                                <div className="tech-help-icon-wrapper">
+                                    <img src={userManualIcon} alt="User Manual Icon" width="20" height="20" />
+                                </div>
+                                <h5 className="fw-bold tech-help-card-heading mb-0">User Manual</h5>
                             </div>
-                            <h5 className="fw-bold tech-help-card-heading mb-2">User Manual</h5>
-                            <p className="tech-help-card-text text-muted mb-4">
+                            <p className="tech-help-card-text text-muted mb-2">
                                 Learn and explore the key features to get the most out of the system.
                             </p>
-                        </div>
-                        <div className="d-flex justify-content-end align-items-center">
                             <button
                                 type="button"
-                                className="tech-help-circle-btn"
-                                aria-label="User Manual"
+                                className="btn btn-link p-0 tech-help-learn-more-link"
                             >
-                                <img src={arrowForwardIcon} alt="Arrow" width="20" height="20" />
+                                Learn More
                             </button>
                         </div>
                     </article>
                 </div>
 
-                {/* Report an Issue Card */}
+                {/* Contact Support Card */}
                 <div className="col-12 col-md-6">
                     <article className="tech-help-hero-card h-100 d-flex flex-column justify-content-between">
                         <div>
-                            <div className="tech-help-icon-wrapper mb-3">
-                                <img src={reportIssueIcon} alt="Report Issue Icon" width="24" height="24" />
+                            <div className="d-flex align-items-center gap-2 mb-2">
+                                <div className="tech-help-icon-wrapper">
+                                    <img src={reportIssueIcon} alt="Contact Support Icon" width="20" height="20" />
+                                </div>
+                                <h5 className="fw-bold tech-help-card-heading mb-0">Contact Support</h5>
                             </div>
-                            <h5 className="fw-bold tech-help-card-heading mb-2">Report an Issue</h5>
-                            <p className="tech-help-card-text text-muted mb-4">
+                            <p className="tech-help-card-text text-muted mb-2">
                                 Access assistance for troubleshooting, feature use, and other technical concerns.
                             </p>
-                        </div>
-                        <div className="d-flex justify-content-between align-items-center">
                             <button
                                 type="button"
                                 className="btn btn-link p-0 tech-help-learn-more-link"
                                 onClick={() => setView("contact")}
                             >
                                 Learn More
-                            </button>
-                            <button
-                                type="button"
-                                className="tech-help-circle-btn"
-                                onClick={() => setView("contact")}
-                                aria-label="Report an Issue"
-                            >
-                                <img src={arrowForwardIcon} alt="Arrow" width="20" height="20" />
                             </button>
                         </div>
                     </article>
@@ -374,10 +365,10 @@ function GetTechnicalHelp() {
             <article className="tech-help-faq-section-card p-4 mb-4">
                 <div className="mb-4">
                     <h4 className="fw-bold tech-help-faq-main-title mb-2">Frequently Asked Question</h4>
-                    <p className="text-muted mb-1" style={{ fontSize: "14px" }}>
+                    <p className="tech-help-faq-subtitle text-muted mb-1">
                         Everything you need to know about PharmaDali. Can't find the answer you're looking for?
                     </p>
-                    <p className="text-muted mb-0" style={{ fontSize: "14px" }}>
+                    <p className="tech-help-faq-subtitle text-muted mb-0">
                         Say hi at{" "}
                         <a href="mailto:pharmadali@gmail.com" className="tech-help-contact-email">
                             pharmadali@gmail.com
