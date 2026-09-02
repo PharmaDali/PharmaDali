@@ -36,7 +36,7 @@ function InsightRows({ items, rowClassName, rightClassName }) {
 
 export function QuickInsights({ items, loading }) {
   return (
-    <div className="card border-0 shadow-sm rounded-3 p-4 h-100 dashboard-panel">
+    <div className="admin-card h-100 dashboard-panel">
       <h6 className="fw-bold mb-3" style={{ fontSize: 16, color: "#2aabe2" }}>Quick Insights</h6>
       {loading ? (
         <QuickInsightSkeleton count={4} />

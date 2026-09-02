@@ -18,7 +18,7 @@ export function PharmacistsTable({
     <article className="pharmacists-card bg-transparent border-0 shadow-none">
       {/* Mobile Toolbar (Search + Add) */}
       <div className="d-flex d-md-none gap-2 mb-3">
-        <div className="flex-grow-1" style={{ backgroundColor: "#edf4f9", borderRadius: "6px" }}>
+        <div className="flex-grow-1" style={{ backgroundColor: "var(--pd-bg-sidebar)", borderRadius: "6px" }}>
           <SearchBar
             id="pharmacists-search-mobile"
             value={search}
@@ -29,7 +29,7 @@ export function PharmacistsTable({
         <button 
           type="button" 
           className="btn text-white rounded-2 px-3 d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" 
-          style={{ backgroundColor: "#48aad9", fontSize: "13px", border: "none" }}
+          style={{ backgroundColor: "var(--pd-primary-dark)", fontSize: "13px", border: "none" }}
           onClick={() => onOpenModal()}
         >
           + Add new pharmacist
@@ -73,10 +73,10 @@ export function PharmacistsTable({
               </div>
               <div className="d-flex justify-content-end gap-3 border-top pt-2 mt-1">
                 <button type="button" className="btn btn-link p-0 text-primary" onClick={() => onOpenDetailsModal(item)}>
-                  <i className="fa-regular fa-pen-to-square" style={{ fontSize: "16px", color: "#48aad9" }} />
+                  <i className="fa-regular fa-pen-to-square" style={{ fontSize: "16px", color: "var(--pd-primary-dark)" }} />
                 </button>
                 <button type="button" className="btn btn-link p-0 text-danger" onClick={() => onDelete(item.id)}>
-                  <i className="fa-regular fa-trash-can" style={{ fontSize: "16px", color: "#ef4444" }} />
+                  <i className="fa-regular fa-trash-can" style={{ fontSize: "16px", color: "var(--pd-danger)" }} />
                 </button>
               </div>
             </div>
@@ -85,7 +85,7 @@ export function PharmacistsTable({
       </div>
 
       {/* Desktop View */}
-      <div className="d-none d-md-block bg-white rounded-3 shadow-sm p-3">
+      <div className="d-none d-md-block admin-card">
         <div className="pharmacists-toolbar">
           <div className="pharmacists-toolbar-left">
             <h6 className="pharmacists-title mb-0">Pharmacist</h6>
@@ -103,7 +103,7 @@ export function PharmacistsTable({
         </div>
 
         <div className="pharmacists-table-scroll">
-        <table className="table mb-0 pharmacists-table">
+        <table className="admin-table">
           <thead>
             <tr>
               <th>Employee Number</th>
@@ -149,14 +149,14 @@ export function PharmacistsTable({
                     <div className="d-flex align-items-center gap-2">
                       <button
                         type="button"
-                        className="btn btn-sm pharmacists-btn-details"
+                        className="admin-btn-secondary btn-sm"
                         onClick={() => onOpenDetailsModal(item)}
                       >
                         View Details
                       </button>
                       <button
                         type="button"
-                        className="btn btn-sm pharmacists-btn-permissions d-flex align-items-center gap-1"
+                        className="admin-btn-secondary btn-sm"
                         onClick={() => onOpenPermissionsModal(item)}
                         title="Manage Staff Permissions"
                       >

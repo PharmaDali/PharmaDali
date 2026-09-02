@@ -32,15 +32,15 @@ export function PickupOrdersTable({
           borderBottomRightRadius: "10px"
         }}
       >
-        <table className="table align-middle mb-0 inventory-table" style={{ backgroundColor: "transparent", borderCollapse: "separate", borderSpacing: "0", border: "none", minWidth: "750px" }}>
+        <table className="admin-table" style={{ minWidth: "750px" }}>
           <thead>
-            <tr style={{ backgroundColor: "#e2f2fa" }}>
-              <th className="fw-semibold px-2 px-md-4 py-3 text-start text-nowrap text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Order ID</th>
-              <th className="fw-semibold px-2 px-md-4 py-3 text-center text-nowrap text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Customer</th>
-              <th className="fw-semibold px-2 px-md-4 py-3 text-center text-nowrap text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Items</th>
-              <th className="fw-semibold px-2 px-md-4 py-3 text-center text-nowrap text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Total</th>
-              <th className="fw-semibold px-4 py-3 text-center text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Status</th>
-              <th className="fw-semibold px-4 py-3 text-center text-uppercase text-secondary" style={{ backgroundColor: "#e2f2fa", border: "none", fontSize: "11px", letterSpacing: "0.5px" }}>Action</th>
+            <tr>
+              <th className="text-start">Order ID</th>
+              <th className="text-center">Customer</th>
+              <th className="text-center">Items</th>
+              <th className="text-center">Total</th>
+              <th className="text-center">Status</th>
+              <th className="text-center">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -74,7 +74,7 @@ export function PickupOrdersTable({
             ) : (
               paginatedOrders.map((order, index) => {
                 const isActive = activeOrder && activeOrder.id === order.id;
-                const cellBgColor = isActive ? "#d8dce2" : "#ffffff";
+                const cellBgColor = isActive ? "var(--pd-bg-sidebar)" : "#ffffff";
                 const isLastRow = index === paginatedOrders.length - 1;
                 const isFirstRow = index === 0;
 
@@ -124,15 +124,10 @@ export function PickupOrdersTable({
                         {isReady ? "Ready" : "Completed"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()} style={{ borderBottom: bottomBorder, borderTopRightRadius: topRightRadius, borderBottomRightRadius: bottomRightRadius, backgroundColor: cellBgColor, borderRight: "none" }}>
+                    <td className="text-center" onClick={(e) => e.stopPropagation()} style={{ borderBottom: bottomBorder, borderTopRightRadius: topRightRadius, borderBottomRightRadius: bottomRightRadius, backgroundColor: cellBgColor, borderRight: "none" }}>
                       <button
                         type="button"
-                        className="btn btn-sm text-white fw-medium rounded-pill px-4 shadow-sm"
-                        style={{
-                          backgroundColor: "#48aad9",
-                          borderColor: "#48aad9",
-                          fontSize: "12px"
-                        }}
+                        className="admin-btn-primary btn-sm rounded-pill"
                         onClick={() => onSelectOrder(order)}
                       >
                         View Details

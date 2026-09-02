@@ -24,7 +24,7 @@ export function InventoryTable({
           {!isPharmacist && (
             <button
               type="button"
-              className="btn inventory-action-btn inventory-action-primary"
+              className="admin-btn-primary"
               onClick={() => setIsAddModalOpen(true)}
             >
               + Add New Product
@@ -32,7 +32,7 @@ export function InventoryTable({
           )}
           <button
             type="button"
-            className="btn inventory-action-btn inventory-action-muted"
+            className="admin-btn-secondary"
             onClick={() => navigate("/inventory/logs")}
           >
             View Inventory Logs
@@ -41,7 +41,7 @@ export function InventoryTable({
       </div>
 
       <div className="inventory-table-scroll">
-        <table className="table inventory-table mb-0">
+        <table className="admin-table mb-0">
           <thead>
             <tr>
               <th>Product Name</th>
@@ -78,14 +78,14 @@ export function InventoryTable({
                           src={item.image_url}
                           alt={item.name}
                           className="rounded border"
-                          style={{ width: "36px", height: "36px", objectFit: "cover", backgroundColor: "#f9fafb" }}
+                          style={{ width: "36px", height: "36px", objectFit: "cover", backgroundColor: "var(--pd-bg-sidebar)" }}
                         />
                       ) : (
                         <div
                           className="rounded border d-flex align-items-center justify-content-center text-secondary"
-                          style={{ width: "36px", height: "36px", backgroundColor: "#f3f4f6" }}
+                          style={{ width: "36px", height: "36px", backgroundColor: "var(--pd-bg-sidebar)" }}
                         >
-                          <i className="fa-solid fa-pills" style={{ fontSize: "14px", color: "#9ca3af" }} />
+                          <i className="fa-solid fa-pills" style={{ fontSize: "14px", color: "var(--pd-text-placeholder)" }} />
                         </div>
                       )}
                       <div>

@@ -158,7 +158,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
         </div>
       )}
 
-      <div className="settings-card">
+      <div className="admin-card">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
           <div>
             <h5 className="settings-header-title">Category</h5>

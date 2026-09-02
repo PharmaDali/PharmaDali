@@ -31,7 +31,7 @@ export function PickupOrderDetailsSidebar({
   if (!activeOrder) return null;
 
   return (
-    <aside className="pickup-order-sidebar card border-0 shadow-sm p-4 h-100 d-flex flex-column justify-content-between" style={{ borderRadius: 16, backgroundColor: "#ffffff" }}>
+    <aside className="pickup-order-sidebar admin-card d-flex flex-column justify-content-between h-100" style={{ borderRadius: 16 }}>
       {/* Header */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h5 className="fw-bold mb-0 text-dark" style={{ fontSize: 18 }}>Order Details</h5>
@@ -41,7 +41,7 @@ export function PickupOrderDetailsSidebar({
           style={{
             width: 30,
             height: 30,
-            backgroundColor: "#f1f5f9",
+            backgroundColor: "var(--pd-bg-sidebar)",
             outline: "none",
             boxShadow: "none",
           }}
@@ -124,7 +124,7 @@ export function PickupOrderDetailsSidebar({
           )}
           <div className="d-flex justify-content-between fw-bold text-dark pt-2 border-top mt-2" style={{ fontSize: 15 }}>
             <span>Total Paid</span>
-            <span style={{ color: "#2aabe2" }}>
+            <span style={{ color: "var(--pd-primary)" }}>
               PHP {Number(activeOrder.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           </div>
@@ -158,8 +158,8 @@ export function PickupOrderDetailsSidebar({
         if (validAttachments.length === 0) return null;
 
         return (
-          <div className="p-3 mb-3 rounded-4 border" style={{ backgroundColor: "#f4f9fd", borderColor: "#e6f0f9" }}>
-            <h6 className="fw-bold mb-3" style={{ fontSize: 14, color: "#64748b" }}>Attachments</h6>
+          <div className="p-3 mb-3 rounded-4 border" style={{ backgroundColor: "var(--pd-bg-main)", borderColor: "var(--pd-border)" }}>
+            <h6 className="fw-bold mb-3" style={{ fontSize: 14, color: "var(--pd-text-muted)" }}>Attachments</h6>
             <div className={`d-flex gap-2 ${validAttachments.length === 1 ? 'justify-content-center' : 'justify-content-start overflow-x-auto'}`}>
               {validAttachments.map((url, idx) => (
                 <a 
@@ -170,7 +170,7 @@ export function PickupOrderDetailsSidebar({
                   className={`d-block flex-shrink-0 ${validAttachments.length === 1 ? 'w-75' : 'flex-fill'}`}
                   style={{ maxWidth: validAttachments.length === 1 ? '80%' : 'calc(50% - 4px)' }}
                 >
-                  <div className="border overflow-hidden bg-white" style={{ borderColor: "#2aabe2", borderWidth: 1.5, borderRadius: 12, height: 90 }}>
+                  <div className="border overflow-hidden bg-white" style={{ borderColor: "var(--pd-primary)", borderWidth: 1.5, borderRadius: 12, height: 90 }}>
                     <img src={url} alt="Attachment" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                 </a>
@@ -201,7 +201,7 @@ export function PickupOrderDetailsSidebar({
         <button
           type="button"
           className="btn w-100 py-2 text-white fw-bold rounded-3 mt-auto"
-          style={{ backgroundColor: "#2aabe2", borderColor: "#2aabe2", fontSize: 15 }}
+          style={{ backgroundColor: "var(--pd-primary)", borderColor: "var(--pd-primary)", fontSize: 15 }}
           onClick={showEnterPayment ? onOpenPaymentModal : onCompleteSale}
         >
           {showEnterPayment ? "Enter Payment" : "Complete Sale"}

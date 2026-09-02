@@ -145,10 +145,10 @@ export function Inventory() {
             alt="Success"
             style={{ width: "64px", height: "64px", marginBottom: "16px" }}
           />
-          <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "12px", color: "#1f2937" }}>
+          <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "12px", color: "var(--pd-soft-black-dark)" }}>
             {successModal.title}
           </h2>
-          <p style={{ fontSize: "14px", color: "#666", lineHeight: "1.5", marginBottom: "24px" }}>
+          <p style={{ fontSize: "14px", color: "var(--pd-text-muted)", lineHeight: "1.5", marginBottom: "24px" }}>
             {successModal.message}
           </p>
           <button
@@ -175,16 +175,16 @@ export function Inventory() {
             alt="Error"
             style={{ width: "64px", height: "64px", marginBottom: "16px" }}
           />
-          <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "12px", color: "#1f2937" }}>
+          <h2 style={{ fontSize: "20px", fontWeight: "700", marginBottom: "12px", color: "var(--pd-soft-black-dark)" }}>
             {errorModal.title}
           </h2>
-          <p style={{ fontSize: "14px", color: "#666", lineHeight: "1.5", marginBottom: "24px" }}>
+          <p style={{ fontSize: "14px", color: "var(--pd-text-muted)", lineHeight: "1.5", marginBottom: "24px" }}>
             {errorModal.message}
           </p>
           <button
             onClick={() => setErrorModal({ ...errorModal, isOpen: false })}
             className="btn inventory-modal-btn inventory-modal-btn-primary w-100"
-            style={{ padding: "10px", backgroundColor: "#dc3545", borderColor: "#dc3545", color: "white" }}
+            style={{ padding: "10px", backgroundColor: "var(--pd-danger)", borderColor: "var(--pd-danger)", color: "white" }}
           >
             DISMISS
           </button>

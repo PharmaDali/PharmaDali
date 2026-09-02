@@ -46,8 +46,8 @@ export function Pharmacists() {
       <p className="admin-page-subtitle mb-4">List of pharmacist accounts in the pharmacy.</p>
 
       <div className="d-none d-md-flex justify-content-end mb-3">
-        <button type="button" className="btn pharmacists-add-btn" onClick={() => handleOpenModal()}>
-          Add new pharmacist
+        <button type="button" className="admin-btn-primary" onClick={() => handleOpenModal()}>
+          + Add new pharmacist
         </button>
       </div>
 

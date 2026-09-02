@@ -101,7 +101,7 @@ function SalesReports() {
       )}
 
       <div className="mt-4">
-        <div className="sales-report-card">
+        <div className="admin-card p-0 overflow-hidden">
           <SalesReportToolbar
             startDate={startDate}
             endDate={endDate}

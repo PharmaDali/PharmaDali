@@ -3,7 +3,7 @@ import { getWeeksLeft } from "../../utils/inventoryUtils";
 
 export function InventorySideCards({ lowStockItems, expiringItems, expiredItems, handleMarkOrdered }) {
   const cardStyle = { flex: "1 1 0", minHeight: 0 };
-  const emptyStateStyle = { textAlign: "center", padding: "2rem 1rem", color: "#6c757d", fontSize: "0.9rem" };
+  const emptyStateStyle = { textAlign: "center", padding: "2rem 1rem", color: "var(--pd-text-muted)", fontSize: "0.9rem" };
 
   return (
     <div className="inventory-side-wrapper d-flex flex-column gap-3">
@@ -23,7 +23,7 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                   <span className="inventory-side-name">
                     {item.name}
                     {item.batches && item.batches.length > 0 && (
-                      <div style={{ fontSize: "10px", color: "#6c757d", fontWeight: "normal", marginTop: "2px" }}>
+                      <div style={{ fontSize: "10px", color: "var(--pd-text-muted)", fontWeight: "normal", marginTop: "2px" }}>
                         {item.batches.map((b) => b.batch_number).filter(Boolean).join(", ")}
                       </div>
                     )}
@@ -63,7 +63,7 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                     </button>
                   )}
                   {item.ordered_at && (
-                    <span style={{ fontSize: "10px", color: "#28a745", fontWeight: "600", whiteSpace: "nowrap" }}>✓ Ordered</span>
+                    <span style={{ fontSize: "10px", color: "var(--pd-success)", fontWeight: "600", whiteSpace: "nowrap" }}>✓ Ordered</span>
                   )}
                 </div>
               </div>
@@ -88,7 +88,7 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                 <span className="inventory-side-name">
                   {item.name}
                   {item.batches && item.batches.length > 0 && (
-                    <div style={{ fontSize: "10px", color: "#6c757d", fontWeight: "normal", marginTop: "2px" }}>
+                    <div style={{ fontSize: "10px", color: "var(--pd-text-muted)", fontWeight: "normal", marginTop: "2px" }}>
                       {item.batches
                         .filter((b) => b.status === "Expiring soon")
                         .map((b) => b.batch_number)
@@ -123,7 +123,7 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                 <span className="inventory-side-name">
                   {item.name}
                   {item.batches && item.batches.length > 0 && (
-                    <div style={{ fontSize: "10px", color: "#6c757d", fontWeight: "normal", marginTop: "2px" }}>                      {item.batches
+                    <div style={{ fontSize: "10px", color: "var(--pd-text-muted)", fontWeight: "normal", marginTop: "2px" }}>                      {item.batches
                         .filter((b) => b.status === "Expired")
                         .map((b) => b.batch_number)
                         .filter(Boolean)

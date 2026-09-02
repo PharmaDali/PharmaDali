@@ -85,3 +85,91 @@
 }
 
 
+/* --- Global UI Design System --- */
+
+.admin-card {
+  background: #ffffff;
+  border-radius: var(--pd-radius-md);
+  border: 1px solid var(--pd-border);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  padding: 24px;
+}
+
+.admin-table-container {
+  border-radius: var(--pd-radius-md);
+  border: 1px solid var(--pd-border);
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  margin-bottom: 0;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  background-color: #f8fafc;
+  color: var(--pd-text-muted);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--pd-border);
+}
+
+.admin-table td {
+  padding: 14px 16px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--pd-border);
+  color: var(--pd-text-dark);
+  font-size: 14.5px;
+}
+
+.admin-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.admin-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-btn-primary {
+  background-color: var(--pd-primary);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-btn-primary:hover {
+  background-color: var(--pd-primary-dark);
+  color: white;
+}
+
+.admin-btn-secondary {
+  background-color: #f1f5f9;
+  color: var(--pd-text-medium);
+  border: 1px solid var(--pd-border);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.admin-btn-secondary:hover {
+  background-color: #e2e8f0;
+  color: var(--pd-text-dark);
+}

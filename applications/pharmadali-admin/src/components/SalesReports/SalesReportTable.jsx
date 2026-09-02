@@ -17,7 +17,7 @@ function SalesReportTable({
     <>
       {/* Table */}
       <div className="table-responsive rounded-3 border-0">
-        <table className="table sales-report-table align-middle mb-0">
+        <table className="admin-table">
           <thead className="report-thead">
             <tr>
               <th>Order ID</th>
