@@ -37,10 +37,10 @@
 
 .tech-help-hero-card {
   background: #ffffff;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
-  padding: 24px;
+  padding: 16px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -50,9 +50,9 @@
 }
 
 .tech-help-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background-color: #2aabe2;
   display: flex;
   align-items: center;
@@ -61,13 +61,14 @@
 
 .tech-help-card-heading {
   color: #2aabe2;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
 }
 
 .tech-help-card-text {
-  font-size: 13.5px;
+  font-size: 11.5px;
   line-height: 1.5;
+  margin-bottom: 6px;
 }
 
 .tech-help-circle-btn {
@@ -90,8 +91,8 @@
 
 .tech-help-learn-more-link {
   color: #2aabe2;
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 500;
+  font-size: 12px;
   text-decoration: underline;
   cursor: pointer;
 }
@@ -114,6 +115,10 @@
   font-weight: 700;
 }
 
+.tech-help-faq-subtitle {
+  font-size: 14px;
+}
+
 .tech-help-contact-email {
   color: #2aabe2;
   text-decoration: underline;
@@ -124,9 +129,9 @@
 }
 
 .tech-help-faq-pill {
-  background: #f0f4ff;
-  border-radius: 12px;
-  padding: 14px 18px;
+  background: #f4f7fc;
+  border-radius: 8px;
+  padding: 12px 14px;
   transition: background-color 0.2s ease;
 }
 
@@ -149,7 +154,7 @@
 .tech-help-faq-question {
   color: #2d3748;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 11.5px;
   text-align: left;
 }
 
@@ -201,6 +206,25 @@
 
 .tech-help-textarea {
   resize: vertical;
+}
+
+.tech-help-textarea::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tech-help-textarea::-webkit-scrollbar-track {
+  background: #f0f3ff;
+  border-radius: 10px;
+}
+
+.tech-help-textarea::-webkit-scrollbar-thumb {
+  background: #2aabe2;
+  border-radius: 10px;
+}
+
+.tech-help-textarea::-webkit-scrollbar-thumb:hover {
+  background: #1c93c6;
 }
 
 .tech-help-ticket-card,
@@ -427,6 +451,34 @@
 }
 
 @media (max-width: 575.98px) {
+  .tech-help-page {
+    padding: 16px !important;
+  }
+  
+  .tech-help-title {
+    font-size: 20px;
+  }
+  
+  .tech-help-subtitle {
+    font-size: 11.5px;
+  }
+  
+  .tech-help-card-heading {
+    font-size: 13.5px;
+  }
+
+  .tech-help-faq-section-card {
+    padding: 16px !important;
+  }
+
+  .tech-help-faq-main-title {
+    font-size: 13.5px;
+  }
+
+  .tech-help-faq-subtitle {
+    font-size: 11.5px;
+  }
+
   .tech-help-ticket-card,
   .tech-help-availability-card {
     padding: 15px;
