@@ -17,18 +17,18 @@ function SalesReportTable({
   return (
     <>
       {/* Table */}
-      <div className="table-responsive rounded-3 border-0">
-        <table className="admin-table">
+      <div className="table-responsive rounded-3 border-0 sales-report-table-scroll">
+        <table className="admin-table sales-report-table">
           <thead className="report-thead">
             <tr>
-              <th>Order ID</th>
-              <th>Channel</th>
-              <th>Items</th>
-              <th>Processed By</th>
-              <th>Unit Price</th>
-              <th>Total</th>
-              <th>Status</th>
-              <th>Date</th>
+              <th className="text-center">Order ID</th>
+              <th className="text-center">Channel</th>
+              <th className="text-center">Items</th>
+              <th className="text-center">Processed By</th>
+              <th className="text-center">Unit Price</th>
+              <th className="text-center">Total</th>
+              <th className="text-center">Status</th>
+              <th className="text-center">Date</th>
             </tr>
           </thead>
           <tbody>
@@ -61,13 +61,13 @@ function SalesReportTable({
                     className={selectedRow?.id === row.id && selectedRow?.rowIndex === index ? "table-active" : ""}
                     style={{ cursor: "pointer" }}
                   >
-                    <td className="fw-medium text-dark">{row.id}</td>
-                    <td>{channel}</td>
-                    <td>{row.items}</td>
-                    <td className="fw-medium">{row.processedBy}</td>
-                    <td>PHP {unitPrice.toFixed(2)}</td>
-                    <td className="fw-medium">PHP {totalNum.toFixed(2)}</td>
-                    <td>
+                    <td className="fw-medium text-dark text-center">{row.id}</td>
+                    <td className="text-center">{channel}</td>
+                    <td className="text-center">{row.items}</td>
+                    <td className="fw-medium text-center">{row.processedBy}</td>
+                    <td className="text-center">PHP {unitPrice.toFixed(2)}</td>
+                    <td className="fw-medium text-center">PHP {totalNum.toFixed(2)}</td>
+                    <td className="text-center">
                       {row.has_exchange || row.status === 'exchanged' ? (
                         <span className="badge badge-status badge-exchanged">
                           <i className="fa-solid fa-right-left me-1"></i> Exchanged
@@ -78,7 +78,7 @@ function SalesReportTable({
                         </span>
                       )}
                     </td>
-                    <td className="text-muted">{row.date}</td>
+                    <td className="text-muted text-center">{row.date}</td>
                   </tr>
                 );
               })

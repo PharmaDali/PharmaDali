@@ -21,27 +21,25 @@ export default function AnalyticsTable({
         
         <div className="analytics-filter ms-auto d-flex align-items-center gap-3">
           {periodInfo && (
-            <div className="d-flex align-items-center gap-1 bg-light px-2 py-1 rounded" style={{ border: '1px solid #e2e8f0' }}>
+            <div className="analytics-period-box">
               <button 
                 type="button"
-                className="btn btn-sm btn-link p-0 text-decoration-none text-secondary" 
+                className="analytics-period-arrow" 
                 onClick={onPrevPeriod}
                 disabled={loading}
                 title="Previous Period"
-                style={{ fontSize: '12px', width: '20px' }}
               >
                 &#9664;
               </button>
-              <span className="fw-semibold text-dark px-1" style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
+              <span className="analytics-period-label">
                 {periodInfo.label}
               </span>
               <button 
                 type="button"
-                className="btn btn-sm btn-link p-0 text-decoration-none text-secondary" 
+                className="analytics-period-arrow" 
                 onClick={onNextPeriod}
                 disabled={loading || periodInfo.isCurrentPeriod}
                 title="Next Period"
-                style={{ fontSize: '12px', width: '20px' }}
               >
                 &#9654;
               </button>
@@ -49,7 +47,7 @@ export default function AnalyticsTable({
           )}
 
           <div className="d-flex align-items-center">
-            <span className="analytics-filter-label text-muted me-2" style={{fontSize: '13px'}}>Sort by:</span>
+            <span className="analytics-filter-label">Sort by:</span>
             <div className="position-relative d-inline-block">
               <select 
                 className="form-select form-select-sm analytics-select" 
@@ -65,7 +63,7 @@ export default function AnalyticsTable({
               <img 
                 src={arrowDropDownIcon} 
                 alt="" 
-                className="analytics-select-icon position-absolute top-50 translate-middle-y"
+                className="analytics-select-icon position-absolute top-50 translate-middle-y" 
                 style={{right: '10px', pointerEvents: 'none'}} 
               />
             </div>

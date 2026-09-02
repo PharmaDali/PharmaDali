@@ -367,6 +367,31 @@
   font-size: 13px;
   border-collapse: separate;
   border-spacing: 0;
+  width: 100%;
+}
+
+.sales-report-table-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pd-primary, #2aabe2) #f0f4f8;
+}
+
+.sales-report-table-scroll::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.sales-report-table-scroll::-webkit-scrollbar-track {
+  background: #f0f4f8;
+  border-radius: 999px;
+}
+
+.sales-report-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--pd-primary, #2aabe2);
+  border-radius: 999px;
+}
+
+.sales-report-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #1e96cb;
 }
 
 .report-thead th {
@@ -377,6 +402,8 @@
   font-size: 13px;
   border-bottom: none;
   white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
 }
 
 .report-thead th:first-child {
@@ -406,6 +433,8 @@
   border-bottom: 1px solid #f1f5f9;
   color: #334155;
   white-space: nowrap;
+  text-align: center;
+  vertical-align: middle;
 }
 
 /* Badges */
@@ -416,6 +445,8 @@
   font-weight: 600;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  margin: 0 auto;
   gap: 4px;
 }
 
@@ -450,6 +481,45 @@
   font-size: 14px;
   font-weight: 700;
   color: #48aad9;
+}
+
+@media (max-width: 767.98px) {
+  .sales-report-table {
+    font-size: 11.5px !important;
+  }
+
+  .report-thead th {
+    padding: 8px 10px !important;
+    font-size: 11px !important;
+    text-align: center !important;
+  }
+
+  .sales-report-table td {
+    padding: 8px 10px !important;
+    font-size: 11.5px !important;
+    text-align: center !important;
+    vertical-align: middle !important;
+  }
+
+  .badge-status {
+    padding: 3px 10px !important;
+    font-size: 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .report-table-total-container {
+    padding-top: 10px !important;
+    padding-right: 8px !important;
+    gap: 12px !important;
+  }
+
+  .report-total-label {
+    font-size: 11.5px !important;
+  }
+
+  .report-total-amount {
+    font-size: 12.5px !important;
+  }
 }
 
 /* Modal items grid */

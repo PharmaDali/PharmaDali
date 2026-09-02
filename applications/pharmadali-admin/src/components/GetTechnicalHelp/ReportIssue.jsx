@@ -31,7 +31,7 @@ function ReportIssue({ setView }) {
             
             const payload = {
                 title: issueSummary,
-                category: issueCategory || "technical",
+                category: issueCategory || "Dashboard",
                 priority: issuePriority || "medium",
                 description: issueProblem,
                 steps_taken: issueSteps ? issueSteps.split('\n').filter(s => s.trim()) : [],
@@ -103,20 +103,33 @@ function ReportIssue({ setView }) {
                                         <label htmlFor="issueCategory" className="tech-help-form-label">Category <span>*</span></label>
                                         <select id="issueCategory" className="form-select tech-help-form-input" value={issueCategory} onChange={(e) => setIssueCategory(e.target.value)} required>
                                             <option value="">Select a category</option>
-                                            <option value="account">Account and access</option>
-                                            <option value="inventory">Inventory and products</option>
-                                            <option value="sales">Sales and reports</option>
-                                            <option value="technical">Technical problem</option>
+                                            <option value="Dashboard">Dashboard</option>
+                                            <option value="POS">POS</option>
+                                            <option value="Pickup Orders">Pickup Orders</option>
+                                            <option value="Analytics">Analytics</option>
+                                            <option value="Sales and Reports">Sales and Reports</option>
+                                            <option value="Pharmacists">Pharmacists</option>
+                                            <option value="Notifications">Notifications</option>
+                                            <option value="Settings">Settings</option>
                                         </select>
                                     </div>
                                     <div className="col-12 col-md-6">
                                         <label htmlFor="issuePriority" className="tech-help-form-label">Priority <span>*</span></label>
-                                        <select id="issuePriority" className="form-select tech-help-form-input" value={issuePriority} onChange={(e) => setIssuePriority(e.target.value)} required>
-                                            <option value="">Select a priority level</option>
-                                            <option value="low">Low</option>
-                                            <option value="normal">Normal</option>
-                                            <option value="high">High</option>
-                                            <option value="urgent">Urgent</option>
+                                        <select 
+                                            id="issuePriority" 
+                                            className={`form-select tech-help-form-input ${
+                                                issuePriority === 'high' ? 'text-danger fw-semibold' :
+                                                issuePriority === 'medium' ? 'text-warning fw-semibold' :
+                                                issuePriority === 'low' ? 'text-success fw-semibold' : ''
+                                            }`} 
+                                            value={issuePriority} 
+                                            onChange={(e) => setIssuePriority(e.target.value)} 
+                                            required
+                                        >
+                                            <option value="" className="text-dark">Select a priority level</option>
+                                            <option value="high" className="text-danger fw-semibold" style={{ color: "#ef4444" }}>High</option>
+                                            <option value="medium" className="text-warning fw-semibold" style={{ color: "#f59e0b" }}>Medium</option>
+                                            <option value="low" className="text-success fw-semibold" style={{ color: "#10b981" }}>Low</option>
                                         </select>
                                     </div>
                                 </div>

@@ -1429,23 +1429,47 @@ select.inventory-modal-input {
 .inventory-batch-table {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
   margin-bottom: 0.75rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pd-primary, #2aabe2) #f0f4f8;
+}
+
+.inventory-batch-table::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.inventory-batch-table::-webkit-scrollbar-track {
+  background: #f0f4f8;
+  border-radius: 999px;
+}
+
+.inventory-batch-table::-webkit-scrollbar-thumb {
+  background: var(--pd-primary, #2aabe2);
+  border-radius: 999px;
+}
+
+.inventory-batch-table::-webkit-scrollbar-thumb:hover {
+  background: #1e96cb;
 }
 
 .inventory-batch-head,
 .inventory-batch-row {
   display: grid;
-  grid-template-columns: 1.4fr 0.8fr 1fr 1fr;
-  gap: 0.5rem;
+  grid-template-columns: 110px 70px 140px 140px 90px;
+  gap: 0.65rem;
   padding: 0.55rem 0.85rem;
   align-items: center;
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
-/* When in edit mode, add a 5th column for Save button */
+/* When in edit mode, keep same column widths */
 .inventory-batch-head.has-action,
 .inventory-batch-row.has-action {
-  grid-template-columns: 1.4fr 0.8fr 1fr 1fr 0.7fr;
+  grid-template-columns: 110px 70px 140px 140px 90px;
 }
 
 .inventory-batch-head {
@@ -1480,7 +1504,19 @@ select.inventory-modal-input {
   min-height: unset !important;
   border-radius: 5px !important;
   border: 1px solid #d1d5db !important;
-  width: 80px;
+  width: 100% !important;
+  max-width: 75px !important;
+}
+
+.inventory-batch-date-input {
+  padding: 0.3rem 1.6rem 0.3rem 0.5rem !important;
+  font-size: 0.82rem !important;
+  height: auto !important;
+  min-height: unset !important;
+  border-radius: 5px !important;
+  border: 1px solid #d1d5db !important;
+  width: 100% !important;
+  min-width: 125px !important;
 }
 
 .inventory-batch-save-btn {
@@ -1779,5 +1815,179 @@ input[type="month"]::-webkit-calendar-picker-indicator {
 
   .inventory-action-btn {
     border-radius: 999px !important;
+  }
+
+  /* --- Inventory Modals & Forms Mobile Responsive --- */
+  .add-product-modal .pd-modal,
+  .inventory-details-modal .pd-modal,
+  .pd-modal--sm,
+  .pd-modal--md {
+    width: 95% !important;
+    max-width: 95% !important;
+    border-radius: 14px !important;
+  }
+
+  .add-product-modal .pd-modal {
+    padding: 0 !important;
+  }
+
+  .add-product-modal .pd-modal__header {
+    padding: 0.9rem 1.1rem !important;
+  }
+
+  .add-product-modal-body {
+    padding: 0.75rem 1rem 1.25rem 1rem !important;
+  }
+
+  .add-product-type-selector {
+    gap: 1rem !important;
+    margin-bottom: 0.9rem !important;
+  }
+
+  .add-product-type-label {
+    font-size: 0.82rem !important;
+  }
+
+  .add-product-section {
+    margin-bottom: 1rem !important;
+  }
+
+  .add-product-section-title,
+  .inventory-modal-section-title {
+    font-size: 0.84rem !important;
+    margin-bottom: 0.65rem !important;
+  }
+
+  .add-product-grid,
+  .inventory-modal-grid,
+  .inventory-modal-grid-3 {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+  }
+
+  .add-product-full-width,
+  .inventory-modal-full-width {
+    grid-column: span 1 !important;
+  }
+
+  .add-product-label,
+  .inventory-modal-label {
+    font-size: 0.76rem !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .add-product-input,
+  .add-product-select,
+  .add-product-textarea,
+  .inventory-modal-input {
+    padding: 0.5rem 0.7rem !important;
+    font-size: 0.82rem !important;
+    border-radius: 6px !important;
+  }
+
+  .add-product-textarea {
+    min-height: 65px !important;
+  }
+
+  .add-product-footer {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.5rem !important;
+    margin-top: 1rem !important;
+  }
+
+  .add-product-btn-cancel,
+  .add-product-btn-add {
+    flex: 1 !important;
+    padding: 0.5rem 0.75rem !important;
+    font-size: 0.82rem !important;
+    text-align: center !important;
+  }
+
+  .inventory-modal-actions {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.5rem !important;
+  }
+
+  .inventory-modal-actions .inventory-modal-btn {
+    flex: 1 !important;
+    padding: 0.45rem 0.65rem !important;
+    font-size: 0.8rem !important;
+    text-align: center !important;
+  }
+
+  /* Batch Table Responsive */
+  .inventory-batch-table {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 6px !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--pd-primary, #2aabe2) #f0f4f8;
+  }
+
+  .inventory-batch-table::-webkit-scrollbar {
+    height: 5px !important;
+    width: 5px !important;
+  }
+
+  .inventory-batch-table::-webkit-scrollbar-track {
+    background: #f0f4f8 !important;
+    border-radius: 999px !important;
+  }
+
+  .inventory-batch-table::-webkit-scrollbar-thumb {
+    background: var(--pd-primary, #2aabe2) !important;
+    border-radius: 999px !important;
+  }
+
+  .inventory-batch-head,
+  .inventory-batch-row {
+    width: max-content !important;
+    min-width: 100% !important;
+    grid-template-columns: 105px 65px 135px 135px 85px !important;
+    padding: 0.45rem 0.6rem !important;
+    font-size: 0.78rem !important;
+    box-sizing: border-box !important;
+  }
+
+  .inventory-batch-head {
+    font-size: 0.68rem !important;
+  }
+
+  .inventory-batch-stock-input {
+    max-width: 65px !important;
+    padding: 0.25rem 0.35rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .inventory-batch-date-input {
+    min-width: 122px !important;
+    padding: 0.25rem 1.6rem 0.25rem 0.4rem !important;
+    font-size: 0.78rem !important;
+  }
+
+  .inventory-batch-add-form {
+    padding: 0.75rem !important;
+  }
+
+  .inventory-batch-add-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.5rem !important;
+  }
+
+  .inventory-batch-add-actions {
+    width: 100% !important;
+    display: flex !important;
+    gap: 0.5rem !important;
+  }
+
+  .inventory-batch-confirm-btn,
+  .inventory-batch-cancel-btn {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 0.4rem 0.5rem !important;
+    font-size: 0.78rem !important;
   }
 }

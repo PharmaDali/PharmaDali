@@ -94,7 +94,7 @@ export function PickupOrdersTable({
                     style={{ cursor: "pointer", transition: "background-color 0.2s" }}
                     onClick={() => onSelectOrder(order)}
                   >
-                    <td className="px-2 px-md-4 py-3 text-start text-dark text-nowrap" style={{ fontSize: "13px", borderBottom: bottomBorder, borderTopLeftRadius: topLeftRadius, borderBottomLeftRadius: bottomLeftRadius, backgroundColor: cellBgColor, borderLeft: "none" }}>
+                    <td className="px-2 px-md-4 py-2 py-md-3 text-start text-dark text-nowrap" style={{ borderBottom: bottomBorder, borderTopLeftRadius: topLeftRadius, borderBottomLeftRadius: bottomLeftRadius, backgroundColor: cellBgColor, borderLeft: "none" }}>
                       <span className="d-inline-block rounded-circle me-2 d-md-none" style={{
                         width: '8px',
                         height: '8px',
@@ -102,32 +102,31 @@ export function PickupOrdersTable({
                       }}></span>
                       {order.order_number || order.id}
                     </td>
-                    <td className="px-2 px-md-4 py-3 text-center text-nowrap" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
-                      <div className="fw-medium text-dark" style={{ fontSize: "13px" }}>
+                    <td className="px-2 px-md-4 py-2 py-md-3 text-center text-nowrap" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
+                      <div className="fw-medium text-dark">
                         {order.customer_name ? order.customer_name : formatCustomerName(order)}
                       </div>
                     </td>
-                    <td className="px-2 px-md-4 py-3 text-center text-dark text-nowrap" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor, fontSize: "13px" }}>
+                    <td className="px-2 px-md-4 py-2 py-md-3 text-center text-dark text-nowrap" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
                       {Number(order.items_count || order.items?.length || 0)}
                     </td>
-                    <td className="px-2 px-md-4 py-3 text-center fw-medium text-dark text-nowrap" style={{ fontSize: "13px", borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
+                    <td className="px-2 px-md-4 py-2 py-md-3 text-center fw-medium text-dark text-nowrap" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
                       PHP {Number(order.total_amount || order.payable_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="px-4 py-3 text-center" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
+                    <td className="px-2 px-md-4 py-2 py-md-3 text-center text-nowrap" style={{ borderBottom: bottomBorder, backgroundColor: cellBgColor }}>
                       <span
                         className="fw-semibold"
                         style={{
-                          fontSize: "13px",
                           color: isReady ? "#10b981" : "#64748b",
                         }}
                       >
                         {isReady ? "Ready" : "Completed"}
                       </span>
                     </td>
-                    <td className="text-center" onClick={(e) => e.stopPropagation()} style={{ borderBottom: bottomBorder, borderTopRightRadius: topRightRadius, borderBottomRightRadius: bottomRightRadius, backgroundColor: cellBgColor, borderRight: "none" }}>
+                    <td className="px-2 px-md-3 py-2 py-md-3 text-center text-nowrap" onClick={(e) => e.stopPropagation()} style={{ borderBottom: bottomBorder, borderTopRightRadius: topRightRadius, borderBottomRightRadius: bottomRightRadius, backgroundColor: cellBgColor, borderRight: "none" }}>
                       <button
                         type="button"
-                        className="admin-btn-primary btn-sm rounded-pill"
+                        className="admin-btn-primary btn-sm rounded-pill pickup-view-details-btn text-nowrap"
                         onClick={() => onSelectOrder(order)}
                       >
                         View Details

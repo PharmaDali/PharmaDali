@@ -7,6 +7,8 @@ export function FormattedDateInput({
   placeholder = "mm/dd/yyyy",
   disabled = false,
   style = {},
+  max,
+  min,
 }) {
   const [textValue, setTextValue] = useState("");
   const dateInputRef = useRef(null);
@@ -35,7 +37,10 @@ export function FormattedDateInput({
         const yNum = parseInt(year, 10);
         // Basic range check
         if (mNum >= 1 && mNum <= 12 && dNum >= 1 && dNum <= 31 && yNum >= 1900 && yNum <= 2100) {
-          return `${year}-${month}-${day}`;
+          const dbDate = `${year}-${month}-${day}`;
+          if (max && dbDate > max) return "";
+          if (min && dbDate < min) return "";
+          return dbDate;
         }
       }
     }
@@ -75,7 +80,9 @@ export function FormattedDateInput({
 
   // Handle native calendar selection
   const handleDateChange = (e) => {
-    const dbValue = e.target.value; // YYYY-MM-DD
+    let dbValue = e.target.value; // YYYY-MM-DD
+    if (max && dbValue > max) dbValue = max;
+    if (min && dbValue < min) dbValue = min;
     onChange(dbValue);
     setTextValue(toDisplayFormat(dbValue));
   };
@@ -100,7 +107,7 @@ export function FormattedDateInput({
         type="text"
         className={className}
         placeholder={placeholder}
-        style={{ ...style, paddingRight: "2.5rem", backgroundImage: "none" }}
+        style={{ ...style, paddingRight: "1.75rem", backgroundImage: "none" }}
         value={textValue}
         onChange={handleTextChange}
         disabled={disabled}
@@ -110,13 +117,15 @@ export function FormattedDateInput({
         type="date"
         ref={dateInputRef}
         value={value || ""}
+        max={max}
+        min={min}
         onChange={handleDateChange}
         disabled={disabled}
         style={{
           position: "absolute",
           right: "0",
           top: "0",
-          width: "40px",
+          width: "28px",
           height: "100%",
           opacity: 0,
           cursor: disabled ? "not-allowed" : "pointer",
@@ -131,7 +140,7 @@ export function FormattedDateInput({
         onClick={handleIconClick}
         style={{
           position: "absolute",
-          right: "12px",
+          right: "8px",
           top: "50%",
           transform: "translateY(-50%)",
           color: "#48aad9",

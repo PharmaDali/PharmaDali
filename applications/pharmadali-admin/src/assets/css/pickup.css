@@ -438,3 +438,43 @@
     grid-template-columns: 1fr;
   }
 }
+
+.pickup-view-details-btn {
+  font-size: 12px;
+  padding: 6px 16px;
+  white-space: nowrap;
+}
+
+/* Mobile responsive typography and compact button for Pickup Orders */
+@media (max-width: 767.98px) {
+  .pickup-table-scroll .admin-table th {
+    font-size: 11px !important;
+    padding: 8px 10px !important;
+    white-space: nowrap !important;
+  }
+
+  .pickup-table-scroll .admin-table td {
+    font-size: 11.5px !important;
+    padding: 8px 10px !important;
+    white-space: nowrap !important;
+  }
+
+  .pickup-table-scroll .admin-table td div,
+  .pickup-table-scroll .admin-table td span {
+    font-size: 11.5px !important;
+  }
+
+  .pickup-view-details-btn,
+  .pickup-table-scroll .admin-btn-primary.btn-sm {
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 3px 12px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 999px !important;
+  }
+}
