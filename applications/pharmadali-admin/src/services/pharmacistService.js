@@ -7,12 +7,12 @@ export const fetchPharmacists = async () => {
 
 export const createPharmacist = async (data) => {
   const res = await apiRequest.post("/pharmacist/register", data);
-  return res?.data || res;
+  return res?.user || res?.data || res;
 };
 
 export const updatePharmacist = async (id, data) => {
   const res = await apiRequest.put(`/pharmacists/${id}`, data);
-  return res?.data || res;
+  return res?.user || res?.data || res;
 };
 
 export const deletePharmacist = async (id) => {
@@ -22,5 +22,5 @@ export const deletePharmacist = async (id) => {
 
 export const updatePharmacistPermissions = async (id, permissions) => {
   const res = await apiRequest.put(`/pharmacists/${id}/permissions`, { permissions });
-  return res?.data || res;
+  return res?.user || res?.data || res;
 };

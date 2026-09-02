@@ -42,6 +42,7 @@ class PharmacistRegisterService
                 'address'       => $data['address'] ?? null,
                 'role'          => 'pharmacist',
                 'pharmacy_id'   => $pharmacyId,
+                'is_active'     => $data['is_active'] ?? true,
             ]);
 
             $employeeNumber = 'PHAR-' . $user->id . '-' . $pharmacyId;
@@ -55,7 +56,7 @@ class PharmacistRegisterService
             return $user;
         });
 
-        $user->load(['pharmacist', 'pharmacy']);
+        $user->refresh()->load(['pharmacist', 'pharmacy']);
 
         $user->notify(new PharmacistWelcomeNotification(
             employeeNumber: $user->pharmacist->employee_number,
