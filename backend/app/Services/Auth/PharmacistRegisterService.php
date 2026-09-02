@@ -19,15 +19,19 @@ class PharmacistRegisterService
             ], 401);
         }
 
-        if (is_null($createdBy->pharmacy_id)) {
+        $pharmacyId = $createdBy->hasRole('super_admin') 
+            ? ($data['pharmacy_id'] ?? null) 
+            : $createdBy->pharmacy_id;
+
+        if (is_null($pharmacyId)) {
             return response()->json([
-                'message' => 'Pharmacy admin must be assigned to a pharmacy before registering pharmacists.',
+                'message' => 'Pharmacy admin must be assigned to a pharmacy before registering pharmacists, or pharmacy_id must be provided.',
             ], 422);
         }
 
         $temporaryPassword = Str::password(12);
 
-        $user = DB::transaction(function () use ($data, $createdBy, $temporaryPassword) {
+        $user = DB::transaction(function () use ($data, $temporaryPassword, $pharmacyId) {
             $user = User::create([
                 'first_name'    => $data['first_name'],
                 'last_name'     => $data['last_name'],
@@ -37,10 +41,10 @@ class PharmacistRegisterService
                 'date_of_birth' => $data['date_of_birth'] ?? null,
                 'address'       => $data['address'] ?? null,
                 'role'          => 'pharmacist',
-                'pharmacy_id'   => $createdBy->pharmacy_id,
+                'pharmacy_id'   => $pharmacyId,
             ]);
 
-            $employeeNumber = 'PHAR-' . $user->id . '-' . $createdBy->pharmacy_id;
+            $employeeNumber = 'PHAR-' . $user->id . '-' . $pharmacyId;
 
             $user->pharmacist()->create([
                 'employee_number'          => $employeeNumber,

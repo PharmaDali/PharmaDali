@@ -220,5 +220,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('admin/register', [AuthController::class, 'adminRegister'])->middleware('throttle:auth-register');
 
         Route::apiResource('pharmacies', PharmacyController::class)->except(['index', 'show']);
+        Route::apiResource('users', \App\Http\Controllers\Admin\AdminUserController::class);
     });
 });
