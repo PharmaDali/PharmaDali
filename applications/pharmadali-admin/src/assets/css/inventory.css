@@ -453,6 +453,54 @@
   .inventory-page-ellipsis span {
     font-size: 0.65rem !important;
   }
+
+  /* Compact inventory table text for mobile view */
+  .inventory-table-scroll .admin-table td {
+    font-size: 11.5px !important;
+    padding: 8px 10px !important;
+  }
+
+  .inventory-item-name {
+    font-size: 12px !important;
+  }
+
+  .inventory-item-meta {
+    font-size: 10.5px !important;
+  }
+
+  .inventory-status-chip {
+    font-size: 10px !important;
+    padding: 2px 8px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* Compact inventory side cards on mobile */
+  .inventory-side-table thead th {
+    font-size: 10px !important;
+    padding: 0 2px 0.35rem !important;
+  }
+
+  .inventory-side-table tbody td {
+    padding: 0.35rem 2px !important;
+  }
+
+  .inventory-side-name {
+    font-size: 11.5px !important;
+    line-height: 1.2 !important;
+  }
+
+  .inventory-side-sub {
+    font-size: 10.5px !important;
+    white-space: nowrap !important;
+  }
+
+  .inventory-side-pill {
+    font-size: 9px !important;
+    padding: 2px 5px !important;
+    line-height: 1.15 !important;
+    display: inline-block !important;
+    white-space: nowrap !important;
+  }
 }
 
 .inventory-table {
@@ -595,31 +643,30 @@
 }
 
 .inventory-side-table {
-  display: grid;
-  gap: 0.6rem;
-  overflow-x: hidden;
-  align-content: start;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0;
 }
 
-.inventory-side-head {
-  display: grid;
-  grid-template-columns: 1.4fr 0.7fr 1fr;
+.inventory-side-table thead th {
   font-size: 11px;
   color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-.inventory-side-row {
-  display: grid;
-  grid-template-columns: 1.4fr 0.7fr 1fr;
-  align-items: center;
-  gap: 0.5rem;
+  font-weight: 600;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid #edf2f7;
+  border-bottom: 1.5px solid #edf2f7;
+  white-space: nowrap;
 }
 
-.inventory-side-row:last-child {
+.inventory-side-table tbody td {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #edf2f7;
+  vertical-align: middle;
+}
+
+.inventory-side-table tbody tr:last-child td {
   border-bottom: 0;
   padding-bottom: 0;
 }
@@ -966,6 +1013,8 @@ select.inventory-modal-input {
 
 /* Custom Scrollbars matching PharmaDali Brand System */
 .inventory-table-scroll::-webkit-scrollbar,
+.inventory-side-scroll::-webkit-scrollbar,
+.inventory-side-card .table-responsive::-webkit-scrollbar,
 .inventory-side-table::-webkit-scrollbar,
 .inventory-dropdown-popover::-webkit-scrollbar,
 .inventory-side-card-body::-webkit-scrollbar,
@@ -975,6 +1024,8 @@ select.inventory-modal-input {
 }
 
 .inventory-table-scroll::-webkit-scrollbar-track,
+.inventory-side-scroll::-webkit-scrollbar-track,
+.inventory-side-card .table-responsive::-webkit-scrollbar-track,
 .inventory-side-table::-webkit-scrollbar-track,
 .inventory-dropdown-popover::-webkit-scrollbar-track,
 .inventory-side-card-body::-webkit-scrollbar-track,
@@ -984,6 +1035,8 @@ select.inventory-modal-input {
 }
 
 .inventory-table-scroll::-webkit-scrollbar-thumb,
+.inventory-side-scroll::-webkit-scrollbar-thumb,
+.inventory-side-card .table-responsive::-webkit-scrollbar-thumb,
 .inventory-side-table::-webkit-scrollbar-thumb,
 .inventory-dropdown-popover::-webkit-scrollbar-thumb,
 .inventory-side-card-body::-webkit-scrollbar-thumb,
@@ -994,6 +1047,8 @@ select.inventory-modal-input {
 }
 
 .inventory-table-scroll::-webkit-scrollbar-thumb:hover,
+.inventory-side-scroll::-webkit-scrollbar-thumb:hover,
+.inventory-side-card .table-responsive::-webkit-scrollbar-thumb:hover,
 .inventory-side-table::-webkit-scrollbar-thumb:hover,
 .inventory-dropdown-popover::-webkit-scrollbar-thumb:hover,
 .inventory-side-card-body::-webkit-scrollbar-thumb:hover,
@@ -1003,6 +1058,8 @@ select.inventory-modal-input {
 
 /* Firefox standard scrollbar rules */
 .inventory-table-scroll,
+.inventory-side-scroll,
+.inventory-side-card .table-responsive,
 .inventory-side-table,
 .inventory-dropdown-popover,
 .inventory-side-card-body,
