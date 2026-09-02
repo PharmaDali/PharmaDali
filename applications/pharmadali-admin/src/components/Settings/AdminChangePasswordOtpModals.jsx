@@ -1,7 +1,7 @@
 ﻿import React, { useState } from "react";
 import Modal from "../../shared/components/Modal";
 import PasswordField from "../../shared/components/PasswordField";
-import { apiRequest } from "../../shared/api/apiClient";
+import { sendAdminChangePasswordOtp, verifyAdminChangePasswordOtp, updateAdminPasswordWithOtp } from "../../services/profileService";
 import sendEmailIcon from "../../assets/icons/change-password/send_email_icon.svg";
 import verifyOtpIcon from "../../assets/icons/change-password/verify_otp_icon.svg";
 import verifiedOtpIcon from "../../assets/icons/change-password/verified_otp_icon.svg";
@@ -19,7 +19,7 @@ const AdminChangePasswordOtpModals = ({ show, onHide, email, currentPassword, on
     setError("");
     setLoading(true);
     try {
-      await apiRequest.post("/admin/change-password/send-otp", { email, current_password: currentPassword });
+      await sendAdminChangePasswordOtp({ email, current_password: currentPassword });
       setStep(2);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to send OTP.");
@@ -37,8 +37,8 @@ const AdminChangePasswordOtpModals = ({ show, onHide, email, currentPassword, on
     setError("");
     setLoading(true);
     try {
-      const res = await apiRequest.post("/admin/change-password/verify-otp", { email, otp: code });
-      setResetToken(res.data.reset_token);
+      const res = await verifyAdminChangePasswordOtp({ email, otp: code });
+      setResetToken(res.reset_token);
       setStep(3);
     } catch (err) {
       setError(err.response?.data?.message || "Invalid OTP code.");
@@ -59,6 +59,13 @@ const AdminChangePasswordOtpModals = ({ show, onHide, email, currentPassword, on
     }
   };
 
+  const handleKeyDown = (index, e) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-input-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+  };
+
   const handleUpdatePassword = async () => {
     setError("");
     if (!newPassword || newPassword.length < 8) {
@@ -71,12 +78,12 @@ const AdminChangePasswordOtpModals = ({ show, onHide, email, currentPassword, on
     }
     setLoading(true);
     try {
-      await apiRequest.post("/admin/change-password/reset-password", {
-        email,
-        reset_token: resetToken,
-        password: newPassword,
-        password_confirmation: confirmPassword
-      });
+      await updateAdminPasswordWithOtp({
+          email,
+          reset_token: resetToken,
+          password: newPassword,
+          password_confirmation: confirmPassword
+        });
       setStep(5);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update password.");
@@ -146,13 +153,14 @@ const AdminChangePasswordOtpModals = ({ show, onHide, email, currentPassword, on
           
           <div className="d-flex justify-content-between mb-3 gap-1">
             {otp.map((digit, i) => (
-              <input
-                key={i}
-                id={`otp-input-${i}`}
-                type="text"
-                maxLength="1"
-                value={digit}
-                onChange={(e) => handleOtpChange(i, e.target.value)}
+                              <input
+                  key={i}
+                  id={`otp-input-${i}`}
+                  type="text"
+                  maxLength="1"
+                  value={digit}
+                  onChange={(e) => handleOtpChange(i, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(i, e)}
                 className="form-control otp-input text-center p-0 fw-semibold fs-5"
                 style={{ width: "40px", height: "45px" }}
               />
@@ -241,6 +249,9 @@ const AdminChangePasswordOtpModals = ({ show, onHide, email, currentPassword, on
 };
 
 export default AdminChangePasswordOtpModals;
+
+
+
 
 
 
