@@ -34,6 +34,7 @@ export function ProductDetailsModal({
 }) {
   const isMedicine = selectedItem?.product_type === "medicine";
   const fileInputRef = React.useRef(null);
+  const today = new Date().toISOString().split("T")[0];
 
   const displayImage = modalDraft?.imagePreview || modalDraft?.imageUrl || selectedItem?.image_url;
 
@@ -386,6 +387,7 @@ export function ProductDetailsModal({
                         <FormattedDateInput
                           className="form-control inventory-batch-date-input"
                           value={batchEditDates?.[batch.id]?.manufactured_date !== undefined ? batchEditDates[batch.id].manufactured_date : batch.manufactured_date}
+                          max={today}
                           onChange={(val) => handleBatchDateChange(batch.id, 'manufactured_date', val)}
                         />
                       ) : (
@@ -402,6 +404,7 @@ export function ProductDetailsModal({
                         <FormattedDateInput
                           className="form-control inventory-batch-date-input"
                           value={batchEditDates?.[batch.id]?.expiry_date !== undefined ? batchEditDates[batch.id].expiry_date : batch.expiry_date}
+                          min={batchEditDates?.[batch.id]?.manufactured_date !== undefined ? batchEditDates[batch.id].manufactured_date : batch.manufactured_date}
                           onChange={(val) => handleBatchDateChange(batch.id, 'expiry_date', val)}
                         />
                       ) : (
@@ -476,6 +479,7 @@ export function ProductDetailsModal({
                         <FormattedDateInput
                           className={`form-control inventory-modal-input ${inputErrors.newBatchExpiryDate ? 'is-invalid' : ''}`}
                           value={newBatch.expiry_date}
+                          min={newBatch.manufactured_date || undefined}
                           onChange={(val) =>
                             setNewBatch((p) => ({ ...p, expiry_date: val }))
                           }
@@ -487,6 +491,7 @@ export function ProductDetailsModal({
                         <FormattedDateInput
                           className={`form-control inventory-modal-input ${inputErrors.newBatchManufacturedDate ? 'is-invalid' : ''}`}
                           value={newBatch.manufactured_date}
+                          max={today}
                           onChange={(val) =>
                             setNewBatch((p) => ({ ...p, manufactured_date: val }))
                           }
