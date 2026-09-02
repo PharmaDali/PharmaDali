@@ -216,13 +216,25 @@
   .report-date-wrap {
     flex: 1;
     min-width: 0;
+    position: relative;
   }
 
   .report-date-input {
     width: 100%;
     height: 32px !important;
-    font-size: 11px !important;
-    padding: 0 32px 0 6px !important;
+    font-size: 10.5px !important;
+    padding: 0 22px 0 8px !important;
+    letter-spacing: -0.2px;
+  }
+
+  .report-date-input::-webkit-calendar-picker-indicator {
+    width: 22px !important;
+  }
+
+  .report-date-icon {
+    right: 7px !important;
+    width: 13px !important;
+    height: 13px !important;
   }
 }
 
@@ -334,8 +346,8 @@
 /* Shared size for Search + Clear Filter buttons on mobile */
 .report-mobile-action-btn {
   border-radius: 20px !important;
-  padding: 0 12px !important;
-  font-size: 12px !important;
+  padding: 0 10px !important;
+  font-size: 11.5px !important;
   font-weight: 600 !important;
   border: none !important;
   white-space: nowrap;
