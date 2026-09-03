@@ -39,7 +39,9 @@ function ReportIssue({ setView }) {
             };
             
             const res = await createTicket(payload);
-            setTicketRefId(res?.id ? ('#' + res.id) : refId);
+            const createdTicket = res?.data || res;
+            const assignedRefId = createdTicket?.ticket_reference_id || (createdTicket?.id ? (`#${createdTicket.id}`) : refId);
+            setTicketRefId(assignedRefId);
             setShowSuccessModal(true);
         } catch (err) {
             console.error(err);

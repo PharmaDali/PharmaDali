@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../../services/loginService";
+import { login } from "../../services/authService";
 import logo from '../../assets/log-in-logo.svg';
 import { Input } from "../../components/common";
 
@@ -22,7 +22,14 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      await login(credentials);
+      const data = await login(credentials);
+      if (data?.role !== "super_admin") {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        localStorage.removeItem("isAuthenticated");
+        setError("Access denied. Super Admin role is required for this portal.");
+        return;
+      }
       localStorage.setItem("isAuthenticated", "true");
       localStorage.setItem("tokenExpiry", String(Date.now() + 8 * 60 * 60 * 1000));
       navigate("/homepage", { replace: true });

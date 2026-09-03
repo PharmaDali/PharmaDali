@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { usePharmacies, type Pharmacy } from '../../context/PharmacyContext'
 import { Modal, ConfirmModal, Input, Select } from '../../components/common'
 
@@ -7,7 +7,11 @@ type Props = {
 }
 
 const PharmacyList: React.FC<Props> = ({ compact }) => {
-  const { pharmacies, addPharmacy, updatePharmacy, deletePharmacy } = usePharmacies()
+  const { pharmacies, fetchPharmacies, addPharmacy, updatePharmacy, deletePharmacy } = usePharmacies()
+
+  useEffect(() => {
+    fetchPharmacies()
+  }, [fetchPharmacies])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
