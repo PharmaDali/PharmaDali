@@ -32,8 +32,8 @@ export const Operations = ({ onNavigate }) => {
       setLoading(true);
       setErrorMessage("");
       const res = await getPharmacySettings();
-      const thresholds = res.alert_thresholds || {};
-      const discountSettings = res.discount_settings || {};
+      const thresholds = res.data?.alert_thresholds || {};
+      const discountSettings = res.data?.discount_settings || {};
 
       const loadedData = {
         low_stock_threshold: thresholds.low_stock ?? 50,

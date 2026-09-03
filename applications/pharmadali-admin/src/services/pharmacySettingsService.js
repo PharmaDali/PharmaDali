@@ -6,7 +6,7 @@ import { apiRequest } from "../shared/api/apiClient";
  */
 export const getPharmacySettings = async () => {
   const response = await apiRequest.get("/pharmacy/settings");
-  return response.data;
+  return response;
 };
 
 /**
@@ -26,11 +26,7 @@ export const uploadPharmacyLogo = async (file) => {
   const formData = new FormData();
   formData.append("logo", file);
 
-  const response = await apiRequest.post("/pharmacy/settings/logo", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  const response = await apiRequest.post("/pharmacy/settings/logo", formData, { headers: { "Content-Type": "multipart/form-data" } });
   return response;
 };
 
@@ -53,7 +49,7 @@ export const updateAdminPassword = async (currentPassword, newPassword, newPassw
  */
 export const getCategories = async () => {
   const response = await apiRequest.get("/pharmacy/categories/all");
-  return response.data;
+  return response;
 };
 
 /**
