@@ -10,7 +10,6 @@ import DiscountSettings from "../components/Settings/DiscountSettings";
 import HardwareAndReceipts from "../components/Settings/HardwareAndReceipts";
 import Operations from "../components/Settings/Operations";
 import ItemExchangeSettings from "../components/Settings/ItemExchangeSettings";
-import BackupAndRestore from "../components/Settings/BackupAndRestore";
 
 const settingsMap = {
   // ...
@@ -24,7 +23,6 @@ const settingsMap = {
   operations: { component: Operations },
   item_exchange: { component: ItemExchangeSettings },
   exchange: { component: ItemExchangeSettings },
-  backup: { component: BackupAndRestore },
 };
 
 function Settings() {
