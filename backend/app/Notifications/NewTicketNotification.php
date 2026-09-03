@@ -28,6 +28,7 @@ class NewTicketNotification extends Notification implements ShouldQueue
             'title' => 'New Support Ticket Created',
             'message' => 'A new ' . $this->ticket->category . ' ticket was created by ' . $this->ticket->user->first_name . ' ' . $this->ticket->user->last_name . '.',
             'ticket_id' => $this->ticket->id,
+            'ticket_reference_id' => $this->ticket->ticket_reference_id,
             'priority' => $this->ticket->priority,
         ];
     }
@@ -40,6 +41,7 @@ class NewTicketNotification extends Notification implements ShouldQueue
             'title' => 'New Support Ticket Created',
             'message' => 'A new ' . $this->ticket->category . ' ticket was created by ' . $this->ticket->user->first_name . ' ' . $this->ticket->user->last_name . '.',
             'ticket_id' => $this->ticket->id,
+            'ticket_reference_id' => $this->ticket->ticket_reference_id,
             'priority' => $this->ticket->priority,
             'read_at' => null,
             'created_at' => now()->toIso8601String(),
