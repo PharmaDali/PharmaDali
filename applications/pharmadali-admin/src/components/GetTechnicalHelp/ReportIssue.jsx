@@ -13,13 +13,11 @@ function ReportIssue({ setView }) {
     const [issueProblem, setIssueProblem] = useState("");
     const [issueSteps, setIssueSteps] = useState("");
     const [issueAttachments, setIssueAttachments] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleReportSubmit = async (e) => {
         e.preventDefault();
-        if (isSubmitting || !issueSummary.trim() || !issueProblem.trim()) return;
+        if (!issueSummary.trim() || !issueProblem.trim()) return;
 
-        setIsSubmitting(true);
         // Generate Ticket Reference ID
         const refId = "TICK-" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + "-" + Math.floor(1000 + Math.random() * 9000);
         setTicketRefId(refId);
@@ -48,8 +46,6 @@ function ReportIssue({ setView }) {
         } catch (err) {
             console.error(err);
             alert("Error submitting ticket");
-        } finally {
-            setIsSubmitting(false);
         }
     };
 
@@ -172,17 +168,9 @@ function ReportIssue({ setView }) {
                             </div>
 
                             <div className="tech-help-form-actions">
-                                <button type="button" className="btn tech-help-cancel-btn" onClick={() => setView("home")} disabled={isSubmitting}>Cancel</button>
-                                <button type="submit" className="btn tech-help-primary-btn" disabled={isSubmitting}>
-                                    {isSubmitting ? (
-                                        <>
-                                            <i className="fa-solid fa-spinner fa-spin" aria-hidden="true" /> Submitting...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className="fa-regular fa-paper-plane" aria-hidden="true" /> Submit Ticket
-                                        </>
-                                    )}
+                                <button type="button" className="btn tech-help-cancel-btn" onClick={() => setView("home")}>Cancel</button>
+                                <button type="submit" className="btn tech-help-primary-btn">
+                                    <i className="fa-regular fa-paper-plane" aria-hidden="true" /> Submit Ticket
                                 </button>
                             </div>
                         </form>
