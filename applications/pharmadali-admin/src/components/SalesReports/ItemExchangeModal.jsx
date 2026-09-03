@@ -67,18 +67,18 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
     created_at: new Date().toISOString(),
     reason: reason || "DEFECTIVE / WRONG ITEM",
     returned_items: (eligibilityData?.items || [])
-      .filter(item => (selectedReturns[item.order_item_id] || 0) > 0)
+      .filter(item => (Number(selectedReturns[item.order_item_id]) || 0) > 0)
       .map(item => ({
         product_name: item.product_name,
-        quantity: selectedReturns[item.order_item_id],
+        quantity: Number(selectedReturns[item.order_item_id]) || 0,
         condition: returnConditions[item.order_item_id] || "resalable",
-        subtotal: (selectedReturns[item.order_item_id] || 0) * Number(item.unit_price_snapshot)
+        subtotal: (Number(selectedReturns[item.order_item_id]) || 0) * Number(item.unit_price_snapshot)
       })),
     replacement_items: replacementCart.map(item => ({
       pharmacy_product: { product: { product_name: item.product_name } },
-      quantity: item.qty,
+      quantity: Number(item.qty) || 0,
       unit_price_snapshot: item.selling_price,
-      subtotal: item.selling_price * item.qty
+      subtotal: item.selling_price * (Number(item.qty) || 0)
     })),
     total_returned_value: returnedTotal,
     total_replacement_value: replacementTotal,
@@ -174,9 +174,12 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                         </thead>
                         <tbody>
                           {(eligibilityData?.items || []).map((item) => {
-                            const returnQty = selectedReturns[item.order_item_id] || 0;
+                            const returnQty = selectedReturns[item.order_item_id] !== undefined
+                              ? selectedReturns[item.order_item_id]
+                              : (item.max_returnable_quantity ?? item.purchased_quantity ?? 0);
                             const condition = returnConditions[item.order_item_id] || "resalable";
-                            const subtotal = returnQty * Number(item.unit_price_snapshot);
+                            const numReturnQty = Number(returnQty) || 0;
+                            const subtotal = numReturnQty * Number(item.unit_price_snapshot);
 
                             return (
                               <tr key={item.order_item_id}>
@@ -190,7 +193,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                                     className="form-control form-control-sm text-center exchange-qty-input"
                                     min="0"
                                     max={item.max_returnable_quantity}
-                                    value={String(returnQty).padStart(2, '0')}
+                                    value={returnQty}
                                     onChange={(e) => updateReturnQty(item.order_item_id, e.target.value, item.max_returnable_quantity)}
                                   />
                                 </td>

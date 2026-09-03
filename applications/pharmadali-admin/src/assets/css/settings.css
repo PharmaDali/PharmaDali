@@ -836,3 +836,28 @@
   border-color: var(--pd-primary, #2aabe2) !important;
   box-shadow: 0 0 0 0.2rem rgba(42, 171, 226, 0.25) !important;
 }
+/* Discount Policy Management Responsive Styles */
+.discount-header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.discount-add-btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+  .discount-header-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .discount-add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
