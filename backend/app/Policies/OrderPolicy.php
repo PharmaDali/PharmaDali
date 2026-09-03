@@ -20,7 +20,7 @@ class OrderPolicy
      */
     public function view(User $user, Order $order): bool
     {
-        if (in_array($user->role, ['pharmacy_admin', 'admin', 'super_admin', 'system_admin'], true)) {
+        if (in_array($user->role, ['pharmacy_admin', 'super_admin'], true)) {
             return true;
         }
 

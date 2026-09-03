@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Notification;
 
 use App\Http\Controllers\Controller;
+use App\Models\Ticket;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -11,9 +12,20 @@ class NotificationController extends Controller
     public function index(Request $request): JsonResponse
     {
         $notifications = $request->user()->notifications()->paginate(20);
+
+        $ticketIds = collect($notifications->items())
+            ->pluck('data.ticket_id')
+            ->filter()
+            ->unique();
+
+        $tickets = Ticket::whereIn('id', $ticketIds)->pluck('ticket_reference_id', 'id');
         
-        $formatted = collect($notifications->items())->map(function ($notif) {
-            $data = $notif->data;
+        $formatted = collect($notifications->items())->map(function ($notif) use ($tickets) {
+            $data = $notif->data ?? [];
+            if (!empty($data['ticket_id']) && empty($data['ticket_reference_id'])) {
+                $data['ticket_reference_id'] = $tickets[$data['ticket_id']] ?? null;
+            }
+
             return [
                 'id' => $notif->id,
                 'type' => $data['type'] ?? 'System Alert',
@@ -41,8 +53,19 @@ class NotificationController extends Controller
     {
         $notifications = $request->user()->unreadNotifications;
         
-        $formatted = collect($notifications)->map(function ($notif) {
-            $data = $notif->data;
+        $ticketIds = collect($notifications)
+            ->pluck('data.ticket_id')
+            ->filter()
+            ->unique();
+
+        $tickets = Ticket::whereIn('id', $ticketIds)->pluck('ticket_reference_id', 'id');
+
+        $formatted = collect($notifications)->map(function ($notif) use ($tickets) {
+            $data = $notif->data ?? [];
+            if (!empty($data['ticket_id']) && empty($data['ticket_reference_id'])) {
+                $data['ticket_reference_id'] = $tickets[$data['ticket_id']] ?? null;
+            }
+
             return [
                 'id' => $notif->id,
                 'type' => $data['type'] ?? 'System Alert',

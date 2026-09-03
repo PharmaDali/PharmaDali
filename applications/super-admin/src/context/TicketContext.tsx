@@ -70,7 +70,9 @@ export const TicketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   useEffect(() => {
-    loadTickets();
+    if (localStorage.getItem('token')) {
+      loadTickets();
+    }
   }, [loadTickets]);
 
   useEffect(() => {

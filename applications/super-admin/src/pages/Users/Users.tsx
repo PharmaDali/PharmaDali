@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Modal, ConfirmModal, Input, Select } from '../../components/common'
-import api from '../../shared/api'
+import * as userService from '../../services/userService'
 import { usePharmacies } from '../../context/PharmacyContext'
 
 export interface User {
@@ -58,6 +58,9 @@ const Users: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState('All')
   const [appliedStatus, setAppliedStatus] = useState('All')
 
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage, setItemsPerPage] = useState(10)
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [formData, setFormData] = useState({
     firstName: '',
@@ -75,13 +78,15 @@ const Users: React.FC = () => {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
 
   useEffect(() => {
-    fetchUsers()
+    if (localStorage.getItem('token')) {
+      fetchUsers()
+    }
   }, [])
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get('/users')
-      const data = response.data.data || response.data // Handle both wrapped and unwrapped arrays safely
+      const res = await userService.getUsers()
+      const data = res.data || res // Handle both wrapped and unwrapped arrays safely
       const mappedUsers = data.map((u: any) => ({
         id: u.id,
         firstName: u.first_name,
@@ -104,7 +109,7 @@ const Users: React.FC = () => {
     if (!editingUser) return
     try {
       const pharmacyId = pharmacies.find(p => p.name === editingUser.branchName)?.id
-      await api.put(`/users/${editingUser.id}`, {
+      await userService.updateUser(editingUser.id, {
         first_name: editingUser.firstName,
         last_name: editingUser.lastName,
         email: editingUser.email,
@@ -125,7 +130,7 @@ const Users: React.FC = () => {
   const handleConfirmToggleStatus = async () => {
     if (!togglingStatusUser) return
     try {
-      await api.put(`/users/${togglingStatusUser.id}`, {
+      await userService.updateUser(togglingStatusUser.id, {
         is_active: togglingStatusUser.status !== 'Active'
       })
       await fetchUsers()
@@ -140,6 +145,7 @@ const Users: React.FC = () => {
     setAppliedRole(selectedRole)
     setAppliedBranch(selectedBranch)
     setAppliedStatus(selectedStatus)
+    setCurrentPage(1)
   }
 
   const handleResetFilters = () => {
@@ -151,6 +157,7 @@ const Users: React.FC = () => {
     setAppliedBranch('All')
     setSelectedStatus('All')
     setAppliedStatus('All')
+    setCurrentPage(1)
   }
 
   const handleAddUser = async (e: React.FormEvent) => {
@@ -159,7 +166,7 @@ const Users: React.FC = () => {
 
     try {
       const pharmacyId = pharmacies.find(p => p.name === formData.branchName)?.id
-      await api.post('/users', {
+      await userService.createUser({
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
@@ -201,6 +208,29 @@ const Users: React.FC = () => {
 
     return matchesSearch && matchesRole && matchesBranch && matchesStatus
   })
+
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage))
+  const safeCurrentPage = Math.min(currentPage, totalPages)
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage
+  const endIndex = Math.min(filteredUsers.length, startIndex + itemsPerPage)
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex)
+
+  const getPageNumbers = () => {
+    const pages: number[] = []
+    const maxVisiblePages = 5
+    let startPage = Math.max(1, safeCurrentPage - Math.floor(maxVisiblePages / 2))
+    let endPage = startPage + maxVisiblePages - 1
+
+    if (endPage > totalPages) {
+      endPage = totalPages
+      startPage = Math.max(1, endPage - maxVisiblePages + 1)
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i)
+    }
+    return pages
+  }
 
   return (
     <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm font-[var(--font-primary)]">
@@ -352,8 +382,8 @@ const Users: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(255,255,255,0.03)]">
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
+              {paginatedUsers.length > 0 ? (
+                paginatedUsers.map((user) => (
                   <tr
                     key={user.id}
                     className="hover:bg-[rgba(255,255,255,0.01)] transition-colors align-middle"
@@ -408,6 +438,80 @@ const Users: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Footer */}
+        <div className="bg-[#383d4a] border-t border-[rgba(255,255,255,0.06)] px-5 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3 text-xs text-gray-300">
+            <span>Show</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value))
+                setCurrentPage(1)
+              }}
+              className="bg-[#2a2d36] text-white px-2 py-1 rounded border border-[rgba(255,255,255,0.1)] outline-none cursor-pointer text-xs"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+            <span>entries</span>
+            <span className="text-gray-400 border-l border-gray-600 pl-3">
+              Showing {filteredUsers.length === 0 ? 0 : startIndex + 1} to {endIndex} of {filteredUsers.length} entries
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setCurrentPage(1)}
+              disabled={safeCurrentPage === 1}
+              className="px-2.5 py-1 rounded bg-[#2a2d36] text-gray-300 hover:bg-[#4e5566] hover:text-white border border-[rgba(255,255,255,0.06)] text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              title="First Page"
+            >
+              «
+            </button>
+            <button
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={safeCurrentPage === 1}
+              className="px-2.5 py-1 rounded bg-[#2a2d36] text-gray-300 hover:bg-[#4e5566] hover:text-white border border-[rgba(255,255,255,0.06)] text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              title="Previous Page"
+            >
+              ‹
+            </button>
+
+            {getPageNumbers().map((pageNum) => (
+              <button
+                key={pageNum}
+                onClick={() => setCurrentPage(pageNum)}
+                className={`min-w-[30px] h-7 px-2 rounded text-xs font-medium transition-colors cursor-pointer ${
+                  pageNum === safeCurrentPage
+                    ? 'bg-[#2aa6e0] text-white font-bold'
+                    : 'bg-[#2a2d36] text-gray-300 hover:bg-[#4e5566] hover:text-white border border-[rgba(255,255,255,0.06)]'
+                }`}
+              >
+                {pageNum}
+              </button>
+            ))}
+
+            <button
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={safeCurrentPage === totalPages}
+              className="px-2.5 py-1 rounded bg-[#2a2d36] text-gray-300 hover:bg-[#4e5566] hover:text-white border border-[rgba(255,255,255,0.06)] text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              title="Next Page"
+            >
+              ›
+            </button>
+            <button
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={safeCurrentPage === totalPages}
+              className="px-2.5 py-1 rounded bg-[#2a2d36] text-gray-300 hover:bg-[#4e5566] hover:text-white border border-[rgba(255,255,255,0.06)] text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              title="Last Page"
+            >
+              »
+            </button>
+          </div>
         </div>
       </div>
 

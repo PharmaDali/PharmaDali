@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ConfirmModal } from '../../components/common';
+import * as notificationService from '../../services/notificationService';
 
 export interface NotificationItem {
-    id: number
+    id: string | number
     title: string
     message: string
     details?: string
@@ -10,66 +11,67 @@ export interface NotificationItem {
     type: 'Alert' | 'System' | 'Ticket' | 'Pharmacy'
     read: boolean
     sender?: string
+    ticket_reference_id?: string
     referenceId?: string
     module?: string
 }
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-    {
-        id: 1,
-        title: 'New Pharmacy Registration Request',
-        message: 'Landicho Drugstore submitted registration details for approval.',
-        details: 'Landicho Drugstore located at Lipa City has completed their registration application. Please review their submitted business permits, FDA licenses, and assigned branch manager information.',
-        timestamp: '10 mins ago',
-        type: 'Pharmacy',
-        read: false,
-        sender: 'Pharmacy Verification Service',
-        referenceId: 'PHARM-2026-089',
-        module: 'Pharmacy Operations',
-    },
-    {
-        id: 2,
-        title: 'Critical Ticket Escalated',
-        message: 'Ticket #TK-1042 (POS Sync Delay) requires urgent super-admin review.',
-        details: 'Ticket #TK-1042 has been automatically escalated due to high SLA waiting time. POS database synchronization failed for 3 active branches in Tanauan City.',
-        timestamp: '45 mins ago',
-        type: 'Ticket',
-        read: false,
-        sender: 'Support Escalation Bot',
-        referenceId: 'TK-1042',
-        module: 'Helpdesk & Support',
-    },
-    {
-        id: 3,
-        title: 'System Maintenance Scheduled',
-        message: 'Scheduled maintenance is set for Sunday at 02:00 AM UTC.',
-        details: 'Super-Admin cloud infrastructure will undergo database index optimizations and system patch upgrades. Brief service degradation may occur for up to 15 minutes.',
-        timestamp: '2 hours ago',
-        type: 'System',
-        read: true,
-        sender: 'Infrastructure Team',
-        referenceId: 'SYS-MAINT-402',
-        module: 'System Security & Maintenance',
-    },
-    {
-        id: 4,
-        title: 'High License Renewal Warning',
-        message: 'Puremed Pharmacy license expires in 5 days.',
-        details: 'Operating license for Puremed Pharmacy (Tanauan City) is approaching expiry on August 18, 2026. Automated reminder has been sent to branch manager Althea Alvarez.',
-        timestamp: '1 day ago',
-        type: 'Alert',
-        read: true,
-        sender: 'License Manager System',
-        referenceId: 'LIC-78912',
-        module: 'Compliance & Licensing',
-    },
-]
+const mapNotification = (n: any): NotificationItem => {
+    const d = n.data || {};
+    const notifType = d.type || n.type || 'System';
+    let cleanType: 'Alert' | 'System' | 'Ticket' | 'Pharmacy' = 'System';
+    if (typeof notifType === 'string') {
+        const lower = notifType.toLowerCase();
+        if (lower.includes('alert') || lower.includes('stock') || lower.includes('expiry') || lower.includes('warning')) {
+            cleanType = 'Alert';
+        } else if (lower.includes('ticket')) {
+            cleanType = 'Ticket';
+        } else if (lower.includes('pharmacy')) {
+            cleanType = 'Pharmacy';
+        }
+    }
+
+    const ticketRefId = d.ticket_reference_id || d.referenceId || (d.ticket_id ? `TICK-ID-${d.ticket_id}` : undefined);
+
+    return {
+        id: n.id,
+        title: d.title || d.subject || d.type || n.type || 'System Notification',
+        message: d.message || n.message || 'Notification details',
+        details: d.details || d.message || n.message || '',
+        timestamp: n.dateTime || (n.created_at ? new Date(n.created_at).toLocaleString() : 'Just now'),
+        type: cleanType,
+        read: Boolean(n.read_at),
+        sender: d.sender || d.user_name || 'System',
+        ticket_reference_id: ticketRefId,
+        referenceId: ticketRefId || `#NT-${n.id}`,
+    };
+};
 
 const Notifications: React.FC = () => {
-    const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+    const [loading, setLoading] = useState(false);
     const [filter, setFilter] = useState<'All' | 'Unread'>('All');
     const [selectedNotification, setSelectedNotification] = useState<NotificationItem | null>(null);
-    const [deleteTarget, setDeleteTarget] = useState<'ALL' | number | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<'ALL' | string | number | null>(null);
+
+    const loadNotifications = useCallback(async () => {
+        if (!localStorage.getItem('token')) return;
+        setLoading(true);
+        try {
+            const res = await notificationService.getNotifications();
+            const rawList = res.data || res || [];
+            const mapped = (Array.isArray(rawList) ? rawList : []).map(mapNotification);
+            setNotifications(mapped);
+        } catch (err) {
+            console.error('Failed to load notifications:', err);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        loadNotifications();
+    }, [loadNotifications]);
 
     const handleSelectNotification = (item: NotificationItem) => {
         setSelectedNotification(item);
@@ -78,47 +80,72 @@ const Notifications: React.FC = () => {
         }
     };
 
-    const handleMarkAsRead = (id: number) => {
-        setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-        );
-        if (selectedNotification?.id === id) {
-            setSelectedNotification((prev) => (prev ? { ...prev, read: true } : null));
+    const handleMarkAsRead = async (id: string | number) => {
+        try {
+            await notificationService.markNotificationAsRead(id);
+            setNotifications((prev) =>
+                prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+            );
+            if (selectedNotification?.id === id) {
+                setSelectedNotification((prev) => (prev ? { ...prev, read: true } : null));
+            }
+        } catch (err) {
+            console.error('Failed to mark notification as read:', err);
         }
     };
 
-    const handleToggleReadStatus = (id: number, e?: React.MouseEvent) => {
+    const handleToggleReadStatus = async (id: string | number, e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
-        setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
-        );
-        if (selectedNotification?.id === id) {
-            setSelectedNotification((prev) => (prev ? { ...prev, read: !prev.read } : null));
+        const target = notifications.find((n) => n.id === id);
+        if (!target) return;
+
+        if (!target.read) {
+            await handleMarkAsRead(id);
+        } else {
+            // Local toggle visually for unread
+            setNotifications((prev) =>
+                prev.map((n) => (n.id === id ? { ...n, read: false } : n))
+            );
+            if (selectedNotification?.id === id) {
+                setSelectedNotification((prev) => (prev ? { ...prev, read: false } : null));
+            }
         }
     };
 
-    const handleRequestDelete = (target: 'ALL' | number, e?: React.MouseEvent) => {
+    const handleRequestDelete = (target: 'ALL' | string | number, e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
         setDeleteTarget(target);
     };
 
-    const handleConfirmDelete = () => {
-        if (deleteTarget === 'ALL') {
-            setNotifications([]);
-            setSelectedNotification(null);
-        } else if (typeof deleteTarget === 'number') {
-            setNotifications((prev) => prev.filter((n) => n.id !== deleteTarget));
-            if (selectedNotification?.id === deleteTarget) {
+    const handleConfirmDelete = async () => {
+        try {
+            if (deleteTarget === 'ALL') {
+                await notificationService.deleteAllNotifications();
+                setNotifications([]);
                 setSelectedNotification(null);
+            } else if (deleteTarget !== null) {
+                await notificationService.deleteNotification(deleteTarget);
+                setNotifications((prev) => prev.filter((n) => n.id !== deleteTarget));
+                if (selectedNotification?.id === deleteTarget) {
+                    setSelectedNotification(null);
+                }
             }
+        } catch (err) {
+            console.error('Failed to delete notification:', err);
+        } finally {
+            setDeleteTarget(null);
         }
-        setDeleteTarget(null);
     };
 
-    const handleMarkAllRead = () => {
-        setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-        if (selectedNotification) {
-            setSelectedNotification((prev) => (prev ? { ...prev, read: true } : null));
+    const handleMarkAllRead = async () => {
+        try {
+            await notificationService.markAllNotificationsAsRead();
+            setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+            if (selectedNotification) {
+                setSelectedNotification((prev) => (prev ? { ...prev, read: true } : null));
+            }
+        } catch (err) {
+            console.error('Failed to mark all as read:', err);
         }
     };
 
@@ -126,7 +153,7 @@ const Notifications: React.FC = () => {
     const unreadCount = notifications.filter((n) => !n.read).length;
 
     const renderDeleteModal = () => {
-        const isDeleteAll = deleteTarget === 'ALL'
+        const isDeleteAll = deleteTarget === 'ALL';
 
         return (
             <ConfirmModal
@@ -154,13 +181,12 @@ const Notifications: React.FC = () => {
                 buttonTextSize="text-xs"
                 zIndex="z-[70]"
             />
-        )
-    }
+        );
+    };
 
     if (selectedNotification) {
         return (
             <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm font-[var(--font-primary)] animate-fade-in">
-                {}
                 <div className="mb-6 flex items-center justify-between gap-4">
                     <button
                         onClick={() => setSelectedNotification(null)}
@@ -192,10 +218,8 @@ const Notifications: React.FC = () => {
                     </div>
                 </div>
 
-                {}
                 <div className="w-full">
                     <div className="bg-[#424754] rounded-[20px] p-6 md:p-9 shadow-[0_24px_50px_rgba(0,0,0,0.18)] border border-[rgba(255,255,255,0.05)] flex flex-col gap-6">
-                        {}
                         <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-[rgba(255,255,255,0.08)]">
                             <div className="flex flex-col gap-2">
                                 <div className="flex items-center gap-3">
@@ -225,7 +249,6 @@ const Notifications: React.FC = () => {
                             </div>
                         </div>
 
-                        {}
                         <div className="bg-[#353a45] rounded-[16px] p-6 border border-[rgba(255,255,255,0.04)]">
                             <h3 className="text-[#8ccfed] text-xs font-bold uppercase tracking-wider mb-3">
                                 Full Message & Details
@@ -235,19 +258,14 @@ const Notifications: React.FC = () => {
                             </p>
                         </div>
 
-                        {}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="bg-[#353a45] p-5 rounded-[14px] border border-[rgba(255,255,255,0.04)]">
                                 <span className="text-gray-400 text-xs block mb-1">Source / Sender</span>
                                 <span className="text-white font-semibold text-sm md:text-base">{selectedNotification.sender || 'System'}</span>
                             </div>
                             <div className="bg-[#353a45] p-5 rounded-[14px] border border-[rgba(255,255,255,0.04)]">
-                                <span className="text-gray-400 text-xs block mb-1">Module / Service</span>
-                                <span className="text-white font-semibold text-sm md:text-base">{selectedNotification.module || 'Super-Admin Core'}</span>
-                            </div>
-                            <div className="bg-[#353a45] p-5 rounded-[14px] border border-[rgba(255,255,255,0.04)]">
                                 <span className="text-gray-400 text-xs block mb-1">Reference Code</span>
-                                <span className="text-[#8ccfed] font-mono font-semibold text-sm md:text-base">{selectedNotification.referenceId || `#NT-${selectedNotification.id}`}</span>
+                                <span className="text-[#8ccfed] font-mono font-semibold text-sm md:text-base">{selectedNotification.ticket_reference_id}</span>
                             </div>
                         </div>
                     </div>
@@ -260,14 +278,13 @@ const Notifications: React.FC = () => {
 
     return (
         <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm font-[var(--font-primary)]">
-            {}
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 className="m-0 text-[clamp(1.8rem,3vw,2.6rem)] font-regular text-white tracking-wide">
                         Notifications
                     </h1>
                     <p className="text-[#8ccfed] text-xs mt-1">
-                        {unreadCount > 0
+                        {loading ? 'Loading notifications...' : unreadCount > 0
                             ? `You have ${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`
                             : 'All notifications read'}
                     </p>
@@ -311,11 +328,14 @@ const Notifications: React.FC = () => {
                 </div>
             </div>
 
-            {}
             <div className="w-full">
                 <div className="w-full">
                     <div className="grid grid-cols-1 gap-4">
-                        {filtered.length > 0 ? (
+                        {loading ? (
+                            <div className="bg-[#424754] rounded-[14px] p-8 text-center text-gray-300 text-xs border border-[rgba(255,255,255,0.04)]">
+                                Loading notifications from backend...
+                            </div>
+                        ) : filtered.length > 0 ? (
                             filtered.map((item) => (
                                 <div
                                     key={item.id}

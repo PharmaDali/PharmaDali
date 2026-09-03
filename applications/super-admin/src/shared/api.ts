@@ -29,15 +29,18 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Optionally handle 401 Unauthorized globally here
-    if (error.response && error.response.status === 401) {
+    // Handle 401 Unauthorized or 403 Forbidden globally by clearing token and redirecting to login
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       localStorage.removeItem('token');
+      localStorage.removeItem('user');
       localStorage.removeItem('isAuthenticated');
-      // window.location.href = '/login'; // Or navigate using your router
+      localStorage.removeItem('tokenExpiry');
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
     }
     return Promise.reject(error);
   }
 );
 
 export default api;
-

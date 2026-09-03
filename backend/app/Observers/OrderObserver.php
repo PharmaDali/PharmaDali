@@ -45,7 +45,7 @@ class OrderObserver
             $q->where('pharmacy_id', $pharmacyId)
               ->orWhereNull('pharmacy_id');
         })
-        ->whereIn('role', ['pharmacy_admin', 'admin', 'system_admin'])
+        ->whereIn('role', ['pharmacy_admin', 'super_admin'])
         ->get();
 
         if ($admins->isEmpty()) {

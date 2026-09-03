@@ -11,6 +11,8 @@ import Tickets from '../Tickets/Tickets'
 import TicketDetailsPage from '../Tickets/TicketDetailsPage'
 import { useTickets } from '../../context/TicketContext'
 
+import { getDashboardMetrics } from '../../services/dashboardService'
+
 const PAGE_TITLES: Record<string, string> = {
   '/homepage': 'Dashboard',
   '/pharmacies': 'Pharmacies',
@@ -33,14 +35,14 @@ function HomePage() {
 
   useEffect(() => {
     const fetchMetrics = async () => {
+      if (!localStorage.getItem('token')) return;
       try {
-        const { default: api } = await import('../../shared/api');
-        const response = await api.get('/admin/dashboard/metrics');
-        if (response.data?.data) {
+        const data = await getDashboardMetrics();
+        if (data?.data) {
           setMetrics({
-            totalPharmacies: response.data.data.total_pharmacies,
-            totalActivePharmacies: response.data.data.total_active_pharmacies,
-            totalUsers: response.data.data.total_users,
+            totalPharmacies: data.data.total_pharmacies,
+            totalActivePharmacies: data.data.total_active_pharmacies,
+            totalUsers: data.data.total_users,
           });
         }
       } catch (error) {

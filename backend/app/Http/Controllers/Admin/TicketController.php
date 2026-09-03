@@ -4,82 +4,50 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTicketRequest;
+use App\Http\Requests\UpdateTicketStatusRequest;
 use App\Models\Ticket;
-use App\Models\User;
-use App\Notifications\NewTicketNotification;
+use App\Services\Ticket\TicketService;
 use App\Traits\ApiResponseTrait;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Notification;
 
 class TicketController extends Controller
 {
     use ApiResponseTrait;
 
+    public function __construct(
+        private readonly TicketService $ticketService,
+    ) {}
+
     public function index(Request $request): JsonResponse
     {
-        $user = $request->user();
-        
-        $query = Ticket::with(['user:id,first_name,last_name,email', 'assignee:id,first_name,last_name'])
-            ->withCount('messages')
-            ->latest();
+        $tickets = $this->ticketService->listTickets($request->user(), $request->all());
 
-        if (!$user->hasRole('super_admin')) {
-            $query->where('user_id', $user->id);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-        
-        if ($request->filled('priority')) {
-            $query->where('priority', $request->priority);
-        }
-
-        return $this->successResponse($query->paginate(15));
+        return $this->successResponse($tickets);
     }
 
     public function store(StoreTicketRequest $request): JsonResponse
     {
-        $user = $request->user();
-        $validated = $request->validated();
-        
-        $ticket = $user->tickets()->create($validated);
-        
-        // Notify super admins
-        $superAdmins = User::where('role', 'super_admin')->get();
-        Notification::send($superAdmins, new NewTicketNotification($ticket));
+        $ticket = $this->ticketService->createTicket($request->user(), $request->validated());
 
         return $this->successResponse($ticket, 'Ticket created successfully', 201);
     }
 
     public function show(Request $request, Ticket $ticket): JsonResponse
     {
-        $user = $request->user();
-        
-        if (!$user->hasRole('super_admin') && $ticket->user_id !== $user->id) {
-            return $this->errorResponse('Unauthorized', 403);
-        }
+        $ticketDetails = $this->ticketService->getTicketDetails($request->user(), $ticket);
 
-        $ticket->load(['user:id,first_name,last_name,email', 'messages.user:id,first_name,last_name,email,role']);
-
-        return $this->successResponse($ticket);
+        return $this->successResponse($ticketDetails);
     }
 
-    public function updateStatus(Request $request, Ticket $ticket): JsonResponse
+    public function updateStatus(UpdateTicketStatusRequest $request, Ticket $ticket): JsonResponse
     {
-        $user = $request->user();
-        
-        if (!$user->hasRole('super_admin')) {
-            return $this->errorResponse('Unauthorized', 403);
-        }
+        $updatedTicket = $this->ticketService->updateTicketStatus(
+            $request->user(),
+            $ticket,
+            $request->validated()['status']
+        );
 
-        $validated = $request->validate([
-            'status' => ['required', 'in:open,in_progress,resolved,closed']
-        ]);
-
-        $ticket->update(['status' => $validated['status']]);
-
-        return $this->successResponse($ticket, 'Ticket status updated successfully');
+        return $this->successResponse($updatedTicket, 'Ticket status updated successfully');
     }
 }

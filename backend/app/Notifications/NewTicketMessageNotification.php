@@ -28,6 +28,7 @@ class NewTicketMessageNotification extends Notification implements ShouldQueue
             'title' => 'New Ticket Reply',
             'message' => $this->ticketMessage->user->first_name . ' replied to your ticket.',
             'ticket_id' => $this->ticketMessage->ticket_id,
+            'ticket_reference_id' => $this->ticketMessage->ticket?->ticket_reference_id,
         ];
     }
 
@@ -39,6 +40,7 @@ class NewTicketMessageNotification extends Notification implements ShouldQueue
             'title' => 'New Ticket Reply',
             'message' => $this->ticketMessage->user->first_name . ' replied to your ticket.',
             'ticket_id' => $this->ticketMessage->ticket_id,
+            'ticket_reference_id' => $this->ticketMessage->ticket?->ticket_reference_id,
             'read_at' => null,
             'created_at' => now()->toIso8601String(),
         ]);

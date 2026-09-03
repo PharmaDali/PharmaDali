@@ -52,7 +52,7 @@ class ItemExchangeController extends Controller
             $userPharmacyId = $user->pharmacy_id ?? $user->pharmacy?->id ?? $order->pharmacy_id;
 
             if ($order->pharmacy_id && $userPharmacyId && (int) $order->pharmacy_id !== (int) $userPharmacyId) {
-                if (!in_array($user->role, ['admin', 'super_admin', 'system_admin'], true)) {
+                if ($user->role !== 'super_admin') {
                     return $this->successResponse([
                         'eligible' => false,
                         'reason' => 'Order does not belong to your assigned pharmacy branch.',

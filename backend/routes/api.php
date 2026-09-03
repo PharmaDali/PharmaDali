@@ -143,9 +143,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
 
-    Route::middleware(['ability:pharmacy_admin,pharmacist,super_admin,admin,system_admin'])->group(function () {
+    Route::middleware(['ability:pharmacy_admin,pharmacist,super_admin'])->group(function () {
         Route::get('admin/tickets', [\App\Http\Controllers\Admin\TicketController::class, 'index']);
-        Route::post('admin/tickets', [\App\Http\Controllers\Admin\TicketController::class, 'store']);
+        Route::post('admin/tickets', [\App\Http\Controllers\Admin\TicketController::class, 'store'])->middleware('throttle:10,1');
         Route::get('admin/tickets/{ticket}', [\App\Http\Controllers\Admin\TicketController::class, 'show']);
         Route::patch('admin/tickets/{ticket}/status', [\App\Http\Controllers\Admin\TicketController::class, 'updateStatus']);
         Route::post('admin/tickets/{ticket}/messages', [\App\Http\Controllers\Admin\TicketMessageController::class, 'store']);
