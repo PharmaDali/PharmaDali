@@ -77,7 +77,7 @@ class User extends Authenticatable
      */
     public function hasPermission(string $permission): bool
     {
-        if (in_array($this->role, ['pharmacy_admin', 'admin', 'super_admin', 'system_admin'], true)) {
+        if (in_array($this->role, ['pharmacy_admin', 'super_admin'], true)) {
             return true;
         }
 
@@ -142,7 +142,7 @@ class User extends Authenticatable
         ];
     }
 
-    public function tickets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function tickets(): HasMany
     {
         return $this->hasMany(\App\Models\Ticket::class);
     }

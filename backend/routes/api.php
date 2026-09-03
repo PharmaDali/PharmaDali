@@ -143,7 +143,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
 
-    Route::middleware(['ability:pharmacy_admin,pharmacist,super_admin,admin,system_admin'])->group(function () {
+    Route::middleware(['ability:pharmacy_admin,pharmacist,super_admin'])->group(function () {
         Route::get('admin/tickets', [\App\Http\Controllers\Admin\TicketController::class, 'index']);
         Route::post('admin/tickets', [\App\Http\Controllers\Admin\TicketController::class, 'store']);
         Route::get('admin/tickets/{ticket}', [\App\Http\Controllers\Admin\TicketController::class, 'show']);

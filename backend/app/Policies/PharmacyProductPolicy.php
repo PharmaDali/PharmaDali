@@ -20,7 +20,7 @@ class PharmacyProductPolicy
      */
     public function create(User $user): bool
     {
-        return in_array($user->role, ['pharmacy_admin', 'admin', 'super_admin', 'system_admin'], true);
+        return in_array($user->role, ['pharmacy_admin', 'super_admin'], true);
     }
 
     /**
@@ -28,7 +28,7 @@ class PharmacyProductPolicy
      */
     public function update(User $user, ?PharmacyProduct $product = null): bool
     {
-        return in_array($user->role, ['pharmacy_admin', 'admin', 'super_admin', 'system_admin'], true);
+        return in_array($user->role, ['pharmacy_admin', 'super_admin'], true);
     }
 
     /**
@@ -36,6 +36,6 @@ class PharmacyProductPolicy
      */
     public function delete(User $user, ?PharmacyProduct $product = null): bool
     {
-        return in_array($user->role, ['pharmacy_admin', 'admin', 'super_admin', 'system_admin'], true);
+        return in_array($user->role, ['pharmacy_admin', 'super_admin'], true);
     }
 }

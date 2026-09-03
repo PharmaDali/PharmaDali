@@ -9,11 +9,11 @@ class PharmacistPolicy
 {
     public function create(User $user): bool
     {
-        return in_array($user->role, ['pharmacy_admin', 'admin', 'super_admin', 'system_admin'], true) && !is_null($user->pharmacy_id);
+        return in_array($user->role, ['pharmacy_admin', 'super_admin'], true) && !is_null($user->pharmacy_id);
     }
 
     public function managePermissions(User $user, ?Pharmacist $pharmacist = null): bool
     {
-        return in_array($user->role, ['pharmacy_admin', 'admin', 'super_admin', 'system_admin'], true);
+        return in_array($user->role, ['pharmacy_admin', 'super_admin'], true);
     }
 }

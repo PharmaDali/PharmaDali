@@ -25,8 +25,8 @@ class AdminLoginService
         /** @var User $user */
         $user = Auth::user();
 
-        // Allow pharmacy_admin, pharmacist, super_admin, admin, system_admin roles to log into the pharmacy portal
-        if (!in_array($user->role, ['pharmacy_admin', 'pharmacist', 'super_admin', 'admin', 'system_admin'], true)) {
+        // Allow pharmacy_admin, pharmacist, super_admin roles to log into administrative portals
+        if (!in_array($user->role, ['pharmacy_admin', 'pharmacist', 'super_admin'], true)) {
             Auth::logout();
             RateLimiter::hit('admin-login:' . $ip);
             return response()->json(['message' => 'Invalid credentials'], 401);
