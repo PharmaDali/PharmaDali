@@ -17,7 +17,7 @@ class UpdatePharmacySettingsRequest extends FormRequest
             'pharmacy_name'           => 'sometimes|string|max:255',
             'location'                => 'sometimes|string|max:500',
             'contact_number'          => 'sometimes|string|max:30',
-            'email'                   => 'sometimes|email|max:255',
+            'email'                   => 'sometimes|nullable|email|max:255',
             'opening_hour'            => 'sometimes|date_format:H:i',
             'closing_hour'            => 'sometimes|date_format:H:i|after:opening_hour',
             'is_active'               => 'sometimes|boolean',
