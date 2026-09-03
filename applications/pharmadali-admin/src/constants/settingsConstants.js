@@ -26,7 +26,7 @@ export const settingsList = [
   },
   {
     id: "operations",
-    label: "Operations & Reports",
+    label: "Operations & Thresholds",
     description: "Set up End-of-Day report preferences and operational inventory rules.",
   },
   {

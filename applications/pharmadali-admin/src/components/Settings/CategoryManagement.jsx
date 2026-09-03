@@ -37,8 +37,9 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
     try {
       setLoading(true);
       setErrorMessage("");
-      const data = await getCategories();
-      setCategories(Array.isArray(data) ? data : []);
+      const res = await getCategories();
+      const catList = Array.isArray(res) ? res : (Array.isArray(res?.data) ? res.data : []);
+      setCategories(catList);
     } catch (err) {
       setErrorMessage(err.message || "Failed to load categories.");
     } finally {
