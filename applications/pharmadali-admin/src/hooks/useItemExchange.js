@@ -57,7 +57,10 @@ export const useItemExchange = (order, show, onExchangeSuccess) => {
         const initialReturns = {};
         const initialConditions = {};
         data.items.forEach((item) => {
-          initialReturns[item.order_item_id] = 0;
+          const defaultQty = item.max_returnable_quantity !== undefined
+            ? item.max_returnable_quantity
+            : (item.purchased_quantity || 0);
+          initialReturns[item.order_item_id] = defaultQty;
           initialConditions[item.order_item_id] = "resalable";
         });
         setSelectedReturns(initialReturns);
@@ -71,7 +74,17 @@ export const useItemExchange = (order, show, onExchangeSuccess) => {
   };
 
   const updateReturnQty = (orderItemId, newQty, maxQty) => {
-    const validQty = Math.max(0, Math.min(Number(newQty) || 0, maxQty));
+    if (newQty === "" || newQty === undefined || newQty === null) {
+      setSelectedReturns((prev) => ({ ...prev, [orderItemId]: "" }));
+      return;
+    }
+    const parsed = parseInt(newQty, 10);
+    if (isNaN(parsed)) {
+      setSelectedReturns((prev) => ({ ...prev, [orderItemId]: 0 }));
+      return;
+    }
+    const max = maxQty !== undefined && maxQty !== null ? maxQty : Infinity;
+    const validQty = Math.max(0, Math.min(parsed, max));
     setSelectedReturns((prev) => ({ ...prev, [orderItemId]: validQty }));
   };
 
@@ -107,7 +120,24 @@ export const useItemExchange = (order, show, onExchangeSuccess) => {
   };
 
   const updateReplacementQty = (productId, newQty, maxStock) => {
-    const validQty = Math.max(1, Math.min(Number(newQty) || 1, maxStock));
+    if (newQty === "" || newQty === undefined || newQty === null) {
+      setReplacementCart(
+        replacementCart.map((item) =>
+          item.id === productId ? { ...item, qty: "" } : item
+        )
+      );
+      return;
+    }
+    const parsed = parseInt(newQty, 10);
+    if (isNaN(parsed)) {
+      setReplacementCart(
+        replacementCart.map((item) =>
+          item.id === productId ? { ...item, qty: 1 } : item
+        )
+      );
+      return;
+    }
+    const validQty = Math.max(1, Math.min(parsed, maxStock));
     setReplacementCart(
       replacementCart.map((item) =>
         item.id === productId ? { ...item, qty: validQty } : item
