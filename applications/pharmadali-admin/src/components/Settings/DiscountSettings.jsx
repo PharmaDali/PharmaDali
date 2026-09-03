@@ -5,6 +5,8 @@ import { ListSkeleton } from "../../shared/components/loading";
 import Modal from "../../shared/components/Modal";
 import ToastNotification from "../../shared/components/ToastNotification";
 
+import "../../assets/css/settings.css";
+
 export function DiscountSettings({ onNavigate }) {
   const [discounts, setDiscounts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +136,7 @@ export function DiscountSettings({ onNavigate }) {
         onNavigate={onNavigate}
       />
 
-      <div className="d-flex justify-content-between align-items-center mb-4">
+      <div className="discount-header-section mb-4">
         <div>
           <h4 className="fw-bold mb-1 admin-page-title" style={{ color: "#444444" }}>
             Discount Policy Management
@@ -144,7 +146,7 @@ export function DiscountSettings({ onNavigate }) {
           </p>
         </div>
         <button
-          className="admin-btn-primary"
+          className="admin-btn-primary discount-add-btn"
           onClick={handleOpenAddModal}
         >
           <i className="fa-solid fa-plus" />
@@ -152,7 +154,104 @@ export function DiscountSettings({ onNavigate }) {
         </button>
       </div>
 
-      <div className="admin-card overflow-hidden p-0">
+      {/* Mobile Card Layout */}
+      <div className="d-block d-md-none mb-4">
+        {loading ? (
+          <div className="p-3 bg-white rounded-3 text-center shadow-sm">
+            <ListSkeleton count={3} />
+          </div>
+        ) : discounts.length === 0 ? (
+          <div className="p-4 bg-white rounded-3 text-center text-muted shadow-sm">
+            No discount policies configured.
+          </div>
+        ) : (
+          <div className="d-flex flex-column gap-3">
+            {discounts.map((discount) => (
+              <div
+                key={discount.id}
+                className="bg-white rounded-3 p-3 shadow-sm border d-flex flex-column gap-2"
+                style={{ borderColor: "#edf2f7" }}
+              >
+                {/* Header: Name + Active Switch */}
+                <div className="d-flex justify-content-between align-items-start gap-2">
+                  <div>
+                    <h6 className="fw-bold mb-1" style={{ color: "#334155", fontSize: "15px" }}>
+                      {discount.name}
+                    </h6>
+                    {discount.description && (
+                      <p className="text-muted small mb-0" style={{ fontSize: "12px", lineHeight: 1.4 }}>
+                        {discount.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="form-check form-switch m-0 pt-1 flex-shrink-0">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      role="switch"
+                      checked={discount.is_active}
+                      onChange={() => handleToggleActive(discount)}
+                      style={{ cursor: "pointer", width: "2.2em", height: "1.15em" }}
+                      title={discount.is_active ? "Active" : "Inactive"}
+                    />
+                  </div>
+                </div>
+
+                {/* Details Badges */}
+                <div className="d-flex flex-wrap align-items-center gap-2 pt-2 border-top" style={{ borderColor: "#f1f5f9" }}>
+                  <div className="d-flex align-items-center gap-1">
+                    <span className="text-muted small" style={{ fontSize: "12px" }}>Code:</span>
+                    <span className="badge bg-light text-secondary border px-2 py-1" style={{ fontSize: "11px" }}>
+                      {discount.code || "---"}
+                    </span>
+                  </div>
+
+                  <div className="d-flex align-items-center gap-1 ms-auto">
+                    <span className="text-muted small" style={{ fontSize: "12px" }}>Rate:</span>
+                    <span className="fw-bold" style={{ color: "#2aabe2", fontSize: "15px" }}>
+                      {discount.percentage}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Footer / Actions */}
+                <div className="d-flex justify-content-between align-items-center pt-2 border-top" style={{ borderColor: "#f1f5f9" }}>
+                  <span className="text-secondary small d-flex align-items-center" style={{ fontSize: "12px" }}>
+                    <i className="fa-regular fa-id-card me-1 text-muted"></i>
+                    {discount.requires_id_number ? "Optional ID Required" : "No ID Required"}
+                  </span>
+
+                  <div className="d-flex gap-2">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary rounded-2 px-2 py-1"
+                      onClick={() => handleOpenEditModal(discount)}
+                      title="Edit policy"
+                      style={{ fontSize: "12px" }}
+                    >
+                      <i className="fa-solid fa-pen me-1" style={{ fontSize: "11px" }} />
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-danger rounded-2 px-2 py-1"
+                      onClick={() => handleDelete(discount.id)}
+                      title="Delete policy"
+                      style={{ fontSize: "12px" }}
+                    >
+                      <i className="fa-solid fa-trash-can me-1" style={{ fontSize: "11px" }} />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="d-none d-md-block admin-card overflow-hidden p-0">
         <div className="p-0">
           {loading ? (
             <div className="p-3">
@@ -237,14 +336,15 @@ export function DiscountSettings({ onNavigate }) {
       </div>
 
       {/* Add / Edit Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} size="md">
-        <form onSubmit={handleSubmit} className="p-3">
-          <h5 className="fw-bold mb-3" style={{ color: "#444444" }}>
-            {editingDiscount ? "Edit Discount Policy" : "Add New Discount Policy"}
-          </h5>
-
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        size="md"
+        title={editingDiscount ? "Edit Discount Policy" : "Add New Discount Policy"}
+      >
+        <form onSubmit={handleSubmit} className="p-1">
           <div className="mb-3">
-            <label className="form-label fw-semibold small" style={{ color: "#444444" }}>Policy Name</label>
+            <label className="form-label fw-semibold small" style={{ color: "#444444" }}>Policy Name *</label>
             <input
               type="text"
               className="form-control"
@@ -257,8 +357,8 @@ export function DiscountSettings({ onNavigate }) {
           </div>
 
           <div className="row g-3 mb-3">
-            <div className="col-6">
-              <label className="form-label fw-semibold small" style={{ color: "#444444" }}>Discount Rate (%)</label>
+            <div className="col-12 col-sm-6">
+              <label className="form-label fw-semibold small" style={{ color: "#444444" }}>Discount Rate (%) *</label>
               <input
                 type="number"
                 min="0"
@@ -272,7 +372,7 @@ export function DiscountSettings({ onNavigate }) {
                 required
               />
             </div>
-            <div className="col-6">
+            <div className="col-12 col-sm-6">
               <label className="form-label fw-semibold small" style={{ color: "#444444" }}>ID Requirement</label>
               <div className="form-check mt-2">
                 <input
@@ -283,8 +383,9 @@ export function DiscountSettings({ onNavigate }) {
                   onChange={(e) =>
                     setFormData({ ...formData, requires_id_number: e.target.checked })
                   }
+                  style={{ cursor: "pointer" }}
                 />
-                <label className="form-check-label small" htmlFor="requiresIdCheck" style={{ color: "#444444" }}>
+                <label className="form-check-label small" htmlFor="requiresIdCheck" style={{ color: "#444444", cursor: "pointer" }}>
                   Enable Optional ID No. Field
                 </label>
               </div>
@@ -303,17 +404,17 @@ export function DiscountSettings({ onNavigate }) {
             />
           </div>
 
-          <div className="d-flex justify-content-end gap-2 mt-4">
+          <div className="d-flex flex-column-reverse flex-sm-row justify-content-end gap-2 mt-4 pt-2 border-top">
             <button
               type="button"
-              className="btn btn-light rounded-3 px-3 fw-semibold text-secondary"
+              className="btn btn-light rounded-3 px-3 py-2 fw-semibold text-secondary w-100 w-sm-auto"
               onClick={() => setIsModalOpen(false)}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="btn text-white rounded-3 px-4 fw-semibold"
+              className="btn text-white rounded-3 px-4 py-2 fw-semibold w-100 w-sm-auto"
               style={{ backgroundColor: "#2aabe2" }}
               disabled={isSubmitting}
             >
