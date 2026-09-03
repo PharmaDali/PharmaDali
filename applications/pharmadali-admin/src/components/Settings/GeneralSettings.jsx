@@ -37,7 +37,7 @@ export const GeneralSettings = ({ onNavigate }) => {
       setLoading(true);
       setErrorMessage("");
       const res = await getPharmacySettings();
-      const pharmacy = res.pharmacy || {};
+      const pharmacy = res.data?.pharmacy || {};
 
       const loadedData = {
         pharmacy_name: pharmacy.pharmacy_name || "",
@@ -189,7 +189,7 @@ export const GeneralSettings = ({ onNavigate }) => {
               disabled={!isEditing || saving}
             />
           </div>
-          <span className="mt-4 text-muted font-monospace">–</span>
+          <span className="mt-4 text-muted font-monospace">â€“</span>
           <div className="d-flex flex-column">
             <span className="small text-muted mb-1">Closing Time</span>
             <input

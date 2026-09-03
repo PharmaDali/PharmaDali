@@ -30,7 +30,7 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
       setLoading(true);
       setErrorMessage("");
       const res = await getPharmacySettings();
-      const exchangeSettings = res.exchange_settings || {};
+      const exchangeSettings = res.data?.exchange_settings || {};
 
       const loadedData = {
         allow_item_exchange: exchangeSettings.allow_item_exchange !== undefined ? Boolean(exchangeSettings.allow_item_exchange) : true,
