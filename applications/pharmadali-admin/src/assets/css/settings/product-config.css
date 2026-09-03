@@ -215,20 +215,33 @@
 
 @media (max-width: 575.98px) {
   .product-config-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.8rem;
-    padding: 1rem 0.5rem;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 0.75rem 0.25rem !important;
+  }
+
+  .product-config-item .badge {
+    font-size: 0.75rem !important;
+    padding: 0.3rem 0.6rem !important;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .product-config-actions {
-    width: 100%;
-    justify-content: flex-end;
+    width: auto !important;
+    gap: 0.35rem !important;
+    flex-shrink: 0;
   }
 
   .product-config-actions .btn-action {
-    flex: 1;
-    min-width: 0;
+    font-size: 0.72rem !important;
+    padding: 0.25rem 0.55rem !important;
+    min-width: 48px !important;
+    border-radius: 6px !important;
     text-align: center;
   }
 }
