@@ -20,7 +20,7 @@ export const SettingForm = ({
         <button
           type="button"
           className="btn btn-sm px-4 rounded-3 fw-semibold"
-          style={{ backgroundColor: "#e0f2fe", color: "#4dbff0", border: "none" }}
+          style={{ backgroundColor: "#e8f0fe", color: "var(--pd-primary, #2aabe2)", border: "none" }}
           onClick={() => onEditChange(true)}
         >
           Edit
@@ -42,7 +42,7 @@ export const SettingForm = ({
             type="button"
             className="btn btn-sm px-4 rounded-3 fw-semibold text-white"
             onClick={onSave}
-            style={{ backgroundColor: "#4dbff0", border: "none" }}
+            style={{ backgroundColor: "var(--pd-primary, #2aabe2)", border: "none" }}
           >
             Save Changes
           </button>
@@ -87,7 +87,7 @@ export const SettingForm = ({
                     type="button"
                     className="btn btn-primary btn-sm px-3 rounded-2"
                     onClick={onSave}
-                    style={{ backgroundColor: "#4dbff0", borderColor: "#4dbff0" }}
+                    style={{ backgroundColor: "var(--pd-primary, #2aabe2)", borderColor: "var(--pd-primary, #2aabe2)" }}
                   >
                     Save Changes
                   </button>

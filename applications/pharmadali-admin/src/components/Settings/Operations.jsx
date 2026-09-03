@@ -86,10 +86,11 @@ export const Operations = ({ onNavigate }) => {
       label: "Low Stock Alert Threshold",
       helper: "Trigger a Low Stock alert when a product's total inventory quantity drops below or reaches this unit count.",
       content: (
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "240px" }}>
+        <div className="d-flex align-items-center gap-2 flex-wrap w-100" style={{ maxWidth: "320px" }}>
           <input
             type="number"
             className="form-control settings-form-input"
+            style={{ maxWidth: "120px" }}
             value={formData.low_stock_threshold}
             onChange={(e) => handleInputChange("low_stock_threshold", Number(e.target.value))}
             disabled={!isEditing || saving}
@@ -104,10 +105,11 @@ export const Operations = ({ onNavigate }) => {
       label: "Shortage Alert Notice (Days of Stock)",
       helper: "Warn staff with a Shortage Alert when projected remaining supply duration drops to or below this many days.",
       content: (
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "240px" }}>
+        <div className="d-flex align-items-center gap-2 flex-wrap w-100" style={{ maxWidth: "320px" }}>
           <input
             type="number"
             className="form-control settings-form-input"
+            style={{ maxWidth: "120px" }}
             value={formData.shortage_days_threshold}
             onChange={(e) => handleInputChange("shortage_days_threshold", Number(e.target.value))}
             disabled={!isEditing || saving}
@@ -123,10 +125,11 @@ export const Operations = ({ onNavigate }) => {
       label: "Product Expiry Warning Notice Window",
       helper: "Warn staff with an Expiry Warning when a product batch is scheduled to expire within this many days.",
       content: (
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "240px" }}>
+        <div className="d-flex align-items-center gap-2 flex-wrap w-100" style={{ maxWidth: "320px" }}>
           <input
             type="number"
             className="form-control settings-form-input"
+            style={{ maxWidth: "120px" }}
             value={formData.expiry_days_threshold}
             onChange={(e) => handleInputChange("expiry_days_threshold", Number(e.target.value))}
             disabled={!isEditing || saving}
@@ -142,8 +145,8 @@ export const Operations = ({ onNavigate }) => {
       label: "Statutory VAT Exemption for Senior / PWD Discounts",
       helper: "Enable automatic 12% VAT removal prior to applying percentage discounts for Senior Citizen and PWD sales.",
       content: (
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "240px" }}>
-          <div className="form-check form-switch m-0" style={{ fontSize: "16px" }}>
+        <div className="d-flex align-items-center gap-2 w-100" style={{ maxWidth: "320px" }}>
+          <div className="form-check form-switch m-0">
             <input
               className="form-check-input"
               type="checkbox"
@@ -152,8 +155,9 @@ export const Operations = ({ onNavigate }) => {
               checked={formData.enable_vat_exemption_discount}
               onChange={(e) => handleInputChange("enable_vat_exemption_discount", e.target.checked)}
               disabled={!isEditing || saving}
+              style={{ cursor: isEditing ? "pointer" : "not-allowed" }}
             />
-            <label className="form-check-label small text-muted ms-2" htmlFor="enable_vat_exemption_discount">
+            <label className="form-check-label small text-muted ms-2" htmlFor="enable_vat_exemption_discount" style={{ cursor: isEditing ? "pointer" : "default" }}>
               {formData.enable_vat_exemption_discount ? "Enabled" : "Disabled"}
             </label>
           </div>

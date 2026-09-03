@@ -81,7 +81,7 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
       label: "Enable Item Exchange Feature",
       helper: "Allow pharmacy administrators and staff to process item returns and replacements for completed sales under the store's No Cash Refund Policy.",
       content: (
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "240px" }}>
+        <div className="d-flex align-items-center gap-2 w-100" style={{ maxWidth: "300px" }}>
           <div className="form-check form-switch m-0" style={{ fontSize: "16px" }}>
             <input
               className="form-check-input"
@@ -91,8 +91,9 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
               checked={formData.allow_item_exchange}
               onChange={(e) => handleInputChange("allow_item_exchange", e.target.checked)}
               disabled={!isEditing || saving}
+              style={{ cursor: isEditing ? "pointer" : "not-allowed" }}
             />
-            <label className="form-check-label small text-muted ms-2" htmlFor="allow_item_exchange">
+            <label className="form-check-label small text-muted ms-2" htmlFor="allow_item_exchange" style={{ cursor: isEditing ? "pointer" : "default" }}>
               {formData.allow_item_exchange ? "Enabled" : "Disabled"}
             </label>
           </div>
@@ -104,10 +105,11 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
       label: "Exchange Window Duration (Days)",
       helper: "Maximum post-purchase duration (in days) allowed for an item exchange. Set to 1 day for strict Same-Day policy within store operating hours.",
       content: (
-        <div className="d-flex align-items-center gap-2" style={{ maxWidth: "240px" }}>
+        <div className="d-flex align-items-center gap-2 flex-wrap w-100" style={{ maxWidth: "300px" }}>
           <input
             type="number"
             className="form-control settings-form-input"
+            style={{ maxWidth: "140px" }}
             value={formData.item_exchange_window_days}
             onChange={(e) => handleInputChange("item_exchange_window_days", Math.max(1, Number(e.target.value)))}
             disabled={!isEditing || saving || !formData.allow_item_exchange}
@@ -169,11 +171,11 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
       )}
 
       {/* Policy Disclaimer Alert */}
-      <div className="alert alert-info py-2 px-3 mb-4 small rounded-3 border-0 bg-light text-dark" style={{ borderLeft: "4px solid #2aabe2" }}>
-        <div className="fw-semibold mb-1" style={{ color: "#2aabe2" }}>
-          <i className="fa-solid fa-shield-halved me-1"></i> No Cash Refund Policy Standard
+      <div className="alert alert-info py-3 px-3 mb-4 small rounded-3 border-0 text-dark" style={{ backgroundColor: "#e8f0fe", borderLeft: "4px solid var(--pd-primary, #2aabe2)" }}>
+        <div className="fw-semibold mb-1 d-flex align-items-center gap-2" style={{ color: "var(--pd-primary, #2aabe2)" }}>
+          <i className="fa-solid fa-shield-halved"></i> No Cash Refund Policy Standard
         </div>
-        <div style={{ fontSize: "12px", lineHeight: "1.5" }}>
+        <div className="small text-secondary" style={{ fontSize: "12px", lineHeight: "1.5" }}>
           Item exchanges allow returning items in exchange for replacement products of equal or higher value. If replacement value is lower, excess returned credit is non-refundable (PHP 0.00 cash refund). Each order allows a maximum of 1 item exchange.
         </div>
       </div>
