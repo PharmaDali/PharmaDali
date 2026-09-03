@@ -50,19 +50,26 @@ export function SelectDropdown({
       <button
         id={id}
         type="button"
-        className={`form-select inventory-select d-flex align-items-center justify-content-between text-start w-100 ${
-          isOpen ? "inventory-select-open" : ""
-        } ${selectClassName}`.trim()}
+        className={`inventory-select select-dropdown-btn d-flex align-items-center justify-content-between text-start w-100 ${isOpen ? "select-dropdown-btn-open" : ""} ${selectClassName}`.trim()}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         aria-expanded={isOpen}
         style={{
           cursor: disabled ? "not-allowed" : "pointer",
           userSelect: "none",
+          appearance: "none",
+          WebkitAppearance: "none",
+          MozAppearance: "none",
+          backgroundImage: "none",
+          paddingRight: "12px",
         }}
         {...restProps}
       >
         <span className="text-truncate me-2">{displayLabel}</span>
+        <i
+          className={`fa-solid ${isOpen ? "fa-chevron-up" : "fa-chevron-down"} ms-2 flex-shrink-0`}
+          style={{ fontSize: "11px", color: "var(--pd-primary, #2aabe2)" }}
+        />
       </button>
 
       {isOpen && !disabled && (

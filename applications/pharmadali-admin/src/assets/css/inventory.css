@@ -94,6 +94,21 @@
   border-color: var(--pd-primary, #2aabe2) !important;
   background-color: #ffffff !important;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M14 12l-4-4-4 4' stroke='%232aabe2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 14px !important;
+}
+
+.select-dropdown-btn {
+  background-image: none !important;
+  padding-right: 12px !important;
+}
+
+.select-dropdown-btn-open {
+  border-color: var(--pd-primary, #2aabe2) !important;
+  background-color: #ffffff !important;
+  background-image: none !important;
+  padding-right: 12px !important;
 }
 
 .inventory-logs-filter-bar {
@@ -306,7 +321,7 @@
   border-radius: var(--pd-radius-md);
 }
 
-/* ── Pagination ── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Pagination ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 .inventory-pagination-bar {
   display: flex;
   align-items: center;
@@ -1068,7 +1083,7 @@ select.inventory-modal-input {
   scrollbar-color: var(--pd-primary, #2aabe2) #f0f4f8;
 }
 
-/* ── Pickup Orders table scrollbar ── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Pickup Orders table scrollbar ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 .pickup-table-scroll::-webkit-scrollbar {
   height: 6px;
 }
@@ -1391,7 +1406,7 @@ select.inventory-modal-input {
   content: "" !important;
 }
 
-/* ── Batch Section ── */
+/* ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Batch Section ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ */
 .inventory-batch-section-header {
   display: flex;
   align-items: center;
