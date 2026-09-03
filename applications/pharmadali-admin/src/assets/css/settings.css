@@ -763,6 +763,79 @@
   }
 }
 
+/* Mobile Font-Size Scaling for Clean Container Fitting */
+@media (max-width: 575.98px) {
+  .settings-form-container,
+  .admin-card,
+  .settings-card {
+    padding: 1rem 0.85rem !important;
+  }
+
+  .settings-detail-title,
+  .settings-header-title {
+    font-size: 1rem !important;
+  }
+
+  .settings-detail-subtitle,
+  .settings-header-subtitle {
+    font-size: 0.75rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .settings-section-title {
+    font-size: 0.84rem !important;
+  }
+
+  .settings-section-helper {
+    font-size: 0.7rem !important;
+    line-height: 1.35 !important;
+  }
+
+  .settings-form-input,
+  .settings-section-right input,
+  .settings-section-right span,
+  .settings-section-right label,
+  .settings-section-right button {
+    font-size: 0.78rem !important;
+  }
+
+  .settings-button-group .btn {
+    font-size: 0.78rem !important;
+    padding: 0.38rem 0.75rem !important;
+  }
+
+  .settings-breadcrumb,
+  .tech-help-breadcrumb-parent {
+    font-size: 0.75rem !important;
+  }
+
+  .alert {
+    font-size: 0.75rem !important;
+    padding: 0.55rem 0.75rem !important;
+  }
+}
+
+/* Larger Form Switches across Settings & App */
+.form-switch .form-check-input {
+  width: 2.75em !important;
+  height: 1.4em !important;
+  margin-top: 0 !important;
+  border-radius: 2em !important;
+  cursor: pointer;
+  background-color: #cbd5e1;
+  border-color: #cbd5e1;
+  transition: background-position 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-switch .form-check-input:checked {
+  background-color: var(--pd-primary, #2aabe2) !important;
+  border-color: var(--pd-primary, #2aabe2) !important;
+}
+
+.form-switch .form-check-input:focus {
+  border-color: var(--pd-primary, #2aabe2) !important;
+  box-shadow: 0 0 0 0.2rem rgba(42, 171, 226, 0.25) !important;
+}
 /* Discount Policy Management Responsive Styles */
 .discount-header-section {
   display: flex;

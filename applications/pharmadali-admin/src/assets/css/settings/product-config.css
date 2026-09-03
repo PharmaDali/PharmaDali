@@ -187,3 +187,48 @@
     width: 100%;
   }
 }
+/* Responsive Enhancements for Mobile and Tablet Landscape */
+.btn-action--primary {
+  background: var(--pd-primary, #2aabe2) !important;
+  border-color: var(--pd-primary, #2aabe2) !important;
+  color: #fff !important;
+}
+
+.btn-action--primary:hover {
+  background: var(--pd-primary-dark, #48aad9) !important;
+  border-color: var(--pd-primary-dark, #48aad9) !important;
+}
+
+.btn-add-circle {
+  background: var(--pd-primary, #2aabe2) !important;
+}
+
+.btn-add-circle:hover {
+  background: var(--pd-primary-dark, #48aad9) !important;
+}
+
+@media (max-width: 991.98px) {
+  .product-config-item {
+    padding: 0.9rem 0.6rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .product-config-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+    padding: 1rem 0.5rem;
+  }
+
+  .product-config-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .product-config-actions .btn-action {
+    flex: 1;
+    min-width: 0;
+    text-align: center;
+  }
+}

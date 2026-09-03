@@ -159,13 +159,13 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
       )}
 
       <div className="admin-card">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
+        <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
           <div>
-            <h5 className="settings-header-title">Category</h5>
-            <p className="settings-header-subtitle">Import, add, delete, and update category.</p>
+            <h5 className="settings-header-title mb-1">Category</h5>
+            <p className="settings-header-subtitle mb-0">Import, add, delete, and update category.</p>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <div style={{ minWidth: 220 }}>
+          <div className="d-flex align-items-center gap-2 w-100 w-sm-auto justify-content-sm-end">
+            <div className="flex-grow-1 flex-sm-grow-0" style={{ minWidth: "160px", maxWidth: "260px" }}>
               <SearchBar
                 id="category-search"
                 value={query}
@@ -173,7 +173,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                 placeholder="Search category"
               />
             </div>
-            <button className="btn-add-circle" onClick={openAddModal}>+</button>
+            <button className="btn-add-circle flex-shrink-0" onClick={openAddModal}>+</button>
           </div>
         </div>
 

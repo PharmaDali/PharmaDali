@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SettingForm } from "./SettingForm";
+import SelectDropdown from "../../shared/components/SelectDropdown";
 import "../../assets/css/settings/common.css";
 import "../../assets/css/settings/overlays.css";
 
@@ -22,9 +23,14 @@ const sortOptions = [
   "By Price (High to Low)",
 ];
 
+const printerOptions = [
+  { label: "POS Thermal Printer (USB / 80mm)", value: "POS Thermal Printer (USB)" },
+  { label: "Network Thermal Printer (IP / 80mm)", value: "Network Thermal Printer (IP)" },
+  { label: "System Default Printer", value: "System Default Printer" },
+];
+
 export const HardwareAndReceipts = ({ onNavigate }) => {
   const [formData, setFormData] = useState(initialHardwareData);
-  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -36,15 +42,15 @@ export const HardwareAndReceipts = ({ onNavigate }) => {
       label: "Default POS Receipt Printer",
       helper: "Select connected thermal printer or print service output.",
       content: (
-        <select
-          className="form-select settings-form-input"
+        <SelectDropdown
+          id="printerName"
           value={formData.printerName}
-          onChange={(e) => handleInputChange("printerName", e.target.value)}
-        >
-          <option value="POS Thermal Printer (USB)">POS Thermal Printer (USB / 80mm)</option>
-          <option value="Network Thermal Printer (IP)">Network Thermal Printer (IP / 80mm)</option>
-          <option value="System Default Printer">System Default Printer</option>
-        </select>
+          onChange={(val) => handleInputChange("printerName", val)}
+          options={printerOptions}
+          placeholder="Select printer"
+          selectClassName="settings-form-input"
+          containerClassName="w-100"
+        />
       ),
     },
     {
@@ -82,8 +88,9 @@ export const HardwareAndReceipts = ({ onNavigate }) => {
       helper: "Closing message printed at the bottom of receipts.",
       content: (
         <textarea
-          className="form-control settings-form-input settings-form-input--singleline"
-          rows="2"
+          className="form-control settings-form-input"
+          rows="4"
+          style={{ minHeight: "100px", resize: "vertical" }}
           value={formData.receiptFooter}
           onChange={(e) => handleInputChange("receiptFooter", e.target.value)}
         />
@@ -94,32 +101,15 @@ export const HardwareAndReceipts = ({ onNavigate }) => {
       label: "Sort Receipt Items",
       helper: "Order of line items printed on physical receipt.",
       content: (
-        <div className="pd-dropdown-container w-100" style={{ maxWidth: "320px" }}>
-          <button
-            type="button"
-            className="pd-dropdown-btn w-100 d-flex justify-content-between align-items-center rounded-3 p-2 bg-light border-0"
-            onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-          >
-            <span className="text-dark small fw-medium">{formData.sortBy}</span>
-            <span className="text-muted small">▼</span>
-          </button>
-          {isSortDropdownOpen && (
-            <div className="pd-dropdown-menu w-100 position-absolute mt-1 shadow-sm rounded-3">
-              {sortOptions.map((option) => (
-                <div
-                  key={option}
-                  className="pd-dropdown-item px-3 py-2"
-                  onClick={() => {
-                    handleInputChange("sortBy", option);
-                    setIsSortDropdownOpen(false);
-                  }}
-                >
-                  {option}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <SelectDropdown
+          id="sortBy"
+          value={formData.sortBy}
+          onChange={(val) => handleInputChange("sortBy", val)}
+          options={sortOptions.map((opt) => ({ label: opt, value: opt }))}
+          placeholder="Select sort order"
+          selectClassName="settings-form-input"
+          containerClassName="w-100"
+        />
       ),
     },
     {
