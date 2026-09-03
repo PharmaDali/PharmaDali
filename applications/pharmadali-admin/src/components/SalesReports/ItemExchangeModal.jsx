@@ -231,15 +231,27 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                     <p className="exchange-step-subheading mb-3">Select replacement products from active branch inventory.</p>
 
                     <div className="exchange-card-box mb-3 p-3">
-                      <div className="input-group mb-3">
-                        <span className="input-group-text bg-white border-end-0"><i className="fa-solid fa-magnifying-glass text-muted"></i></span>
+                      <div className="exchange-search-group input-group mb-3">
+                        <span className="input-group-text exchange-search-icon-text">
+                          <i className="fa-solid fa-magnifying-glass"></i>
+                        </span>
                         <input
                           type="text"
-                          className="form-control border-start-0 ps-0"
+                          className="form-control exchange-search-input"
                           placeholder="Search replacement products..."
                           value={query}
                           onChange={(e) => setQuery(e.target.value)}
                         />
+                        {query && (
+                          <button
+                            type="button"
+                            className="btn exchange-search-clear-btn"
+                            onClick={() => setQuery("")}
+                            title="Clear search"
+                          >
+                            <i className="fa-solid fa-circle-xmark"></i>
+                          </button>
+                        )}
                       </div>
 
                       <div className="overflow-auto" style={{ maxHeight: "200px" }}>
