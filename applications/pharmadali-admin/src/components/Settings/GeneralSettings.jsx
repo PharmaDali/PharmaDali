@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { SettingForm } from "./SettingForm";
+import Modal from "../../shared/components/Modal";
 import { PageLoader } from "../../shared/components/loading";
+import infoIcon from "../../assets/icons/modal-icons/info.svg";
 import {
   getPharmacySettings,
   updatePharmacySettings,
@@ -13,6 +15,8 @@ export const GeneralSettings = ({ onNavigate }) => {
   const [saving, setSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [selectedLogoFile, setSelectedLogoFile] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const [formData, setFormData] = useState({
     pharmacy_name: "",
@@ -64,7 +68,13 @@ export const GeneralSettings = ({ onNavigate }) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = async () => {
+      const handleSave = () => {
+    // Just show the confirmation modal
+    setShowConfirmModal(true);
+  };
+
+  const executeSave = async () => {
+    setShowConfirmModal(false);
     try {
       setSaving(true);
       setErrorMessage("");
@@ -72,8 +82,18 @@ export const GeneralSettings = ({ onNavigate }) => {
 
       await updatePharmacySettings(formData);
 
+      if (selectedLogoFile) {
+        const res = await uploadPharmacyLogo(selectedLogoFile);
+        if (res.logo_url) {
+          setLogoPreview(res.logo_url);
+        }
+        setSelectedLogoFile(null);
+      }
+
       setSavedData(formData);
       setIsEditing(false);
+      
+      // Show the original success badge (toast)
       setSuccessMessage("Pharmacy settings saved successfully.");
       setTimeout(() => setSuccessMessage(""), 4000);
     } catch (err) {
@@ -87,6 +107,7 @@ export const GeneralSettings = ({ onNavigate }) => {
     setFormData(savedData);
     setIsEditing(false);
     setErrorMessage("");
+    setSelectedLogoFile(null);
   };
 
   const handleLogoPick = () => {
@@ -95,25 +116,14 @@ export const GeneralSettings = ({ onNavigate }) => {
     }
   };
 
-  const handleLogoChange = async (event) => {
+    const handleLogoChange = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     // Show local preview immediately
     const previewUrl = URL.createObjectURL(file);
     setLogoPreview(previewUrl);
-
-    try {
-      setErrorMessage("");
-      const res = await uploadPharmacyLogo(file);
-      if (res.logo_url) {
-        setLogoPreview(res.logo_url);
-        setSuccessMessage("Pharmacy logo uploaded successfully.");
-        setTimeout(() => setSuccessMessage(""), 4000);
-      }
-    } catch (err) {
-      setErrorMessage(err.message || "Failed to upload logo.");
-    }
+    setSelectedLogoFile(file);
   };
 
   const sections = [
@@ -189,7 +199,7 @@ export const GeneralSettings = ({ onNavigate }) => {
               disabled={!isEditing || saving}
             />
           </div>
-          <span className="mt-4 text-muted font-monospace">â€“</span>
+          <span className="mt-4 text-muted small fw-medium">to</span>
           <div className="d-flex flex-column">
             <span className="small text-muted mb-1">Closing Time</span>
             <input
@@ -235,7 +245,7 @@ export const GeneralSettings = ({ onNavigate }) => {
   ];
 
   if (loading) {
-    return (
+      return (
       <SettingForm
         title="General Settings"
         description="Pharmacy identity, contact details, operating hours, and branding."
@@ -256,8 +266,9 @@ export const GeneralSettings = ({ onNavigate }) => {
     );
   }
 
-  return (
-    <SettingForm
+    return (
+    <>
+      <SettingForm
       title="General Settings"
       description="Pharmacy identity, contact details, operating hours, and branding."
       isEditing={isEditing}
@@ -295,6 +306,45 @@ export const GeneralSettings = ({ onNavigate }) => {
           </div>
         ))}
       </div>
-    </SettingForm>
+          </SettingForm>
+
+      <Modal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        title="Confirm Changes"
+        size="sm"
+        showCloseButton={true}
+        className="settings-confirm-modal"
+        footer={
+          <div className="d-flex gap-2 w-100">
+            <button
+              type="button"
+              className="btn btn-light flex-grow-1 rounded-3 text-secondary fw-semibold"
+              style={{ border: "1px solid #cbd5e1" }}
+              onClick={() => setShowConfirmModal(false)}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn flex-grow-1 rounded-3 text-white fw-semibold"
+              style={{ backgroundColor: "var(--pd-primary, #2aabe2)", border: "none" }}
+              onClick={executeSave}
+            >
+              Confirm Save
+            </button>
+          </div>
+        }
+      >
+        <div className="text-center py-2">
+          <div className="mb-2">
+            <img src={infoIcon} alt="Info" style={{ width: "52px", height: "52px" }} />
+          </div>
+          <p className="mb-0 text-muted small px-1">
+            Are you sure you want to save these changes to the general settings?
+          </p>
+        </div>
+      </Modal>
+    </>
   );
 };
