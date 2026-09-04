@@ -36,7 +36,6 @@ class PosOrderService
             $itemIds = collect($items)->pluck('id')->toArray();
             $pharmacyProducts = PharmacyProduct::with('product')->whereIn('id', $itemIds)->get()->keyBy('id');
             $pharmacy = $user->pharmacy ?? (Pharmacy::find($user->pharmacy_id ?? 1));
-            $allowOtcDiscount = (bool) ($pharmacy?->allow_otc_discount ?? true);
 
             // Calculate subtotal and validate stock
             foreach ($items as $item) {

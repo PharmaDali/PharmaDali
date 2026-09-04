@@ -69,7 +69,6 @@ class PosPickupOrderService
 
         return DB::transaction(function () use ($order, $paymentMethod, $user, $amountReceived, $changeAmount, $discountData) {
             $pharmacy = $user->pharmacy ?? (Pharmacy::find($user->pharmacy_id));
-            $allowOtcDiscount = (bool) ($pharmacy?->allow_otc_discount ?? true);
             
             // Calculate subtotal from order items if subtotal is 0
             $subtotal = (float) $order->subtotal;
