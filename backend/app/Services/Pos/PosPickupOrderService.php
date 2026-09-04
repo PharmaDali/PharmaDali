@@ -76,6 +76,16 @@ class PosPickupOrderService
                 $subtotal = (float) $order->items->sum('line_total');
             }
 
+            $discountableSubtotal = 0;
+            foreach ($order->items as $item) {
+                $pharmacyProduct = $item->pharmacyProduct;
+                $isPrescribed = (bool) ($pharmacyProduct?->product?->is_prescribed ?? false);
+                $isProductDiscountable = (bool) ($pharmacyProduct?->is_discountable ?? true);
+                if ($isPrescribed || $isProductDiscountable) {
+                    $discountableSubtotal += (float) $item->line_total;
+                }
+            }
+
             $discountType = $discountData['discount_type'] ?? $order->discount_type ?? 'none';
             $discountPercentageInput = isset($discountData['discount_percentage']) 
                 ? (float) $discountData['discount_percentage'] 
@@ -89,7 +99,8 @@ class PosPickupOrderService
                 discountType: $discountType,
                 discountPercentage: $discountPercentageInput,
                 discountAmount: $discountAmountInput,
-                pharmacy: $pharmacy
+                pharmacy: $pharmacy,
+                discountableSubtotal: $discountableSubtotal
             );
 
             $totalAmount = max(0, round($subtotal - $discountAmount, 2));

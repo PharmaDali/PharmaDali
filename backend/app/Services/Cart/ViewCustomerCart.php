@@ -29,8 +29,8 @@ class ViewCustomerCart
 		$cartItems = CartItem::query()
 			->with([
 				'cart:id,customer_id,pharmacy_id,status',
-				'cart.pharmacy:id,pharmacy_name,location,opening_hour,closing_hour,is_active',
-				'pharmacyProduct:id,pharmacy_id,product_id,category_id,stock,selling_price,is_available',
+				'cart.pharmacy:id,pharmacy_name,location,opening_hour,closing_hour,is_active,allow_otc_discount',
+				'pharmacyProduct:id,pharmacy_id,product_id,category_id,stock,selling_price,is_available,is_discountable',
 				'pharmacyProduct.batches:id,pharmacy_product_id,stock,expiry_date',
 				'pharmacyProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
 				'pharmacyProduct.category:id,category_name,description',
@@ -46,6 +46,8 @@ class ViewCustomerCart
 			$quantity = (int) $item->quantity;
 			$unitPrice = (float) $item->price_snapshot;
 			$prescriptionRequired = (bool) ($item->pharmacyProduct?->product?->is_prescribed ?? false);
+			$isProductDiscountable = (bool) ($item->pharmacyProduct?->is_discountable ?? true);
+			$isDiscountable = $prescriptionRequired || $isProductDiscountable;
 
 			return [
 				'id' => $item->id,
@@ -73,8 +75,11 @@ class ViewCustomerCart
 					'strength' => $item->pharmacyProduct?->product?->strength,
 					'size' => $item->pharmacyProduct?->product?->size,
 					'is_prescribed' => $prescriptionRequired,
+					'image_path' => $item->pharmacyProduct?->product?->image_path,
+					'image_url' => $item->pharmacyProduct?->product?->image_url,
 				],
 				'prescription_required' => $prescriptionRequired,
+				'is_discountable' => $isDiscountable,
 				'category' => [
 					'id' => $item->pharmacyProduct?->category?->id,
 					'category_name' => $item->pharmacyProduct?->category?->category_name,

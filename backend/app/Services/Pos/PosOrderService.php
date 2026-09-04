@@ -30,10 +30,12 @@ class PosOrderService
 
         return DB::transaction(function () use ($data, $user) {
             $subtotal = 0;
+            $discountableSubtotal = 0;
             $items = $data['items'] ?? [];
 
             $itemIds = collect($items)->pluck('id')->toArray();
             $pharmacyProducts = PharmacyProduct::with('product')->whereIn('id', $itemIds)->get()->keyBy('id');
+            $pharmacy = $user->pharmacy ?? (Pharmacy::find($user->pharmacy_id ?? 1));
 
             // Calculate subtotal and validate stock
             foreach ($items as $item) {
@@ -43,10 +45,15 @@ class PosOrderService
                     throw new \Exception("Insufficient stock for product: " . ($pharmacyProduct->product->product_name ?? 'Item'));
                 }
 
-                $subtotal += $item['qty'] * $pharmacyProduct->selling_price;
-            }
+                $lineTotal = $item['qty'] * $pharmacyProduct->selling_price;
+                $subtotal += $lineTotal;
 
-            $pharmacy = $user->pharmacy ?? (Pharmacy::find($user->pharmacy_id ?? 1));
+                $isPrescribed = (bool) ($pharmacyProduct->product?->is_prescribed ?? false);
+                $isProductDiscountable = (bool) ($pharmacyProduct->is_discountable ?? true);
+                if ($isPrescribed || $isProductDiscountable) {
+                    $discountableSubtotal += $lineTotal;
+                }
+            }
 
             // Calculate discount details based on pharmacy policy and input
             $discountType = $data['discount_type'] ?? 'none';
@@ -58,7 +65,8 @@ class PosOrderService
                 discountType: $discountType,
                 discountPercentage: $discountPercentageInput,
                 discountAmount: $discountAmountInput,
-                pharmacy: $pharmacy
+                pharmacy: $pharmacy,
+                discountableSubtotal: $discountableSubtotal
             );
 
             $totalAmount = max(0, round($subtotal - $discountAmount, 2));

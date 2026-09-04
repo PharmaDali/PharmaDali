@@ -67,7 +67,7 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
         <Checkbox checked={item.selected} onPress={onToggle} />
       )}
       <ProductImage
-        source={item?.product?.image_url}
+        source={item?.img || item?.product?.image_url}
         product={item?.product}
         categoryName={item?.category?.category_name}
         quantity={item?.quantity}

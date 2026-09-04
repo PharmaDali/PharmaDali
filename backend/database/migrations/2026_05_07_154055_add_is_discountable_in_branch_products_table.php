@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('branch_products', function (Blueprint $table) {
-            $table->boolean('is_discountable')->default(false)->after('selling_price');
+            $table->boolean('is_discountable')->default(true)->after('selling_price');
         });
     }
 

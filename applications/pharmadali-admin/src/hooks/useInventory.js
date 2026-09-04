@@ -100,7 +100,7 @@ export function useInventory() {
     categoryName: "",
     quantity: "",
     unitCost: "",
-    discountable: "False",
+    discountable: "True",
     sellingPrice: "",
     barcode: "",
     description: "",
