@@ -71,10 +71,31 @@ export function PharmacistsTable({
                 Mobile: {item.mobile_number}
               </div>
               <div className="d-flex justify-content-end gap-3 border-top pt-2 mt-1">
-                <button type="button" className="btn btn-link p-0 text-primary" onClick={() => onOpenDetailsModal(item)}>
+                <button
+                  type="button"
+                  className="btn btn-link p-0 text-primary"
+                  onClick={() => onOpenPermissionsModal(item)}
+                  title="Manage Staff Permissions"
+                  aria-label="Manage Staff Permissions"
+                >
+                  <i className="fa-solid fa-key" style={{ fontSize: "16px", color: "var(--pd-primary-dark)" }} />
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-link p-0 text-primary"
+                  onClick={() => onOpenDetailsModal(item)}
+                  title="View Details"
+                  aria-label="View Details"
+                >
                   <i className="fa-regular fa-pen-to-square" style={{ fontSize: "16px", color: "var(--pd-primary-dark)" }} />
                 </button>
-                <button type="button" className="btn btn-link p-0 text-danger" onClick={() => onDelete(item.id)}>
+                <button
+                  type="button"
+                  className="btn btn-link p-0 text-danger"
+                  onClick={() => onDelete(item.id)}
+                  title="Delete"
+                  aria-label="Delete"
+                >
                   <i className="fa-regular fa-trash-can" style={{ fontSize: "16px", color: "var(--pd-danger)" }} />
                 </button>
               </div>
