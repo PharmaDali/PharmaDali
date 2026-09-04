@@ -2,7 +2,6 @@ import { FlatList, View, Text, RefreshControl, ActivityIndicator } from 'react-n
 import React, { useCallback, useEffect, useState } from 'react';
 import { colors } from '@shared/theme/colorPalette';
 import { Tabs, ReadyOrderCard } from '@components/pharmacist-orders-and-ready-components';
-import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
 import { getPharmacyOrders } from '@shared/services/orderToPharmacistService';
@@ -64,7 +63,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
         const description = strengthForm ? `${baseName} (${strengthForm})` : baseName;
 
         return {
-          img: BetadineImg,
+          img: product?.image_url || null,
           product,
           categoryName,
           description,
