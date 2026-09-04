@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '@shared/theme/colorPalette';
 import RxIcon from '@assets/icons/rx_icon.svg';
-import BandaidImg from '@assets/images/bandaid_img.png';
 import InfoIcon from '@assets/icons/red_info_icon.svg';
 import LocationIcon from '@assets/icons/red_location_icon.svg';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
@@ -68,7 +67,7 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
         <Checkbox checked={item.selected} onPress={onToggle} />
       )}
       <ProductImage
-        source={BandaidImg}
+        source={item?.product?.image_url}
         product={item?.product}
         categoryName={item?.category?.category_name}
         quantity={item?.quantity}
@@ -137,13 +136,16 @@ export default function CartScreen() {
   const allSelected = viewState.allSelected;
   const total = viewState.total;
   const hasPrescription = viewState.hasPrescription;
-  const canProceed = viewState.selectedCount > 0;
+  const isPharmacyOpen = viewState.isPharmacyOpen !== false;
+  const closedPharmacyName = viewState.closedPharmacyName || '';
+  const pharmacyHoursLabel = viewState.pharmacyHoursLabel || '';
+  const canProceed = viewState.selectedCount > 0 && isPharmacyOpen;
   const selectedItems = cartItems.filter((item) => item.selected);
 
   const [showClearModal, setShowClearModal] = useState(false);
 
   const handleProceed = () => {
-    if (!selectedItems.length) {
+    if (!selectedItems.length || !isPharmacyOpen) {
       return;
     }
 
@@ -194,6 +196,20 @@ export default function CartScreen() {
           ) : null}
         </View>
       </View>
+
+      {!loading && !errorMessage && !isPharmacyOpen && (
+        <View className="mx-4 mt-3 bg-[#FFEAEA] border border-[#FFCCCC] rounded-xl p-3 flex-row items-center">
+          <InfoIcon width={18} height={18} />
+          <View className="flex-1 ml-2.5">
+            <Text className="text-xs text-[#B42318]" style={styles.fontSemiBold}>
+              Pharmacy is Currently Closed
+            </Text>
+            <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
+              {closedPharmacyName || 'Selected pharmacy'} is closed right now{pharmacyHoursLabel ? ` (${pharmacyHoursLabel})` : ''}. Orders cannot be processed until store opening.
+            </Text>
+          </View>
+        </View>
+      )}
 
       <ScrollView className="flex-1 mt-4" showsVerticalScrollIndicator={false}>
         {loading && (

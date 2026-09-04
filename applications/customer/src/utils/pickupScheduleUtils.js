@@ -106,7 +106,7 @@ export function parsePharmacyOperatingMinutes(selectedPharmacy) {
   }
 
   return {
-    openingMinutes: parseAmPmToMinutes('9:00 AM'),
-    closingMinutes: parseAmPmToMinutes('6:00 PM'),
+    openingMinutes: null,
+    closingMinutes: null,
   };
 }
