@@ -1,5 +1,6 @@
 import React from "react";
 import Modal from "../../shared/components/Modal";
+import SelectDropdown from "../../shared/components/SelectDropdown";
 import { CATEGORY_FILTERS } from "../../constants/inventoryConstants";
 import FormattedDateInput from "./FormattedDateInput";
 
@@ -77,15 +78,14 @@ export function AddProductModal({
                 </div>
                 <div className="add-product-field">
                   <label className="add-product-label">Category</label>
-                  <select
-                    className={`add-product-select ${inputErrors.categoryName ? 'is-invalid' : ''}`}
+                  <SelectDropdown
+                    id="add-product-category-medicine"
                     value={addForm.categoryName}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, categoryName: e.target.value }))}
-                  >
-                    {CATEGORY_FILTERS.filter(cat => cat !== "All").map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setAddForm(prev => ({ ...prev, categoryName: val }))}
+                    options={CATEGORY_FILTERS.filter(cat => cat !== "All")}
+                    placeholder="Select Category"
+                    selectClassName={`add-product-select ${inputErrors.categoryName ? 'is-invalid' : ''}`}
+                  />
                   {inputErrors.categoryName && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.categoryName}</span>}
                 </div>
                 <div className="add-product-field">
@@ -135,16 +135,14 @@ export function AddProductModal({
                 </div>
                 <div className="add-product-field">
                   <label className="add-product-label">Category</label>
-                  <select
-                    className={`add-product-select ${inputErrors.categoryName ? 'is-invalid' : ''}`}
+                  <SelectDropdown
+                    id="add-product-category-nonmedicine"
                     value={addForm.categoryName}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, categoryName: e.target.value }))}
-                    required
-                  >
-                    {CATEGORY_FILTERS.filter(cat => cat !== "All" && cat !== "Generic" && cat !== "Branded" && cat !== "Unclassified").map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setAddForm(prev => ({ ...prev, categoryName: val }))}
+                    options={CATEGORY_FILTERS.filter(cat => cat !== "All" && cat !== "Generic" && cat !== "Branded" && cat !== "Unclassified")}
+                    placeholder="Select Category"
+                    selectClassName={`add-product-select ${inputErrors.categoryName ? 'is-invalid' : ''}`}
+                  />
                   {inputErrors.categoryName && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.categoryName}</span>}
                 </div>
                 <div className="add-product-field">

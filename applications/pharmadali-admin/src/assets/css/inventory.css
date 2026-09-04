@@ -855,6 +855,10 @@ select.inventory-modal-input {
   font-weight: 600;
 }
 
+.inventory-modal-input:disabled i {
+  display: none !important;
+}
+
 .inventory-modal-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1253,16 +1257,30 @@ select.inventory-modal-input {
 
 .add-product-input,
 .add-product-select,
-.add-product-textarea {
-  background-color: #e9eef4;
-  border: none;
-  border-radius: 8px;
-  padding: 0.65rem 0.9rem;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
+.add-product-textarea,
+.add-product-modal .select-dropdown-btn {
+  background-color: #e9eef4 !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 0.65rem 0.9rem !important;
+  font-size: 0.9rem !important;
+  font-weight: 500 !important;
+  color: #333 !important;
   width: 100%;
   box-sizing: border-box;
+}
+
+.add-product-modal .select-dropdown-btn {
+  min-height: 41.5px;
+}
+
+.add-product-modal .select-dropdown-btn span {
+  color: #333;
+  font-weight: 500;
+}
+
+.add-product-modal .select-dropdown-btn i {
+  color: #5aa7e5 !important;
 }
 
 .add-product-input::placeholder,
@@ -1274,10 +1292,13 @@ select.inventory-modal-input {
 
 .add-product-input:focus,
 .add-product-select:focus,
-.add-product-textarea:focus {
-  outline: 2px solid #96d2ee;
-  background-color: #fff;
-  box-shadow: 0 0 5px rgba(72, 170, 217, 0.2);
+.add-product-textarea:focus,
+.add-product-modal .select-dropdown-btn:focus,
+.add-product-modal .select-dropdown-btn.select-dropdown-btn-open {
+  outline: 2px solid #96d2ee !important;
+  background-color: #fff !important;
+  box-shadow: 0 0 5px rgba(72, 170, 217, 0.2) !important;
+  border: none !important;
 }
 
 .add-product-textarea {

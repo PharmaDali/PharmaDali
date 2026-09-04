@@ -1,5 +1,6 @@
 import React from "react";
 import Modal from "../../shared/components/Modal";
+import SelectDropdown from "../../shared/components/SelectDropdown";
 import { CATEGORY_FILTERS } from "../../constants/inventoryConstants";
 import FormattedDateInput from "./FormattedDateInput";
 
@@ -207,18 +208,15 @@ export function ProductDetailsModal({
                   </div>
                   <div>
                     <p className="inventory-modal-label">Category</p>
-                    <select
-                      className={`form-select inventory-modal-input ${inputErrors.category ? 'is-invalid' : ''}`}
+                    <SelectDropdown
+                      id="edit-product-category-medicine"
                       value={modalDraft.category || ""}
-                      onChange={(event) => handleDraftChange("category", event.target.value)}
+                      onChange={(val) => handleDraftChange("category", val)}
+                      options={CATEGORY_FILTERS.filter((category) => category !== "All")}
+                      placeholder="Select Category"
                       disabled={!isModalEditing}
-                    >
-                      {CATEGORY_FILTERS.filter((category) => category !== "All").map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
+                      selectClassName={`form-select inventory-modal-input ${inputErrors.category ? 'is-invalid' : ''}`}
+                    />
                     {inputErrors.category && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.category}</span>}
                   </div>
                   <div>
@@ -267,18 +265,15 @@ export function ProductDetailsModal({
                   </div>
                   <div>
                     <p className="inventory-modal-label">Category</p>
-                    <select
-                      className={`form-select inventory-modal-input ${inputErrors.category ? 'is-invalid' : ''}`}
+                    <SelectDropdown
+                      id="edit-product-category-nonmedicine"
                       value={modalDraft.category || ""}
-                      onChange={(event) => handleDraftChange("category", event.target.value)}
+                      onChange={(val) => handleDraftChange("category", val)}
+                      options={CATEGORY_FILTERS.filter((category) => category !== "All" && category !== "Generic" && category !== "Branded" && category !== "Unclassified")}
+                      placeholder="Select Category"
                       disabled={!isModalEditing}
-                    >
-                      {CATEGORY_FILTERS.filter((category) => category !== "All" && category !== "Generic" && category !== "Branded" && category !== "Unclassified").map((category) => (
-                        <option key={category} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
+                      selectClassName={`form-select inventory-modal-input ${inputErrors.category ? 'is-invalid' : ''}`}
+                    />
                     {inputErrors.category && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.category}</span>}
                   </div>
                   <div>
@@ -295,17 +290,14 @@ export function ProductDetailsModal({
               )}
               <div>
                 <p className="inventory-modal-label">Needs Prescription</p>
-                <select
-                  className="form-select inventory-modal-input"
-                  value={modalDraft.needsPrescription ? "true" : "false"}
-                  onChange={(event) =>
-                    handleDraftChange("needsPrescription", event.target.value === "true")
-                  }
+                <SelectDropdown
+                  id="edit-product-needs-prescription"
+                  value={modalDraft.needsPrescription ? "True" : "False"}
+                  onChange={(val) => handleDraftChange("needsPrescription", val === "True")}
+                  options={["False", "True"]}
                   disabled={!isModalEditing}
-                >
-                  <option value="false">False</option>
-                  <option value="true">True</option>
-                </select>
+                  selectClassName="form-select inventory-modal-input"
+                />
               </div>
             </div>
           </div>
@@ -324,15 +316,38 @@ export function ProductDetailsModal({
                 />
               </div>
               <div>
-                <p className="inventory-modal-label">Selling Cost</p>
+                <p className="inventory-modal-label">Unit Cost</p>
                 <input
                   type="number"
                   className="form-control inventory-modal-input"
-                  value={modalDraft.sellingPrice}
+                  value={modalDraft.unitCost ?? ""}
+                  onChange={(event) => handleDraftChange("unitCost", event.target.value)}
+                  step="0.01"
+                  min="0"
+                  disabled={!isModalEditing}
+                />
+              </div>
+              <div>
+                <p className="inventory-modal-label">Selling Price</p>
+                <input
+                  type="number"
+                  className="form-control inventory-modal-input"
+                  value={modalDraft.sellingPrice ?? ""}
                   onChange={(event) => handleDraftChange("sellingPrice", event.target.value)}
                   step="0.01"
                   min="0"
                   disabled={!isModalEditing}
+                />
+              </div>
+              <div>
+                <p className="inventory-modal-label">Discountable</p>
+                <SelectDropdown
+                  id="edit-product-discountable"
+                  value={modalDraft.isDiscountable ? "True" : "False"}
+                  onChange={(val) => handleDraftChange("isDiscountable", val === "True")}
+                  options={["False", "True"]}
+                  disabled={!isModalEditing}
+                  selectClassName="form-select inventory-modal-input"
                 />
               </div>
             </div>
