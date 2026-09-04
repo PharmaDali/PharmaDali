@@ -460,12 +460,9 @@
 }
 
 @media (max-width: 575.98px) {
-  .tech-help-page {
-    padding: 16px !important;
-  }
-  
-  .tech-help-title {
-    font-size: 20px;
+  .tech-help-title,
+  .tech-help-breadcrumb-parent {
+    font-size: 20px !important;
   }
   
   .tech-help-subtitle {
