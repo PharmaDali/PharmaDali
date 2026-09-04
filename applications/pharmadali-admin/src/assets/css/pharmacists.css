@@ -266,6 +266,71 @@
   color: #dc2626;
 }
 
+/* Mobile Pharmacist Card Action Buttons */
+.pharmacists-mobile-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+  margin-top: 8px;
+}
+
+.pharmacists-mobile-action-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pharmacists-mobile-action-btn:active {
+  transform: scale(0.94);
+}
+
+.pharmacists-mobile-action-btn.action-permissions {
+  background: #f0f9ff;
+  color: #0284c7;
+  border-color: #e0f2fe;
+}
+
+.pharmacists-mobile-action-btn.action-permissions:hover {
+  background: #e0f2fe;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+.pharmacists-mobile-action-btn.action-edit {
+  background: #f8fafc;
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+.pharmacists-mobile-action-btn.action-edit:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+.pharmacists-mobile-action-btn.action-delete {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fee2e2;
+}
+
+.pharmacists-mobile-action-btn.action-delete:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
 /* Modal Styles */
 .pharmacists-modal-overlay {
   position: fixed;
