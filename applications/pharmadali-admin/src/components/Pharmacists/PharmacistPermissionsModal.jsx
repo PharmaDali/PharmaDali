@@ -95,7 +95,6 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
   };
 
   const executeSave = async () => {
-    setShowConfirmModal(false);
     try {
       setIsSaving(true);
       setError(null);
@@ -103,10 +102,12 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
       if (onSuccess) {
         onSuccess(res.data?.data || res.data || res);
       }
+      setShowConfirmModal(false);
       onClose();
     } catch (err) {
       console.error("Failed to update pharmacist permissions:", err);
       setError(err.response?.data?.message || "Failed to update permissions. Please try again.");
+      setShowConfirmModal(false);
     } finally {
       setIsSaving(false);
     }
