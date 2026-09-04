@@ -5,6 +5,7 @@ import PharmacistFormModal from "../components/Pharmacists/PharmacistFormModal";
 import PharmacistDetailsModal from "../components/Pharmacists/PharmacistDetailsModal";
 import PharmacistPermissionsModal from "../components/Pharmacists/PharmacistPermissionsModal";
 import PharmacistDeleteModal from "../components/Pharmacists/PharmacistDeleteModal";
+import PharmacistSuccessModal from "../components/Pharmacists/PharmacistSuccessModal";
 import "../assets/css/pharmacists.css";
 
 export function Pharmacists() {
@@ -45,30 +46,12 @@ export function Pharmacists() {
   const handlePermissionsSuccess = (updatedUser) => {
     handlePermissionsUpdated(updatedUser);
     setSuccessMessage("Permissions have been updated successfully.");
-    setTimeout(() => setSuccessMessage(""), 3000);
   };
 
   return (
     <section className="dashboard-page pharmacists-page">
       <h4 className="fw-bold mb-1 admin-page-title">Pharmacist</h4>
       <p className="admin-page-subtitle mb-4">List of pharmacist accounts in the pharmacy.</p>
-
-      {successMessage && (
-        <div className="pharmacists-success-banner mb-3">
-          <div className="d-flex align-items-center gap-2">
-            <i className="fa-solid fa-circle-check"></i>
-            <span>{successMessage}</span>
-          </div>
-          <button 
-            type="button" 
-            className="pharmacists-success-close"
-            onClick={() => setSuccessMessage("")}
-            aria-label="Dismiss"
-          >
-            <i className="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-      )}
 
       <div className="d-none d-md-flex justify-content-end mb-3">
         <button type="button" className="admin-btn-primary" onClick={() => handleOpenModal()}>
@@ -120,6 +103,12 @@ export function Pharmacists() {
         onClose={() => setShowDeleteModal(false)}
         onConfirm={confirmDelete}
         isDeleting={isDeleting}
+      />
+
+      <PharmacistSuccessModal
+        isOpen={!!successMessage}
+        onClose={() => setSuccessMessage("")}
+        message={successMessage}
       />
     </section>
   );
