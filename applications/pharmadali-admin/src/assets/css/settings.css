@@ -165,6 +165,7 @@
 .settings-form-input--singleline {
   height: 44px;
   resize: none;
+  overflow: hidden;
 }
 
 .settings-form-input:disabled {
