@@ -224,21 +224,15 @@
     position: relative;
     height: 100vh;
     overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5rem;
     background: #96d2ee;
     animation: mobileLoginBgShift 5.5s ease forwards;
   }
 
   .login-brand-block {
-    position: relative;
-    inset: auto;
-    transform-origin: center;
-    transform: scale(0.25);
-    margin-bottom: 2rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.25);
     animation: mobileLogoIntroSequence 5.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     z-index: 2;
     display: flex;
@@ -259,11 +253,11 @@
   }
 
   .login-form-panel {
-    position: relative;
-    inset: auto;
-    top: auto;
+    position: absolute;
+    top: max(34vh, 220px);
+    left: 50%;
     right: auto;
-    transform: translateY(28px);
+    transform: translateX(-50%) translateY(32px);
     width: min(85vw, 390px);
     min-width: 0;
     padding: 1.75rem 1.35rem 1.35rem;
@@ -340,13 +334,19 @@
 
 @keyframes mobileLogoIntroSequence {
   0% {
-    transform: scale(0.25);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.25);
   }
-  50% {
-    transform: scale(1.05);
+  48% {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(1.05);
   }
   100% {
-    transform: scale(0.92);
+    top: 22%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
   }
 }
 
@@ -371,11 +371,11 @@
 @keyframes mobileFormReveal {
   from {
     opacity: 0;
-    transform: translateY(28px);
+    transform: translateX(-50%) translateY(32px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
   }
 }
 
