@@ -14,12 +14,33 @@ class GetInventoryProductsService
     private int $lowStockThreshold;
     private int $expiryDaysThreshold;
     private Carbon $today;
+    private array $restockMap = [];
+    private array $dynamicLowStockIds = [];
 
     public function handle(array $filters = [], ?Pharmacy $pharmacy = null): Collection
     {
         $this->lowStockThreshold = $pharmacy?->low_stock_threshold ?? 50;
         $this->expiryDaysThreshold = $pharmacy?->expiry_days_threshold ?? 30;
         $this->today = Carbon::today();
+        $this->restockMap = [];
+        $this->dynamicLowStockIds = [];
+
+        if ($pharmacy) {
+            try {
+                /** @var RestockPredictorService $predictorService */
+                $predictorService = app(RestockPredictorService::class);
+                $predictions = $predictorService->getPriorityRestocks($pharmacy->id, 1000);
+                foreach ($predictions as $p) {
+                    $id = (int) ($p['id'] ?? 0);
+                    if ($id > 0) {
+                        $this->restockMap[$id] = $p;
+                        $this->dynamicLowStockIds[] = $id;
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Fallback gracefully if prediction service is unavailable
+            }
+        }
 
         $query = PharmacyProduct::with(['product', 'category', 'batches']);
         $this->applyFilters($query, $filters);
@@ -90,14 +111,26 @@ class GetInventoryProductsService
                 ->where('expiry_date', '<=', $expiringLimit)
             );
         } elseif ($status === 'Low Stocks') {
-            $query->where('stock', '<=', $this->lowStockThreshold);
+            if (!empty($this->dynamicLowStockIds)) {
+                $query->where(function ($q) {
+                    $q->whereIn('id', $this->dynamicLowStockIds)
+                      ->orWhere('stock', '<=', $this->lowStockThreshold);
+                });
+            } else {
+                $query->where('stock', '<=', $this->lowStockThreshold);
+            }
         } elseif ($status === 'Healthy') {
-            $query->where('stock', '>', $this->lowStockThreshold)
-                ->whereDoesntHave('batches', fn ($q) => $q
-                    ->whereNotNull('expiry_date')
-                    ->where('stock', '>', 0)
-                    ->where('expiry_date', '<=', $expiringLimit)
-                );
+            $query->whereDoesntHave('batches', fn ($q) => $q
+                ->whereNotNull('expiry_date')
+                ->where('stock', '>', 0)
+                ->where('expiry_date', '<=', $expiringLimit)
+            );
+            if (!empty($this->dynamicLowStockIds)) {
+                $query->whereNotIn('id', $this->dynamicLowStockIds)
+                      ->where('stock', '>', $this->lowStockThreshold);
+            } else {
+                $query->where('stock', '>', $this->lowStockThreshold);
+            }
         }
     }
 
@@ -124,11 +157,14 @@ class GetInventoryProductsService
         $earliestManufacturedDate = $earliestBatch ? Carbon::parse($earliestBatch->manufactured_date) : null;
         $expiringInDays = $earliestExpiryDate ? (int) $this->today->diffInDays($earliestExpiryDate, false) : 365;
 
+        $prediction = $this->restockMap[$bp->id] ?? null;
+        $isLowStock = in_array($bp->id, $this->dynamicLowStockIds, true) || ($realStock <= $this->lowStockThreshold);
+
         // Compute FEFO status
         $status = match (true) {
             $earliestExpiryDate !== null && $expiringInDays <= 0 => 'Expired',
             $earliestExpiryDate !== null && $expiringInDays <= $this->expiryDaysThreshold => 'Expiring soon',
-            $realStock <= $this->lowStockThreshold => 'Low Stocks',
+            $isLowStock => 'Low Stocks',
             default => 'Healthy',
         };
 
@@ -144,16 +180,19 @@ class GetInventoryProductsService
             'size'             => $product->size ?? '',
             'category'         => $category->category_name ?? 'Uncategorized',
             'quantity'         => $realStock,
-            'reorderPoint'     => 50,
+            'reorderPoint'     => $prediction['reorderPoint'] ?? $this->lowStockThreshold,
+            'daysOfStock'      => $prediction['daysOfStock'] ?? null,
+            'averageDailySales'=> $prediction['averageDailySales'] ?? 0,
             'expiringInDays'   => $expiringInDays,
             'expiryDate'       => $earliestExpiryDate?->toDateString(),
             'manufacturedDate' => $earliestManufacturedDate?->toDateString(),
-            'velocity'         => match (true) {
+            'velocity'         => $prediction['velocity'] ?? (match (true) {
                 $realStock > 200 => 'Fast',
                 $realStock < 20  => 'Slow',
                 default          => 'Medium',
-            },
+            }),
             'sellingPrice'     => (float) $bp->selling_price,
+            'unitCost'         => (float) ($bp->unit_cost ?? 0.00),
             'status'           => $status,
             'is_available'     => $bp->is_available,
             'is_discountable'  => $bp->is_discountable,

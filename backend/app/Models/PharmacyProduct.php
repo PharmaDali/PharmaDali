@@ -17,6 +17,7 @@ class PharmacyProduct extends Model
         'product_id',
         'category_id',
         'stock',
+        'unit_cost',
         'selling_price',
         'is_discountable',
         'is_available',

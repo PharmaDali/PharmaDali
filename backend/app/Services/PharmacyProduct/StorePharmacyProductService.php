@@ -40,9 +40,7 @@ class StorePharmacyProductService
                 if (!$categoryId) {
                     $categoryName = $validated['category_name'] ?? null;
                     if (!$categoryName && $validated['product_type'] === 'medicine') {
-                        $categoryName = (!empty($validated['brand_name']) && strtolower($validated['brand_name']) !== strtolower($validated['generic_name'] ?? ''))
-                            ? 'Branded'
-                            : 'Generic';
+                        $categoryName = 'Generic';
                     }
 
                     if ($categoryName) {
@@ -68,6 +66,7 @@ class StorePharmacyProductService
                     'product_id'     => $product->id,
                     'category_id'    => $categoryId,
                     'stock'          => $stock,
+                    'unit_cost'      => $validated['unit_cost'] ?? 0.00,
                     'selling_price'  => $validated['selling_price'] ?? 0.00,
                     'is_discountable'=> filter_var($validated['is_discountable'] ?? false, FILTER_VALIDATE_BOOLEAN),
                     'is_available'   => true,

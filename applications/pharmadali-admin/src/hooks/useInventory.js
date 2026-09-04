@@ -271,7 +271,9 @@ export function useInventory() {
       dosage: item.strength,
       size: item.size,
       id: item.id,
+      unitCost: item.unitCost ?? item.unit_cost ?? "",
       sellingPrice: item.sellingPrice,
+      isDiscountable: Boolean(item.is_discountable ?? item.isDiscountable ?? true),
       reorderPoint: item.reorderPoint,
       quantity: item.quantity,
       expiryDate: item.expiryDate || "",
@@ -613,7 +615,8 @@ export function useInventory() {
         strength: isMedicine ? (modalDraft.dosage?.trim() || selectedItem.strength) : null,
         size: modalDraft.size?.trim() || selectedItem.size,
         selling_price: toNumber(modalDraft.sellingPrice, selectedItem.sellingPrice),
-        is_discountable: selectedItem.is_discountable,
+        unit_cost: toNumber(modalDraft.unitCost, selectedItem.unitCost || 0),
+        is_discountable: modalDraft.isDiscountable !== undefined ? modalDraft.isDiscountable : Boolean(selectedItem.is_discountable),
         category_name: modalDraft.category.trim() || selectedItem.category,
       };
 
@@ -644,6 +647,9 @@ export function useInventory() {
         size: payload.size,
         strength: payload.strength,
         sellingPrice: payload.selling_price,
+        unitCost: payload.unit_cost,
+        is_discountable: payload.is_discountable,
+        isDiscountable: payload.is_discountable,
         image_url: updatedImageUrl,
       };
 
@@ -712,6 +718,7 @@ export function useInventory() {
       size: addForm.size || null,
       description: addForm.description || null,
       stock: addForm.quantity ? parseInt(addForm.quantity, 10) : 0,
+      unit_cost: addForm.unitCost ? parseFloat(addForm.unitCost) : 0.0,
       selling_price: addForm.sellingPrice ? parseFloat(addForm.sellingPrice) : 0.0,
       is_discountable: addForm.discountable === "True",
       expiry_date: addForm.expiryDate || null,
@@ -727,10 +734,9 @@ export function useInventory() {
       errors.productName = "Product Name is required.";
     }
     if (
-      !isMedicine &&
-      (!addForm.categoryName ||
-        addForm.categoryName === "All" ||
-        addForm.categoryName === "category")
+      !addForm.categoryName ||
+      addForm.categoryName === "All" ||
+      addForm.categoryName === "category"
     ) {
       errors.categoryName = "Please select a valid Category.";
     }

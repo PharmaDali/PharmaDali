@@ -41,6 +41,9 @@ class UpdatePharmacyProductService
                 if (isset($validated['selling_price'])) {
                     $bpFields['selling_price'] = $validated['selling_price'];
                 }
+                if (isset($validated['unit_cost'])) {
+                    $bpFields['unit_cost'] = $validated['unit_cost'];
+                }
                 if (isset($validated['is_discountable'])) {
                     $bpFields['is_discountable'] = filter_var($validated['is_discountable'], FILTER_VALIDATE_BOOLEAN);
                 }
