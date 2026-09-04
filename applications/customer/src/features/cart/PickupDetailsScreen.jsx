@@ -70,6 +70,11 @@ const PickupDetailsScreen = () => {
   const closingMinutes = operatingMinutes.closingMinutes
   const hasValidOperatingWindow = Number.isFinite(openingMinutes) && Number.isFinite(closingMinutes) && openingMinutes < closingMinutes
 
+  const hasDiscountableItems = useMemo(() => {
+    if (!items || items.length === 0) return false
+    return items.some((item) => item.isDiscountable !== false)
+  }, [items])
+
   // Check whether the pharmacy is open RIGHT NOW (not just whether a schedule is set).
   const isPharmacyClosed = useMemo(() => {
     if (!hasValidOperatingWindow) return false // let other validations handle this
@@ -476,91 +481,137 @@ const PickupDetailsScreen = () => {
         </View>
 
         {/* Senior/PWD Discount Card */}
-        <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 overflow-hidden">
-          <View className="p-4">
-            <Text className="text-sm" style={styles.fontSemiBold}>
-              Senior/PWD Discount (Optional)
-            </Text>
-            <Text className="text-xs text-gray-600 mt-1 mb-4" style={styles.fontMedium}>
-              If you are availing a Senior or PWD discount, please upload a valid ID.
-            </Text>
+        {hasDiscountableItems && (
+          <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 overflow-hidden">
+            <View className="p-4">
+              <Text className="text-sm" style={styles.fontSemiBold}>
+                Senior/PWD Discount (Optional)
+              </Text>
+              <Text className="text-xs text-gray-600 mt-1 mb-4" style={styles.fontMedium}>
+                If you are availing a Senior or PWD discount, please upload a valid ID.
+              </Text>
 
-            <View className="flex-row items-center mb-4 ml-2">
-              <DiscountIcon width={24} height={24} color="#48AAD9" />
-              <View className="ml-3">
-                 <Text className="text-[11px] text-gray-600" style={styles.fontMedium}>Accepted: Senior Citizen ID, PWD ID</Text>
-                 <Text className="text-[11px] text-gray-500" style={styles.fontMedium}>File Format: JPG PNG (Max. 5MB)</Text>
+              <View className="flex-row items-center mb-4 ml-2">
+                <DiscountIcon width={24} height={24} color="#48AAD9" />
+                <View className="ml-3">
+                   <Text className="text-[11px] text-gray-600" style={styles.fontMedium}>Accepted: Senior Citizen ID, PWD ID</Text>
+                   <Text className="text-[11px] text-gray-500" style={styles.fontMedium}>File Format: JPG PNG (Max. 5MB)</Text>
+                </View>
               </View>
-            </View>
 
-            {(!isDiscountConfirmed) && (
-              <View className="flex-row gap-2.5 mb-4">
-                <TouchableOpacity
-                  className="flex-1 border border-[#48AAD9] rounded-xl py-3 items-center justify-center bg-white"
-                  onPress={handlePickDiscountIdFromGallery}
-                >
-                  <Text className="text-xs" style={styles.primarySemiBold}>Upload from Gallery</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  className="flex-1 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
-                  onPress={handleTakeDiscountIdPhoto}
-                >
-                  <Text className="text-xs text-white" style={styles.confirmPickupText}>Take a Photo</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {discountIdImage && !isDiscountConfirmed && (
-              <>
-                <View className="border border-dashed border-[#48AAD9] rounded-xl p-4 bg-[#F8FAFC]">
-                  <Text className="text-xs text-gray-500 mb-1.5" style={styles.fontMedium}>ID Type</Text>
+              {(!isDiscountConfirmed) && (
+                <View className="flex-row gap-2.5 mb-4">
                   <TouchableOpacity
-                    className="border rounded-xl px-4 py-3 flex-row items-center justify-between bg-[#FAFAFA] mb-4"
-                    style={{ borderColor: discountType ? '#48AAD9' : '#D1D5DB' }}
-                    onPress={() => setShowDiscountDropdown(!showDiscountDropdown)}
-                    activeOpacity={0.7}
+                    className="flex-1 border border-[#48AAD9] rounded-xl py-3 items-center justify-center bg-white"
+                    onPress={handlePickDiscountIdFromGallery}
                   >
-                    <Text className="text-xs" style={[styles.fontMedium, { color: discountType ? colors.textColor : '#9CA3AF' }]}>
-                      {discountType
-                        ? ({ senior_citizen: 'Senior Citizen', pwd: 'PWD (Person with Disability)' }[discountType] ?? discountType)
-                        : 'Select ID Type'}
-                    </Text>
-                    {showDiscountDropdown
-                      ? <ArrowUpIcon width={12} height={12} color="#48AAD9" />
-                      : <ArrowDownIcon width={12} height={12} color="#9CA3AF" />}
+                    <Text className="text-xs" style={styles.primarySemiBold}>Upload from Gallery</Text>
                   </TouchableOpacity>
+                  <TouchableOpacity
+                    className="flex-1 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
+                    onPress={handleTakeDiscountIdPhoto}
+                  >
+                    <Text className="text-xs text-white" style={styles.confirmPickupText}>Take a Photo</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
-                  {showDiscountDropdown && (
-                    <View className="border border-[#48AAD9] rounded-xl -mt-3 mb-4 overflow-hidden bg-white" style={{ elevation: 3 }}>
-                      {[
-                        { key: 'senior_citizen', label: 'Senior Citizen' },
-                        { key: 'pwd', label: 'PWD (Person with Disability)' },
-                      ].map((option, idx, arr) => (
-                        <TouchableOpacity
-                          key={option.key}
-                          className={`px-4 py-3 ${idx < arr.length - 1 ? 'border-b border-gray-100' : ''}`}
-                          style={{ backgroundColor: discountType === option.key ? '#EEF7FD' : '#FFFFFF' }}
-                          onPress={() => {
-                            setDiscountType(option.key)
-                            setShowDiscountDropdown(false)
-                          }}
-                        >
-                          <Text className="text-xs" style={[styles.fontMedium, { color: discountType === option.key ? '#48AAD9' : colors.textColor }]}>
-                            {option.label}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
+              {discountIdImage && !isDiscountConfirmed && (
+                <>
+                  <View className="border border-dashed border-[#48AAD9] rounded-xl p-4 bg-[#F8FAFC]">
+                    <Text className="text-xs text-gray-500 mb-1.5" style={styles.fontMedium}>ID Type</Text>
+                    <TouchableOpacity
+                      className="border rounded-xl px-4 py-3 flex-row items-center justify-between bg-[#FAFAFA] mb-4"
+                      style={{ borderColor: discountType ? '#48AAD9' : '#D1D5DB' }}
+                      onPress={() => setShowDiscountDropdown(!showDiscountDropdown)}
+                      activeOpacity={0.7}
+                    >
+                      <Text className="text-xs" style={[styles.fontMedium, { color: discountType ? colors.textColor : '#9CA3AF' }]}>
+                        {discountType
+                          ? ({ senior_citizen: 'Senior Citizen', pwd: 'PWD (Person with Disability)' }[discountType] ?? discountType)
+                          : 'Select ID Type'}
+                      </Text>
+                      {showDiscountDropdown
+                        ? <ArrowUpIcon width={12} height={12} color="#48AAD9" />
+                        : <ArrowDownIcon width={12} height={12} color="#9CA3AF" />}
+                    </TouchableOpacity>
+
+                    {showDiscountDropdown && (
+                      <View className="border border-[#48AAD9] rounded-xl -mt-3 mb-4 overflow-hidden bg-white" style={{ elevation: 3 }}>
+                        {[
+                          { key: 'senior_citizen', label: 'Senior Citizen' },
+                          { key: 'pwd', label: 'PWD (Person with Disability)' },
+                        ].map((option, idx, arr) => (
+                          <TouchableOpacity
+                            key={option.key}
+                            className={`px-4 py-3 ${idx < arr.length - 1 ? 'border-b border-gray-100' : ''}`}
+                            style={{ backgroundColor: discountType === option.key ? '#EEF7FD' : '#FFFFFF' }}
+                            onPress={() => {
+                              setDiscountType(option.key)
+                              setShowDiscountDropdown(false)
+                            }}
+                          >
+                            <Text className="text-xs" style={[styles.fontMedium, { color: discountType === option.key ? '#48AAD9' : colors.textColor }]}>
+                              {option.label}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+
+                    <Text className="text-xs text-gray-500 mb-1.5" style={styles.fontMedium}>ID Number</Text>
+                    <TextInput
+                      value={discountIdNumber}
+                      onChangeText={setDiscountIdNumber}
+                      className="border rounded-xl px-4 py-3 bg-[#FAFAFA] text-xs mb-4"
+                      style={{ borderColor: discountIdNumber ? '#48AAD9' : '#D1D5DB', fontFamily: 'Poppins-Medium', color: colors.textColor }}
+                    />
+
+                    <View className="relative">
+                      <TouchableOpacity
+                        onPress={() => setExpandedImageUri(discountIdImage.uri)}
+                        activeOpacity={0.9}
+                      >
+                        <Image
+                          source={{ uri: discountIdImage.uri }}
+                          className="w-full h-32 rounded-xl border border-gray-300"
+                          resizeMode="cover"
+                        />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={handleRemoveDiscountId}
+                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#48AAD9] items-center justify-center border-2 border-white"
+                        activeOpacity={0.8}
+                      >
+                        <Text className="text-white text-[11px] font-bold leading-none">✕</Text>
+                      </TouchableOpacity>
                     </View>
-                  )}
+                  </View>
 
-                  <Text className="text-xs text-gray-500 mb-1.5" style={styles.fontMedium}>ID Number</Text>
-                  <TextInput
-                    value={discountIdNumber}
-                    onChangeText={setDiscountIdNumber}
-                    className="border rounded-xl px-4 py-3 bg-[#FAFAFA] text-xs mb-4"
-                    style={{ borderColor: discountIdNumber ? '#48AAD9' : '#D1D5DB', fontFamily: 'Poppins-Medium', color: colors.textColor }}
-                  />
+                  <TouchableOpacity
+                    className="mt-4 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
+                    onPress={() => {
+                      if (!discountType || !discountIdNumber) {
+                         setSubmitError('Please complete ID Type and ID Number before proceeding.');
+                      } else {
+                         setSubmitError('');
+                         setIsDiscountConfirmed(true);
+                         setCheckoutDraft({
+                            ...getCheckoutDraft(),
+                            discountType,
+                            discountIdNumber,
+                            discountIdImage,
+                         });
+                      }
+                    }}
+                  >
+                    <Text className="text-xs text-white" style={styles.confirmPickupText}>Upload</Text>
+                  </TouchableOpacity>
+                </>
+              )}
 
+              {discountIdImage && isDiscountConfirmed && (
+                <View className="mt-2 rounded-2xl bg-[#EEF7FD] p-4 flex-row items-center justify-between">
                   <View className="relative">
                     <TouchableOpacity
                       onPress={() => setExpandedImageUri(discountIdImage.uri)}
@@ -568,84 +619,40 @@ const PickupDetailsScreen = () => {
                     >
                       <Image
                         source={{ uri: discountIdImage.uri }}
-                        className="w-full h-32 rounded-xl border border-gray-300"
+                        className="w-36 h-24 rounded-xl"
                         resizeMode="cover"
                       />
                     </TouchableOpacity>
                     <TouchableOpacity
-                      onPress={handleRemoveDiscountId}
-                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#48AAD9] items-center justify-center border-2 border-white"
+                      onPress={() => {
+                         setIsDiscountConfirmed(false);
+                         handleRemoveDiscountId();
+                      }}
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#48AAD9] items-center justify-center border-2 border-white"
                       activeOpacity={0.8}
                     >
                       <Text className="text-white text-[11px] font-bold leading-none">✕</Text>
                     </TouchableOpacity>
                   </View>
-                </View>
-
-                <TouchableOpacity
-                  className="mt-4 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
-                  onPress={() => {
-                    if (!discountType || !discountIdNumber) {
-                       setSubmitError('Please complete ID Type and ID Number before proceeding.');
-                    } else {
-                       setSubmitError('');
-                       setIsDiscountConfirmed(true);
-                       setCheckoutDraft({
-                          ...getCheckoutDraft(),
-                          discountType,
-                          discountIdNumber,
-                          discountIdImage,
-                       });
-                    }
-                  }}
-                >
-                  <Text className="text-xs text-white" style={styles.confirmPickupText}>Upload</Text>
-                </TouchableOpacity>
-              </>
-            )}
-
-            {discountIdImage && isDiscountConfirmed && (
-              <View className="mt-2 rounded-2xl bg-[#EEF7FD] p-4 flex-row items-center justify-between">
-                <View className="relative">
                   <TouchableOpacity
-                    onPress={() => setExpandedImageUri(discountIdImage.uri)}
-                    activeOpacity={0.9}
+                    className="px-8 py-2.5 rounded-xl border border-[#48AAD9] bg-white items-center justify-center min-w-[96px]"
+                    onPress={() => setIsDiscountConfirmed(false)}
                   >
-                    <Image
-                      source={{ uri: discountIdImage.uri }}
-                      className="w-36 h-24 rounded-xl"
-                      resizeMode="cover"
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => {
-                       setIsDiscountConfirmed(false);
-                       handleRemoveDiscountId();
-                    }}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#48AAD9] items-center justify-center border-2 border-white"
-                    activeOpacity={0.8}
-                  >
-                    <Text className="text-white text-[11px] font-bold leading-none">✕</Text>
+                    <Text className="text-xs" style={styles.primarySemiBold}>Edit</Text>
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  className="px-8 py-2.5 rounded-xl border border-[#48AAD9] bg-white items-center justify-center min-w-[96px]"
-                  onPress={() => setIsDiscountConfirmed(false)}
-                >
-                  <Text className="text-xs" style={styles.primarySemiBold}>Edit</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
+              )}
+            </View>
 
-          {/* Info footer */}
-          <View className="bg-[#CFE7F3] px-4 py-3 flex-row items-center border-t border-[#B9DEEF]">
-            <BlueInfoIcon width={18} height={18} />
-            <Text className="text-xs ml-2.5 flex-1" style={styles.discountInfoText}>
-              Our pharmacist may ask you to present the original ID upon pickup.
-            </Text>
+            {/* Info footer */}
+            <View className="bg-[#CFE7F3] px-4 py-3 flex-row items-center border-t border-[#B9DEEF]">
+              <BlueInfoIcon width={18} height={18} />
+              <Text className="text-xs ml-2.5 flex-1" style={styles.discountInfoText}>
+                Our pharmacist may ask you to present the original ID upon pickup.
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
 
         {/* Fullscreen Expandable Image Modal */}
         <Modal

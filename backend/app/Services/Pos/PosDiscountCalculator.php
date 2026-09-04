@@ -14,9 +14,18 @@ class PosDiscountCalculator
         ?string $discountType,
         ?float $discountPercentage,
         ?float $discountAmount,
-        ?Pharmacy $pharmacy = null
+        ?Pharmacy $pharmacy = null,
+        ?float $discountableSubtotal = null
     ): array {
         if (!$discountType || $discountType === 'none' || $subtotal <= 0) {
+            return [0.00, 0.00];
+        }
+
+        $eligibleSubtotal = ($discountableSubtotal !== null && $discountableSubtotal >= 0)
+            ? $discountableSubtotal
+            : $subtotal;
+
+        if ($eligibleSubtotal <= 0) {
             return [0.00, 0.00];
         }
 
@@ -33,15 +42,15 @@ class PosDiscountCalculator
                 && in_array(strtolower($discountType), ['senior', 'pwd', 'senior_citizen']);
 
             if ($isVatExemptEligible) {
-                // VAT-exclusive base = subtotal / 1.12
-                $vatExclusiveSubtotal = round($subtotal / 1.12, 2);
+                // VAT-exclusive base = eligibleSubtotal / 1.12
+                $vatExclusiveSubtotal = round($eligibleSubtotal / 1.12, 2);
                 $calculatedAmount = round($vatExclusiveSubtotal * ($calculatedPercentage / 100), 2);
             } else {
-                // Standard percentage discount applied to subtotal
-                $calculatedAmount = round($subtotal * ($calculatedPercentage / 100), 2);
+                // Standard percentage discount applied to eligibleSubtotal
+                $calculatedAmount = round($eligibleSubtotal * ($calculatedPercentage / 100), 2);
             }
         } elseif ($discountAmount !== null && $discountAmount > 0) {
-            $calculatedAmount = min($subtotal, max(0.00, $discountAmount));
+            $calculatedAmount = min($eligibleSubtotal, max(0.00, $discountAmount));
             $calculatedPercentage = round(($calculatedAmount / $subtotal) * 100, 2);
         }
 

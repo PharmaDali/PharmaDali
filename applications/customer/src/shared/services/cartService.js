@@ -67,6 +67,10 @@ function mapCartApiItem(item) {
       hasRxMarker(categoryName) ||
       hasRxMarker(description) ||
       hasRxMarker(item?.product?.description),
+    isDiscountable:
+      typeof item?.is_discountable === 'boolean'
+        ? item.is_discountable
+        : true,
     pharmacy: {
       id: item?.pharmacy?.id ?? null,
       pharmacyName: item?.pharmacy?.pharmacy_name || 'Unknown pharmacy',

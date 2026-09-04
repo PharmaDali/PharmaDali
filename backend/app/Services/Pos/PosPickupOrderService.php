@@ -69,11 +69,22 @@ class PosPickupOrderService
 
         return DB::transaction(function () use ($order, $paymentMethod, $user, $amountReceived, $changeAmount, $discountData) {
             $pharmacy = $user->pharmacy ?? (Pharmacy::find($user->pharmacy_id));
+            $allowOtcDiscount = (bool) ($pharmacy?->allow_otc_discount ?? true);
             
             // Calculate subtotal from order items if subtotal is 0
             $subtotal = (float) $order->subtotal;
             if ($subtotal <= 0) {
                 $subtotal = (float) $order->items->sum('line_total');
+            }
+
+            $discountableSubtotal = 0;
+            foreach ($order->items as $item) {
+                $pharmacyProduct = $item->pharmacyProduct;
+                $isPrescribed = (bool) ($pharmacyProduct?->product?->is_prescribed ?? false);
+                $isProductDiscountable = (bool) ($pharmacyProduct?->is_discountable ?? true);
+                if ($isPrescribed || ($isProductDiscountable && $allowOtcDiscount)) {
+                    $discountableSubtotal += (float) $item->line_total;
+                }
             }
 
             $discountType = $discountData['discount_type'] ?? $order->discount_type ?? 'none';
@@ -89,7 +100,8 @@ class PosPickupOrderService
                 discountType: $discountType,
                 discountPercentage: $discountPercentageInput,
                 discountAmount: $discountAmountInput,
-                pharmacy: $pharmacy
+                pharmacy: $pharmacy,
+                discountableSubtotal: $discountableSubtotal
             );
 
             $totalAmount = max(0, round($subtotal - $discountAmount, 2));
