@@ -65,9 +65,9 @@ function ReportIssue({ setView }) {
     };
 
     return (
-        <section className="dashboard-page tech-help-page p-4">
-            <header className="mb-4">
-                <h2 className="fw-bold mb-1 d-flex align-items-center gap-2 flex-wrap">
+        <section className="dashboard-page tech-help-page">
+            <header className="admin-page-header mb-4">
+                <h4 className="fw-bold mb-1 d-flex align-items-center gap-2 flex-wrap">
                     <span
                         className="tech-help-breadcrumb-parent"
                         onClick={() => setView("home")}
@@ -78,8 +78,8 @@ function ReportIssue({ setView }) {
                     </span>
                     <i className="fa-solid fa-chevron-right tech-help-breadcrumb-icon" aria-hidden="true" />
                     <span className="admin-page-title">Report an Issue</span>
-                </h2>
-                <p className="tech-help-subtitle mb-0">
+                </h4>
+                <p className="admin-page-subtitle mb-0">
                     Access assistance for troubleshooting, feature use, and other technical concerns.
                 </p>
             </header>
