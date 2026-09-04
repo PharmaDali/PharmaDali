@@ -57,7 +57,7 @@ function Login() {
           <input
             type="email"
             name="email"
-            placeholder="Admin Email"
+            placeholder="Admin ID"
             value={credentials.email}
             onChange={handleChange}
             className="form-control pd-password-input login-input mb-0"
