@@ -25,8 +25,10 @@ class UpdatePharmacySettingsRequest extends FormRequest
             'shortage_days_threshold' => 'sometimes|integer|min:1|max:365',
             'expiry_days_threshold'   => 'sometimes|integer|min:1|max:365',
             'enable_vat_exemption_discount' => 'sometimes|boolean',
-            'item_exchange_window_days' => 'sometimes|integer|min:1|max:365',
-            'allow_item_exchange'     => 'sometimes|boolean',
+            'allow_otc_discount'            => 'sometimes|boolean',
+            'item_exchange_window_days'     => 'sometimes|integer|min:1|max:365',
+            'allow_item_exchange'           => 'sometimes|boolean',
+            'allow_cash_refund'             => 'sometimes|boolean',
         ];
     }
 

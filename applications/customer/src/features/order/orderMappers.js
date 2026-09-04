@@ -1,5 +1,3 @@
-import BetadineImg from '@assets/images/betadine_img.png'
-
 const COMPLETED_STATUSES = new Set(['completed', 'cancelled', 'overdue'])
 
 const STATUS_LABELS = {
@@ -84,7 +82,7 @@ function mapOrderProduct(item) {
 
   return {
     id: Number(item?.id || 0),
-    img: BetadineImg,
+    img: product?.image_url || null,
     product,
     categoryName,
     description,

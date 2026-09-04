@@ -71,6 +71,9 @@ function mapCartApiItem(item) {
       id: item?.pharmacy?.id ?? null,
       pharmacyName: item?.pharmacy?.pharmacy_name || 'Unknown pharmacy',
       location: item?.pharmacy?.location || '',
+      openingHour: item?.pharmacy?.opening_hour || null,
+      closingHour: item?.pharmacy?.closing_hour || null,
+      isActive: item?.pharmacy?.is_active ?? true,
     },
     product: item?.product || {},
     category: item?.category || {},
@@ -181,12 +184,105 @@ export function toggleAllCartItems(items, selectedValue) {
   return items.map((item) => (item.isAvailable ? { ...item, selected: selectedValue } : item));
 }
 
+function parseTimeToMinutes(timeValue) {
+  if (!timeValue || typeof timeValue !== 'string') {
+    return null;
+  }
+
+  const str = timeValue.trim();
+
+  const ampmMatch = str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (ampmMatch) {
+    const hours12 = Number(ampmMatch[1]);
+    const mins = Number(ampmMatch[2]);
+    const period = ampmMatch[3].toUpperCase();
+
+    if (hours12 < 1 || hours12 > 12 || mins < 0 || mins > 59) {
+      return null;
+    }
+
+    const hours24 = (hours12 % 12) + (period === 'PM' ? 12 : 0);
+    return (hours24 * 60) + mins;
+  }
+
+  const parts = str.split(':');
+  if (parts.length >= 2) {
+    const hours = Number(parts[0]);
+    const minutes = Number(parts[1]);
+
+    if (Number.isInteger(hours) && Number.isInteger(minutes) && hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+      return (hours * 60) + minutes;
+    }
+  }
+
+  return null;
+}
+
+export function formatTimeToAmPm(timeValue) {
+  const minutes = parseTimeToMinutes(timeValue);
+
+  if (minutes === null) {
+    return null;
+  }
+
+  const hours24 = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const period = hours24 >= 12 ? 'PM' : 'AM';
+  const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+
+  return `${hours12}:${String(mins).padStart(2, '0')} ${period}`;
+}
+
+export function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
+  const openingMinutes = parseTimeToMinutes(openingHour);
+  const closingMinutes = parseTimeToMinutes(closingHour);
+
+  if (openingMinutes === null || closingMinutes === null) {
+    return true;
+  }
+
+  const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+
+  if (openingMinutes === closingMinutes) {
+    return true;
+  }
+
+  if (openingMinutes < closingMinutes) {
+    return currentMinutes >= openingMinutes && currentMinutes < closingMinutes;
+  }
+
+  return currentMinutes >= openingMinutes || currentMinutes < closingMinutes;
+}
+
 export function buildCartViewState(items) {
   const availableItems = items.filter((item) => item.isAvailable);
   const selectedItems = items.filter((item) => item.selected);
   const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const hasPrescription = items.some((item) => item.prescriptionRequired && item.selected);
   const allSelected = availableItems.length > 0 && availableItems.every((item) => item.selected);
+
+  const targetPharmacy = items.find((item) => item.selected || item.pharmacy?.id)?.pharmacy || items[0]?.pharmacy;
+  let isPharmacyOpen = true;
+  let closedPharmacyName = '';
+  let pharmacyHoursLabel = '';
+
+  if (targetPharmacy) {
+    if (targetPharmacy.isActive === false) {
+      isPharmacyOpen = false;
+      closedPharmacyName = targetPharmacy.pharmacyName;
+      pharmacyHoursLabel = 'Temporarily Closed';
+    } else if (targetPharmacy.openingHour && targetPharmacy.closingHour) {
+      const open = isPharmacyOpenNow(targetPharmacy.openingHour, targetPharmacy.closingHour);
+      if (!open) {
+        isPharmacyOpen = false;
+        closedPharmacyName = targetPharmacy.pharmacyName;
+        const openTime = formatTimeToAmPm(targetPharmacy.openingHour);
+        const closeTime = formatTimeToAmPm(targetPharmacy.closingHour);
+        pharmacyHoursLabel = openTime && closeTime ? `${openTime} – ${closeTime}` : 'Closed';
+        pharmacyHoursLabel = openTime && closeTime ? `${openTime} – ${closeTime}` : '';
+      }
+    }
+  }
 
   const pharmacyNames = Array.from(
     new Set(
@@ -211,6 +307,9 @@ export function buildCartViewState(items) {
     selectedCount: selectedItems.length,
     pharmacyNames,
     pharmacyLocations,
+    isPharmacyOpen,
+    closedPharmacyName,
+    pharmacyHoursLabel,
   };
 }
 

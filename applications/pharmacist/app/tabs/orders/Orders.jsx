@@ -4,8 +4,6 @@ import * as SecureStore from 'expo-secure-store';
 import { useLocalSearchParams, useFocusEffect, useRouter } from 'expo-router';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
-import StatusFeedbackModal from '@shared/components/StatusFeedbackModal';
-import BetadineImg from '@assets/images/betadine_img.png';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { getPharmacyOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
 import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
@@ -84,7 +82,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
         if (apiStatus === 'preparing') itemDisplayStatus = 'Preparing';
 
         return {
-          img: BetadineImg,
+          img: product?.image_url || null,
           product,
           categoryName,
           description,
