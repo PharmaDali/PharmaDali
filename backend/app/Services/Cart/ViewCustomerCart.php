@@ -47,8 +47,7 @@ class ViewCustomerCart
 			$unitPrice = (float) $item->price_snapshot;
 			$prescriptionRequired = (bool) ($item->pharmacyProduct?->product?->is_prescribed ?? false);
 			$isProductDiscountable = (bool) ($item->pharmacyProduct?->is_discountable ?? true);
-			$allowOtcDiscount = (bool) ($item->cart?->pharmacy?->allow_otc_discount ?? true);
-			$isDiscountable = $prescriptionRequired || ($isProductDiscountable && $allowOtcDiscount);
+			$isDiscountable = $prescriptionRequired || $isProductDiscountable;
 
 			return [
 				'id' => $item->id,

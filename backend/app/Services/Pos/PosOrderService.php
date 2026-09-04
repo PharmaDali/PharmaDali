@@ -51,7 +51,7 @@ class PosOrderService
 
                 $isPrescribed = (bool) ($pharmacyProduct->product?->is_prescribed ?? false);
                 $isProductDiscountable = (bool) ($pharmacyProduct->is_discountable ?? true);
-                if ($isPrescribed || ($isProductDiscountable && $allowOtcDiscount)) {
+                if ($isPrescribed || $isProductDiscountable) {
                     $discountableSubtotal += $lineTotal;
                 }
             }

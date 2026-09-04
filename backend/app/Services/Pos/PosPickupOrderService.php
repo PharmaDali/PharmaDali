@@ -82,7 +82,7 @@ class PosPickupOrderService
                 $pharmacyProduct = $item->pharmacyProduct;
                 $isPrescribed = (bool) ($pharmacyProduct?->product?->is_prescribed ?? false);
                 $isProductDiscountable = (bool) ($pharmacyProduct?->is_discountable ?? true);
-                if ($isPrescribed || ($isProductDiscountable && $allowOtcDiscount)) {
+                if ($isPrescribed || $isProductDiscountable) {
                     $discountableSubtotal += (float) $item->line_total;
                 }
             }
