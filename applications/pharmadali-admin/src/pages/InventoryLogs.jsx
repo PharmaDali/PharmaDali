@@ -6,6 +6,7 @@ import { TableSkeleton } from "../shared/components/loading";
 import SearchBar from "../shared/components/SearchBar";
 import SelectDropdown from "../shared/components/SelectDropdown";
 import Pagination from "../shared/components/Pagination";
+import Breadcrumb from "../shared/components/Breadcrumb";
 
 const ACTION_FILTERS = ["All", "Stock In", "Stock Out", "Adjustment", "Waste"];
 
@@ -34,17 +35,12 @@ function InventoryLogs() {
 
   return (
     <section className="inventory-page" aria-label="Inventory Logs Audit Trail">
-      <div className="inventory-breadcrumb mb-3">
-        <button
-          type="button"
-          className="breadcrumb-link fs-4"
-          onClick={() => navigate("/inventory")}
-        >
-          Inventory
-        </button>
-        <span className="breadcrumb-separator fs-4">&rsaquo;</span>
-        <span className="breadcrumb-current fs-4">Inventory logs</span>
-      </div>
+      <Breadcrumb
+        crumbs={[
+          { label: "Inventory", to: "/inventory" },
+          { label: "Inventory logs" },
+        ]}
+      />
 
       <div className="inventory-filter-bar inventory-logs-filter-bar">
         <SearchBar
