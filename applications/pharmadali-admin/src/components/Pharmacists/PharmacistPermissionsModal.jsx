@@ -108,9 +108,16 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
 
   const pharmacistName = `${pharmacist.first_name || ""} ${pharmacist.last_name || ""}`.trim() || "Pharmacist";
 
+  const modalTitle = (
+    <div className="permission-modal-header-text">
+      <span className="permission-modal-main-title">Staff Permissions</span>
+      <span className="permission-modal-user-subtitle">{pharmacistName}</span>
+    </div>
+  );
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={`Permissions: ${pharmacistName}`} maxWidth="650px">
-      <div className="p-1">
+    <Modal isOpen={isOpen} onClose={onClose} title={modalTitle} className="permission-manage-modal" size="md">
+      <div className="permission-modal-body-wrap">
         {error && (
           <div className="alert alert-danger d-flex align-items-center gap-2 mb-3 py-2 px-3 small border-0 bg-danger-subtle text-danger-emphasis rounded-3">
             <i className="fa-solid fa-circle-exclamation"></i>
@@ -118,63 +125,55 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
           </div>
         )}
 
-        <div className="mb-4">
-          <label className="fw-semibold text-muted small uppercase tracking-wider mb-2 d-block">
+        <div className="permission-presets-section mb-3 mb-md-4">
+          <label className="permission-presets-label">
             Quick Permission Presets
           </label>
-          <div className="d-flex flex-wrap gap-2">
-            {PRESETS.map((preset) => (
-              <button
-                key={preset.name}
-                type="button"
-                className="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1 px-3"
-                style={{ fontSize: "0.825rem" }}
-                onClick={() => handleApplyPreset(preset.permissions)}
-              >
-                <i className={`${preset.icon} me-1`}></i>
-                {preset.name}
-              </button>
-            ))}
+          <div className="permission-presets-grid">
+            {PRESETS.map((preset) => {
+              const isMatch =
+                preset.permissions.length === selectedPermissions.length &&
+                preset.permissions.every((p) => selectedPermissions.includes(p));
+
+              return (
+                <button
+                  key={preset.name}
+                  type="button"
+                  className={`btn permission-preset-pill ${isMatch ? "active" : ""}`}
+                  onClick={() => handleApplyPreset(preset.permissions)}
+                >
+                  <i className={`${preset.icon} me-1`}></i>
+                  <span>{preset.name}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        <div className="permission-list d-flex flex-column gap-3 mb-4">
+        <div className="permission-list mb-3 mb-md-4">
           {AVAILABLE_PERMISSIONS.map((perm) => {
             const isChecked = selectedPermissions.includes(perm.key);
             return (
               <div
                 key={perm.key}
-                className="p-3 rounded-3 border d-flex align-items-start justify-content-between transition-all"
-                style={{
-                  cursor: "pointer",
-                  borderColor: isChecked ? "#96d2ee" : "#e2e8f0",
-                  backgroundColor: isChecked ? "#f4f9fd" : "#f8fafc",
-                }}
+                className={`permission-item ${isChecked ? "permission-item-active" : ""}`}
                 onClick={() => handleToggle(perm.key)}
               >
-                <div className="d-flex align-items-start gap-3">
-                  <div
-                    className="rounded-circle d-flex align-items-center justify-content-center mt-1"
-                    style={{
-                      width: 36,
-                      height: 36,
-                      backgroundColor: isChecked ? "#2aabe2" : "#e2e8f0",
-                      color: isChecked ? "#ffffff" : "#64748b",
-                    }}
-                  >
+                <div className="permission-item-left">
+                  <div className={`permission-item-icon ${isChecked ? "active" : ""}`}>
                     <i className={perm.icon}></i>
                   </div>
-                  <div>
-                    <h6 className="fw-semibold mb-1 text-dark" style={{ fontSize: "0.95rem" }}>
+                  <div className="permission-item-info">
+                    <h6 className="permission-item-title">
                       {perm.label}
                     </h6>
-                    <p className="text-muted mb-0 small" style={{ fontSize: "0.825rem" }}>
+                    <p className="permission-item-desc">
                       {perm.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="form-check form-switch ms-3">
+                <div className="form-check form-switch permission-item-switch">
                   <input
                     className="form-check-input"
                     type="checkbox"
@@ -182,7 +181,6 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
                     checked={isChecked}
                     onChange={() => handleToggle(perm.key)}
                     onClick={(e) => e.stopPropagation()}
-                    style={{ cursor: "pointer", width: "2.5em", height: "1.25em" }}
                   />
                 </div>
               </div>
@@ -190,25 +188,24 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
           })}
         </div>
 
-        <div className="d-flex align-items-center justify-content-end gap-2 pt-3 border-top">
-          <button type="button" className="btn btn-light px-4" onClick={onClose} disabled={isSaving}>
+        <div className="permission-modal-footer">
+          <button type="button" className="btn btn-light permission-btn-cancel" onClick={onClose} disabled={isSaving}>
             Cancel
           </button>
           <button
             type="button"
-            className="btn text-white px-4 d-flex align-items-center gap-2"
-            style={{ backgroundColor: "#2aabe2" }}
+            className="btn text-white permission-btn-save"
             onClick={handleSave}
             disabled={isSaving}
           >
             {isSaving ? (
               <>
-                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
                 Saving...
               </>
             ) : (
               <>
-                <i className="fa-solid fa-check"></i>
+                <i className="fa-solid fa-check me-1"></i>
                 Save Permissions
               </>
             )}

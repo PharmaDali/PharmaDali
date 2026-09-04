@@ -266,6 +266,71 @@
   color: #dc2626;
 }
 
+/* Mobile Pharmacist Card Action Buttons */
+.pharmacists-mobile-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 10px;
+  margin-top: 8px;
+}
+
+.pharmacists-mobile-action-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pharmacists-mobile-action-btn:active {
+  transform: scale(0.94);
+}
+
+.pharmacists-mobile-action-btn.action-permissions {
+  background: #f0f9ff;
+  color: #0284c7;
+  border-color: #e0f2fe;
+}
+
+.pharmacists-mobile-action-btn.action-permissions:hover {
+  background: #e0f2fe;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+.pharmacists-mobile-action-btn.action-edit {
+  background: #f8fafc;
+  color: #475569;
+  border-color: #e2e8f0;
+}
+
+.pharmacists-mobile-action-btn.action-edit:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+.pharmacists-mobile-action-btn.action-delete {
+  background: #fef2f2;
+  color: #ef4444;
+  border-color: #fee2e2;
+}
+
+.pharmacists-mobile-action-btn.action-delete:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
 /* Modal Styles */
 .pharmacists-modal-overlay {
   position: fixed;
@@ -784,3 +849,321 @@
     padding: 0.5rem 1rem;
   }
 }
+
+/* ==========================================================================
+   Permissions Modal Styles (Optimized for Mobile & Desktop)
+   ========================================================================== */
+
+.permission-manage-modal .pd-modal {
+  width: min(100%, 600px);
+}
+
+.permission-modal-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.permission-modal-main-title {
+  color: #48AAD9;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.permission-modal-user-subtitle {
+  font-size: 14px;
+  color: #475569;
+  font-weight: 600;
+}
+
+.permission-modal-body-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.permission-presets-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.permission-presets-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.permission-presets-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.permission-preset-pill {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.permission-preset-pill:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #1e293b;
+}
+
+.permission-preset-pill.active {
+  background: #2aabe2;
+  border-color: #2aabe2;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(42, 171, 226, 0.25);
+}
+
+.permission-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.permission-item {
+  padding: 13px 15px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.permission-item:hover {
+  background: #f1f7fd;
+  border-color: #bae6fd;
+}
+
+.permission-item-active {
+  border-color: #7dd3fc;
+  background: #f0f9ff;
+}
+
+.permission-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.permission-item-icon {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #64748b;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.permission-item-icon.active {
+  background: #2aabe2;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(42, 171, 226, 0.3);
+}
+
+.permission-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.permission-item-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.permission-item-desc {
+  font-size: 11.5px;
+  color: #64748b;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.permission-item-switch {
+  margin: 0;
+  padding-left: 0;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.permission-item-switch .form-check-input {
+  cursor: pointer;
+  width: 2.75em !important;
+  height: 1.4em !important;
+  margin: 0 !important;
+}
+
+.permission-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 14px;
+  border-top: 1px solid #e9edf2;
+}
+
+.permission-btn-cancel {
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13.5px;
+  font-weight: 600;
+  background: #f1f5f9;
+  border: 1px solid #d1d5db;
+  color: #475569;
+}
+
+.permission-btn-cancel:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.permission-btn-save {
+  background: #2aabe2;
+  border: 1px solid #2aabe2;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.permission-btn-save:hover {
+  background: #2399cb;
+  border-color: #2399cb;
+}
+
+/* Mobile-Specific Refinements */
+@media (max-width: 575.98px) {
+  .permission-manage-modal .pd-modal {
+    max-height: 92vh;
+    border-radius: 16px;
+    width: 95%;
+    margin: auto;
+  }
+
+  .permission-manage-modal .pd-modal__header {
+    padding: 12px 16px;
+  }
+
+  .permission-manage-modal .pd-modal__body {
+    padding: 12px 14px;
+  }
+
+  .permission-modal-main-title {
+    font-size: 0.95rem;
+  }
+
+  .permission-modal-user-subtitle {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  .permission-presets-label {
+    font-size: 10.5px;
+    margin-bottom: 4px;
+  }
+
+  .permission-presets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+
+  .permission-preset-pill {
+    width: 100%;
+    font-size: 11px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    justify-content: center;
+    text-align: center;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .permission-preset-pill span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .permission-list {
+    gap: 8px;
+  }
+
+  .permission-item {
+    padding: 10px 12px;
+    border-radius: 10px;
+    gap: 10px;
+  }
+
+  .permission-item-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  .permission-item-title {
+    font-size: 13px;
+    margin-bottom: 2px;
+  }
+
+  .permission-item-desc {
+    font-size: 11px;
+    line-height: 1.35;
+  }
+
+  .permission-item-switch .form-check-input {
+    width: 2.4em !important;
+    height: 1.25em !important;
+  }
+
+  .permission-modal-footer {
+    padding-top: 10px;
+    gap: 8px;
+  }
+
+  .permission-btn-cancel,
+  .permission-btn-save {
+    flex: 1;
+    height: 40px;
+    font-size: 13px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
