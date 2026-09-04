@@ -227,6 +227,7 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
         onClose={() => setShowConfirmModal(false)}
         showCloseButton={false}
         size="sm"
+        className="pharmacists-confirm-modal"
       >
         <div className="d-flex flex-column align-items-center text-center p-2">
           <div 

@@ -1211,5 +1211,11 @@
     align-items: center;
     justify-content: center;
   }
+
+  /* Confirm Modal Mobile Tweaks */
+  .pharmacists-confirm-modal.pd-modal--sm {
+    width: min(85%, 300px) !important;
+    max-width: 300px;
+  }
 }
 
