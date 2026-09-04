@@ -40,10 +40,12 @@ class PharmacySettingsService
             ],
             'discount_settings' => [
                 'enable_vat_exemption_discount' => (bool) $pharmacy->enable_vat_exemption_discount,
+                'allow_otc_discount'            => (bool) ($pharmacy->allow_otc_discount ?? true),
             ],
             'exchange_settings' => [
                 'item_exchange_window_days' => (int) ($pharmacy->item_exchange_window_days ?? 1),
                 'allow_item_exchange'       => (bool) ($pharmacy->allow_item_exchange ?? true),
+                'allow_cash_refund'         => (bool) ($pharmacy->allow_cash_refund ?? false),
             ],
         ];
     }
@@ -67,8 +69,10 @@ class PharmacySettingsService
             'shortage_days_threshold',
             'expiry_days_threshold',
             'enable_vat_exemption_discount',
+            'allow_otc_discount',
             'item_exchange_window_days',
             'allow_item_exchange',
+            'allow_cash_refund',
         ];
 
         $filteredData = array_intersect_key($data, array_flip($allowed));

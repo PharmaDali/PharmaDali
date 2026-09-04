@@ -40,6 +40,7 @@ export const Operations = ({ onNavigate }) => {
         shortage_days_threshold: thresholds.shortage_days ?? 7,
         expiry_days_threshold: thresholds.expiry_days ?? 30,
         enable_vat_exemption_discount: Boolean(discountSettings.enable_vat_exemption_discount),
+        allow_otc_discount: discountSettings.allow_otc_discount !== undefined ? Boolean(discountSettings.allow_otc_discount) : true,
       };
 
       setFormData(loadedData);
@@ -137,6 +138,30 @@ export const Operations = ({ onNavigate }) => {
             max="365"
           />
           <span className="small text-muted">days before expiry</span>
+        </div>
+      ),
+    },
+    {
+      key: "allow_otc_discount",
+      label: "Allow Discounts on OTC (Over-The-Counter) Products",
+      helper: "Enable discount application on eligible non-prescription items (item must also have 'Discountable' enabled individually in Inventory).",
+      content: (
+        <div className="d-flex align-items-center gap-2 w-100" style={{ maxWidth: "320px" }}>
+          <div className="form-check form-switch m-0">
+            <input
+              className="form-check-input"
+              type="checkbox"
+              role="switch"
+              id="allow_otc_discount"
+              checked={formData.allow_otc_discount}
+              onChange={(e) => handleInputChange("allow_otc_discount", e.target.checked)}
+              disabled={!isEditing || saving}
+              style={{ cursor: isEditing ? "pointer" : "not-allowed" }}
+            />
+            <label className="form-check-label small text-muted ms-2" htmlFor="allow_otc_discount" style={{ cursor: isEditing ? "pointer" : "default" }}>
+              {formData.allow_otc_discount ? "Enabled" : "Disabled"}
+            </label>
+          </div>
         </div>
       ),
     },

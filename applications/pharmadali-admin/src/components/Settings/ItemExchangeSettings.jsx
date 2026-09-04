@@ -17,6 +17,7 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
   const [formData, setFormData] = useState({
     allow_item_exchange: true,
     item_exchange_window_days: 1,
+    allow_cash_refund: false,
   });
 
   const [savedData, setSavedData] = useState({ ...formData });
@@ -35,6 +36,7 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
       const loadedData = {
         allow_item_exchange: exchangeSettings.allow_item_exchange !== undefined ? Boolean(exchangeSettings.allow_item_exchange) : true,
         item_exchange_window_days: exchangeSettings.item_exchange_window_days ?? 1,
+        allow_cash_refund: exchangeSettings.allow_cash_refund !== undefined ? Boolean(exchangeSettings.allow_cash_refund) : false,
       };
 
       setFormData(loadedData);
@@ -95,6 +97,30 @@ export const ItemExchangeSettings = ({ onNavigate }) => {
             />
             <label className="form-check-label small text-muted ms-2" htmlFor="allow_item_exchange" style={{ cursor: isEditing ? "pointer" : "default" }}>
               {formData.allow_item_exchange ? "Enabled" : "Disabled"}
+            </label>
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: "allow_cash_refund",
+      label: "Allow Cash Refund Policy",
+      helper: "Enable cashiers and managers to issue monetary cash refunds for returned/exchanged products.",
+      content: (
+        <div className="d-flex align-items-center gap-2 w-100" style={{ maxWidth: "300px" }}>
+          <div className="form-check form-switch m-0" style={{ fontSize: "16px" }}>
+            <input
+              className="form-check-input"
+              type="checkbox"
+              role="switch"
+              id="allow_cash_refund"
+              checked={formData.allow_cash_refund}
+              onChange={(e) => handleInputChange("allow_cash_refund", e.target.checked)}
+              disabled={!isEditing || saving}
+              style={{ cursor: isEditing ? "pointer" : "not-allowed" }}
+            />
+            <label className="form-check-label small text-muted ms-2" htmlFor="allow_cash_refund" style={{ cursor: isEditing ? "pointer" : "default" }}>
+              {formData.allow_cash_refund ? "Enabled" : "Disabled"}
             </label>
           </div>
         </div>
