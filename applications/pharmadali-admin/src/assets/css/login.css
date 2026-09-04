@@ -265,74 +265,193 @@
   }
 }
 
-@media (max-width: 850px), (prefers-reduced-motion: reduce) {
-  .login-page {
-    animation: none;
-    background: var(--pd-bg-main);
-  }
-
-  .login-brand-block {
-    animation: none;
-    opacity: 1;
-  }
-
-  .login-logo-white,
-  .login-logo-blue {
-    animation: none;
-  }
-
-  .login-logo-white {
-    opacity: 0;
-  }
-
-  .login-logo-blue {
-    opacity: 1;
-  }
-}
-
 @media (max-width: 850px) {
   .login-page {
+    position: relative;
+    height: 100vh;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 1.75rem;
     padding: 1.5rem;
-  }
-
-  .login-brand-block,
-  .login-form-panel {
-    position: static;
-    transform: none;
-    animation: none;
-    opacity: 1;
+    background: #96d2ee;
+    animation: mobileLoginBgShift 5.5s ease forwards;
   }
 
   .login-brand-block {
-    gap: 0.35rem;
+    position: relative;
+    inset: auto;
+    transform-origin: center;
+    transform: scale(0.25);
+    margin-bottom: 2.25rem;
+    animation: mobileLogoIntroSequence 5.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .login-logo-stack {
-    width: min(72vw, 360px);
+    width: min(72vw, 300px);
+  }
+
+  .login-logo-white {
+    animation: mobileWhiteLogoPhase 4.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .login-logo-blue {
+    animation: mobileBlueLogoPhase 5.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
   .login-form-panel {
-    width: min(92vw, 420px);
+    position: relative;
+    inset: auto;
+    transform: translateY(28px);
+    width: min(88vw, 370px);
     min-width: 0;
-    margin-bottom: 2.35rem;
+    padding: 1.75rem 1.35rem 1.35rem;
+    border-radius: 18px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    opacity: 0;
+    animation: mobileFormReveal 2s ease-out 3.2s forwards;
+    z-index: 3;
+  }
+
+  .login-form-title {
+    margin: 0 0 1.25rem;
+    font-size: 1.65rem;
+    font-weight: 600;
+    color: var(--pd-primary, #2aabe2);
+    text-align: center;
+  }
+
+  .login-input,
+  .form-control.login-input {
+    border-radius: 20px !important;
+    padding: 0.8rem 1.15rem !important;
+    background-color: #f1f3f5 !important;
+    font-size: 0.9rem;
+    border: 1.5px solid transparent !important;
+  }
+
+  .login-input:focus,
+  .form-control.login-input:focus {
+    background-color: #ffffff !important;
+    border-color: var(--pd-primary, #2aabe2) !important;
+    outline: 1px solid var(--pd-primary, #2aabe2) !important;
+  }
+
+  .login-form-footer {
+    position: relative;
+    inset: auto;
+    bottom: auto;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .login-forgot-btn {
+    font-size: 0.78rem;
+    color: var(--pd-text-dark, #334155);
+    font-weight: 500;
+    text-decoration: underline;
+  }
+
+  .login-submit-btn {
+    border-radius: 10px;
+    padding: 0.45rem 1.25rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    background: var(--pd-primary, #2aabe2);
+    color: #ffffff;
+    border: none;
+  }
+}
+
+@keyframes mobileLoginBgShift {
+  0%, 55% {
+    background: #96d2ee;
+  }
+  100% {
+    background: #ffffff;
+  }
+}
+
+@keyframes mobileLogoIntroSequence {
+  0% {
+    transform: scale(0.25);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(0.92);
+  }
+}
+
+@keyframes mobileWhiteLogoPhase {
+  0%, 50% {
+    opacity: 1;
+    filter: blur(0);
+  }
+  95%, 100% {
+    opacity: 0;
+    filter: blur(1px);
+  }
+}
+
+@keyframes mobileBlueLogoPhase {
+  0%, 45% {
+    opacity: 0;
+    filter: blur(1px);
+  }
+  95%, 100% {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes mobileFormReveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .login-page {
+    animation: none;
+    background: #ffffff;
+  }
+
   .login-brand-block {
-    top: 46%;
-    left: 30%;
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(0.92);
+    animation: none;
+    opacity: 1;
+  }
+
+  .login-logo-white {
+    opacity: 0;
+    animation: none;
+  }
+
+  .login-logo-blue {
+    opacity: 1;
+    animation: none;
   }
 
   .login-form-panel {
-    opacity: 0;
-    transform: translateY(-50%) translateX(48px);
-    animation: formReveal 0.5s ease-out 7.2s both;
+    opacity: 1;
+    transform: translateY(0);
+    animation: none;
   }
 }

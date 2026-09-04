@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { SettingForm } from "./SettingForm";
 import "../../assets/css/settings/common.css";
@@ -8,7 +8,7 @@ import AdminChangePasswordOtpModals from "./AdminChangePasswordOtpModals";
 
 export const PasswordSettings = ({ onNavigate }) => {
   const { user, setUser } = useOutletContext() || {};
-  const isNewlyCreatedAdmin = user?.requires_password_change;
+  const isNewlyCreatedAdmin = Boolean(user?.requires_password_change);
 
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);

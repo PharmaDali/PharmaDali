@@ -46,16 +46,6 @@ class TicketService
      */
     public function createTicket(User $user, array $data): Ticket
     {
-        // Deduplication throttling: return recent identical ticket if submitted within 10s
-        $recentDuplicate = Ticket::where('user_id', $user->id)
-            ->where('title', $data['title'])
-            ->where('created_at', '>=', now()->subSeconds(10))
-            ->first();
-
-        if ($recentDuplicate) {
-            return $recentDuplicate;
-        }
-
         if (empty($data['ticket_reference_id'])) {
             $data['ticket_reference_id'] = $this->generateTicketReferenceId();
         }
