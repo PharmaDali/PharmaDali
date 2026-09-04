@@ -13,23 +13,6 @@
   font-weight: 700;
 }
 
-.tech-help-breadcrumb-parent {
-  color: #88d0ee;
-  font-size: 28px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: color 0.15s ease;
-}
-
-.tech-help-breadcrumb-parent:hover {
-  color: #2aabe2;
-}
-
-.tech-help-breadcrumb-icon {
-  color: #88d0ee;
-  font-size: 16px;
-}
-
 .tech-help-subtitle {
   color: #4a5568;
   font-size: 15px;
@@ -460,8 +443,7 @@
 }
 
 @media (max-width: 575.98px) {
-  .tech-help-title,
-  .tech-help-breadcrumb-parent {
+  .tech-help-title {
     font-size: 20px !important;
   }
   

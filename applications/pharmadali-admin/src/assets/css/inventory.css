@@ -3,35 +3,8 @@
 }
 
 .inventory-breadcrumbs {
-  font-size: 13px;
+  font-size: 0.9rem;
   color: #48aad9;
-}
-
-.breadcrumb-link {
-  background: none;
-  border: none;
-  padding: 0;
-  color: #48aad9;
-  cursor: pointer;
-  font-weight: 500;
-  text-decoration: none;
-  transition: opacity 0.2s ease;
-  opacity: 0.7;
-}
-
-.breadcrumb-link:hover {
-  opacity: 1;
-}
-
-.breadcrumb-separator {
-  margin: 0 0.5rem;
-  color: #48aad9;
-  font-weight: 400;
-}
-
-.breadcrumb-current {
-  color: #48aad9;
-  font-weight: 600;
 }
 
 .inventory-metrics {

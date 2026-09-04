@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { createTicket } from "../../services/ticketService";
 import SelectDropdown from "../../shared/components/SelectDropdown";
+import Breadcrumb from "../../shared/components/Breadcrumb";
 import successIcon from "../../assets/icons/help-icons/success.svg";
 
 function ReportIssue({ setView }) {
@@ -66,19 +67,14 @@ function ReportIssue({ setView }) {
 
     return (
         <section className="dashboard-page tech-help-page">
+            <Breadcrumb
+                crumbs={[
+                    { label: "Get Technical Help", onClick: () => setView("home") },
+                    { label: "Report an Issue" },
+                ]}
+            />
             <header className="admin-page-header mb-4">
-                <h4 className="fw-bold mb-1 d-flex align-items-center gap-2 flex-wrap">
-                    <span
-                        className="tech-help-breadcrumb-parent"
-                        onClick={() => setView("home")}
-                        role="button"
-                        tabIndex={0}
-                    >
-                        Get Technical Help
-                    </span>
-                    <i className="fa-solid fa-chevron-right tech-help-breadcrumb-icon" aria-hidden="true" />
-                    <span className="admin-page-title">Report an Issue</span>
-                </h4>
+                <h4 className="fw-bold mb-1 admin-page-title">Report an Issue</h4>
                 <p className="admin-page-subtitle mb-0">
                     Access assistance for troubleshooting, feature use, and other technical concerns.
                 </p>
