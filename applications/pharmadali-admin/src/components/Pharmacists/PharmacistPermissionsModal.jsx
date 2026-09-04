@@ -65,7 +65,7 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   useEffect(() => {
-    if (pharmacist) {
+    if (isOpen && pharmacist) {
       const existing = pharmacist.pharmacist?.permissions ?? [
         "access_pos",
         "access_pickup",
@@ -76,7 +76,7 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
       setSelectedPermissions(existing);
       setError(null);
     }
-  }, [pharmacist]);
+  }, [pharmacist, isOpen]);
 
   if (!isOpen || !pharmacist) return null;
 
