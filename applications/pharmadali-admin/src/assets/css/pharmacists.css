@@ -807,9 +807,9 @@
 }
 
 .permission-modal-user-subtitle {
-  font-size: 12px;
-  color: #64748b;
-  font-weight: 500;
+  font-size: 14px;
+  color: #475569;
+  font-weight: 600;
 }
 
 .permission-modal-body-wrap {
@@ -1018,7 +1018,9 @@
   }
 
   .permission-modal-user-subtitle {
-    font-size: 11px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #475569;
   }
 
   .permission-presets-label {
