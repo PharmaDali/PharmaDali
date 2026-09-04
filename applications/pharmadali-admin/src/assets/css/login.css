@@ -3,26 +3,26 @@
   height: 100vh;
   overflow: hidden;
   background: #96d2ee;
-  animation: loginBgShift 8s ease forwards;
+  animation: loginBgShift 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 .login-brand-block {
   position: absolute;
-  top: 80%;
+  top: 46%;
   left: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transform: translate(-50%, -50%) scale(0.22);
+  transform: translate3d(-50%, -50%, 0) scale(0.3);
   transform-origin: center;
-  animation: logoIntroSequence 8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: logoIntroSequence 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   z-index: 2;
 }
 
 .login-logo-stack {
   position: relative;
-  width: min(38vw, 1000px);
+  width: min(42vw, 560px);
 }
 
 .login-logo {
@@ -34,14 +34,14 @@
 .login-logo-blue {
   position: absolute;
   inset: 0;
-  will-change: opacity, transform, filter;
+  will-change: opacity, transform;
   backface-visibility: hidden;
 }
 
 .login-logo-white {
   position: relative;
   z-index: 2;
-  animation: whiteLogoPhase 7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: whiteLogoPhase 2.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 .login-logo-blue {
@@ -51,24 +51,23 @@
   left: 50%;
   width: 92%;
   opacity: 0;
-  transform: translate(-50%, -50.5%) scale(1);
-  filter: blur(4px);
-  animation: blueLogoPhase 9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform: translate3d(-50%, -50%, 0) scale(1);
+  animation: blueLogoPhase 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 .login-form-panel {
   position: absolute;
   top: 50%;
-  right: clamp(4vw, 10vw, 10vw);
-  width: min(36vw, 450px);
+  right: clamp(4vw, 8vw, 9vw);
+  width: min(36vw, 440px);
   min-width: 320px;
-  padding: 2rem 1.15rem 1.2rem;
-  border-radius: 10px;
+  padding: 2rem 1.35rem 1.4rem;
+  border-radius: 14px;
   border: 1px solid var(--pd-border);
   background: #ffffff;
-  transform: translateY(-50%) translateX(48px);
+  transform: translate3d(40px, -50%, 0);
   opacity: 0;
-  animation: formReveal 3s ease-out 5s both;
+  animation: formReveal 1.2s cubic-bezier(0.25, 1, 0.5, 1) 1.6s both;
   z-index: 3;
 }
 
@@ -161,7 +160,7 @@
 
 @keyframes loginBgShift {
   0%,
-  60% {
+  45% {
     background: #96d2ee;
   }
 
@@ -172,100 +171,55 @@
 
 @keyframes logoIntroSequence {
   0% {
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.22);
+    transform: translate3d(-50%, -50%, 0) scale(0.3);
   }
 
-  52% {
-    top: 44%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(1);
+  45% {
+    transform: translate3d(-50%, -50%, 0) scale(1);
   }
 
   100% {
-    top: 44%;
-    left: 30%;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate3d(-30vw, -50%, 0) scale(1);
   }
 }
 
 @keyframes formReveal {
   from {
     opacity: 0;
-    transform: translateY(-50%) translateX(48px);
+    transform: translate3d(40px, -50%, 0);
   }
 
   to {
     opacity: 1;
-    transform: translateY(-50%) translateX(0);
+    transform: translate3d(0, -50%, 0);
   }
 }
 
 @keyframes whiteLogoPhase {
   0%,
-  68% {
+  40% {
     opacity: 1;
-    transform: scale(1);
-    filter: blur(0);
   }
 
-  98%,
+  85%,
   100% {
     opacity: 0;
-    transform: scale(1.015);
-    filter: blur(1px);
   }
 }
 
 @keyframes blueLogoPhase {
   0%,
-  62% {
+  35% {
     opacity: 0;
-    transform: translate(-50%, -50.5%) scale(1);
-    filter: blur(1px);
   }
 
-  99%,
+  85%,
   100% {
     opacity: 1;
-    transform: translate(-50%, -50.5%) scale(1.015);
-    filter: blur(0);
   }
 }
 
 @media (max-width: 1024px) {
-  .login-logo-stack {
-    width: min(48vw, 360px);
-  }
-
-  .login-form-panel {
-    right: 6vw;
-    width: min(42vw, 410px);
-  }
-
-  @keyframes logoIntroSequence {
-    0% {
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(0.22);
-    }
-
-    52% {
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%) scale(1);
-    }
-
-    100% {
-      top: 46%;
-      left: 27%;
-      transform: translate(-50%, -50%) scale(1);
-    }
-  }
-}
-
-@media (max-width: 850px) {
   .login-page {
     position: relative;
     height: 100vh;
@@ -284,8 +238,8 @@
     inset: auto;
     transform-origin: center;
     transform: scale(0.25);
-    margin-bottom: 2.25rem;
-    animation: mobileLogoIntroSequence 5.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    margin-bottom: 2rem;
+    animation: mobileLogoIntroSequence 5.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     z-index: 2;
     display: flex;
     flex-direction: column;
@@ -293,22 +247,24 @@
   }
 
   .login-logo-stack {
-    width: min(72vw, 300px);
+    width: min(65vw, 340px);
   }
 
   .login-logo-white {
-    animation: mobileWhiteLogoPhase 4.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: mobileWhiteLogoPhase 4.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .login-logo-blue {
-    animation: mobileBlueLogoPhase 5.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: mobileBlueLogoPhase 5.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   .login-form-panel {
     position: relative;
     inset: auto;
+    top: auto;
+    right: auto;
     transform: translateY(28px);
-    width: min(88vw, 370px);
+    width: min(85vw, 390px);
     min-width: 0;
     padding: 1.75rem 1.35rem 1.35rem;
     border-radius: 18px;
@@ -397,22 +353,18 @@
 @keyframes mobileWhiteLogoPhase {
   0%, 50% {
     opacity: 1;
-    filter: blur(0);
   }
   95%, 100% {
     opacity: 0;
-    filter: blur(1px);
   }
 }
 
 @keyframes mobileBlueLogoPhase {
   0%, 45% {
     opacity: 0;
-    filter: blur(1px);
   }
   95%, 100% {
     opacity: 1;
-    filter: blur(0);
   }
 }
 
