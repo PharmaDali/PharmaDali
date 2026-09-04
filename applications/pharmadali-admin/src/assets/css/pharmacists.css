@@ -140,19 +140,48 @@
   background: #f4f9fd;
 }
 
-.pharmacists-table-scroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+.pharmacists-table-scroll,
+.pharmacists-modal,
+.pharmacists-modal-form,
+.pharmacists-details-content,
+.permission-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--pd-primary, #2aabe2) #f0f4f8;
 }
 
-.pharmacists-table-scroll::-webkit-scrollbar-track {
-  background: #dff0f8;
-  border-radius: 999px;
+.pharmacists-table-scroll::-webkit-scrollbar,
+.pharmacists-modal::-webkit-scrollbar,
+.pharmacists-modal-form::-webkit-scrollbar,
+.pharmacists-details-content::-webkit-scrollbar,
+.permission-list::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-.pharmacists-table-scroll::-webkit-scrollbar-thumb {
-  background: #42a8d8;
-  border-radius: 999px;
+.pharmacists-table-scroll::-webkit-scrollbar-track,
+.pharmacists-modal::-webkit-scrollbar-track,
+.pharmacists-modal-form::-webkit-scrollbar-track,
+.pharmacists-details-content::-webkit-scrollbar-track,
+.permission-list::-webkit-scrollbar-track {
+  background: #f0f4f8;
+  border-radius: 10px;
+}
+
+.pharmacists-table-scroll::-webkit-scrollbar-thumb,
+.pharmacists-modal::-webkit-scrollbar-thumb,
+.pharmacists-modal-form::-webkit-scrollbar-thumb,
+.pharmacists-details-content::-webkit-scrollbar-thumb,
+.permission-list::-webkit-scrollbar-thumb {
+  background: var(--pd-primary, #2aabe2);
+  border-radius: 10px;
+}
+
+.pharmacists-table-scroll::-webkit-scrollbar-thumb:hover,
+.pharmacists-modal::-webkit-scrollbar-thumb:hover,
+.pharmacists-modal-form::-webkit-scrollbar-thumb:hover,
+.pharmacists-details-content::-webkit-scrollbar-thumb:hover,
+.permission-list::-webkit-scrollbar-thumb:hover {
+  background: var(--pd-primary-dark, #1f96cb);
 }
 
 .pharmacists-action-btn {

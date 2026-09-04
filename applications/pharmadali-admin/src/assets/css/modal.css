@@ -80,6 +80,27 @@
 .pd-modal__body {
   padding: 20px;
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--pd-primary, #2aabe2) #f0f4f8;
+}
+
+.pd-modal__body::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.pd-modal__body::-webkit-scrollbar-track {
+  background: #f0f4f8;
+  border-radius: 10px;
+}
+
+.pd-modal__body::-webkit-scrollbar-thumb {
+  background: var(--pd-primary, #2aabe2);
+  border-radius: 10px;
+}
+
+.pd-modal__body::-webkit-scrollbar-thumb:hover {
+  background: var(--pd-primary-dark, #1f96cb);
 }
 
 .pd-modal__footer {
