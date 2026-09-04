@@ -61,6 +61,13 @@ function resolveImageUrl(uri) {
 
     if (strUri.startsWith('/')) {
       strUri = `${apiOrigin}${strUri}`;
+    } else if (!strUri.startsWith('http://') && !strUri.startsWith('https://') && !strUri.startsWith('file://') && !strUri.startsWith('data:')) {
+      const cleanPath = strUri.replace(/^\/+/, '');
+      if (cleanPath.startsWith('storage/')) {
+        strUri = `${apiOrigin}/${cleanPath}`;
+      } else {
+        strUri = `${apiOrigin}/storage/${cleanPath}`;
+      }
     }
   }
 

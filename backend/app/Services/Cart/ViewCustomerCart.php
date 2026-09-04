@@ -75,6 +75,8 @@ class ViewCustomerCart
 					'strength' => $item->pharmacyProduct?->product?->strength,
 					'size' => $item->pharmacyProduct?->product?->size,
 					'is_prescribed' => $prescriptionRequired,
+					'image_path' => $item->pharmacyProduct?->product?->image_path,
+					'image_url' => $item->pharmacyProduct?->product?->image_url,
 				],
 				'prescription_required' => $prescriptionRequired,
 				'is_discountable' => $isDiscountable,

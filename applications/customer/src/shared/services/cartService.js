@@ -82,6 +82,7 @@ function mapCartApiItem(item) {
     product: item?.product || {},
     category: item?.category || {},
     availability: item?.availability || {},
+    img: item?.product?.image_url || item?.product?.image_path || null,
     isAvailable: (() => {
       const isAvailFlag = item?.availability?.is_available ?? item?.is_available;
       const isExpiredFlag = item?.availability?.is_expired ?? item?.is_expired;
