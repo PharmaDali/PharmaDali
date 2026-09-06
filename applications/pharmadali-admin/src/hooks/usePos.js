@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchPosProducts, createPosOrder } from "../services/posService";
+import { fetchPosProducts, createPosOrder, fetchPosReceipt } from "../services/posService";
+import { getPharmacySettings } from "../services/pharmacySettingsService";
 
 export function usePos() {
   const [search, setSearch] = useState("");
@@ -17,10 +18,28 @@ export function usePos() {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [paymentError, setPaymentError] = useState("");
 
+  // Hardware & Receipt print settings
+  const [printAfterPayment, setPrintAfterPayment] = useState(false);
+  const [shouldPrintReceipt, setShouldPrintReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
+  const [loadingReceipt, setLoadingReceipt] = useState(false);
+
   // Discount state
   const [discountType, setDiscountType] = useState("none");
   const [discountPercentage, setDiscountPercentage] = useState("");
   const [discountIdNumber, setDiscountIdNumber] = useState("");
+
+  // Fetch pharmacy hardware settings on mount
+  useEffect(() => {
+    getPharmacySettings()
+      .then((res) => {
+        const hardware = res?.data?.hardware_settings || {};
+        setPrintAfterPayment(Boolean(hardware.print_after_payment));
+      })
+      .catch((err) => {
+        console.error("Failed to load POS hardware settings:", err);
+      });
+  }, []);
 
   // Modal states
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -166,6 +185,25 @@ export function usePos() {
 
       if (response.status === "success" || response.status === "Success") {
         setPaymentResult("success");
+        
+        const createdOrder = response.data || response;
+        const orderId = createdOrder?.id;
+
+        if ((printAfterPayment || shouldPrintReceipt) && orderId) {
+          setLoadingReceipt(true);
+          fetchPosReceipt(orderId)
+            .then((res) => {
+              setReceiptData(res?.data || res);
+            })
+            .catch((err) => {
+              console.error("Failed to load receipt payload:", err);
+            })
+            .finally(() => {
+              setLoadingReceipt(false);
+            });
+        }
+
+        setShouldPrintReceipt(false);
         setOrderItems([]);
         setSelectedProduct(null);
         setPaymentMethod("");
@@ -207,6 +245,12 @@ export function usePos() {
     paymentMethod,
     setPaymentMethod,
     paymentError,
+    printAfterPayment,
+    shouldPrintReceipt,
+    setShouldPrintReceipt,
+    receiptData,
+    setReceiptData,
+    loadingReceipt,
     discountType,
     setDiscountType,
     discountPercentage,

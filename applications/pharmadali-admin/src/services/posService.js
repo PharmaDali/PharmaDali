@@ -33,3 +33,8 @@ export const completePickupOrder = async (orderId, paymentMethod, amountReceived
   });
   return response;
 };
+
+export const fetchPosReceipt = async (orderId) => {
+  const response = await apiRequest.get(`/pos/orders/${orderId}/receipt`);
+  return response;
+};

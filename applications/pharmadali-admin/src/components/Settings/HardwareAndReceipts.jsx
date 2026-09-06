@@ -32,7 +32,7 @@ export const HardwareAndReceipts = ({ onNavigate }) => {
 
   const [formData, setFormData] = useState({
     printerName: "POS Thermal Printer (USB)",
-    printAfterPayment: true,
+    printAfterPayment: false,
     receiptHeader: "",
     receiptFooter: "Thank you for choosing PharmaDali! Get well soon.",
     sortBy: "By Added Order",
@@ -57,7 +57,7 @@ export const HardwareAndReceipts = ({ onNavigate }) => {
         printerName: hardware.printer_name || "POS Thermal Printer (USB)",
         printAfterPayment: hardware.print_after_payment ?? true,
         receiptHeader: hardware.receipt_header || pharmacyName,
-        receiptFooter: hardware.receipt_footer ?? "Thank you for choosing PharmaDali! Get well soon.",
+        receiptFooter: hardware.receipt_footer || `Thank you for choosing ${pharmacyName}! Get well soon.`,
         sortBy: hardware.receipt_sort_by || "By Added Order",
         showDiscount: hardware.show_discount_on_receipt ?? true,
         showVatBreakdown: hardware.show_vat_breakdown_on_receipt ?? true,
@@ -183,16 +183,22 @@ export const HardwareAndReceipts = ({ onNavigate }) => {
     {
       key: "receiptFooter",
       label: "Receipt Footer Message",
-      helper: "Closing message printed at the bottom of receipts.",
+      helper: "Closing message printed at the bottom of receipts (max 150 characters).",
       content: (
-        <textarea
-          className="form-control settings-form-input"
-          rows="4"
-          disabled={!isEditing || saving}
-          style={{ minHeight: "100px", resize: "vertical" }}
-          value={formData.receiptFooter}
-          onChange={(e) => handleInputChange("receiptFooter", e.target.value)}
-        />
+        <div>
+          <textarea
+            className="form-control settings-form-input"
+            rows="3"
+            maxLength={150}
+            disabled={!isEditing || saving}
+            style={{ minHeight: "90px", resize: "vertical" }}
+            value={formData.receiptFooter}
+            onChange={(e) => handleInputChange("receiptFooter", e.target.value.slice(0, 150))}
+          />
+          <div className="text-end text-muted mt-1" style={{ fontSize: "11px" }}>
+            {formData.receiptFooter.length}/150 characters
+          </div>
+        </div>
       ),
     },
     {
