@@ -11,6 +11,7 @@ use App\Notifications\DiscountIdVerifiedNotification;
 use App\Notifications\PaymentReceiptVerifiedNotification;
 use App\Services\Messaging\ConversationService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class UpdateOrderStatusByPharmacistService
@@ -66,103 +67,107 @@ class UpdateOrderStatusByPharmacistService
             ], 422);
         }
 
-        $allowedCurrentStatuses = self::ACTION_ALLOWED_CURRENT_STATUSES[$action];
-        if (!in_array($order->status, $allowedCurrentStatuses, true)) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'This order cannot be updated to the requested status.',
-            ], 422);
-        }
+        return DB::transaction(function () use ($user, $order, $action, $reason, $section) {
+            $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first() ?? $order;
 
-        if ($action === 'reject' && blank($reason) && !$section) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Reason is required when rejecting an order.',
-            ], 422);
-        }
-
-        // Handle section-specific rejections (Prescription, Discount ID, Payment Receipt)
-        if ($action === 'reject' && !empty($section)) {
-            return $this->handleSectionRejection($user, $order, $section, $reason);
-        }
-
-        // Handle section-specific approvals (Discount ID, Payment Receipt)
-        if ($action === 'approve' && !empty($section) && in_array($section, ['discount', 'receipt'])) {
-            return $this->handleSectionApproval($user, $order, $section);
-        }
-
-        $nextStatus = self::ACTION_TO_STATUS[$action];
-
-        if ($action === 'approve' && $order->payment_method === 'gcash' && $order->payment_status === \App\Enums\PaymentStatus::UNPAID) {
-            // Only go to awaiting_payment if discount ID (if present) is already approved
-            $discountPending = $order->discount_id_image_path
-                && !preg_match('/^(approved|rejected|acknowledged_rejected)/i', $order->discount_remarks ?? '');
-            if (!$discountPending) {
-                $nextStatus = OrderStatus::AWAITING_PAYMENT;
+            $allowedCurrentStatuses = self::ACTION_ALLOWED_CURRENT_STATUSES[$action];
+            if (!in_array($lockedOrder->status, $allowedCurrentStatuses, true)) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'This order cannot be updated to the requested status.',
+                ], 422);
             }
-        }
 
-        $updatePayload = [
-            'status'      => $nextStatus,
-            'verified_by' => $user->id,
-            'verified_at' => now(),
-        ];
-
-        if ($nextStatus === OrderStatus::CANCELLED) {
-            $updatePayload['cancelled_at'] = now();
-            $updatePayload['cancellation_reason'] = 'Rejected by pharmacist: ' . trim((string) $reason);
-        } elseif ($nextStatus === OrderStatus::STAND_BY && !empty($reason)) {
-            $updatePayload['cancellation_reason'] = trim((string) $reason);
-        }
-
-        $order->update($updatePayload);
-        $order = $order->fresh();
-
-        // Notify customer about status change
-        if ($action === 'reject') {
-            $order->customer->user->notify(new OrderRejectedNotification($order));
-        } else {
-            $order->customer->user->notify(new OrderStatusNotification($order));
-        }
-
-        $systemMessage = match ($action) {
-            'approve'     => 'Prescription approved',
-            'ready'       => 'Ready for pickup',
-            'pending'     => 'Order placed on hold',
-            'out_pending' => 'Order removed from hold',
-            default       => 'Order rejected',
-        };
-
-        $msg = $this->conversationService->appendSystemMessage($order, $systemMessage, [
-            'action' => $action,
-            'status' => $order->status,
-            'reason' => $reason,
-        ]);
-
-        if ($action === 'reject') {
-            try {
-                $msg->conversation()->update([
-                    'status'    => 'closed',
-                    'closed_at' => now(),
-                ]);
-            } catch (\Throwable $e) {
-                Log::error('Failed to close conversation on pharmacist reject: ' . $e->getMessage());
+            if ($action === 'reject' && blank($reason) && !$section) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Reason is required when rejecting an order.',
+                ], 422);
             }
-        }
 
-        $successMessage = match ($action) {
-            'approve'     => 'Order approved successfully.',
-            'ready'       => 'Order marked as ready for pickup.',
-            'pending'     => 'Order marked as pending successfully.',
-            'out_pending' => 'Order removed from pending status.',
-            default       => 'Order rejected successfully.',
-        };
+            // Handle section-specific rejections (Prescription, Discount ID, Payment Receipt)
+            if ($action === 'reject' && !empty($section)) {
+                return $this->handleSectionRejection($user, $lockedOrder, $section, $reason);
+            }
 
-        return response()->json([
-            'status'  => 'success',
-            'message' => $successMessage,
-            'data'    => $order->fresh(),
-        ]);
+            // Handle section-specific approvals (Discount ID, Payment Receipt)
+            if ($action === 'approve' && !empty($section) && in_array($section, ['discount', 'receipt'])) {
+                return $this->handleSectionApproval($user, $lockedOrder, $section);
+            }
+
+            $nextStatus = self::ACTION_TO_STATUS[$action];
+
+            if ($action === 'approve' && $lockedOrder->payment_method === 'gcash' && $lockedOrder->payment_status === \App\Enums\PaymentStatus::UNPAID) {
+                // Only go to awaiting_payment if discount ID (if present) is already approved
+                $discountPending = $lockedOrder->discount_id_image_path
+                    && !preg_match('/^(approved|rejected|acknowledged_rejected)/i', $lockedOrder->discount_remarks ?? '');
+                if (!$discountPending) {
+                    $nextStatus = OrderStatus::AWAITING_PAYMENT;
+                }
+            }
+
+            $updatePayload = [
+                'status'      => $nextStatus,
+                'verified_by' => $user->id,
+                'verified_at' => now(),
+            ];
+
+            if ($nextStatus === OrderStatus::CANCELLED) {
+                $updatePayload['cancelled_at'] = now();
+                $updatePayload['cancellation_reason'] = 'Rejected by pharmacist: ' . trim((string) $reason);
+            } elseif ($nextStatus === OrderStatus::STAND_BY && !empty($reason)) {
+                $updatePayload['cancellation_reason'] = trim((string) $reason);
+            }
+
+            $lockedOrder->update($updatePayload);
+            $order = $lockedOrder->fresh();
+
+            // Notify customer about status change
+            if ($action === 'reject') {
+                $order->customer->user->notify(new OrderRejectedNotification($order));
+            } else {
+                $order->customer->user->notify(new OrderStatusNotification($order));
+            }
+
+            $systemMessage = match ($action) {
+                'approve'     => 'Prescription approved',
+                'ready'       => 'Ready for pickup',
+                'pending'     => 'Order placed on hold',
+                'out_pending' => 'Order removed from hold',
+                default       => 'Order rejected',
+            };
+
+            $msg = $this->conversationService->appendSystemMessage($order, $systemMessage, [
+                'action' => $action,
+                'status' => $order->status,
+                'reason' => $reason,
+            ]);
+
+            if ($action === 'reject') {
+                try {
+                    $msg->conversation()->update([
+                        'status'    => 'closed',
+                        'closed_at' => now(),
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::error('Failed to close conversation on pharmacist reject: ' . $e->getMessage());
+                }
+            }
+
+            $successMessage = match ($action) {
+                'approve'     => 'Order approved successfully.',
+                'ready'       => 'Order marked as ready for pickup.',
+                'pending'     => 'Order marked as pending successfully.',
+                'out_pending' => 'Order removed from pending status.',
+                default       => 'Order rejected successfully.',
+            };
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => $successMessage,
+                'data'    => $order->fresh(),
+            ]);
+        });
     }
 
     private function handleSectionRejection(User $user, Order $order, string $section, ?string $reason): JsonResponse

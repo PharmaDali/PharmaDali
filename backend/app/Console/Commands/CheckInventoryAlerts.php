@@ -10,6 +10,7 @@ use App\Notifications\AdminAlertNotification;
 use App\Services\Inventory\RestockPredictorService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class CheckInventoryAlerts extends Command
@@ -25,19 +26,30 @@ class CheckInventoryAlerts extends Command
      */
     public function handle(RestockPredictorService $restockPredictorService): int
     {
-        $this->info('Starting inventory alerts scan...');
+        $lock = Cache::lock('inventory:check-alerts', 55);
 
-        // 1. Process Low Stock Alerts
-        $this->processLowStocks($restockPredictorService);
+        if (!$lock->get()) {
+            $this->info('Inventory alerts scan is already running. Skipping execution.');
+            return self::SUCCESS;
+        }
 
-        // 2. Process Expiry Warnings
-        $this->processExpiryWarnings();
+        try {
+            $this->info('Starting inventory alerts scan...');
 
-        // 3. Process Shortage Alerts (using Restock Predictor Service)
-        $this->processShortages($restockPredictorService);
+            // 1. Process Low Stock Alerts
+            $this->processLowStocks($restockPredictorService);
 
-        $this->info('Inventory alerts scan completed.');
-        return self::SUCCESS;
+            // 2. Process Expiry Warnings
+            $this->processExpiryWarnings();
+
+            // 3. Process Shortage Alerts (using Restock Predictor Service)
+            $this->processShortages($restockPredictorService);
+
+            $this->info('Inventory alerts scan completed.');
+            return self::SUCCESS;
+        } finally {
+            $lock->release();
+        }
     }
 
     /**
