@@ -43,6 +43,9 @@ export default function PosCurrentOrder() {
     removeFromOrder,
     openCompleteSaleModal,
     handleSelectPaymentMethod,
+    printAfterPayment,
+    shouldPrintReceipt,
+    setShouldPrintReceipt,
   } = usePosContext();
 
   const totalQty = items.reduce((sum, item) => sum + item.qty, 0);
@@ -298,14 +301,32 @@ export default function PosCurrentOrder() {
         )}
       </div>
 
-      <button
-        type="button"
-        className="btn w-100 py-2 mt-auto pos-order-complete-btn d-none d-md-block"
-        onClick={openCompleteSaleModal}
-        disabled={isOrderEmpty || (!!paymentError && !paymentMethod)}
-      >
-        Complete Sale
-      </button>
+      <div className="mt-auto w-100 flex-shrink-0">
+        {!printAfterPayment && (
+          <div className="d-none d-md-flex align-items-center gap-2 mt-3 mb-1 px-1 text-secondary" style={{ fontSize: "12px" }}>
+            <input
+              type="checkbox"
+              id="posDesktopPrintReceipt"
+              className="form-check-input mt-0"
+              style={{ width: "15px", height: "15px", cursor: "pointer" }}
+              checked={shouldPrintReceipt}
+              onChange={(e) => setShouldPrintReceipt(e.target.checked)}
+            />
+            <label htmlFor="posDesktopPrintReceipt" className="user-select-none mb-0 fw-medium text-dark" style={{ cursor: "pointer" }}>
+              Print thermal receipt after sale
+            </label>
+          </div>
+        )}
+
+        <button
+          type="button"
+          className="btn w-100 py-2 mt-1 pos-order-complete-btn d-none d-md-block"
+          onClick={openCompleteSaleModal}
+          disabled={isOrderEmpty || (!!paymentError && !paymentMethod)}
+        >
+          Complete Sale
+        </button>
+      </div>
     </div>
   );
 }

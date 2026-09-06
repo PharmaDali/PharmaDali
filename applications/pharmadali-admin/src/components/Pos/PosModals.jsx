@@ -6,6 +6,7 @@ import {
   PaymentResultModal,
 } from "../../shared/components/PaymentModals";
 import AddQuantityModal from "./AddQuantityModal";
+import PosReceiptModal from "./PosReceiptModal";
 
 export default function PosModals() {
   const {
@@ -29,6 +30,8 @@ export default function PosModals() {
     setIsQuantityModalOpen,
     productToQuantity,
     handleAddQuantityToOrder,
+    receiptData,
+    setReceiptData,
   } = usePosContext();
 
   return (
@@ -63,6 +66,11 @@ export default function PosModals() {
         onClose={() => setIsQuantityModalOpen(false)}
         product={productToQuantity}
         onAddToOrder={handleAddQuantityToOrder}
+      />
+
+      <PosReceiptModal
+        receiptData={receiptData}
+        onPrintCompleted={() => setReceiptData(null)}
       />
     </>
   );

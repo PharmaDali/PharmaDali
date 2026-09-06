@@ -47,6 +47,15 @@ class PharmacySettingsService
                 'allow_item_exchange'       => (bool) ($pharmacy->allow_item_exchange ?? true),
                 'allow_cash_refund'         => (bool) ($pharmacy->allow_cash_refund ?? false),
             ],
+            'hardware_settings' => [
+                'printer_name'                  => $pharmacy->printer_name ?? 'POS Thermal Printer (USB)',
+                'print_after_payment'           => (bool) ($pharmacy->print_after_payment ?? false),
+                'receipt_header'                => $pharmacy->receipt_header ?: $pharmacy->pharmacy_name,
+                'receipt_footer'                => $pharmacy->receipt_footer ?? 'Thank you for choosing PharmaDali! Get well soon.',
+                'receipt_sort_by'               => $pharmacy->receipt_sort_by ?? 'By Added Order',
+                'show_discount_on_receipt'      => (bool) ($pharmacy->show_discount_on_receipt ?? true),
+                'show_vat_breakdown_on_receipt' => (bool) ($pharmacy->show_vat_breakdown_on_receipt ?? true),
+            ],
         ];
     }
 
@@ -73,6 +82,13 @@ class PharmacySettingsService
             'item_exchange_window_days',
             'allow_item_exchange',
             'allow_cash_refund',
+            'printer_name',
+            'print_after_payment',
+            'receipt_header',
+            'receipt_footer',
+            'receipt_sort_by',
+            'show_discount_on_receipt',
+            'show_vat_breakdown_on_receipt',
         ];
 
         $filteredData = array_intersect_key($data, array_flip($allowed));

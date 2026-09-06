@@ -57,6 +57,16 @@ class ReceiptService
             $customerName = trim($user->first_name . ' ' . $user->last_name);
         }
 
+        // --- Item Sorting according to pharmacy settings ---
+        $sortBy = $pharmacy?->receipt_sort_by ?? 'By Added Order';
+        $sortedItems = match ($sortBy) {
+            'By Product Name (A–Z)' => $items->sortBy('product_name', SORT_NATURAL | SORT_FLAG_CASE),
+            'By Category'           => $items->sortBy(fn($item) => $item->pharmacyProduct?->category?->category_name ?? ''),
+            'By Price (Low to High)'=> $items->sortBy('unit_price_snapshot'),
+            'By Price (High to Low)'=> $items->sortByDesc('unit_price_snapshot'),
+            default                 => $items,
+        };
+
         // --- Timestamps ---
         $completedAt = $order->completed_at ?? $order->placed_at ?? now();
         $receiptDate = Carbon::parse($completedAt)->format('F j, Y');
@@ -80,6 +90,15 @@ class ReceiptService
                 'serial_no'        => $pharmacy?->serial_no        ?? null,
                 'accreditation_no' => $pharmacy?->accreditation_no ?? null,
             ],
+            'receipt_settings' => [
+                'header'                => $pharmacy?->receipt_header ?: ($pharmacy?->pharmacy_name ?? 'PharmaDali'),
+                'footer'                => $pharmacy?->receipt_footer ?: ('Thank you for choosing ' . ($pharmacy?->pharmacy_name ?? 'PharmaDali') . '! Get well soon.'),
+                'printer_name'          => $pharmacy?->printer_name ?? 'POS Thermal Printer (USB)',
+                'print_after_payment'   => (bool) ($pharmacy?->print_after_payment ?? false),
+                'show_discount'         => (bool) ($pharmacy?->show_discount_on_receipt ?? true),
+                'show_vat_breakdown'    => (bool) ($pharmacy?->show_vat_breakdown_on_receipt ?? true),
+                'sort_by'               => $sortBy,
+            ],
             'invoice' => [
                 'invoice_no' => $order->order_number,
                 'date'       => $receiptDate,
@@ -87,7 +106,7 @@ class ReceiptService
                 'cashier'    => $cashierName,
                 'customer'   => $customerName,
             ],
-            'items' => $items->map(fn($item) => [
+            'items' => $sortedItems->map(fn($item) => [
                 'qty'        => (int) $item->quantity,
                 'name'       => $item->product_name,
                 'unit_price' => (float) $item->unit_price_snapshot,
