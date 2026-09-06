@@ -29,6 +29,13 @@ class UpdatePharmacySettingsRequest extends FormRequest
             'item_exchange_window_days'     => 'sometimes|integer|min:1|max:365',
             'allow_item_exchange'           => 'sometimes|boolean',
             'allow_cash_refund'             => 'sometimes|boolean',
+            'printer_name'                  => 'sometimes|nullable|string|max:255',
+            'print_after_payment'           => 'sometimes|boolean',
+            'receipt_header'                => 'sometimes|nullable|string|max:255',
+            'receipt_footer'                => 'sometimes|nullable|string|max:1000',
+            'receipt_sort_by'               => 'sometimes|nullable|string|max:100',
+            'show_discount_on_receipt'      => 'sometimes|boolean',
+            'show_vat_breakdown_on_receipt' => 'sometimes|boolean',
         ];
     }
 

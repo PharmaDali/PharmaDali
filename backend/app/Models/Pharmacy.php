@@ -38,6 +38,14 @@ class Pharmacy extends Model
         'machine_no',
         'serial_no',
         'accreditation_no',
+        // Hardware & receipt formatting fields
+        'printer_name',
+        'print_after_payment',
+        'receipt_header',
+        'receipt_footer',
+        'receipt_sort_by',
+        'show_discount_on_receipt',
+        'show_vat_breakdown_on_receipt',
     ];
 
     protected $casts = [
@@ -45,6 +53,9 @@ class Pharmacy extends Model
         'allow_otc_discount'            => 'boolean',
         'allow_item_exchange'           => 'boolean',
         'allow_cash_refund'             => 'boolean',
+        'print_after_payment'           => 'boolean',
+        'show_discount_on_receipt'      => 'boolean',
+        'show_vat_breakdown_on_receipt' => 'boolean',
         'item_exchange_window_days'     => 'integer',
         'permit_issued_at' => 'date',
         'ptu_valid_until'  => 'date',
