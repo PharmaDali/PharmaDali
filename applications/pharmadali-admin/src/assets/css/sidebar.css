@@ -35,23 +35,42 @@
 
 .sidebar-profile {
   background: var(--pd-gradient-sidebar-profile);
-  padding: 20px 15px;
+  padding: 20px 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .profile-avatar {
-  width: 45px;
-  height: 45px;
+  width: 48px;
+  height: 48px;
   object-fit: cover;
-  border: 2px solid white;
+  border: 2.5px solid #ffffff;
+  border-radius: 50% !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .online-indicator {
-  width: 10px;
-  height: 10px;
-  background: var(--pd-success);
-  border: 2px solid white;
-  bottom: -2px;
-  left: -2px;
+  width: 14px;
+  height: 14px;
+  background: #10b981;
+  border: 2px solid #ffffff;
+  bottom: 0px;
+  right: 0px;
+  left: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.profile-name {
+  font-size: 15.5px;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+  font-weight: 700 !important;
+}
+
+.profile-pharmacy {
+  font-size: 12.5px;
+  color: #475569;
+  font-weight: 500;
+  margin-top: 1px !important;
 }
 
 .menu-item {
@@ -136,7 +155,12 @@
 .sidebar-ellipsis {
   width: 8px;
   height: 20px;
-  color: #333;
+  color: #64748b;
+  transition: color 0.2s ease;
+}
+
+.sidebar-ellipsis:hover {
+  color: #0f172a;
 }
 
 @media (max-width: 991.98px) {
