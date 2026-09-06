@@ -49,7 +49,7 @@ class PharmacySettingsService
             ],
             'hardware_settings' => [
                 'printer_name'                  => $pharmacy->printer_name ?? 'POS Thermal Printer (USB)',
-                'print_after_payment'           => (bool) ($pharmacy->print_after_payment ?? true),
+                'print_after_payment'           => (bool) ($pharmacy->print_after_payment ?? false),
                 'receipt_header'                => $pharmacy->receipt_header ?: $pharmacy->pharmacy_name,
                 'receipt_footer'                => $pharmacy->receipt_footer ?? 'Thank you for choosing PharmaDali! Get well soon.',
                 'receipt_sort_by'               => $pharmacy->receipt_sort_by ?? 'By Added Order',

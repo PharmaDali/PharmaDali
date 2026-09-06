@@ -92,9 +92,9 @@ class ReceiptService
             ],
             'receipt_settings' => [
                 'header'                => $pharmacy?->receipt_header ?: ($pharmacy?->pharmacy_name ?? 'PharmaDali'),
-                'footer'                => $pharmacy?->receipt_footer ?? 'Thank you for choosing PharmaDali! Get well soon.',
+                'footer'                => $pharmacy?->receipt_footer ?: ('Thank you for choosing ' . ($pharmacy?->pharmacy_name ?? 'PharmaDali') . '! Get well soon.'),
                 'printer_name'          => $pharmacy?->printer_name ?? 'POS Thermal Printer (USB)',
-                'print_after_payment'   => (bool) ($pharmacy?->print_after_payment ?? true),
+                'print_after_payment'   => (bool) ($pharmacy?->print_after_payment ?? false),
                 'show_discount'         => (bool) ($pharmacy?->show_discount_on_receipt ?? true),
                 'show_vat_breakdown'    => (bool) ($pharmacy?->show_vat_breakdown_on_receipt ?? true),
                 'sort_by'               => $sortBy,

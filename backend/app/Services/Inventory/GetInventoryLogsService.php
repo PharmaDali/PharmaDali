@@ -42,7 +42,7 @@ class GetInventoryLogsService
                 'productName'  => $log->pharmacyProduct->product->product_name ?? 'Unknown Product',
                 'batchNumber'  => $log->batch?->batch_number,
                 'expiryDate'   => $log->batch?->expiry_date?->toDateString(),
-                'action'       => ucwords(str_replace('_', ' ', $log->transaction_type)),
+                'action'       => ucwords(str_replace('_', ' ', is_object($log->transaction_type) ? ($log->transaction_type->value ?? $log->transaction_type->name) : (string) $log->transaction_type)),
                 'quantity'     => $log->quantity,
                 'dateTime'     => $log->created_at->format('Y-m-d H:i'),
                 'user'         => $log->user

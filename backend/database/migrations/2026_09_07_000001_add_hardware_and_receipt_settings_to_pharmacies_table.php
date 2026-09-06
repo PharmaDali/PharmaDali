@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::table('pharmacies', function (Blueprint $table) {
             $table->string('printer_name', 100)->nullable()->default('POS Thermal Printer (USB)')->after('accreditation_no');
-            $table->boolean('print_after_payment')->default(true)->after('printer_name');
+            $table->boolean('print_after_payment')->default(false)->after('printer_name');
             $table->string('receipt_header', 255)->nullable()->after('print_after_payment');
             $table->text('receipt_footer')->nullable()->after('receipt_header');
             $table->string('receipt_sort_by', 50)->default('By Added Order')->after('receipt_footer');
