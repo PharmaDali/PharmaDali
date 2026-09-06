@@ -59,15 +59,17 @@ class PosPickupOrderService
             throw new \Exception("Unauthorized: Order does not belong to your pharmacy.");
         }
 
-        if ($order->status === OrderStatus::COMPLETED) {
-            throw new \Exception("Order is already completed.");
-        }
-
-        if ($order->status !== OrderStatus::READY_FOR_PICKUP) {
-            throw new \Exception("Order must be in 'ready_for_pickup' status to be completed at POS.");
-        }
-
         return DB::transaction(function () use ($order, $paymentMethod, $user, $amountReceived, $changeAmount, $discountData) {
+            $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first() ?? $order;
+
+            if ($lockedOrder->status === OrderStatus::COMPLETED) {
+                throw new \Exception("Order is already completed.");
+            }
+
+            if ($lockedOrder->status !== OrderStatus::READY_FOR_PICKUP) {
+                throw new \Exception("Order must be in 'ready_for_pickup' status to be completed at POS.");
+            }
+
             $pharmacy = $user->pharmacy ?? (Pharmacy::find($user->pharmacy_id));
             
             // Calculate subtotal from order items if subtotal is 0

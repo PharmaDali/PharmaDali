@@ -12,12 +12,17 @@ class ProductBatchRepository
     /**
      * Get all batches for a given pharmacy_product, ordered by nearest expiry first.
      */
-    public function getBatchesForPharmacyProduct(int $pharmacyProductId): Collection
+    public function getBatchesForPharmacyProduct(int $pharmacyProductId, bool $lockForUpdate = false): Collection
     {
-        return ProductBatch::where('pharmacy_product_id', $pharmacyProductId)
+        $query = ProductBatch::where('pharmacy_product_id', $pharmacyProductId)
             ->orderByRaw('CASE WHEN expiry_date IS NULL THEN 1 ELSE 0 END')
-            ->orderBy('expiry_date')
-            ->get();
+            ->orderBy('expiry_date');
+
+        if ($lockForUpdate) {
+            $query->lockForUpdate();
+        }
+
+        return $query->get();
     }
 
     /**
@@ -71,7 +76,7 @@ class ProductBatchRepository
             ->sortBy('expiry_date')
             ->first()?->expiry_date;
 
-        $pharmacyProduct = PharmacyProduct::find($pharmacyProductId);
+        $pharmacyProduct = PharmacyProduct::where('id', $pharmacyProductId)->lockForUpdate()->first() ?? PharmacyProduct::find($pharmacyProductId);
         if ($pharmacyProduct) {
             $pharmacyProduct->stock = $totalStock;
             
@@ -96,7 +101,7 @@ class ProductBatchRepository
      */
     public function stockOutFefo(int $pharmacyProductId, int $quantity): array
     {
-        $batches = $this->getBatchesForPharmacyProduct($pharmacyProductId);
+        $batches = $this->getBatchesForPharmacyProduct($pharmacyProductId, true);
 
         $totalAvailable = $batches->sum('stock');
         if ($quantity > $totalAvailable) {

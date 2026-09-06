@@ -34,7 +34,7 @@ class PosOrderService
             $items = $data['items'] ?? [];
 
             $itemIds = collect($items)->pluck('id')->toArray();
-            $pharmacyProducts = PharmacyProduct::with('product')->whereIn('id', $itemIds)->get()->keyBy('id');
+            $pharmacyProducts = PharmacyProduct::with('product')->whereIn('id', $itemIds)->lockForUpdate()->get()->keyBy('id');
             $pharmacy = $user->pharmacy ?? (Pharmacy::find($user->pharmacy_id ?? 1));
 
             // Calculate subtotal and validate stock
