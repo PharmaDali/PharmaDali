@@ -133,7 +133,7 @@ export default function AnalyticsChart({
           </span>
           <div style={{ width: "auto", minWidth: "110px" }}>
             <SelectDropdown
-              selectClassName="form-select-sm"
+              selectClassName="form-select-sm analytics-select"
               value={timeframe}
               onChange={(val) => onTimeframeChange(val)}
               options={timeframeOptions}
