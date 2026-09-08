@@ -1,6 +1,7 @@
 import React from "react";
 import { useItemExchange } from "../../hooks/useItemExchange";
 import { useProductSearch } from "../../hooks/useProductSearch";
+import SelectDropdown from "../../shared/components/SelectDropdown";
 
 export function ItemExchangeModal({ order, onClose, onSuccess }) {
   const {
@@ -198,15 +199,16 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                                   />
                                 </td>
                                 <td style={{ width: "140px" }}>
-                                  <select
-                                    className="form-select form-select-sm exchange-select"
+                                  <SelectDropdown
+                                    selectClassName="form-select-sm exchange-select"
                                     value={condition}
-                                    onChange={(e) => updateReturnCondition(item.order_item_id, e.target.value)}
-                                  >
-                                    <option value="resalable">Resalable</option>
-                                    <option value="damaged">Damaged</option>
-                                    <option value="expired">Expired</option>
-                                  </select>
+                                    onChange={(val) => updateReturnCondition(item.order_item_id, val)}
+                                    options={[
+                                      { label: "Resalable", value: "resalable" },
+                                      { label: "Damaged", value: "damaged" },
+                                      { label: "Expired", value: "expired" },
+                                    ]}
+                                  />
                                 </td>
                                 <td className="text-end fw-semibold text-dark">Php {subtotal.toFixed(2)}</td>
                               </tr>

@@ -179,14 +179,15 @@ export function AddProductModal({
             {addProductType === "medicine" && (
               <div className="add-product-field">
                 <label className="add-product-label">Needs Prescription</label>
-                <select
-                  className="add-product-select"
+                <SelectDropdown
+                  selectClassName="add-product-select"
                   value={addForm.needsPrescription}
-                  onChange={(e) => setAddForm(prev => ({ ...prev, needsPrescription: e.target.value }))}
-                >
-                  <option value="False">False</option>
-                  <option value="True">True</option>
-                </select>
+                  onChange={(val) => setAddForm(prev => ({ ...prev, needsPrescription: val }))}
+                  options={[
+                    { label: "False", value: "False" },
+                    { label: "True", value: "True" },
+                  ]}
+                />
               </div>
             )}
           </div>
@@ -219,14 +220,15 @@ export function AddProductModal({
             </div>
             <div className="add-product-field">
               <label className="add-product-label">Discountable</label>
-              <select
-                className="add-product-select"
+              <SelectDropdown
+                selectClassName="add-product-select"
                 value={addForm.discountable}
-                onChange={(e) => setAddForm(prev => ({ ...prev, discountable: e.target.value }))}
-              >
-                <option value="False">False</option>
-                <option value="True">True</option>
-              </select>
+                onChange={(val) => setAddForm(prev => ({ ...prev, discountable: val }))}
+                options={[
+                  { label: "False", value: "False" },
+                  { label: "True", value: "True" },
+                ]}
+              />
             </div>
             <div className="add-product-field">
               <label className="add-product-label">Selling Price</label>
