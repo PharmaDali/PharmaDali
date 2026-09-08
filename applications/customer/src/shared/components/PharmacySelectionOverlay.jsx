@@ -13,19 +13,30 @@ function parseTimeToMinutes(timeValue) {
     return null;
   }
 
-  const [hoursRaw, minutesRaw] = timeValue.split(':');
-  const hours = Number(hoursRaw);
-  const minutes = Number(minutesRaw);
+  const str = timeValue.trim();
 
-  if (!Number.isInteger(hours) || !Number.isInteger(minutes)) {
-    return null;
+  const ampmMatch = str.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
+  if (ampmMatch) {
+    const hours12 = Number(ampmMatch[1]);
+    const mins = Number(ampmMatch[2] || 0);
+    const period = ampmMatch[3].toUpperCase();
+
+    if (hours12 >= 1 && hours12 <= 12 && mins >= 0 && mins <= 59) {
+      const hours24 = (hours12 % 12) + (period === 'PM' ? 12 : 0);
+      return (hours24 * 60) + mins;
+    }
   }
 
-  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
-    return null;
+  const match24 = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (match24) {
+    const hours = Number(match24[1]);
+    const minutes = Number(match24[2]);
+    if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+      return (hours * 60) + minutes;
+    }
   }
 
-  return (hours * 60) + minutes;
+  return null;
 }
 
 function formatTimeToAmPm(timeValue) {
@@ -53,17 +64,14 @@ function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
 
   const currentMinutes = (now.getHours() * 60) + now.getMinutes();
 
-  // Same opening and closing time is treated as closed/invalid schedule.
   if (openingMinutes === closingMinutes) {
-    return false;
+    return true;
   }
 
-  // Normal schedule (e.g., 08:00 - 20:00)
   if (openingMinutes < closingMinutes) {
-    return currentMinutes >= openingMinutes && currentMinutes < closingMinutes;
+    return currentMinutes >= openingMinutes && currentMinutes <= closingMinutes;
   }
 
-  // Overnight schedule (e.g., 20:00 - 06:00)
   return currentMinutes >= openingMinutes || currentMinutes < closingMinutes;
 }
 
