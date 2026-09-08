@@ -2,7 +2,6 @@ import { StyleSheet, Text, View, ScrollView, TouchableOpacity, TextInput, Image,
 import React, { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import DateTimePicker from '@react-native-community/datetimepicker'
 import * as ImagePicker from 'expo-image-picker'
 import { colors } from '@src/shared/theme/colorPalette'
 import RedLocationIcon from '@assets/icons/red_location_icon.svg'
@@ -16,6 +15,7 @@ import GcashIcon from '@assets/icons/gcash_icon.svg'
 import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg'
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg'
 import StepIndicator from '@src/shared/components/StepIndicator'
+import PickupTimePickerModal from '@shared/components/PickupTimePickerModal'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
 import { useOrderSubmission } from '@shared/context/OrderSubmissionContext'
 import { useSelectionPhase } from '@shared/context/SelectionPhaseContext'
@@ -68,30 +68,27 @@ const PickupDetailsScreen = () => {
   const operatingMinutes = useMemo(() => parsePharmacyOperatingMinutes(selectedPharmacy), [selectedPharmacy])
   const openingMinutes = operatingMinutes.openingMinutes
   const closingMinutes = operatingMinutes.closingMinutes
-  const hasValidOperatingWindow = Number.isFinite(openingMinutes) && Number.isFinite(closingMinutes) && openingMinutes < closingMinutes
+  const hasValidOperatingWindow = Number.isFinite(openingMinutes) && Number.isFinite(closingMinutes) && openingMinutes <= closingMinutes
 
   const hasDiscountableItems = useMemo(() => {
     if (!items || items.length === 0) return false
     return items.some((item) => item.isDiscountable !== false)
   }, [items])
 
-  // Check whether the pharmacy is open RIGHT NOW (not just whether a schedule is set).
-  const isPharmacyClosed = useMemo(() => {
-    if (!hasValidOperatingWindow) return false // let other validations handle this
-    const now = new Date()
-    const currentMinutes = now.getHours() * 60 + now.getMinutes()
-    return currentMinutes < openingMinutes || currentMinutes >= closingMinutes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasValidOperatingWindow, openingMinutes, closingMinutes])
-
   const { minimumDateTime, closingDateTime, hasWindowToday } = useMemo(
     () => buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes),
     [selectedDate, openingMinutes, closingMinutes],
   )
 
+  const isPharmacyClosed = useMemo(() => {
+    if (!hasValidOperatingWindow) return false
+    return !hasWindowToday
+  }, [hasValidOperatingWindow, hasWindowToday])
+
   const formatTime12Hour = (date) => {
     if (!date || !(date instanceof Date)) return ''
     return date.toLocaleTimeString('en-PH', {
+      timeZone: 'Asia/Manila',
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
@@ -357,7 +354,7 @@ const PickupDetailsScreen = () => {
     let pickupDateFormatted = ''
     if (scheduledPickupAt) {
       const pDate = `${scheduledPickupAt.getFullYear()}-${String(scheduledPickupAt.getMonth() + 1).padStart(2, '0')}-${String(scheduledPickupAt.getDate()).padStart(2, '0')}`
-      const pTime = scheduledPickupAt.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+      const pTime = scheduledPickupAt.toLocaleTimeString('en-PH', { timeZone: 'Asia/Manila', hour: 'numeric', minute: '2-digit', hour12: true })
       pickupDateFormatted = `${pDate} ${pTime}`
     }
 
@@ -451,17 +448,34 @@ const PickupDetailsScreen = () => {
             </View>
           )}
 
-          {showTimePicker && hasValidOperatingWindow && hasWindowToday && (
-            <DateTimePicker
-              mode="time"
-              is24Hour={false}
-              value={selectedTime || minimumDateTime}
-              onChange={handleTimePickerChange}
-              minimumDate={minimumDateTime}
-              maximumDate={closingDateTime}
-              minuteInterval={15}
-            />
-          )}
+          <PickupTimePickerModal
+            visible={showTimePicker && hasValidOperatingWindow && hasWindowToday}
+            onClose={() => setShowTimePicker(false)}
+            onSelectTime={(pickedDate) => {
+              const timeError = validateScheduledPickupTime({
+                scheduledDateTime: pickedDate,
+                hasValidOperatingWindow,
+                closingMinutes,
+                minimumDateTime,
+                closingDateTime,
+              })
+
+              if (timeError) {
+                setSubmitError(timeError)
+                return
+              }
+
+              setSubmitError('')
+              setSelectedTime(pickedDate)
+            }}
+            selectedTime={selectedTime}
+            selectedDate={selectedDate}
+            openingMinutes={openingMinutes}
+            closingMinutes={closingMinutes}
+            minimumDateTime={minimumDateTime}
+            closingDateTime={closingDateTime}
+            pharmacyName={selectedPharmacy?.name || pharmacyLabel || 'Pharmacy'}
+          />
 
           <Text className="text-sm mt-4 mb-2" style={styles.fontSemiBold}>Customer Notes (Optional)</Text>
           <TextInput

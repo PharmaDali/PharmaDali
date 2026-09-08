@@ -196,26 +196,23 @@ function parseTimeToMinutes(timeValue) {
 
   const str = timeValue.trim();
 
-  const ampmMatch = str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  const ampmMatch = str.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
   if (ampmMatch) {
     const hours12 = Number(ampmMatch[1]);
-    const mins = Number(ampmMatch[2]);
+    const mins = Number(ampmMatch[2] || 0);
     const period = ampmMatch[3].toUpperCase();
 
-    if (hours12 < 1 || hours12 > 12 || mins < 0 || mins > 59) {
-      return null;
+    if (hours12 >= 1 && hours12 <= 12 && mins >= 0 && mins <= 59) {
+      const hours24 = (hours12 % 12) + (period === 'PM' ? 12 : 0);
+      return (hours24 * 60) + mins;
     }
-
-    const hours24 = (hours12 % 12) + (period === 'PM' ? 12 : 0);
-    return (hours24 * 60) + mins;
   }
 
-  const parts = str.split(':');
-  if (parts.length >= 2) {
-    const hours = Number(parts[0]);
-    const minutes = Number(parts[1]);
-
-    if (Number.isInteger(hours) && Number.isInteger(minutes) && hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+  const match24 = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (match24) {
+    const hours = Number(match24[1]);
+    const minutes = Number(match24[2]);
+    if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
       return (hours * 60) + minutes;
     }
   }
@@ -243,7 +240,7 @@ export function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
   const closingMinutes = parseTimeToMinutes(closingHour);
 
   if (openingMinutes === null || closingMinutes === null) {
-    return true;
+    return false;
   }
 
   const currentMinutes = (now.getHours() * 60) + now.getMinutes();
