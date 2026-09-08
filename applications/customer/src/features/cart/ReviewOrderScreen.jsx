@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@src/shared/theme/colorPalette'
@@ -9,6 +9,7 @@ import RedLocationIcon from '@assets/icons/red_location_icon.svg'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import RedInfoIcon from '@assets/icons/red_info_icon.svg'
 import ProductImage from '@shared/components/ProductImage'
+import TermsAndConditionsModal from '@shared/components/TermsAndConditionsModal'
 import { getCheckoutDraft } from '@shared/services/checkoutDraft'
 
 function truncateText(value, maxLength = 48) {
@@ -63,6 +64,7 @@ function OrderItemRow({ item }) {
 const ReviewOrderScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const [showTermsModal, setShowTermsModal] = useState(false)
   const { items: orderItems, pharmacyLabel, pharmacyLocationLabel, total: checkoutTotal } = getCheckoutDraft()
   const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const effectiveTotal = checkoutTotal > 0 ? checkoutTotal : total
@@ -119,7 +121,23 @@ const ReviewOrderScreen = () => {
           </View>
         )}
       </ScrollView>
-      <View className="flex-row justify-center gap-4 px-6 py-4 bg-white border-t border-gray-100">
+
+      {/* T&C Agreement Notice */}
+      <View className="items-center px-6 pt-2 pb-1 bg-white">
+        <Text className="text-[11px] text-gray-500 text-center" style={styles.fontMedium}>
+          By proceeding, you agree to PharmaDali’s{' '}
+          <Text
+            className="text-[#48AAD9]"
+            style={styles.fontSemiBold}
+            onPress={() => setShowTermsModal(true)}
+          >
+            Terms & Conditions
+          </Text>
+          .
+        </Text>
+      </View>
+
+      <View className="flex-row justify-center gap-4 px-6 pb-4 pt-2 bg-white border-t border-gray-100">
         <TouchableOpacity
           className="flex-1 border border-[#48AAD9] rounded-xl py-2.5 items-center"
           onPress={() => router.back()}
@@ -140,6 +158,11 @@ const ReviewOrderScreen = () => {
           <Text className="text-sm text-white" style={styles.nextText}>Next</Text>
         </TouchableOpacity>
       </View>
+
+      <TermsAndConditionsModal
+        visible={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+      />
     </View>
   )
 }
