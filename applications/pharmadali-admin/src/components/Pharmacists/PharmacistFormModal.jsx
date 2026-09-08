@@ -1,5 +1,6 @@
 import React, { useRef } from "react";
 import CustomDatePicker from "../../shared/components/CustomDatePicker";
+import SelectDropdown from "../../shared/components/SelectDropdown";
 
 export function PharmacistFormModal({
   isOpen,
@@ -165,15 +166,15 @@ export function PharmacistFormModal({
           <div className="pharmacists-form-row">
             <div className="pharmacists-form-group">
               <label className="pharmacists-form-label">Status</label>
-              <select
-                className={`form-control pharmacists-form-input ${fieldErrors.status ? "is-invalid" : ""}`}
-                name="status"
+              <SelectDropdown
+                selectClassName={`pharmacists-form-input ${fieldErrors.status ? "is-invalid" : ""}`}
                 value={formData.status}
-                onChange={handleInputChange}
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
+                onChange={(val) => handleInputChange({ target: { name: "status", value: val } })}
+                options={[
+                  { label: "Active", value: "Active" },
+                  { label: "Inactive", value: "Inactive" },
+                ]}
+              />
             </div>
             <div className="pharmacists-form-group">
               <label className="pharmacists-form-label">License number</label>

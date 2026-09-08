@@ -26,6 +26,7 @@ ChartJS.register(
 );
 import React from "react";
 import { ChartSkeleton } from "../../shared/components/loading";
+import SelectDropdown from "../../shared/components/SelectDropdown";
 
 export default function AnalyticsChart({
   chartData,
@@ -130,19 +131,16 @@ export default function AnalyticsChart({
           <span className="analytics-filter-label text-muted me-2" style={{ fontSize: "13px" }}>
             View:
           </span>
-          <select
-            className="form-select form-select-sm"
-            style={{ width: "auto", minWidth: "110px", borderColor: "#e9ecef", color: "#495057" }}
-            value={timeframe}
-            onChange={(e) => onTimeframeChange(e.target.value)}
-            disabled={loading}
-          >
-            {timeframeOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
+          <div style={{ width: "auto", minWidth: "110px" }}>
+            <SelectDropdown
+              selectClassName="form-select-sm"
+              value={timeframe}
+              onChange={(val) => onTimeframeChange(val)}
+              options={timeframeOptions}
+              disabled={loading}
+              style={{ borderColor: "#e9ecef", color: "#495057" }}
+            />
+          </div>
         </div>
       </div>
 

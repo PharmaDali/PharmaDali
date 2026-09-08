@@ -1,6 +1,6 @@
-import arrowDropDownIcon from "../../assets/icons/analytics-and-forecasting/arrow_drop_down.svg";
 import TrendArrow from "./icons/TrendArrow";
 import { TableSkeleton } from "../../shared/components/loading";
+import SelectDropdown from "../../shared/components/SelectDropdown";
 
 export default function AnalyticsTable({ 
   data, 
@@ -48,23 +48,13 @@ export default function AnalyticsTable({
 
           <div className="d-flex align-items-center">
             <span className="analytics-filter-label">Sort by:</span>
-            <div className="position-relative d-inline-block">
-              <select 
-                className="form-select form-select-sm analytics-select" 
-                aria-label="Timeframe filter"
+            <div className="position-relative d-inline-block" style={{ width: "120px" }}>
+              <SelectDropdown
+                selectClassName="form-select-sm analytics-select"
                 value={timeframe}
-                onChange={(e) => onTimeframeChange(e.target.value)}
+                onChange={(val) => onTimeframeChange(val)}
+                options={timeframeOptions}
                 disabled={loading}
-              >
-                {timeframeOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-              <img 
-                src={arrowDropDownIcon} 
-                alt="" 
-                className="analytics-select-icon position-absolute top-50 translate-middle-y" 
-                style={{right: '10px', pointerEvents: 'none'}} 
               />
             </div>
           </div>
