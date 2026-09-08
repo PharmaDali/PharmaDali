@@ -80,7 +80,7 @@ function InventoryLogs() {
           <div className="inventory-input-wrap">
             <CustomDatePicker
               id="logs-date"
-              className="inventory-input"
+              className="inventory-input w-100"
               style={{ paddingLeft: "14px" }}
               value={dateRange}
               onChange={(event) => setDateRange(event.target.value)}
