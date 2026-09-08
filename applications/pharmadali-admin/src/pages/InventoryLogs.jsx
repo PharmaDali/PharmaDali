@@ -7,6 +7,7 @@ import SearchBar from "../shared/components/SearchBar";
 import SelectDropdown from "../shared/components/SelectDropdown";
 import Pagination from "../shared/components/Pagination";
 import Breadcrumb from "../shared/components/Breadcrumb";
+import CustomDatePicker from "../shared/components/CustomDatePicker";
 
 const ACTION_FILTERS = ["All", "Stock In", "Stock Out", "Adjustment", "Waste"];
 
@@ -77,13 +78,11 @@ function InventoryLogs() {
             Date Range
           </label>
           <div className="inventory-input-wrap">
-            <input
+            <CustomDatePicker
               id="logs-date"
-              type="date"
-              className="form-control inventory-input"
+              className="inventory-input"
               style={{ paddingLeft: "14px" }}
               value={dateRange}
-              max={new Date().toISOString().split('T')[0]}
               onChange={(event) => setDateRange(event.target.value)}
               aria-label="Date range filter"
             />

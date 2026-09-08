@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import CustomDatePicker from "../../shared/components/CustomDatePicker";
 
 export function PharmacistFormModal({
   isOpen,
@@ -122,13 +123,11 @@ export function PharmacistFormModal({
             <div className="pharmacists-form-group">
               <label className="pharmacists-form-label">Birthdate *</label>
               <div style={{ position: "relative" }}>
-                <input
+                <CustomDatePicker
                   ref={birthdateRef}
-                  type="date"
                   className={`form-control pharmacists-form-input ${fieldErrors.birthdate ? "is-invalid" : ""}`}
                   name="birthdate"
                   value={formData.birthdate}
-                  max={new Date().toISOString().split('T')[0]}
                   onChange={handleInputChange}
                   style={{ paddingRight: "2.5rem", cursor: "pointer" }}
                 />

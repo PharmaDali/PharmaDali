@@ -8,6 +8,8 @@
  * - Export dropdown (CSV / PDF) with active filter context label
  */
 
+import CustomDatePicker from "../../shared/components/CustomDatePicker";
+
 const CalendarIcon = () => (
   <svg className="report-date-icon" viewBox="0 0 20 20" fill="none">
     <rect x="2" y="4" width="16" height="14" rx="2" stroke="#9cb8cc" strokeWidth="1.5" />
@@ -89,11 +91,9 @@ function SalesReportToolbar({
           <div className="flex-1-mobile">
             <span className="report-date-label">From:</span>
             <div className="report-date-wrap">
-              <input
-                type="date"
+              <CustomDatePicker
                 className="report-date-input"
                 value={startDate}
-                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => onStartDateChange(e.target.value)}
               />
               <CalendarIcon />
@@ -103,11 +103,9 @@ function SalesReportToolbar({
           <div className="flex-1-mobile">
             <span className="report-date-label">To:</span>
             <div className="report-date-wrap">
-              <input
-                type="date"
+              <CustomDatePicker
                 className="report-date-input"
                 value={endDate}
-                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => onEndDateChange(e.target.value)}
               />
               <CalendarIcon />
@@ -154,11 +152,9 @@ function SalesReportToolbar({
           <div>
             <span className="report-date-label">From:</span>
             <div className="report-date-wrap">
-              <input
-                type="date"
+              <CustomDatePicker
                 className="report-date-input"
                 value={startDate}
-                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => onStartDateChange(e.target.value)}
               />
               <CalendarIcon />
@@ -168,11 +164,9 @@ function SalesReportToolbar({
           <div>
             <span className="report-date-label">To:</span>
             <div className="report-date-wrap">
-              <input
-                type="date"
+              <CustomDatePicker
                 className="report-date-input"
                 value={endDate}
-                max={new Date().toISOString().split('T')[0]}
                 onChange={(e) => onEndDateChange(e.target.value)}
               />
               <CalendarIcon />
