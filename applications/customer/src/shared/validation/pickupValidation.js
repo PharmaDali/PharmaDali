@@ -12,8 +12,19 @@ export function isSameCalendarDay(a, b) {
 export function buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes) {
   const openingDateTime = buildDateAtMinutes(selectedDate, openingMinutes)
   const closingDateTime = buildDateAtMinutes(selectedDate, closingMinutes)
+  openingDateTime.setSeconds(0, 0)
+  closingDateTime.setSeconds(0, 0)
+
   const now = new Date()
-  const minimumDateTime = isSameCalendarDay(selectedDate, now) && now > openingDateTime ? now : openingDateTime
+  const minWithLeadTime = new Date(now.getTime() + 30 * 60 * 1000)
+  if (minWithLeadTime.getSeconds() > 0 || minWithLeadTime.getMilliseconds() > 0) {
+    minWithLeadTime.setMinutes(minWithLeadTime.getMinutes() + 1)
+  }
+  minWithLeadTime.setSeconds(0, 0)
+
+  const minimumDateTime = isSameCalendarDay(selectedDate, now) && minWithLeadTime > openingDateTime
+    ? minWithLeadTime
+    : openingDateTime
 
   return {
     closingDateTime,
@@ -46,6 +57,7 @@ export function validateScheduledPickupTime({
 
   if (scheduledDateTime < minimumDateTime || scheduledDateTime > closingDateTime) {
     const startLabel = minimumDateTime.toLocaleTimeString('en-PH', {
+      timeZone: 'Asia/Manila',
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
