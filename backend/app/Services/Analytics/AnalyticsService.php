@@ -30,8 +30,8 @@ class AnalyticsService
     /**
      * Get AI Insights from Gemini API for demand or sales data.
      */
-    public function getAnalyticsInsights(int $pharmacyId, string $type = 'demand'): array
+    public function getAnalyticsInsights(int $pharmacyId, string $type = 'demand', string $timeframe = 'daily'): array
     {
-        return $this->getAnalyticsInsights->handle($pharmacyId, $type);
+        return $this->getAnalyticsInsights->handle($pharmacyId, $type, $timeframe);
     }
 }
