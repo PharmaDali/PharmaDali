@@ -33,6 +33,6 @@ export const fetchDemandAnalytics = async (timeframe = 'monthly', startDate = nu
   return await apiRequest.get(`/pharmacy/analytics/demand?start_date=${startStr}&end_date=${endStr}`);
 };
 
-export const fetchAnalyticsInsights = async (type = 'demand') => {
-  return await apiRequest.get(`/pharmacy/analytics/insights?type=${type}`);
+export const fetchAnalyticsInsights = async (type = 'demand', timeframe = 'daily') => {
+  return await apiRequest.get(`/pharmacy/analytics/insights?type=${type}&timeframe=${timeframe}`);
 };

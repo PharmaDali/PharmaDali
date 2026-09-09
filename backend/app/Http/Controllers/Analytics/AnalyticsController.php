@@ -80,7 +80,8 @@ class AnalyticsController extends Controller
     {
         $data = $this->analyticsService->getAnalyticsInsights(
             $request->getPharmacyId(),
-            $request->input('type', 'demand')
+            $request->input('type', 'demand'),
+            $request->input('timeframe', 'daily')
         );
 
         return $this->successResponse($data, 'Analytics insights retrieved successfully.');

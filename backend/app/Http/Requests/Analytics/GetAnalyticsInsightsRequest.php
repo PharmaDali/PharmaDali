@@ -22,7 +22,8 @@ class GetAnalyticsInsightsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => 'sometimes|string|in:demand,sales',
+            'type'        => 'sometimes|string|in:demand,sales',
+            'timeframe'   => 'sometimes|string|in:daily,weekly,monthly,yearly,annually',
             'pharmacy_id' => 'sometimes|integer|exists:pharmacies,id',
         ];
     }

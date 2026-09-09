@@ -108,6 +108,18 @@
   flex: 1;
 }
 
+.analytics-insight-box .pd-skeleton {
+  background: linear-gradient(
+    90deg,
+    #dbeafe 0%,
+    #eff6ff 25%,
+    #ffffff 50%,
+    #eff6ff 75%,
+    #dbeafe 100%
+  );
+  background-size: 200% 100%;
+}
+
 /* ── Top Predicted Table ── */
 .analytics-table-header {
   display: flex;

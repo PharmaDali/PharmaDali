@@ -22,7 +22,15 @@ export default function Analytics() {
 
       <div className="row g-4 mb-4">
         <div className="col-lg-3">
-          <InsightsBox text={insight.text} loading={insight.loading} source={insight.source} />
+          <InsightsBox
+            text={insight.text}
+            loading={insight.loading}
+            source={insight.source}
+            timeframe={insight.timeframe}
+            onTimeframeChange={insight.setTimeframe}
+            generatedAt={insight.generatedAt}
+            activeTab={tab.active}
+          />
         </div>
         <div className="col-lg-9">
           <AnalyticsTable {...table} />
