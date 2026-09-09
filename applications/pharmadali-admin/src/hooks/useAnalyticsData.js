@@ -74,9 +74,11 @@ export function useAnalyticsData() {
   const [chartLoading, setChartLoading] = useState(false);
 
   // Gemini AI Insight state
+  const [insightTimeframe, setInsightTimeframe] = useState("daily");
   const [insightText, setInsightText] = useState("");
   const [insightLoading, setInsightLoading] = useState(false);
   const [insightSource, setInsightSource] = useState("gemini");
+  const [insightGeneratedAt, setInsightGeneratedAt] = useState(null);
 
   const isDemand = activeTab === "demand";
 
@@ -222,10 +224,12 @@ function extractList(res) {
       setInsightLoading(true);
       try {
         const type = isDemand ? "demand" : "sales";
-        const res = await fetchAnalyticsInsights(type);
+        const res = await fetchAnalyticsInsights(type, insightTimeframe);
         if (mounted && res) {
-          setInsightText(res.insight || res.data?.insight || "");
-          setInsightSource(res.source || res.data?.source || "gemini");
+          const data = res.data || res;
+          setInsightText(data.insight || res.insight || "");
+          setInsightSource(data.source || res.source || "gemini");
+          setInsightGeneratedAt(data.generated_at || res.generated_at || null);
         }
       } catch (err) {
         console.error("Failed to load Gemini AI insight:", err);
@@ -239,7 +243,7 @@ function extractList(res) {
     return () => {
       mounted = false;
     };
-  }, [activeTab, isDemand]);
+  }, [activeTab, isDemand, insightTimeframe]);
 
   // Compute BI Metrics
   const demandMetrics = useMemo(() => {
@@ -292,6 +296,9 @@ function extractList(res) {
       text: insightText,
       loading: insightLoading,
       source: insightSource,
+      timeframe: insightTimeframe,
+      setTimeframe: setInsightTimeframe,
+      generatedAt: insightGeneratedAt,
     },
     table: {
       data: isDemand ? demandData : salesData,
