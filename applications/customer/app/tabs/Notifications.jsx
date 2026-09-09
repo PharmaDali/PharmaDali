@@ -30,15 +30,31 @@ const getParsedData = (data) => {
 
 const getNotificationTitle = (typeStr) => {
   const type = String(typeStr || '');
+
+  // Match PHP class name substrings (item.type from API)
   if (type.includes('OrderPlaced')) return 'Order Placed';
   if (type.includes('OrderCompleted')) return 'Order Completed';
   if (type.includes('OrderExpired')) return 'Order Expired';
   if (type.includes('OrderRejected')) return 'Order Rejected';
-  if (type.includes('OrderStatus')) return 'Order Status Updated';
+  if (type.includes('OrderPickupReminder')) return 'Pickup Reminder';
+  if (type.includes('OrderStatus')) return 'Order Updated';
   if (type.includes('DiscountIdVerified')) return 'Discount ID Verification';
   if (type.includes('PaymentReceiptVerified')) return 'Payment Verification';
   if (type.includes('AdminAlert')) return 'System Alert';
   if (type.includes('NewOrderPharmacist')) return 'New Order';
+  if (type.includes('NewTicketMessage')) return 'New Message';
+  if (type.includes('NewTicket')) return 'New Support Ticket';
+  if (type.includes('CustomerAcknowledged')) return 'Issue Acknowledged';
+
+  // Match short type strings stored in the notification payload (parsedData.type)
+  if (type === 'order_expired' || type.includes('order_expired')) return 'Order Expired';
+  if (type === 'order_status_change' || type.includes('order_status_change')) return 'Order Updated';
+  if (type === 'order_pickup_reminder' || type.includes('order_pickup_reminder')) return 'Pickup Reminder';
+  if (type === 'order_completed' || type.includes('order_completed')) return 'Order Completed';
+  if (type === 'order_placed' || type.includes('order_placed')) return 'Order Placed';
+  if (type === 'order_rejected' || type.includes('order_rejected')) return 'Order Rejected';
+  if (type === 'customer_acknowledged' || type.includes('customer_acknowledged')) return 'Issue Acknowledged';
+
   return 'Notification';
 };
 
@@ -116,7 +132,9 @@ const Notifications = () => {
     const title =
       typeof parsedData.title === 'string' && parsedData.title.trim()
         ? parsedData.title.trim()
-        : getNotificationTitle(itemType);
+        : getNotificationTitle(itemType) !== 'Notification'
+        ? getNotificationTitle(itemType)
+        : getNotificationTitle(parsedData.type);
 
     const message = getNotificationMessage(parsedData);
 
