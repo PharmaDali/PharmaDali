@@ -1,5 +1,15 @@
-import { Text, View, FlatList, TouchableOpacity, ActivityIndicator, RefreshControl, Animated, PanResponder, Pressable } from 'react-native'
-import React, { useState, useCallback, useRef } from 'react'
+import {
+  Text,
+  View,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  Animated,
+  PanResponder,
+  Pressable,
+} from 'react-native'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import ClockIcon from '@assets/icons/clock_icon.svg'
 import { useNotifications } from '@shared/hooks/useNotifications'
@@ -10,16 +20,40 @@ const PAGE_SIZE = 10;
 
 const getParsedData = (data) => {
   if (!data) return {};
-  if (typeof data === 'string') {
-    try {
-      return JSON.parse(data);
-    } catch (e) {
-      console.error('Failed to parse notification data:', e);
-      return {};
-    }
+  if (typeof data === 'object') return data;
+  try {
+    return JSON.parse(data);
+  } catch {
+    return {};
   }
-  return data;
 };
+
+const getNotificationTitle = (typeStr) => {
+  const type = String(typeStr || '');
+  if (type.includes('OrderPlaced')) return 'Order Placed';
+  if (type.includes('OrderCompleted')) return 'Order Completed';
+  if (type.includes('OrderExpired')) return 'Order Expired';
+  if (type.includes('OrderRejected')) return 'Order Rejected';
+  if (type.includes('OrderStatus')) return 'Order Status Updated';
+  if (type.includes('DiscountIdVerified')) return 'Discount ID Verification';
+  if (type.includes('PaymentReceiptVerified')) return 'Payment Verification';
+  if (type.includes('AdminAlert')) return 'System Alert';
+  if (type.includes('NewOrderPharmacist')) return 'New Order';
+  return 'Notification';
+};
+
+const getNotificationMessage = (parsedData) => {
+  return (
+    parsedData.message ||
+    parsedData.body ||
+    parsedData.text ||
+    parsedData.alert ||
+    parsedData.description ||
+    parsedData.content ||
+    'You have a new notification.'
+  );
+};
+
 
 const Notifications = () => {
   const router = useRouter();
@@ -33,10 +67,6 @@ const Notifications = () => {
     setPage(1);
     await refetch();
     setRefreshing(false);
-  };
-
-  const handleClearAll = () => {
-    setIsClearOverlayVisible(true);
   };
 
   const handleNotificationPress = async (item) => {
@@ -56,66 +86,50 @@ const Notifications = () => {
       return;
     }
 
+    const type = String(item?.type || '');
     if (
-      item.type.includes('OrderCompleted') ||
-      item.type.includes('OrderExpired') ||
-      item.type.includes('OrderRejected')
+      type.includes('OrderCompleted') ||
+      type.includes('OrderExpired') ||
+      type.includes('OrderRejected')
     ) {
-      router.push({
-        pathname: '/tabs/orders/Orders',
-        params: { tab: 'completed' },
-      });
+      router.push({ pathname: '/tabs/orders/Orders', params: { tab: 'completed' } });
       return;
     }
-
-    if (item.type.includes('OrderPlaced') || item.type.includes('OrderStatus')) {
+    if (type.includes('OrderPlaced') || type.includes('OrderStatus')) {
       router.push('/tabs/orders/Orders');
     }
-  };
-
-  const getNotificationTitle = (type) => {
-    if (type.includes('OrderPlaced')) return 'Order Placed';
-    if (type.includes('OrderStatus')) return 'Order Status Updated';
-    if (type.includes('OrderCompleted')) return 'Order Completed';
-    if (type.includes('OrderExpired')) return 'Order Expired';
-    if (type.includes('OrderRejected')) return 'Order Rejected';
-    return 'Notification';
   };
 
   const displayedNotifications = notifications.slice(0, page * PAGE_SIZE);
   const hasMore = displayedNotifications.length < notifications.length;
 
   const loadMore = useCallback(() => {
-    if (hasMore) setPage(prev => prev + 1);
-  }, [hasMore]);
+    if (hasMore && !loading && !refreshing) {
+      setPage((prev) => prev + 1);
+    }
+  }, [hasMore, loading, refreshing]);
 
   const renderItem = ({ item }) => {
     const parsedData = getParsedData(item.data);
+    const itemType = String(item?.type || '');
+
+    const title =
+      typeof parsedData.title === 'string' && parsedData.title.trim()
+        ? parsedData.title.trim()
+        : getNotificationTitle(itemType);
+
+    const message = getNotificationMessage(parsedData);
+
     return (
       <SwipeableNotificationCard
+        key={item.id}
+        itemId={item.id}
         onSwipeDelete={() => removeNotification(item.id)}
         onPress={() => handleNotificationPress(item)}
         isRead={!!item.read_at}
-        title={getNotificationTitle(item.type)}
-        description={
-          <Text
-            className="text-xs leading-4 text-slate-600"
-            style={{ fontFamily: 'Poppins-Medium' }}
-          >
-            {parsedData.message}
-          </Text>
-        }
-        footer={
-          <View className="flex-row items-center mt-2">
-            <ClockIcon width={14} height={14} />
-            <Text
-              className="text-xs ml-1 text-gray-400"
-              style={{ fontFamily: 'Poppins-Medium' }}
-            >
-              {timeAgo(item.created_at || item.dateTime)}
-            </Text>
-          </View>
-        }
+        title={title}
+        message={message}
+        timestamp={timeAgo(item.created_at || item.dateTime)}
       />
     );
   };
@@ -134,11 +148,11 @@ const Notifications = () => {
         className="flex-1 bg-[#F1F4FF]"
         showsVerticalScrollIndicator={false}
         data={displayedNotifications}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={(item, index) => String(item.id || index)}
         renderItem={renderItem}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
         onEndReached={loadMore}
-        onEndReachedThreshold={0.4}
+        onEndReachedThreshold={0.1}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#48AAD9']} tintColor="#48AAD9" />
         }
@@ -153,7 +167,7 @@ const Notifications = () => {
               </Text>
               {notifications.length > 0 && (
                 <TouchableOpacity
-                  onPress={handleClearAll}
+                  onPress={() => setIsClearOverlayVisible(true)}
                   className="flex-row items-center px-3 py-1.5 rounded-full bg-sky-50 active:bg-sky-100"
                 >
                   <MaterialCommunityIcons name="delete-sweep-outline" size={18} color="#48AAD9" />
@@ -216,44 +230,63 @@ function EmptyState({ message }) {
 }
 
 /**
- * Slide-to-right to delete component
+ * Swipe-right-to-delete notification card.
+ *
+ * Accepts plain string props (message, timestamp) instead of pre-built JSX
+ * to guarantee non-zero height even when message is empty.
+ *
+ * itemId is used to reset pan when FlatList recycles this cell for a
+ * different notification item (fixes the "shifted/collapsed card" bug).
  */
-function SwipeableNotificationCard({ onPress, onSwipeDelete, title, description, footer, trailing, isRead }) {
-  const pan = useRef(new Animated.Value(0)).current;
+function SwipeableNotificationCard({
+  itemId,
+  onPress,
+  onSwipeDelete,
+  title,
+  message,
+  timestamp,
+  isRead,
+}) {
+  // Keep the Animated.Value in a ref but do NOT call .current immediately —
+  // access via panValue.current everywhere so useEffect can reset it.
+  const panValue = useRef(new Animated.Value(0));
+
+  // Reset swipe position when FlatList recycles this cell for a new item.
+  useEffect(() => {
+    panValue.current.setValue(0);
+  }, [itemId]);
 
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Only set pan responder if horizontal swipe to right is intention
-        return Math.abs(gestureState.dx) > 15 && Math.abs(gestureState.dy) < 20 && gestureState.dx > 0;
-      },
-      onPanResponderMove: (evt, gestureState) => {
-        // Only allow dragging to the right (positive dx)
+      onMoveShouldSetPanResponder: (_, gestureState) =>
+        Math.abs(gestureState.dx) > 15 &&
+        Math.abs(gestureState.dy) < 20 &&
+        gestureState.dx > 0,
+
+      onPanResponderMove: (_, gestureState) => {
         if (gestureState.dx > 0) {
-          pan.setValue(gestureState.dx);
+          panValue.current.setValue(gestureState.dx);
         }
       },
-      onPanResponderRelease: (evt, gestureState) => {
-        // If swiped right past 100px threshold, trigger delete animation and callback
+
+      onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dx > 100) {
-          Animated.timing(pan, {
+          Animated.timing(panValue.current, {
             toValue: 500,
             duration: 200,
             useNativeDriver: true,
-          }).start(() => {
-            onSwipeDelete();
-          });
+          }).start(() => onSwipeDelete());
         } else {
-          // Otherwise spring back to original position
-          Animated.spring(pan, {
+          Animated.spring(panValue.current, {
             toValue: 0,
             friction: 6,
             useNativeDriver: true,
           }).start();
         }
       },
+
       onPanResponderTerminate: () => {
-        Animated.spring(pan, {
+        Animated.spring(panValue.current, {
           toValue: 0,
           friction: 6,
           useNativeDriver: true,
@@ -264,12 +297,12 @@ function SwipeableNotificationCard({ onPress, onSwipeDelete, title, description,
 
   return (
     <View className="relative mt-2">
-      {/* Background delete action container (visible under swiped card) */}
-      <View className="absolute inset-0 bg-red-500 rounded-2xl flex-row items-center justify-start px-5 shadow-sm">
+      {/* Red delete background */}
+      <View className="absolute inset-0 bg-red-500 rounded-2xl flex-row items-center justify-start px-5">
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => {
-            Animated.timing(pan, {
+            Animated.timing(panValue.current, {
               toValue: 500,
               duration: 200,
               useNativeDriver: true,
@@ -287,11 +320,9 @@ function SwipeableNotificationCard({ onPress, onSwipeDelete, title, description,
         </TouchableOpacity>
       </View>
 
-      {/* Foreground notification card (swipes right) */}
+      {/* Foreground card */}
       <Animated.View
-        style={{
-          transform: [{ translateX: pan }],
-        }}
+        style={{ transform: [{ translateX: panValue.current }] }}
         {...panResponder.panHandlers}
       >
         <Pressable onPress={onPress}>
@@ -305,26 +336,38 @@ function SwipeableNotificationCard({ onPress, onSwipeDelete, title, description,
                   : 'bg-white border-sky-100 shadow-sm'
               }`}
             >
-              <View className="flex-1">
-                <View className="flex-row items-center mb-1">
-                  {!isRead && (
-                    <View className="w-2 h-2 rounded-full bg-sky-400 mr-2" />
-                  )}
-                  <Text
-                    className={`text-sm ${isRead ? 'text-slate-400' : 'text-slate-800'}`}
-                    style={{ fontFamily: 'Poppins-Bold' }}
-                  >
-                    {title}
-                  </Text>
-                </View>
-                {description}
-                {footer}
+              {/* Title row */}
+              <View className="flex-row items-center mb-1">
+                {!isRead && (
+                  <View className="w-2 h-2 rounded-full bg-sky-400 mr-2 flex-shrink-0" />
+                )}
+                <Text
+                  className={`text-sm flex-1 ${isRead ? 'text-slate-400' : 'text-slate-800'}`}
+                  style={{ fontFamily: 'Poppins-SemiBold' }}
+                  numberOfLines={1}
+                >
+                  {title}
+                </Text>
               </View>
-              {trailing && (
-                <View className="ml-2">
-                  {trailing}
-                </View>
-              )}
+
+              {/* Message body */}
+              <Text
+                className="text-xs leading-5 text-slate-600"
+                style={{ fontFamily: 'Poppins-Medium' }}
+              >
+                {message}
+              </Text>
+
+              {/* Timestamp footer */}
+              <View className="flex-row items-center mt-2">
+                <ClockIcon width={12} height={12} />
+                <Text
+                  className="text-xs ml-1 text-gray-400"
+                  style={{ fontFamily: 'Poppins-Medium' }}
+                >
+                  {timestamp}
+                </Text>
+              </View>
             </View>
           )}
         </Pressable>
@@ -334,4 +377,3 @@ function SwipeableNotificationCard({ onPress, onSwipeDelete, title, description,
 }
 
 export default Notifications;
-
