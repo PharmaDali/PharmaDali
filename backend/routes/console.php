@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('inventory:check-alerts')->dailyAt('02:00');
 Schedule::command('orders:expire')->everyMinute();
+Schedule::command('analytics:refresh-insights')->dailyAt('23:00')->timezone('Asia/Manila');
