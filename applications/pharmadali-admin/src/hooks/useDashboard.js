@@ -47,8 +47,22 @@ export function useDashboard() {
     };
   }, []);
 
+  const getMetricBg = (count, type) => {
+    if (type === "expired") {
+      return count >= 1 ? "#F28B82" : "#96D2EE";
+    }
+    // expiring / low_stock
+    if (count >= 6) return "#F28B82";
+    if (count >= 1) return "#F9C784";
+    return "#96D2EE";
+  };
+
   const statCards = useMemo(() => {
     const cards = overviewData?.stat_cards;
+
+    const expiringCount  = cards ? Number(cards.expiring_count  ?? 0) : 0;
+    const lowStockCount  = cards ? Number(cards.low_stock_count  ?? 0) : 0;
+    const expiredCount   = cards ? Number(cards.expired_count    ?? 0) : 0;
 
     return [
       {
@@ -68,18 +82,24 @@ export function useDashboard() {
       {
         label: "Expiring Items",
         value: cards ? Number(cards.expiring_count ?? 0).toLocaleString() : "0",
+        value: expiringCount.toLocaleString(),
         prefix: null,
         bg: "#F9C784",
+        bg: getMetricBg(expiringCount, "expiring"),
       },
       {
         label: "Low Stock Items",
         value: cards ? Number(cards.low_stock_count).toLocaleString() : "0",
+        value: lowStockCount.toLocaleString(),
         prefix: null,
         bg: "#F9C784",
+        bg: getMetricBg(lowStockCount, "low_stock"),
       },
       {
         label: "Stockout Risk",
         value: cards ? cards.predicted_stockout_risk : "Low",
+        label: "Expired Items",
+        value: expiredCount.toLocaleString(),
         prefix: null,
         bg:
           cards?.predicted_stockout_risk === "High"
@@ -87,6 +107,7 @@ export function useDashboard() {
             : cards?.predicted_stockout_risk === "Medium"
             ? "#F9C784"
             : "#96D2EE",
+        bg: getMetricBg(expiredCount, "expired"),
       },
     ];
   }, [overviewData]);
