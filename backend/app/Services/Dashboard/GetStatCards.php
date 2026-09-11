@@ -1,10 +1,9 @@
-<?php
+﻿<?php
 
 namespace App\Services\Dashboard;
 
 use App\Repositories\DashboardRepository;
 use App\Services\Inventory\InventoryService;
-use App\Services\Inventory\RestockPredictorService;
 use App\Services\Order\OrderService;
 
 class GetStatCards
@@ -13,7 +12,6 @@ class GetStatCards
         protected DashboardRepository $dashboardRepository,
         protected OrderService $orderService,
         protected InventoryService $inventoryService,
-        protected RestockPredictorService $restockService
     ) {}
 
     /**
@@ -31,21 +29,16 @@ class GetStatCards
         // Reuse existing InventoryService metrics for stock levels
         $inventoryMetrics = $this->inventoryService->getInventoryMetrics();
         $lowStockCount = $inventoryMetrics['low_stocks'] ?? 0;
-        $expiringCount = $inventoryMetrics['expiring'] ?? 0;
-
-        // Reuse existing RestockPredictorService for risk assessment
-        $priorityRestocks = $this->restockService->getPriorityRestocks($pharmacyId);
-        $predictedRiskCount = count($priorityRestocks);
-
-        $riskLevel = $predictedRiskCount > 5 ? 'High' : ($predictedRiskCount > 0 ? 'Medium' : 'Low');
+        $expiringCount = $inventoryMetrics['expiring']   ?? 0;
+        $expiredCount  = $inventoryMetrics['expired']    ?? 0;
 
         return [
-            'sales_today'             => $salesToday,
-            'orders_today'            => $ordersToday,
-            'inventory_value'         => $inventoryValue,
-            'expiring_count'          => $expiringCount,
-            'low_stock_count'         => $lowStockCount,
-            'predicted_stockout_risk' => $riskLevel,
+            'sales_today'     => $salesToday,
+            'orders_today'    => $ordersToday,
+            'inventory_value' => $inventoryValue,
+            'expiring_count'  => $expiringCount,
+            'low_stock_count' => $lowStockCount,
+            'expired_count'   => $expiredCount,
         ];
     }
 }
