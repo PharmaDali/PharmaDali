@@ -609,3 +609,26 @@
     gap: 12px;
   }
 }
+
+/* Hide native number input spin buttons */
+.hide-spin-button::-webkit-outer-spin-button,
+.hide-spin-button::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.hide-spin-button {
+  -moz-appearance: textfield;
+}
+
+@keyframes posArrowBounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(0deg);
+  }
+}
+
+.pos-arrow-bounce {
+  animation: posArrowBounce 1.5s infinite ease-in-out;
+}

@@ -64,9 +64,8 @@ export default function PosMobileOrderSummary() {
       )}
 
       <div
-        className={`pos-mobile-summary-container ${
-          isExpanded ? "expanded" : "collapsed"
-        }`}
+        className={`pos-mobile-summary-container ${isExpanded ? "expanded" : "collapsed"
+          }`}
       >
         {isExpanded && (
           <div
@@ -91,9 +90,13 @@ export default function PosMobileOrderSummary() {
               </span>
             )}
             <i
-              className={`fa-solid ${
-                isExpanded ? "fa-chevron-down" : "fa-chevron-up"
-              } pos-mobile-summary-icon`}
+              className={`fa-solid fa-chevron-up pos-mobile-summary-icon ${!isExpanded ? 'pos-arrow-bounce' : ''}`}
+              style={isExpanded ? {
+                transition: "transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55)",
+                transform: "rotate(180deg) scale(1.2)"
+              } : {
+                transition: "transform 0.3s ease"
+              }}
             />
           </div>
         </div>

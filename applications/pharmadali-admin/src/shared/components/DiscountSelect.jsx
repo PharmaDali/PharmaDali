@@ -167,7 +167,7 @@ export function DiscountControl({
             min="0"
             max="100"
             step="0.1"
-            className="form-control form-control-sm"
+            className="form-control form-control-sm hide-spin-button"
             style={{
               fontSize: "12px",
               borderRadius: "8px",
