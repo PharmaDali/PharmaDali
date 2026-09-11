@@ -619,3 +619,16 @@
 .hide-spin-button {
   -moz-appearance: textfield;
 }
+
+@keyframes posArrowBounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(0deg);
+  }
+}
+
+.pos-arrow-bounce {
+  animation: posArrowBounce 1.5s infinite ease-in-out;
+}
