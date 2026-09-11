@@ -609,3 +609,13 @@
     gap: 12px;
   }
 }
+
+/* Hide native number input spin buttons */
+.hide-spin-button::-webkit-outer-spin-button,
+.hide-spin-button::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.hide-spin-button {
+  -moz-appearance: textfield;
+}

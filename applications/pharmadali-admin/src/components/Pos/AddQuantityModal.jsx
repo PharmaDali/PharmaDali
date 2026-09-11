@@ -119,7 +119,7 @@ export function AddQuantityModal({
               </button>
               <input
                 type="number"
-                className="form-control form-control-sm text-center border-0 bg-transparent fw-semibold flex-grow-1"
+                className="form-control form-control-sm text-center border-0 bg-transparent fw-semibold flex-grow-1 hide-spin-button"
                 style={{ fontSize: "16px", color: "#444444", minWidth: "90px" }}
                 value={quantity}
                 onChange={handleInputChange}
