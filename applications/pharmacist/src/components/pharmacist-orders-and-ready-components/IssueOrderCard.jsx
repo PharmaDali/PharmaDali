@@ -131,13 +131,14 @@ export default function IssueOrderCard({ order, onOutPending }) {
             <View className="px-4 border-t border-gray-100 py-3">
               <Text className="text-sm mb-2" style={styles.sectionTitle}>Prescription Photo</Text>
               <TouchableOpacity
-                className="rounded-xl overflow-hidden border border-gray-200"
+                className="rounded-xl overflow-hidden border border-gray-200 bg-white"
+                style={{ width: '100%', height: 160 }}
                 activeOpacity={0.8}
                 onPress={() => setPreviewImage(prescriptionImage)}
               >
                 <Image
                   source={prescriptionImage}
-                  className="w-full h-40"
+                  style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
               </TouchableOpacity>
@@ -149,13 +150,14 @@ export default function IssueOrderCard({ order, onOutPending }) {
             <View className="px-4 border-t border-gray-100 py-3">
               <Text className="text-sm mb-2" style={styles.sectionTitle}>Discount ID Photo ({order.discountType || 'Senior/PWD'})</Text>
               <TouchableOpacity
-                className="rounded-xl overflow-hidden border border-gray-200"
+                className="rounded-xl overflow-hidden border border-gray-200 bg-white"
+                style={{ width: '100%', height: 160 }}
                 activeOpacity={0.8}
                 onPress={() => setPreviewImage(discountIdImage)}
               >
                 <Image
                   source={discountIdImage}
-                  className="w-full h-40"
+                  style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
               </TouchableOpacity>
@@ -167,13 +169,14 @@ export default function IssueOrderCard({ order, onOutPending }) {
             <View className="px-4 border-t border-gray-100 py-3">
               <Text className="text-sm mb-2" style={styles.sectionTitle}>Payment Receipt Photo</Text>
               <TouchableOpacity
-                className="rounded-xl overflow-hidden border border-gray-200"
+                className="rounded-xl overflow-hidden border border-gray-200 bg-white"
+                style={{ width: '100%', height: 160 }}
                 activeOpacity={0.8}
                 onPress={() => setPreviewImage(paymentReceiptImage)}
               >
                 <Image
                   source={paymentReceiptImage}
-                  className="w-full h-40"
+                  style={{ width: '100%', height: '100%' }}
                   resizeMode="cover"
                 />
               </TouchableOpacity>

@@ -1,5 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Dimensions } from 'react-native';
 import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@shared/theme/colorPalette';
 import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg';
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg';
@@ -73,7 +74,7 @@ export default function ReadyOrderCard({ order }) {
               <View 
                 className="bg-blue-50 border border-blue-100 p-3 rounded-xl flex-row items-start"
               >
-                <Text className="text-[11px] flex-1" style={{ fontFamily: 'Poppins-Medium', color: '#2aabe2' }}>
+                <Text className="text-[9.5px] flex-1 leading-3.5" style={{ fontFamily: 'Poppins-Medium', color: '#2aabe2', includeFontPadding: false }}>
                   Please complete the checkout for this pickup order in the Admin Web Pickup Orders tab once the customer arrives.
                 </Text>
               </View>
@@ -100,19 +101,24 @@ export default function ReadyOrderCard({ order }) {
                 <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
                   <Text className="text-sm mb-3" style={styles.sectionTitle}>Prescription</Text>
 
-                  <View className="flex-row items-center gap-3">
-                    <TouchableOpacity
-                      className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative"
-                      activeOpacity={0.8}
-                      onPress={() => setPreviewImage(prescriptionImage)}
-                    >
-                      <Image
-                        source={prescriptionImage}
-                        className="w-full h-24"
-                        resizeMode="cover"
-                      />
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity
+                    className="w-full rounded-xl overflow-hidden border border-gray-300 relative bg-white"
+                    style={{ width: '100%', height: 130 }}
+                    activeOpacity={0.85}
+                    onPress={() => setPreviewImage(prescriptionImage)}
+                  >
+                    <Image
+                      source={prescriptionImage}
+                      style={{ width: '100%', height: 130 }}
+                      resizeMode="cover"
+                    />
+                    <View className="absolute bottom-2 right-2 bg-black/60 px-2.5 py-1 rounded-lg flex-row items-center">
+                      <Ionicons name="scan-outline" size={12} color="#fff" />
+                      <Text className="text-white text-[10px] ml-1" style={{ fontFamily: 'Poppins-Medium', includeFontPadding: false }}>
+                        Tap to enlarge
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
                 </View>
               </View>
             );
@@ -128,28 +134,34 @@ export default function ReadyOrderCard({ order }) {
                   {order.discountType ? `Discount (${DISCOUNT_TYPE_LABELS[order.discountType] ?? order.discountType})` : 'Discount ID'}
                 </Text>
 
-                <View className="flex-row items-center gap-3">
-                  <TouchableOpacity
-                    className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative"
-                    activeOpacity={0.8}
-                    onPress={() => setPreviewImage({ uri: order.discountIdImagePath })}
-                  >
-                    <Image
-                      source={{ uri: order.discountIdImagePath }}
-                      className="w-full h-24"
-                      resizeMode="cover"
-                    />
+                <TouchableOpacity
+                  className="w-full rounded-xl overflow-hidden border border-gray-300 relative bg-white"
+                  style={{ width: '100%', height: 130 }}
+                  activeOpacity={0.85}
+                  onPress={() => setPreviewImage({ uri: order.discountIdImagePath })}
+                >
+                  <Image
+                    source={{ uri: order.discountIdImagePath }}
+                    style={{ width: '100%', height: 130 }}
+                    resizeMode="cover"
+                  />
 
-                    {isDiscountRejected && (
-                      <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
-                        <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>ID Rejected</Text>
-                        <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
-                          Customer has been notified to bring physical ID.
-                        </Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                </View>
+                  {isDiscountRejected ? (
+                    <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
+                      <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>ID Rejected</Text>
+                      <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
+                        Customer has been notified to bring physical ID.
+                      </Text>
+                    </View>
+                  ) : (
+                    <View className="absolute bottom-2 right-2 bg-black/60 px-2.5 py-1 rounded-lg flex-row items-center">
+                      <Ionicons name="scan-outline" size={12} color="#fff" />
+                      <Text className="text-white text-[10px] ml-1" style={{ fontFamily: 'Poppins-Medium', includeFontPadding: false }}>
+                        Tap to enlarge
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
             );
@@ -163,28 +175,34 @@ export default function ReadyOrderCard({ order }) {
               <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
                 <Text className="text-sm mb-3" style={styles.sectionTitle}>Payment Receipt</Text>
 
-                <View className="flex-row items-center gap-3">
-                  <TouchableOpacity
-                    className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative"
-                    activeOpacity={0.8}
-                    onPress={() => setPreviewImage({ uri: order.paymentReceiptImagePath })}
-                  >
-                    <Image
-                      source={{ uri: order.paymentReceiptImagePath }}
-                      className="w-full h-28"
-                      resizeMode="cover"
-                    />
+                <TouchableOpacity
+                  className="w-full rounded-xl overflow-hidden border border-gray-300 relative bg-white"
+                  style={{ width: '100%', height: 130 }}
+                  activeOpacity={0.85}
+                  onPress={() => setPreviewImage({ uri: order.paymentReceiptImagePath })}
+                >
+                  <Image
+                    source={{ uri: order.paymentReceiptImagePath }}
+                    style={{ width: '100%', height: 130 }}
+                    resizeMode="cover"
+                  />
 
-                    {isReceiptRejected && (
-                      <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
-                        <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>Receipt Rejected</Text>
-                        <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
-                          Customer notified to pay upon pickup.
-                        </Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                </View>
+                  {isReceiptRejected ? (
+                    <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
+                      <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>Receipt Rejected</Text>
+                      <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
+                        Customer notified to pay upon pickup.
+                      </Text>
+                    </View>
+                  ) : (
+                    <View className="absolute bottom-2 right-2 bg-black/60 px-2.5 py-1 rounded-lg flex-row items-center">
+                      <Ionicons name="scan-outline" size={12} color="#fff" />
+                      <Text className="text-white text-[10px] ml-1" style={{ fontFamily: 'Poppins-Medium', includeFontPadding: false }}>
+                        Tap to enlarge
+                      </Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
             );
