@@ -333,7 +333,7 @@ export default function PharmacistConversationScreen() {
             <View style={styles.headerSubRow}>
               <View style={styles.onlineDot} />
               <Text style={styles.headerSub} numberOfLines={1}>
-                {conversation?.pharmacy?.pharmacy_name || 'Pharmacy'}
+                Online
               </Text>
             </View>
           </View>
