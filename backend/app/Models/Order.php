@@ -58,6 +58,22 @@ class Order extends Model
         'cancelled_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'is_prescription_reuploaded',
+    ];
+
+    public function getIsPrescriptionReuploadedAttribute(): bool
+    {
+        if (!$this->relationLoaded('items')) {
+            return false;
+        }
+
+        return $this->items->contains(function ($item) {
+            $rx = $item->orderItemPrescription;
+            return $rx && ($rx->is_reuploaded ?? false);
+        });
+    }
+
     public function customer()
     {
         return $this->belongsTo(Customer::class);

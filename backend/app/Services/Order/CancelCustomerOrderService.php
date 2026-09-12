@@ -16,7 +16,7 @@ class CancelCustomerOrderService
         private readonly ConversationService $conversationService,
     ) {}
 
-    private const CUSTOMER_EDITABLE_STATUSES = [OrderStatus::PENDING, OrderStatus::REVIEWING];
+    private const CUSTOMER_EDITABLE_STATUSES = [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::STAND_BY];
 
     public function handle(?User $user, Order $order, string $reason): JsonResponse
     {

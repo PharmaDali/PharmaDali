@@ -37,8 +37,8 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
   
   const isAwaitingPayment = order.apiStatus === 'awaiting_payment';
 
-  // Docs are pending if prescription not yet reviewed, or discount ID not approved/rejected
-  const hasPendingPrescription = rxItems.some(item => item.prescriptionRequired && (!item.prescriptionImage || item.prescriptionStatus === 'pending' || item.prescriptionStatus == null));
+  // Docs are pending if prescription is missing or rejected, or discount ID not approved/rejected
+  const hasPendingPrescription = rxItems.some(item => item.prescriptionRequired && (!item.prescriptionImage || item.prescriptionStatus === 'rejected'));
   const hasDiscountPending = order.discountIdImagePath && !order.discountRemarks?.match(/^(approved|rejected|acknowledged_rejected)/i);
   const hasPendingReceipt = order.paymentMethod === 'gcash' && order.paymentReceiptImagePath && order.paymentStatus === 'unpaid';
 
@@ -74,9 +74,11 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
       {!expanded ? (
         <View className="flex-row items-center justify-between px-4 pb-4 pt-2">
           {hasPrescription && (
-            <View className="flex-row items-center border rounded-full px-3 py-1.5" style={styles.rxBadge}>
+            <View className="flex-row items-center border rounded-full px-3 py-1.5" style={order.isPrescriptionReuploaded ? styles.rxReuploadedBadge : styles.rxBadge}>
               <RxIcon width={16} height={16} />
-              <Text className="text-xs ml-1.5" style={styles.rxText}>Has prescription</Text>
+              <Text className="text-xs ml-1.5" style={order.isPrescriptionReuploaded ? styles.rxReuploadedText : styles.rxText}>
+                {order.isPrescriptionReuploaded ? 'Re-uploaded Rx' : 'Has prescription'}
+              </Text>
             </View>
           )}
           <TouchableOpacity
@@ -152,6 +154,13 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
               {/* Approval Box (With BG) */}
               <View className="p-3 rounded-2xl" style={{ backgroundColor: '#EBF3F7' }}>
                 <Text className="text-sm mt-1" style={styles.sectionTitle}>Requires Approval</Text>
+                {order.isPrescriptionReuploaded && (
+                  <View className="flex-row items-center bg-[#F0F9FF] border border-[#BAE6FD] rounded-xl px-3 py-1.5 my-2">
+                    <Text className="text-[11px] text-[#0369A1]" style={{ fontFamily: 'Poppins-Medium' }}>
+                      Re-uploaded prescription awaiting review
+                    </Text>
+                  </View>
+                )}
                 {rxItems.map((item, idx) => (
                   <View key={idx}>
                     <OrderItemRow item={item} />
@@ -161,13 +170,13 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                 {prescriptionImage && (
                   <View className="flex-row items-center gap-3 mt-3">
                     <TouchableOpacity
-                      className="flex-1 rounded-lg overflow-hidden border border-gray-200"
+                      className="flex-1 rounded-lg overflow-hidden border border-gray-200 bg-white"
                       activeOpacity={0.8}
                       onPress={() => setPreviewImage(prescriptionImage)}
                     >
                       <Image
                         source={prescriptionImage}
-                        className="w-full h-32"
+                        style={{ width: '100%', height: 130 }}
                         resizeMode="cover"
                       />
                     </TouchableOpacity>
@@ -256,13 +265,13 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
 
                 <View className="flex-row items-center gap-3">
                   <TouchableOpacity
-                    className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative"
+                    className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative bg-white"
                     activeOpacity={0.8}
                     onPress={() => setPreviewImage({ uri: order.discountIdImagePath })}
                   >
                     <Image
                       source={{ uri: order.discountIdImagePath }}
-                      className="w-full h-24"
+                      style={{ width: '100%', height: 110 }}
                       resizeMode="cover"
                     />
 
@@ -335,13 +344,13 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
 
                 <View className="flex-row items-center gap-3">
                   <TouchableOpacity
-                    className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative"
+                    className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative bg-white"
                     activeOpacity={0.8}
                     onPress={() => setPreviewImage({ uri: order.paymentReceiptImagePath })}
                   >
                     <Image
                       source={{ uri: order.paymentReceiptImagePath }}
-                      className="w-full h-28"
+                      style={{ width: '100%', height: 110 }}
                       resizeMode="cover"
                     />
 
@@ -432,6 +441,14 @@ const styles = StyleSheet.create({
   rxBadge: {
     borderColor: '#E8A0A0',
     backgroundColor: '#FFF0F0',
+  },
+  rxReuploadedBadge: {
+    borderColor: '#BAE6FD',
+    backgroundColor: '#F0F9FF',
+  },
+  rxReuploadedText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#0284C7',
   },
   otpText: {
     fontFamily: 'Poppins-SemiBold',

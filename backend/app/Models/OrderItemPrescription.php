@@ -26,6 +26,15 @@ class OrderItemPrescription extends Model
         'verified_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'is_reuploaded',
+    ];
+
+    public function getIsReuploadedAttribute(): bool
+    {
+        return (bool) ($this->updated_at && $this->created_at && $this->updated_at->gt($this->created_at));
+    }
+
     public function orderItem()
     {
         return $this->belongsTo(OrderItem::class);

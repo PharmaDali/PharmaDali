@@ -5,6 +5,7 @@ import { useLocalSearchParams, useFocusEffect, useRouter } from 'expo-router';
 import { Tabs, ReviewOrderCard, PreparingOrderCard, IssueOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import ActionReasonOverlay from '@shared/components/ActionReasonOverlay';
 import StatusFeedbackModal from '@shared/components/StatusFeedbackModal';
+import ApproveOrderOverlay from '@shared/components/ApproveOrderOverlay';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { getPharmacyOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
 import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
@@ -57,6 +58,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       paymentMethod: order?.payment_method || null,
       paymentStatus: order?.payment_status || null,
       note: order?.note || null,
+      isPrescriptionReuploaded: Boolean(order?.is_prescription_reuploaded || (order?.items || []).some((item) => item?.order_item_prescription?.is_reuploaded)),
       items: (order?.items || []).map((item) => {
         const product = item?.pharmacy_product?.product;
         const prescription = item?.order_item_prescription;
@@ -94,6 +96,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
           prescriptionRequired,
           prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,
           prescriptionStatus: prescription?.status || null,
+          isReuploaded: Boolean(prescription?.is_reuploaded),
           status: itemDisplayStatus,
           rejectionReason: order?.cancellation_reason || 'Requires attention',
         };
@@ -140,6 +143,13 @@ export default function Orders() {
   // Status Feedback Modal State
   const [feedbackVisible, setFeedbackVisible] = useState(false);
   const [feedbackAction, setFeedbackAction] = useState('approve');
+
+  // Approve Overlay State
+  const [approveOverlayVisible, setApproveOverlayVisible] = useState(false);
+  const [orderToApprove, setOrderToApprove] = useState(null);
+  const [approveSection, setApproveSection] = useState(null);
+  const [approveSubmitting, setApproveSubmitting] = useState(false);
+  const [approveError, setApproveError] = useState('');
 
   // Fetch orders for a specific tab with pagination
   const fetchTabOrders = useCallback(async (tabName, pageNumber = 1, isPullToRefresh = false) => {
@@ -288,53 +298,66 @@ export default function Orders() {
     await fetchTabOrders(activeTab, 1);
   };
 
-  const handleApprove = async (order, section = null) => {
-    const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
+  const handleApprove = (order, section = null) => {
+    setError('');
+    setApproveError('');
+    setOrderToApprove(order);
+    setApproveSection(section);
+    setApproveOverlayVisible(true);
+  };
+
+  const handleConfirmApprove = async () => {
+    const orderId = orderToApprove?.id ?? orderToApprove?.orderId ?? orderToApprove?.orderNumber;
     if (!orderId) return;
 
-    setError('');
+    setApproveSubmitting(true);
+    setApproveError('');
     const previousTabStates = JSON.parse(JSON.stringify(tabStates));
 
     // A GCash order with unpaid payment will become awaiting_payment (stays in For Review)
-    const isGcashAwaitingPayment = !section
-      && order.paymentMethod === 'gcash'
-      && order.paymentStatus !== 'paid';
-
-    if (!section && !isGcashAwaitingPayment) {
-      // Optimistic UI: Immediately remove order from 'For Review' UI list for general approval
-      setTabStates((prev) => {
-        const forReview = prev['For Review'];
-        const updatedItems = (forReview.items || []).filter((item) => item.id !== order.id);
-        return {
-          ...prev,
-          'For Review': {
-            ...forReview,
-            items: updatedItems,
-            total: Math.max(0, (forReview.total || 1) - 1),
-          },
-          'Preparing': {
-            ...prev['Preparing'],
-            loaded: false,
-          },
-        };
-      });
-
-      setFeedbackAction('approve');
-      setFeedbackVisible(true);
-    }
+    const isGcashAwaitingPayment = !approveSection
+      && orderToApprove.paymentMethod === 'gcash'
+      && orderToApprove.paymentStatus !== 'paid';
 
     try {
-      await updateOrderStatusByPharmacist(orderId, 'approve', null, section);
-      if (!section && !isGcashAwaitingPayment) {
+      await updateOrderStatusByPharmacist(orderId, 'approve', null, approveSection);
+      setApproveOverlayVisible(false);
+
+      if (!approveSection && !isGcashAwaitingPayment) {
+        setTabStates((prev) => {
+          const forReview = prev['For Review'];
+          const updatedItems = (forReview.items || []).filter((item) => item.id !== orderToApprove.id);
+          return {
+            ...prev,
+            'For Review': {
+              ...forReview,
+              items: updatedItems,
+              total: Math.max(0, (forReview.total || 1) - 1),
+            },
+            'Preparing': {
+              ...prev['Preparing'],
+              loaded: false,
+            },
+          };
+        });
+
+        setFeedbackAction('approve');
+        setFeedbackVisible(true);
         setActiveTab('Preparing');
         fetchTabOrders('Preparing', 1, true);
       } else {
+        if (!approveSection) {
+          setFeedbackAction('approve');
+          setFeedbackVisible(true);
+        }
         fetchTabOrders(activeTab, 1, true);
       }
     } catch (e) {
       console.error('[Orders] Error approving order:', e);
-      setError(e?.message || 'Failed to approve order.');
-      if (!section) setTabStates(previousTabStates);
+      setApproveError(e?.message || 'Failed to approve order.');
+      if (!approveSection) setTabStates(previousTabStates);
+    } finally {
+      setApproveSubmitting(false);
     }
   };
 
@@ -530,6 +553,18 @@ export default function Orders() {
         visible={feedbackVisible}
         actionType={feedbackAction}
         onClose={() => setFeedbackVisible(false)}
+      />
+
+      <ApproveOrderOverlay
+        visible={approveOverlayVisible}
+        order={orderToApprove}
+        section={approveSection}
+        onClose={() => {
+          if (!approveSubmitting) setApproveOverlayVisible(false);
+        }}
+        onConfirm={handleConfirmApprove}
+        submitting={approveSubmitting}
+        errorMessage={approveError}
       />
     </View>
   );
