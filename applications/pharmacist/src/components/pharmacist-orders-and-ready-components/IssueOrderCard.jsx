@@ -31,16 +31,34 @@ export default function IssueOrderCard({ order, onOutPending }) {
 
   const issueCount = issueItems.length;
 
-  let issueSummary = '';
-  if (issueCount === 1) {
-    const item = issueItems[0];
-    issueSummary = `1 item ${item.status.toLowerCase()}: ${item.rejectionReason || 'Requires attention'}`;
-  } else {
-    issueSummary = `${issueCount} items have issues`;
-  }
-
   const isRejectedByPharmacist = order.apiStatus === 'cancelled' && order.cancellationReason?.toLowerCase().includes('rejected by pharmacist');
   const isRejected = isRejectedByPharmacist || order.apiStatus === 'rejected';
+  const isStandBy = order.apiStatus === 'stand_by' || order.apiStatus === 'pending';
+
+  let issueSummary = '';
+  if (issueCount === 1) {
+    issueSummary = '1 item has issues';
+  } else if (issueCount > 1) {
+    issueSummary = `${issueCount} items have issues`;
+  } else if (isRejected) {
+    issueSummary = 'Order rejected';
+  } else if (isStandBy) {
+    issueSummary = 'Order on hold';
+  } else if (order.apiStatus === 'cancelled') {
+    issueSummary = 'Order cancelled';
+  } else {
+    issueSummary = 'Order requires attention';
+  }
+
+  const rawReason = order.cancellationReason || (isStandBy ? order.note : null) || rejectedItems.find((i) => i.rejectionReason && i.rejectionReason !== 'Requires attention')?.rejectionReason || '';
+  const cleanReason = rawReason
+    .replace(/^rejected by pharmacist:\s*/i, '')
+    .replace(/^cancelled by customer:\s*/i, '')
+    .replace(/^prescription rejected:\s*/i, '')
+    .replace(/^on hold:\s*/i, '')
+    .replace(/^placed on hold:\s*/i, '')
+    .trim();
+  const displayReason = cleanReason || rawReason;
 
   const statusBadge = order.apiStatus === 'cancelled' || order.apiStatus === 'rejected' ? (
     <View className="px-3 py-1 rounded-lg border" style={isRejected ? styles.rejectedBadge : styles.cancelledBadge}>
@@ -53,8 +71,6 @@ export default function IssueOrderCard({ order, onOutPending }) {
       <Text className="text-xs" style={styles.awaitingText}>Awaiting Customer Action</Text>
     </View>
   );
-
-  const isStandBy = order.apiStatus === 'stand_by' || order.apiStatus === 'pending';
 
   return (
     <OrderCard order={order} statusBadge={statusBadge}>
@@ -91,8 +107,25 @@ export default function IssueOrderCard({ order, onOutPending }) {
           </TouchableOpacity>
         </View>
       ) : (
-        
         <View>
+          {/* Rejection / On Hold / Cancellation Reason (Only displayed when card expands) */}
+          {Boolean(displayReason) && (
+            <View
+              className="mx-4 mt-2 mb-2 p-3 rounded-xl border"
+              style={isRejected ? styles.reasonBoxRejected : isStandBy ? styles.reasonBoxOnHold : styles.reasonBoxCancelled}
+            >
+              <Text
+                className="text-xs mb-1"
+                style={isRejected ? styles.rejectionReasonTitle : isStandBy ? styles.onHoldReasonTitle : styles.cancellationReasonTitle}
+              >
+                {isRejected ? 'Rejection Reason' : isStandBy ? 'On Hold Reason' : 'Cancellation Reason'}
+              </Text>
+              <Text className="text-xs leading-5" style={{ fontFamily: 'Poppins-Regular', color: colors.textColor }}>
+                {displayReason}
+              </Text>
+            </View>
+          )}
+
           {/* Prescription Photo */}
           {prescriptionImage && (
             <View className="px-4 border-t border-gray-100 py-3">
@@ -153,11 +186,6 @@ export default function IssueOrderCard({ order, onOutPending }) {
               {rejectedItems.map((item, idx) => (
                 <View key={idx}>
                   <OrderItemRow item={item} />
-                  {item.rejectionReason && (
-                    <Text className="text-xs mb-2" style={{ fontFamily: 'Poppins-Medium', color: colors.accent }}>
-                      Reason: {item.rejectionReason}
-                    </Text>
-                  )}
                 </View>
               ))}
             </View>
@@ -169,11 +197,6 @@ export default function IssueOrderCard({ order, onOutPending }) {
               {pendingItems.map((item, idx) => (
                 <View key={idx}>
                   <OrderItemRow item={item} />
-                  {item.rejectionReason && (
-                    <Text className="text-xs mb-2" style={{ fontFamily: 'Poppins-Medium', color: '#FFC107' }}>
-                      Reason: {item.rejectionReason}
-                    </Text>
-                  )}
                 </View>
               ))}
             </View>
@@ -246,6 +269,30 @@ const styles = StyleSheet.create({
   },
   cancelledText: {
     fontFamily: 'Poppins-SemiBold',
+    color: '#4B5563',
+  },
+  reasonBoxRejected: {
+    borderColor: '#FCA5A5',
+    backgroundColor: '#FEF2F2',
+  },
+  reasonBoxOnHold: {
+    borderColor: '#FDE68A',
+    backgroundColor: '#FFFBEB',
+  },
+  reasonBoxCancelled: {
+    borderColor: '#E5E7EB',
+    backgroundColor: '#F9FAFB',
+  },
+  rejectionReasonTitle: {
+    fontFamily: 'Poppins-Bold',
+    color: '#991B1B',
+  },
+  onHoldReasonTitle: {
+    fontFamily: 'Poppins-Bold',
+    color: '#B45309',
+  },
+  cancellationReasonTitle: {
+    fontFamily: 'Poppins-Bold',
     color: '#4B5563',
   },
   sectionTitle: {

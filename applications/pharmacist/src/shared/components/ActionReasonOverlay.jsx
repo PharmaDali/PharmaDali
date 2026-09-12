@@ -57,7 +57,7 @@ export default function ActionReasonOverlay({
 
   const isReject = actionType === 'reject';
   
-  let title = isReject ? 'Reject Order' : 'Move to Pending';
+  let title = isReject ? 'Reject Order' : 'Place on Hold';
   if (isReject) {
     if (section === 'discount') title = 'Reject Discount ID';
     else if (section === 'receipt') title = 'Reject Payment Receipt';
