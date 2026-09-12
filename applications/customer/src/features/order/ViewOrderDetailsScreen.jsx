@@ -41,6 +41,7 @@ export default function ViewOrderDetailsScreen() {
   const [reuploading, setReuploading] = useState(false)
   const [reuploadSuccess, setReuploadSuccess] = useState('')
   const [reuploadError, setReuploadError] = useState('')
+  const [prescriptionConfirmed, setPrescriptionConfirmed] = useState(false)
 
   const loadOrder = async () => {
     if (!resolvedOrderId) return
@@ -168,6 +169,7 @@ export default function ViewOrderDetailsScreen() {
 
   const handleUploadPhotoSubmit = async () => {
     if (!reuploadImage || !order) return
+    if (isPrescriptionRejected && !prescriptionConfirmed) return
     setReuploading(true)
     setReuploadError('')
     setReuploadSuccess('')
@@ -189,8 +191,9 @@ export default function ViewOrderDetailsScreen() {
         }
       }
 
-      setReuploadSuccess('Photo re-uploaded successfully! Our pharmacist will review it.')
+      setReuploadSuccess('Photo submitted successfully! Our pharmacist will review it.')
       setReuploadImage(null)
+      setPrescriptionConfirmed(false)
       await loadOrder()
     } catch (err) {
       setReuploadError(err instanceof Error ? err.message : 'Failed to upload photo.')
@@ -285,8 +288,10 @@ export default function ViewOrderDetailsScreen() {
             <View className="flex-row justify-between items-center mb-2">
               <Text className="text-xs" style={styles.textBold}>Submitted Prescription</Text>
               {isPrescriptionRejected ? (
-                <View className="bg-red-100 px-2 py-0.5 rounded flex-row items-center">
-                  <Text className="text-red-700" style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>✗ Rejected</Text>
+                <View className={isStandBy ? "bg-yellow-100 px-2 py-0.5 rounded flex-row items-center" : "bg-red-100 px-2 py-0.5 rounded flex-row items-center"}>
+                  <Text className={isStandBy ? "text-yellow-700" : "text-red-700"} style={{ fontSize: 10, fontFamily: 'Poppins-Bold' }}>
+                    {isStandBy ? 'On Hold' : '✗ Rejected'}
+                  </Text>
                 </View>
               ) : !['pending', 'reviewing', 'stand_by', 'cancelled'].includes(order.rawStatus) ? (
                 <View className="bg-green-100 px-2 py-0.5 rounded flex-row items-center">
@@ -377,7 +382,7 @@ export default function ViewOrderDetailsScreen() {
           <View className="mt-4 pt-3 border-t border-gray-100">
             <Text className="text-[11px] text-gray-400 mb-1" style={styles.fontMedium}>Reason:</Text>
             <Text className="text-xs text-gray-700 leading-5" style={styles.fontMedium}>
-              Your order has been rejected for the following reason: {onHoldNote}
+              {isStandBy ? 'Your order is on hold for the following reason: ' : 'Your order has been rejected for the following reason: '}{onHoldNote}
             </Text>
 
             <View className="border-t border-dashed border-gray-200 my-4" />
@@ -409,33 +414,56 @@ export default function ViewOrderDetailsScreen() {
                   />
                   <TouchableOpacity
                     className="absolute top-2 right-2 bg-[#48AAD9] w-7 h-7 rounded-full items-center justify-center border-2 border-white"
-                    onPress={() => setReuploadImage(null)}
+                    onPress={() => {
+                      setReuploadImage(null)
+                      setPrescriptionConfirmed(false)
+                    }}
                   >
                     <Text className="text-white text-[10px]" style={styles.fontSemiBold}>✕</Text>
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  className="bg-[#48AAD9] rounded-xl px-8 py-2.5 items-center w-full mt-3"
-                  disabled={reuploading}
-                  onPress={handleUploadPhotoSubmit}
-                >
-                  {reuploading ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                  ) : (
-                    <Text className="text-xs text-white" style={styles.fontSemiBold}>Upload</Text>
-                  )}
-                </TouchableOpacity>
               </View>
             )}
 
-            <View className="flex-row items-center mt-3 mx-1">
-              <View className="w-[18px] h-[18px] rounded items-center justify-center bg-[#48AAD9] mr-2">
-                <Text className="text-white" style={{ fontSize: 10 }}>✓</Text>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              className="flex-row items-center mt-3 mx-1"
+              onPress={() => setPrescriptionConfirmed((prev) => !prev)}
+            >
+              <View
+                className="w-[18px] h-[18px] rounded items-center justify-center mr-2 border"
+                style={
+                  prescriptionConfirmed
+                    ? { backgroundColor: '#48AAD9', borderColor: '#48AAD9' }
+                    : { backgroundColor: '#FFFFFF', borderColor: '#D1D5DB' }
+                }
+              >
+                {prescriptionConfirmed && (
+                  <Text className="text-white" style={{ fontSize: 10, includeFontPadding: false }}>✓</Text>
+                )}
               </View>
               <Text className="text-[11px] text-gray-700 flex-1 leading-4" style={styles.fontMedium}>
                 I confirm that this prescription is valid and issued by a licensed physician.
               </Text>
-            </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="rounded-xl px-8 py-2.5 items-center w-full mt-3"
+              style={
+                !reuploadImage || !prescriptionConfirmed || reuploading
+                  ? { backgroundColor: '#B9DEEF', opacity: 0.6 }
+                  : { backgroundColor: '#48AAD9' }
+              }
+              disabled={!reuploadImage || !prescriptionConfirmed || reuploading}
+              onPress={handleUploadPhotoSubmit}
+              activeOpacity={0.8}
+            >
+              {reuploading ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text className="text-xs text-white" style={styles.fontSemiBold}>Submit</Text>
+              )}
+            </TouchableOpacity>
 
             {!!reuploadSuccess && <Text className="text-xs text-green-600 mt-3 text-center" style={styles.fontMedium}>{reuploadSuccess}</Text>}
             {!!reuploadError && <Text className="text-xs text-red-500 mt-3 text-center" style={styles.fontMedium}>{reuploadError}</Text>}
