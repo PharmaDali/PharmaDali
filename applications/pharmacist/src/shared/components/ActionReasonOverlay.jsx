@@ -9,6 +9,8 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { colors } from '@shared/theme/colorPalette';
 import { Ionicons } from '@expo/vector-icons';
@@ -94,179 +96,142 @@ export default function ActionReasonOverlay({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
-        <View style={styles.overlay}>
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.container}>
-              {/* Header */}
-              <View style={styles.header}>
-                <Text style={[styles.title, { color: themeColor }]}>{title}</Text>
-                <TouchableOpacity onPress={onClose}>
-                  <Ionicons name="close" size={24} color="#666" />
-                </TouchableOpacity>
-              </View>
+      <View className="flex-1 bg-black/50" style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+          <TouchableWithoutFeedback onPress={onClose}>
+            <View className="flex-1 justify-center items-center px-5" style={{ flex: 1 }}>
+              <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View className="w-full bg-white rounded-2xl max-h-[72%] overflow-hidden shadow-xl">
+                  {/* Header */}
+                  <View className="flex-row justify-between items-center px-5 py-3 border-b border-gray-100">
+                    <Text className="text-base" style={[{ color: themeColor }, styles.titleFont]}>
+                      {title}
+                    </Text>
+                    <TouchableOpacity onPress={onClose} activeOpacity={0.7} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                      <Ionicons name="close" size={22} color="#666" />
+                    </TouchableOpacity>
+                  </View>
 
-              <ScrollView showsVerticalScrollIndicator={false} style={styles.content}>
-                <Text style={styles.label}>Select a reason:</Text>
-                <View style={styles.optionsWrap}>
-                  {options.map((opt) => (
+                  <ScrollView
+                    showsVerticalScrollIndicator={true}
+                    persistentScrollbar={true}
+                    indicatorStyle="black"
+                    scrollIndicatorInsets={{ right: 2 }}
+                    className="w-full flex-grow-0"
+                    contentContainerClassName="px-5 py-3.5"
+                    contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 14 }}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    <Text className="text-xs text-gray-500 mb-2" style={styles.labelFont}>
+                      Select a reason:
+                    </Text>
+                    <View className="flex-row flex-wrap gap-2">
+                      {options.map((opt) => {
+                        const isSelected = selectedPrewritten === opt;
+                        return (
+                          <TouchableOpacity
+                            key={opt}
+                            className={`px-3 py-1.5 rounded-xl border ${
+                              isSelected ? '' : 'border-gray-200 bg-gray-50'
+                            }`}
+                            style={
+                              isSelected
+                                ? { borderColor: themeColor, backgroundColor: themeColor + '10' }
+                                : null
+                            }
+                            onPress={() => handleSelectOption(opt)}
+                            activeOpacity={0.7}
+                          >
+                            <Text
+                              className="text-xs"
+                              style={[
+                                styles.optionFont,
+                                isSelected
+                                  ? { color: themeColor, fontFamily: 'Poppins-SemiBold' }
+                                  : { color: '#444444' },
+                              ]}
+                            >
+                              {opt}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+
+                    <Text className="text-xs text-gray-500 mt-3 mb-2" style={styles.labelFont}>
+                      Or write a custom reason:
+                    </Text>
+                    <TextInput
+                      className="border border-gray-200 rounded-xl p-2.5 text-xs bg-gray-50 min-h-[75px]"
+                      placeholder="Type reason here..."
+                      placeholderTextColor="#9CA3AF"
+                      multiline
+                      numberOfLines={3}
+                      value={reason}
+                      onChangeText={(txt) => {
+                        setReason(txt);
+                        if (selectedPrewritten !== txt) setSelectedPrewritten('');
+                      }}
+                      textAlignVertical="top"
+                      style={styles.inputFont}
+                    />
+                  </ScrollView>
+
+                  {/* Footer Actions */}
+                  <View className="flex-row p-5 gap-3 border-t border-gray-100">
                     <TouchableOpacity
-                      key={opt}
-                      style={[
-                        styles.option,
-                        selectedPrewritten === opt && {
-                          borderColor: themeColor,
-                          backgroundColor: themeColor + '10',
-                        },
-                      ]}
-                      onPress={() => handleSelectOption(opt)}
+                      className="flex-1 py-3 items-center rounded-xl bg-gray-100"
+                      onPress={onClose}
+                      activeOpacity={0.7}
                     >
-                      <Text
-                        style={[
-                          styles.optionText,
-                          selectedPrewritten === opt && { color: themeColor, fontFamily: 'Poppins-SemiBold' },
-                        ]}
-                      >
-                        {opt}
+                      <Text className="text-sm text-gray-500" style={styles.btnFont}>
+                        Cancel
                       </Text>
                     </TouchableOpacity>
-                  ))}
+                    <TouchableOpacity
+                      className={`flex-[2] py-3 items-center rounded-xl ${!reason.trim() ? 'opacity-50' : ''}`}
+                      style={{ backgroundColor: themeColor }}
+                      onPress={handleSubmit}
+                      disabled={!reason.trim()}
+                      activeOpacity={0.8}
+                    >
+                      <Text className="text-sm text-white" style={styles.btnFont}>
+                        Confirm
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-
-                <Text style={[styles.label, { marginTop: 15 }]}>Or write a custom reason:</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Type reason here..."
-                  multiline
-                  numberOfLines={4}
-                  value={reason}
-                  onChangeText={(txt) => {
-                    setReason(txt);
-                    if (selectedPrewritten !== txt) setSelectedPrewritten('');
-                  }}
-                  textAlignVertical="top"
-                />
-              </ScrollView>
-
-              {/* Footer Actions */}
-              <View style={styles.footer}>
-                <TouchableOpacity style={styles.cancelBtn} onPress={onClose}>
-                  <Text style={styles.cancelBtnText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.submitBtn,
-                    { backgroundColor: themeColor },
-                    !reason.trim() && styles.disabledBtn,
-                  ]}
-                  onPress={handleSubmit}
-                  disabled={!reason.trim()}
-                >
-                  <Text style={styles.submitBtnText}>Confirm</Text>
-                </TouchableOpacity>
-              </View>
+              </TouchableWithoutFeedback>
             </View>
           </TouchableWithoutFeedback>
-        </View>
-      </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  container: {
-    width: '100%',
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    overflow: 'hidden',
-    maxHeight: '80%',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  title: {
-    fontSize: 18,
+  titleFont: {
     fontFamily: 'Poppins-Bold',
+    includeFontPadding: false,
   },
-  content: {
-    padding: 20,
-  },
-  label: {
-    fontSize: 14,
+  labelFont: {
     fontFamily: 'Poppins-Medium',
-    color: '#666',
-    marginBottom: 10,
+    includeFontPadding: false,
   },
-  optionsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  option: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#FAFAFA',
-  },
-  optionText: {
-    fontSize: 12,
+  optionFont: {
     fontFamily: 'Poppins-Regular',
-    color: '#444',
+    includeFontPadding: false,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 12,
-    padding: 12,
-    fontSize: 14,
+  inputFont: {
     fontFamily: 'Poppins-Regular',
-    minHeight: 100,
-    backgroundColor: '#FAFAFA',
+    includeFontPadding: false,
   },
-  footer: {
-    flexDirection: 'row',
-    padding: 20,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-  },
-  cancelBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
-  },
-  cancelBtnText: {
+  btnFont: {
     fontFamily: 'Poppins-SemiBold',
-    color: '#6B7280',
-  },
-  submitBtn: {
-    flex: 2,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 12,
-  },
-  submitBtnText: {
-    fontFamily: 'Poppins-SemiBold',
-    color: '#FFF',
-  },
-  disabledBtn: {
-    opacity: 0.5,
+    includeFontPadding: false,
   },
 });
