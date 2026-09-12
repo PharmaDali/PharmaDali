@@ -447,23 +447,35 @@ export default function ViewOrderDetailsScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              className="rounded-xl px-8 py-2.5 items-center w-full mt-3"
-              style={
-                !reuploadImage || !prescriptionConfirmed || reuploading
-                  ? { backgroundColor: '#B9DEEF', opacity: 0.6 }
-                  : { backgroundColor: '#48AAD9' }
-              }
-              disabled={!reuploadImage || !prescriptionConfirmed || reuploading}
-              onPress={handleUploadPhotoSubmit}
-              activeOpacity={0.8}
-            >
-              {reuploading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Text className="text-xs text-white" style={styles.fontSemiBold}>Submit</Text>
-              )}
-            </TouchableOpacity>
+            <View className="flex-row gap-3 mt-3">
+              <TouchableOpacity
+                className="flex-1 rounded-xl py-2.5 border border-[#DC3545] bg-[#FFF0F0] items-center justify-center"
+                onPress={() => setCancelVisible(true)}
+                activeOpacity={0.8}
+              >
+                <Text className="text-xs font-semibold text-[#DC3545]" style={{ fontFamily: 'Poppins-SemiBold' }}>
+                  Cancel Order
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="flex-1 rounded-xl py-2.5 items-center justify-center"
+                style={
+                  !reuploadImage || !prescriptionConfirmed || reuploading
+                    ? { backgroundColor: '#B9DEEF', opacity: 0.6 }
+                    : { backgroundColor: '#48AAD9' }
+                }
+                disabled={!reuploadImage || !prescriptionConfirmed || reuploading}
+                onPress={handleUploadPhotoSubmit}
+                activeOpacity={0.8}
+              >
+                {reuploading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text className="text-xs text-white" style={styles.fontSemiBold}>Submit</Text>
+                )}
+              </TouchableOpacity>
+            </View>
 
             {!!reuploadSuccess && <Text className="text-xs text-green-600 mt-3 text-center" style={styles.fontMedium}>{reuploadSuccess}</Text>}
             {!!reuploadError && <Text className="text-xs text-red-500 mt-3 text-center" style={styles.fontMedium}>{reuploadError}</Text>}
