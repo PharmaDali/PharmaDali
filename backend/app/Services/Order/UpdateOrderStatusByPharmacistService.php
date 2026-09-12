@@ -3,6 +3,7 @@
 namespace App\Services\Order;
 
 use App\Enums\OrderStatus;
+use App\Enums\PrescriptionStatus;
 use App\Models\Order;
 use App\Models\User;
 use App\Notifications\OrderRejectedNotification;
@@ -121,6 +122,19 @@ class UpdateOrderStatusByPharmacistService
 
             $lockedOrder->update($updatePayload);
             $order = $lockedOrder->fresh();
+
+            if ($action === 'approve') {
+                $lockedOrder->loadMissing('items.orderItemPrescription');
+                foreach ($lockedOrder->items as $item) {
+                    if ($item->orderItemPrescription) {
+                        $item->orderItemPrescription->update([
+                            'status'      => PrescriptionStatus::VERIFIED,
+                            'verified_by' => $user->id,
+                            'verified_at' => now(),
+                        ]);
+                    }
+                }
+            }
 
             // Notify customer about status change
             if ($action === 'reject') {
