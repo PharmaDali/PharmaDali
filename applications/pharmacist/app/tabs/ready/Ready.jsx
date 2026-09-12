@@ -48,6 +48,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       paymentReceiptImagePath: order.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null,
       paymentStatus: order.payment_status,
       paymentMethod: order.payment_method,
+      note: order?.note || null,
       items: (order?.items || []).map((item) => {
         const product = item?.pharmacy_product?.product;
         const categoryName = item?.pharmacy_product?.category?.category_name || '';

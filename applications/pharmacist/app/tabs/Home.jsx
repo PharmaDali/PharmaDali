@@ -117,6 +117,16 @@ const QuickShortcuts = ({ counts, onNavigate }) => (
   </View>
 );
 
+const getCustomerNote = (note) => {
+  if (!note || typeof note !== 'string') return null;
+  const parts = note.split('|').map((p) => p.trim());
+  const customerParts = parts.filter(
+    (p) => !p.match(/^(payment receipt rejected|customer acknowledged payment issue|pos walk-in sale)/i)
+  );
+  const clean = customerParts.join(' | ').trim();
+  return clean || null;
+};
+
 const RecentOrdersFeed = ({ orders, onNavigate }) => (
   <View className="mx-4 my-3 mb-6">
     <View className="flex-row items-center justify-between mb-2.5 px-1">
@@ -141,6 +151,7 @@ const RecentOrdersFeed = ({ orders, onNavigate }) => (
       orders.map((order) => {
         const customer = order?.customer?.user;
         const customerName = `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim() || 'Customer';
+        const customerNote = getCustomerNote(order?.note);
         const status = String(order?.status || '').toLowerCase();
         const itemCount = Array.isArray(order?.items) ? order.items.length : 0;
         const total = Number(order?.total_amount ?? 0).toFixed(2);
@@ -183,6 +194,15 @@ const RecentOrdersFeed = ({ orders, onNavigate }) => (
             <Text className="text-slate-500 text-xs mb-1" style={{ fontFamily: 'Poppins-Medium' }}>
               Customer: {customerName}
             </Text>
+
+            {Boolean(customerNote) && (
+              <View className="flex-row items-center mb-1">
+                <MaterialCommunityIcons name="note-text-outline" size={13} color="#0284C7" style={{ marginRight: 4 }} />
+                <Text className="text-sky-700 text-[11px] flex-1" numberOfLines={1} style={{ fontFamily: 'Poppins-Regular' }}>
+                  Note: {customerNote}
+                </Text>
+              </View>
+            )}
 
             <View className="flex-row items-center justify-between mt-1 pt-2 border-t border-slate-50">
               <Text className="text-slate-500 text-[11px]" style={{ fontFamily: 'Poppins-Regular' }}>
