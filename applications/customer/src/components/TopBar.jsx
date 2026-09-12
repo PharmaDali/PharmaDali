@@ -1,28 +1,18 @@
-import { Text, View, TouchableOpacity, Keyboard, Animated } from 'react-native'
+import { View, Keyboard } from 'react-native'
 import { useRouter, usePathname } from 'expo-router'
 import MainLogo from '@shared/components/MainLogo'
 import { colors } from '@shared/theme/colorPalette'
 import { TextInput } from 'react-native-paper'
-import CartIcon from '@assets/icons/cart_icon.svg'
 import theme from '@shared/theme/inputTheme'
-import React, { useCallback, useEffect, useState, useRef } from 'react'
-import { getCartItemCount } from '@shared/services/cartService'
-import { subscribeCartCountUpdates } from '@shared/services/cartCountEvents'
-import { resetCartProductIdsCache, initializeCartProductIdsCache } from '@shared/utils/cartUtils'
+import React, { useEffect, useRef } from 'react'
 import { useSearchContext } from '@shared/context/SearchContext'
-import { useFlyToCart } from '@shared/context/FlyToCartContext'
+import CartButton from '@shared/components/CartButton'
 
 const TopBar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { searchQuery, setSearchQuery } = useSearchContext();
-  const { setCartTargetPos, registerLandingListener } = useFlyToCart();
   const searchInputRef = useRef(null);
-
-  const [cartCount, setCartCount] = useState(0);
-  const cartIconRef = useRef(null);
-  const badgeScale = useRef(new Animated.Value(1)).current;
-  const cartShakeAnim = useRef(new Animated.Value(0)).current;
 
   // Unactivate search bar whenever navigating away from the Search tab
   useEffect(() => {
@@ -35,101 +25,11 @@ const TopBar = () => {
     }
   }, [pathname, searchQuery, setSearchQuery]);
 
-  const shakeCart = useCallback(() => {
-    Animated.sequence([
-      Animated.timing(cartShakeAnim, { toValue: -8, duration: 60, useNativeDriver: true }),
-      Animated.timing(cartShakeAnim, { toValue: 8, duration: 60, useNativeDriver: true }),
-      Animated.timing(cartShakeAnim, { toValue: -6, duration: 60, useNativeDriver: true }),
-      Animated.timing(cartShakeAnim, { toValue: 6, duration: 60, useNativeDriver: true }),
-      Animated.timing(cartShakeAnim, { toValue: -3, duration: 50, useNativeDriver: true }),
-      Animated.timing(cartShakeAnim, { toValue: 0, duration: 50, useNativeDriver: true }),
-    ]).start();
-  }, [cartShakeAnim]);
-
-  const pulseBadge = useCallback(() => {
-    shakeCart();
-    Animated.sequence([
-      Animated.timing(badgeScale, { toValue: 1.35, duration: 150, useNativeDriver: true }),
-      Animated.timing(badgeScale, { toValue: 1, duration: 150, useNativeDriver: true }),
-    ]).start();
-  }, [badgeScale, shakeCart]);
-
-  const loadCartCount = useCallback(async () => {
-    try {
-      const count = await getCartItemCount();
-      setCartCount(count);
-      resetCartProductIdsCache();
-      initializeCartProductIdsCache();
-    } catch {
-      setCartCount(0);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadCartCount();
-  }, []);
-
-  useEffect(() => {
-    // Silently update cart count state when items change
-    const unsubscribe = subscribeCartCountUpdates((event) => {
-      if (event && event.type === 'increment') {
-        setCartCount((prev) => prev + (event.quantity || 1));
-      } else {
-        loadCartCount();
-      }
-    });
-
-    return unsubscribe;
-  }, [loadCartCount]);
-
-  useEffect(() => {
-    // Shake cart icon and pulse badge ONLY when flying item lands
-    const unsubscribe = registerLandingListener(() => {
-      pulseBadge();
-    });
-
-    return unsubscribe;
-  }, [registerLandingListener, pulseBadge]);
-
-  const handleCartLayout = useCallback(() => {
-    if (cartIconRef.current && cartIconRef.current.measureInWindow) {
-      cartIconRef.current.measureInWindow((x, y, width, height) => {
-        if (x && y) {
-          setCartTargetPos({ x: x + width / 2, y: y + height / 2 });
-        }
-      });
-    }
-  }, [setCartTargetPos]);
-
-  const cartRotation = cartShakeAnim.interpolate({
-    inputRange: [-10, 10],
-    outputRange: ['-16deg', '16deg'],
-  });
-
   return (
     <View style={{ backgroundColor: colors.buttonColor }} className="py-4 px-5 pt-3">
       <View className="flex-row items-center justify-between mb-[-20px]">
         <MainLogo />
-        <TouchableOpacity onPress={() => router.push('/tabs/cart/Cart')}>
-          <Animated.View
-            ref={cartIconRef}
-            onLayout={handleCartLayout}
-            style={{ transform: [{ rotate: cartRotation }] }}
-            className="relative w-[30px] h-[30px] items-center justify-center"
-          >
-            <CartIcon width={30} height={30} />
-            {cartCount > 0 && (
-              <Animated.View
-                style={{ transform: [{ scale: badgeScale }] }}
-                className="absolute -top-1 -right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 items-center justify-center border border-white"
-              >
-                <Text className="text-[10px] leading-[12px] text-white" style={{ fontFamily: 'Poppins-Bold' }}>
-                  {cartCount > 99 ? '99+' : String(cartCount)}
-                </Text>
-              </Animated.View>
-            )}
-          </Animated.View>
-        </TouchableOpacity>
+        <CartButton />
       </View>
       <TextInput
         ref={searchInputRef}

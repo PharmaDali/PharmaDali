@@ -15,6 +15,7 @@ import SkeletonProductView from '@src/shared/components/SkeletonProductView';
 import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFlyToCart } from '@shared/context/FlyToCartContext';
+import CartButton from '@shared/components/CartButton';
 
 const ProductView = () => {
   const router = useRouter();
@@ -145,10 +146,11 @@ const ProductView = () => {
         type={toast.type}
         topOffset={insets.top + 8}
       />
-      <View className="flex-row items-center px-5 pt-12 pb-4" style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} className="mr-3">
+      <View className="flex-row items-center justify-between px-5 pt-12 pb-4" style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
           <ArrowBackIcon width={24} height={24} />
         </TouchableOpacity>
+        <CartButton />
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
