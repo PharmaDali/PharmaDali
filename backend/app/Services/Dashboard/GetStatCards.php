@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 
 namespace App\Services\Dashboard;
 
@@ -11,7 +11,7 @@ class GetStatCards
     public function __construct(
         protected DashboardRepository $dashboardRepository,
         protected OrderService $orderService,
-        protected InventoryService $inventoryService,
+        protected InventoryService $inventoryService
     ) {}
 
     /**

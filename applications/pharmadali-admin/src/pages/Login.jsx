@@ -37,10 +37,6 @@ function Login() {
     }
   };
 
-  const handleForgotPassword = () => {
-    // Forgot password info or handler
-  };
-
   return (
     <div className="login-page">
       <div className="login-brand-block" aria-hidden="true">
@@ -80,9 +76,6 @@ function Login() {
         {error && <p className="login-error">{error}</p>}
 
         <div className="login-form-footer">
-          <button type="button" className="login-forgot-btn" onClick={handleForgotPassword}>
-            Forgot Password?
-          </button>
           <button type="submit" className="login-submit-btn" disabled={isSubmitting}>
             {isSubmitting ? "Logging in..." : "Mag-login"}
           </button>
