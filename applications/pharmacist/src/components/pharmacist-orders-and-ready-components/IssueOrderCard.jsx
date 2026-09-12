@@ -33,6 +33,7 @@ export default function IssueOrderCard({ order, onOutPending }) {
 
   const isRejectedByPharmacist = order.apiStatus === 'cancelled' && order.cancellationReason?.toLowerCase().includes('rejected by pharmacist');
   const isRejected = isRejectedByPharmacist || order.apiStatus === 'rejected';
+  const isStandBy = order.apiStatus === 'stand_by' || order.apiStatus === 'pending';
 
   let issueSummary = '';
   if (issueCount === 1) {
@@ -41,17 +42,21 @@ export default function IssueOrderCard({ order, onOutPending }) {
     issueSummary = `${issueCount} items have issues`;
   } else if (isRejected) {
     issueSummary = 'Order rejected';
+  } else if (isStandBy) {
+    issueSummary = 'Order on hold';
   } else if (order.apiStatus === 'cancelled') {
     issueSummary = 'Order cancelled';
   } else {
     issueSummary = 'Order requires attention';
   }
 
-  const rawReason = order.cancellationReason || rejectedItems.find((i) => i.rejectionReason && i.rejectionReason !== 'Requires attention')?.rejectionReason || '';
+  const rawReason = order.cancellationReason || (isStandBy ? order.note : null) || rejectedItems.find((i) => i.rejectionReason && i.rejectionReason !== 'Requires attention')?.rejectionReason || '';
   const cleanReason = rawReason
     .replace(/^rejected by pharmacist:\s*/i, '')
     .replace(/^cancelled by customer:\s*/i, '')
     .replace(/^prescription rejected:\s*/i, '')
+    .replace(/^on hold:\s*/i, '')
+    .replace(/^placed on hold:\s*/i, '')
     .trim();
   const displayReason = cleanReason || rawReason;
 
@@ -66,8 +71,6 @@ export default function IssueOrderCard({ order, onOutPending }) {
       <Text className="text-xs" style={styles.awaitingText}>Awaiting Customer Action</Text>
     </View>
   );
-
-  const isStandBy = order.apiStatus === 'stand_by' || order.apiStatus === 'pending';
 
   return (
     <OrderCard order={order} statusBadge={statusBadge}>
@@ -105,17 +108,17 @@ export default function IssueOrderCard({ order, onOutPending }) {
         </View>
       ) : (
         <View>
-          {/* Rejection / Cancellation Reason (Only displayed when card expands) */}
+          {/* Rejection / On Hold / Cancellation Reason (Only displayed when card expands) */}
           {Boolean(displayReason) && (
             <View
               className="mx-4 mt-2 mb-2 p-3 rounded-xl border"
-              style={isRejected ? styles.reasonBoxRejected : styles.reasonBoxCancelled}
+              style={isRejected ? styles.reasonBoxRejected : isStandBy ? styles.reasonBoxOnHold : styles.reasonBoxCancelled}
             >
               <Text
                 className="text-xs mb-1"
-                style={isRejected ? styles.rejectionReasonTitle : styles.cancellationReasonTitle}
+                style={isRejected ? styles.rejectionReasonTitle : isStandBy ? styles.onHoldReasonTitle : styles.cancellationReasonTitle}
               >
-                {isRejected ? 'Rejection Reason' : 'Cancellation Reason'}
+                {isRejected ? 'Rejection Reason' : isStandBy ? 'On Hold Reason' : 'Cancellation Reason'}
               </Text>
               <Text className="text-xs leading-5" style={{ fontFamily: 'Poppins-Regular', color: colors.textColor }}>
                 {displayReason}
@@ -272,6 +275,10 @@ const styles = StyleSheet.create({
     borderColor: '#FCA5A5',
     backgroundColor: '#FEF2F2',
   },
+  reasonBoxOnHold: {
+    borderColor: '#FDE68A',
+    backgroundColor: '#FFFBEB',
+  },
   reasonBoxCancelled: {
     borderColor: '#E5E7EB',
     backgroundColor: '#F9FAFB',
@@ -279,6 +286,10 @@ const styles = StyleSheet.create({
   rejectionReasonTitle: {
     fontFamily: 'Poppins-Bold',
     color: '#991B1B',
+  },
+  onHoldReasonTitle: {
+    fontFamily: 'Poppins-Bold',
+    color: '#B45309',
   },
   cancellationReasonTitle: {
     fontFamily: 'Poppins-Bold',

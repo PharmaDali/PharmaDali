@@ -114,7 +114,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                   disabled={muteOtherActions}
                   onPress={() => onPending?.(order)}
                 >
-                  <Text className="text-sm" style={muteOtherActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
+                  <Text className="text-sm" style={muteOtherActions ? styles.mutedPendingText : styles.pendingText}>On Hold</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   className="rounded-xl px-5 py-1.5"
@@ -180,7 +180,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                         disabled={muteOtherActions}
                         onPress={() => onPending?.(order)}
                       >
-                        <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>Pending</Text>
+                        <Text className="text-sm" style={muteOtherActions ? styles.mutedPendingText : styles.pendingText}>On Hold</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         className="rounded-xl px-6 py-2"
@@ -213,7 +213,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                       onPress={() => onPending?.(order)}
                     >
                       <View className="flex-row items-center">
-                        <Text className="text-sm" style={muteOtherActions ? styles.mutedPendingText : styles.pendingText}>Pending</Text>
+                        <Text className="text-sm" style={muteOtherActions ? styles.mutedPendingText : styles.pendingText}>On Hold</Text>
                       </View>
                     </TouchableOpacity>
                     <TouchableOpacity
