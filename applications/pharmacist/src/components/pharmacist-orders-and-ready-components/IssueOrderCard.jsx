@@ -40,11 +40,12 @@ export default function IssueOrderCard({ order, onOutPending }) {
   }
 
   const isRejectedByPharmacist = order.apiStatus === 'cancelled' && order.cancellationReason?.toLowerCase().includes('rejected by pharmacist');
+  const isRejected = isRejectedByPharmacist || order.apiStatus === 'rejected';
 
   const statusBadge = order.apiStatus === 'cancelled' || order.apiStatus === 'rejected' ? (
-    <View className="px-3 py-1 rounded-lg border" style={styles.rejectedBadge}>
-      <Text className="text-xs" style={styles.rejectedText}>
-        {isRejectedByPharmacist ? 'Rejected' : 'Cancelled'}
+    <View className="px-3 py-1 rounded-lg border" style={isRejected ? styles.rejectedBadge : styles.cancelledBadge}>
+      <Text className="text-xs" style={isRejected ? styles.rejectedText : styles.cancelledText}>
+        {isRejected ? 'Rejected' : 'Cancelled'}
       </Text>
     </View>
   ) : (
@@ -232,12 +233,20 @@ const styles = StyleSheet.create({
     color: '#0C5460',
   },
   rejectedBadge: {
-    borderColor: '#CC3A3A',
-    backgroundColor: '#FCEAEA',
+    borderColor: '#EF4444',
+    backgroundColor: '#FEE2E2',
   },
   rejectedText: {
     fontFamily: 'Poppins-SemiBold',
-    color: '#CC3A3A',
+    color: '#991B1B',
+  },
+  cancelledBadge: {
+    borderColor: '#9CA3AF',
+    backgroundColor: '#F3F4F6',
+  },
+  cancelledText: {
+    fontFamily: 'Poppins-SemiBold',
+    color: '#4B5563',
   },
   sectionTitle: {
     fontFamily: 'Poppins-Bold',

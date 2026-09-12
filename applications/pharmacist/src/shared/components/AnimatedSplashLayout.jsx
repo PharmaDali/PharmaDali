@@ -59,6 +59,7 @@ export default function AnimatedSplashLayout({
   return (
     <View style={styles.container}>
       <Animated.View
+        pointerEvents="none"
         style={[
           styles.logoContainer,
           {

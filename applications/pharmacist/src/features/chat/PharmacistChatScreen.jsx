@@ -22,7 +22,8 @@ const ORDER_STATUS_COLORS = {
   stand_by:         '#F97316',  
   ready_for_pickup: '#10B981',  
   completed:        '#64748B',  
-  cancelled:        '#EF4444',  
+  cancelled:        '#6B7280',  
+  rejected:         '#EF4444',  
 };
 
 const ORDER_STATUS_LABELS = {
@@ -33,6 +34,7 @@ const ORDER_STATUS_LABELS = {
   ready_for_pickup: 'Ready for Pickup',
   completed:        'Completed',
   cancelled:        'Cancelled',
+  rejected:         'Rejected',
 };
 
 const CONV_STATUS_COLORS = {

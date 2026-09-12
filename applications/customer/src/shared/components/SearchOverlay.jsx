@@ -102,8 +102,8 @@ export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCar
         <View className="flex-1 flex-row items-center bg-gray-100 rounded-xl px-3 h-[45px]">
           <MaterialCommunityIcons name="magnify" size={20} color="#999" className="mr-2" />
           <TextInput
-            className="flex-1 text-sm text-gray-700"
-            style={{ fontFamily: 'Poppins-Regular' }}
+            className="flex-1 text-sm"
+            style={{ fontFamily: 'Poppins-Regular', color: '#444444' }}
             placeholder="Search for medicines, products..."
             placeholderTextColor="#999"
             value={query}

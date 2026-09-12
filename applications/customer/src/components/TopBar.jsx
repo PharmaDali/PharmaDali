@@ -135,6 +135,9 @@ const TopBar = () => {
         ref={searchInputRef}
         placeholder="Search"
         mode="outlined"
+        textColor="#444444"
+        contentStyle={{ color: '#444444' }}
+        style={{ color: '#444444' }}
         left={<TextInput.Icon icon="magnify" />}
         right={
           searchQuery ? (
