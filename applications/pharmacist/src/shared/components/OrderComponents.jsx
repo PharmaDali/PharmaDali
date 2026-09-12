@@ -9,8 +9,8 @@ const statusColors = {
   preparing: { bg: '#D1ECF1', border: '#48AAD9', text: '#0C5460' },
   approved: { bg: '#D4EDDA', border: '#60B17E', text: '#60B17E' },
   ready_for_pickup: { bg: '#D4EDDA', border: '#60B17E', text: '#14532D' },
-  rejected: { bg: '#333333', border: '#444444', text: '#FFFFFF' },
-  cancelled: { bg: '#FEE2E2', border: '#EF4444', text: '#991B1B' },
+  rejected: { bg: '#FEE2E2', border: '#EF4444', text: '#991B1B' },
+  cancelled: { bg: '#F3F4F6', border: '#9CA3AF', text: '#4B5563' },
   completed: { bg: '#48AAD9', border: '#96D2EE', text: '#FFFFFF' },
   overdue: { bg: '#FF9114', border: 'rgba(255, 178, 89, 0.70)', text: '#FFFFFF' },
 };
