@@ -451,8 +451,6 @@
 
 /* Badges */
 .badge-status {
-  padding: 6px 16px;
-  border-radius: 16px;
   font-size: 12px;
   font-weight: 600;
   display: inline-flex;
@@ -463,13 +461,13 @@
 }
 
 .badge-completed {
-  background-color: #00b96b !important;
-  color: #ffffff !important;
+  background-color: transparent !important;
+  color: #00b96b !important;
 }
 
 .badge-exchanged {
-  background-color: #38bdf8 !important;
-  color: #ffffff !important;
+  background-color: transparent !important;
+  color: #38bdf8 !important;
 }
 
 /* Table Running Total */
@@ -514,9 +512,7 @@
   }
 
   .badge-status {
-    padding: 3px 10px !important;
     font-size: 10px !important;
-    border-radius: 12px !important;
   }
 
   .report-table-total-container {
@@ -570,10 +566,8 @@
 
 /* Item Exchange Stepper & Modal Enhancements */
 .exchange-order-badge {
-  background-color: #eef7fc;
+  background-color: transparent;
   color: #64748b;
-  border-radius: 20px;
-  padding: 5px 14px;
   font-size: 13px;
   font-weight: 600;
   display: inline-flex;

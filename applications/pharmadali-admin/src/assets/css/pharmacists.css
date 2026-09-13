@@ -252,20 +252,18 @@
 
 .pharmacists-status-badge {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
 }
 
 .pharmacists-status-active {
-  background: #d1fae5;
-  color: #047857;
+  background: transparent;
+  color: #10b981;
 }
 
 .pharmacists-status-inactive {
-  background: #fee2e2;
-  color: #dc2626;
+  background: transparent;
+  color: #ef4444;
 }
 
 /* Mobile Pharmacist Card Action Buttons */
