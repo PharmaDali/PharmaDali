@@ -131,7 +131,16 @@ const PickupDetailsScreen = () => {
     closingDateTime,
   ])
 
-  const isConfirmPickupDisabled = submitting || isPharmacyClosed || Boolean(confirmPickupValidationError) || Boolean(submitError)
+  const isOnlinePaymentReceiptMissing = Boolean(
+    !hasPrescription && !discountIdImage && paymentMethod === 'gcash' && !gcashReceiptImage
+  )
+
+  const isConfirmPickupDisabled =
+    submitting ||
+    isPharmacyClosed ||
+    Boolean(confirmPickupValidationError) ||
+    Boolean(submitError) ||
+    isOnlinePaymentReceiptMissing
 
   useEffect(() => {
     if (!hasValidOperatingWindow || !hasWindowToday) {
@@ -265,6 +274,9 @@ const PickupDetailsScreen = () => {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const selected = result.assets[0]
+        if (submitError?.toLowerCase().includes('receipt') || submitError?.toLowerCase().includes('gcash')) {
+          setSubmitError('')
+        }
         setGcashReceiptImage(selected)
         setCheckoutDraft({
           ...getCheckoutDraft(),
@@ -291,6 +303,9 @@ const PickupDetailsScreen = () => {
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const captured = result.assets[0]
+        if (submitError?.toLowerCase().includes('receipt') || submitError?.toLowerCase().includes('gcash')) {
+          setSubmitError('')
+        }
         setGcashReceiptImage(captured)
         setCheckoutDraft({
           ...getCheckoutDraft(),
@@ -398,9 +413,9 @@ const PickupDetailsScreen = () => {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-4 p-4">
-          <View className="flex-row items-start">
-            <RedLocationIcon width={18} height={18} />
-            <View className="ml-2 flex-1">
+          <View className="flex-row items-center">
+            <RedLocationIcon width={24} height={24} />
+            <View className="ml-2.5 flex-1 justify-center">
               <Text className="text-xs" style={styles.fontSemiBold}>
                 Pickup at {selectedPharmacy?.name || pharmacyLabel || 'Selected pharmacy'}
               </Text>
@@ -705,7 +720,12 @@ const PickupDetailsScreen = () => {
               <View className="gap-3">
                 <TouchableOpacity
                   className="flex-row items-center justify-between py-1"
-                  onPress={() => setPaymentMethod('cash')}
+                  onPress={() => {
+                    setPaymentMethod('cash')
+                    if (submitError?.toLowerCase().includes('receipt') || submitError?.toLowerCase().includes('gcash')) {
+                      setSubmitError('')
+                    }
+                  }}
                   activeOpacity={0.8}
                 >
                   <View className="flex-row items-center flex-1">
@@ -723,7 +743,12 @@ const PickupDetailsScreen = () => {
 
                 <TouchableOpacity
                   className="flex-row items-center justify-between py-1"
-                  onPress={() => setPaymentMethod('gcash')}
+                  onPress={() => {
+                    setPaymentMethod('gcash')
+                    if (submitError?.toLowerCase().includes('receipt') || submitError?.toLowerCase().includes('gcash')) {
+                      setSubmitError('')
+                    }
+                  }}
                   activeOpacity={0.8}
                 >
                   <View className="flex-row items-center flex-1">
@@ -787,9 +812,9 @@ const PickupDetailsScreen = () => {
         )}
       </ScrollView>
 
-      <View className="flex-row justify-center gap-4 px-6 py-4 bg-white border-t border-gray-100">
+      <View className="flex-row justify-center gap-4 px-6 py-3 bg-white border-t border-gray-100">
         <TouchableOpacity
-          className="flex-1 border border-[#48AAD9] rounded-xl py-2.5 items-center"
+          className="flex-1 border border-[#48AAD9] rounded-xl py-2 items-center justify-center"
           disabled={submitting}
           onPress={() => router.back()}
         >
@@ -797,7 +822,7 @@ const PickupDetailsScreen = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          className={`flex-1 rounded-xl py-2.5 items-center ${isConfirmPickupDisabled ? 'bg-gray-300' : 'bg-[#48AAD9]'}`}
+          className={`flex-1 rounded-xl py-2 items-center justify-center ${isConfirmPickupDisabled ? 'bg-gray-300' : 'bg-[#48AAD9]'}`}
           onPress={handleConfirmPickup}
           disabled={isConfirmPickupDisabled}
         >
@@ -823,13 +848,13 @@ const PickupDetailsScreen = () => {
             </Text>
             <View className="flex-row justify-between gap-3">
               <TouchableOpacity
-                className="flex-1 rounded-xl py-3 items-center border border-[#48AAD9] bg-white"
+                className="flex-1 rounded-xl py-2 items-center justify-center border border-[#48AAD9] bg-white"
                 onPress={() => setShowConfirmModal(false)}
               >
                 <Text className="text-sm" style={[styles.fontSemiBold, { color: '#48AAD9' }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                className="flex-1 rounded-xl py-3 items-center bg-[#48AAD9]"
+                className="flex-1 rounded-xl py-2 items-center justify-center bg-[#48AAD9]"
                 onPress={actuallySubmitOrder}
               >
                 <Text className="text-sm" style={[styles.fontSemiBold, { color: '#ffffff' }]}>Yes, Submit</Text>
