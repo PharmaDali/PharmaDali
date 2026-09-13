@@ -234,9 +234,18 @@ const PickupDetailsScreen = () => {
 
   const handleRemoveDiscountId = () => {
     setDiscountIdImage(null)
+    setDiscountType(null)
+    setDiscountIdNumber('')
+    setIsDiscountConfirmed(false)
+    setShowDiscountDropdown(false)
+    if (submitError?.toLowerCase().includes('discount')) {
+      setSubmitError('')
+    }
     setCheckoutDraft({
       ...getCheckoutDraft(),
       discountIdImage: null,
+      discountType: null,
+      discountIdNumber: '',
     })
   }
 
@@ -312,11 +321,6 @@ const PickupDetailsScreen = () => {
       return
     }
 
-    if (discountType && !discountIdImage) {
-      setSubmitError('Please upload your discount ID photo.')
-      return
-    }
-
     if (!hasPrescription && !discountIdImage && paymentMethod === 'gcash' && !gcashReceiptImage) {
       setSubmitError('Please upload your GCash payment receipt.')
       return
@@ -333,13 +337,14 @@ const PickupDetailsScreen = () => {
     const selectedPharmacyLabel = selectedPharmacy?.name || pharmacyLabel || ''
     
     const scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, selectedTime)
+    const isAvailingDiscount = Boolean(discountIdImage?.uri && discountType && discountIdNumber)
     const payload = {
       items,
       hasPrescription,
       prescriptionImage,
-      discountIdImage,
-      discountType,
-      discountIdNumber,
+      discountIdImage: isAvailingDiscount ? discountIdImage : null,
+      discountType: isAvailingDiscount ? discountType : null,
+      discountIdNumber: isAvailingDiscount ? discountIdNumber : '',
       gcashReceiptImage,
       selectedPharmacyLabel,
       scheduledPickupAt,
