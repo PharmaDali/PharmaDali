@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   FlatList,
   RefreshControl,
   Text,
@@ -11,7 +10,13 @@ import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@src/shared/theme/colorPalette';
-import { getCustomerConversations } from '@shared/services/chatService';
+import {
+  getCustomerConversations,
+  deleteCustomerConversation,
+} from '@shared/services/chatService';
+import DeleteConversationOverlay from '@shared/components/DeleteConversationOverlay';
+import UndoSnackbar from '@shared/components/UndoSnackbar';
+import SkeletonChat from '@shared/components/SkeletonChat';
 
 const ORDER_STATUS_COLORS = {
   pending:          '#F59E0B',  
@@ -86,6 +91,74 @@ export default function CustomerChatScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const pendingDeleteRef = useRef(null);
+
+  useEffect(() => {
+    pendingDeleteRef.current = pendingDelete;
+  }, [pendingDelete]);
+
+  useEffect(() => {
+    return () => {
+      if (pendingDeleteRef.current) {
+        clearTimeout(pendingDeleteRef.current.timeoutId);
+        deleteCustomerConversation(pendingDeleteRef.current.item.id).catch(() => {});
+      }
+    };
+  }, []);
+
+  const handleLongPress = useCallback((item) => {
+    setSelectedConversation(item);
+    setDeleteModalVisible(true);
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (!selectedConversation) return;
+
+    if (pendingDeleteRef.current) {
+      clearTimeout(pendingDeleteRef.current.timeoutId);
+      deleteCustomerConversation(pendingDeleteRef.current.item.id).catch(() => {});
+    }
+
+    const target = selectedConversation;
+    const idx = conversations.findIndex((c) => c.id === target.id);
+
+    setDeleteModalVisible(false);
+    setSelectedConversation(null);
+
+    setConversations((prev) => prev.filter((c) => c.id !== target.id));
+    setSnackbarVisible(true);
+
+    const timeoutId = setTimeout(async () => {
+      setSnackbarVisible(false);
+      setPendingDelete(null);
+      try {
+        await deleteCustomerConversation(target.id);
+      } catch (e) {
+        console.error('Failed to delete conversation:', e);
+      }
+    }, 5000);
+
+    setPendingDelete({ item: target, index: idx >= 0 ? idx : 0, timeoutId });
+  }, [selectedConversation, conversations]);
+
+  const handleUndo = useCallback(() => {
+    if (pendingDeleteRef.current) {
+      clearTimeout(pendingDeleteRef.current.timeoutId);
+      const { item, index } = pendingDeleteRef.current;
+      setConversations((prev) => {
+        if (prev.some((c) => c.id === item.id)) return prev;
+        const updated = [...prev];
+        updated.splice(index, 0, item);
+        return updated;
+      });
+      setPendingDelete(null);
+      setSnackbarVisible(false);
+    }
+  }, []);
 
   const loadData = useCallback(async () => {
     try {
@@ -133,6 +206,7 @@ export default function CustomerChatScreen() {
     const statusColor = getStatusColor(orderStatus, convStatus);
     const statusLabel = getStatusLabel(orderStatus, convStatus);
     const hasUnread = item?.unread_count > 0;
+    const isSelected = selectedConversation?.id === item?.id;
 
     return (
       <TouchableOpacity
@@ -140,6 +214,9 @@ export default function CustomerChatScreen() {
           pathname: '/tabs/chat/Conversation',
           params: { conversationId: String(item.id) },
         })}
+        onLongPress={() => handleLongPress(item)}
+        delayLongPress={350}
+        style={{ backgroundColor: isSelected ? '#E2E8F0' : 'transparent' }}
         className="flex-row items-center px-4 py-3"
         activeOpacity={0.7}
       >
@@ -212,9 +289,7 @@ export default function CustomerChatScreen() {
 
       {/* ── Body ── */}
       {loading ? (
-        <View className="flex-grow items-center justify-center pt-12 px-8">
-          <ActivityIndicator size="large" color={colors.buttonColor} />
-        </View>
+        <SkeletonChat />
       ) : (
         <FlatList
           data={conversations}
@@ -258,6 +333,23 @@ export default function CustomerChatScreen() {
           }
         />
       )}
+
+      <DeleteConversationOverlay
+        visible={deleteModalVisible}
+        conversation={selectedConversation}
+        onClose={() => {
+          setDeleteModalVisible(false);
+          setSelectedConversation(null);
+        }}
+        onConfirm={handleConfirmDelete}
+      />
+
+      <UndoSnackbar
+        visible={snackbarVisible}
+        message="Conversation deleted"
+        onUndo={handleUndo}
+        bottomOffset={insets.bottom + 70}
+      />
     </View>
   );
 }

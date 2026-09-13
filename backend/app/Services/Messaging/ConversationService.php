@@ -7,8 +7,10 @@ use App\Models\ConversationMessage;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\Messaging\Actions\AppendSystemMessage;
+use App\Services\Messaging\Actions\DeleteConversation;
 use App\Services\Messaging\Actions\EnsureConversationForOrder;
 use App\Services\Messaging\Actions\ListConversations;
+use App\Services\Messaging\Actions\RestoreConversation;
 use App\Services\Messaging\Actions\SendChatMessage;
 use App\Services\Messaging\Actions\ShowConversation;
 use App\Services\Messaging\Actions\StartConversation;
@@ -22,7 +24,9 @@ class ConversationService
         private readonly ShowConversation $showConversationAction,
         private readonly SendChatMessage $sendChatMessageAction,
         private readonly AppendSystemMessage $appendSystemMessageAction,
-        private readonly EnsureConversationForOrder $ensureConversationAction
+        private readonly EnsureConversationForOrder $ensureConversationAction,
+        private readonly DeleteConversation $deleteConversationAction,
+        private readonly RestoreConversation $restoreConversationAction
     ) {}
 
     public function listConversations(User $user): JsonResponse
@@ -58,5 +62,15 @@ class ConversationService
     public function ensureConversationForOrder(Order $order): Conversation
     {
         return $this->ensureConversationAction->execute($order);
+    }
+
+    public function deleteConversation(User $user, Conversation $conversation): JsonResponse
+    {
+        return $this->deleteConversationAction->execute($user, $conversation);
+    }
+
+    public function restoreConversation(User $user, Conversation $conversation): JsonResponse
+    {
+        return $this->restoreConversationAction->execute($user, $conversation);
     }
 }

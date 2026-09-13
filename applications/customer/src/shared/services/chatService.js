@@ -58,3 +58,18 @@ export async function sendCustomerMessage(conversationId, body, imageFile = null
     return payload?.data ?? null;
   }
 }
+
+export async function deleteCustomerConversation(conversationId) {
+  const payload = await apiRequest(`/customer/messages/conversations/${conversationId}`, {
+    method: 'DELETE',
+  });
+  return payload?.data ?? null;
+}
+
+export async function restoreCustomerConversation(conversationId) {
+  const payload = await apiRequest(`/customer/messages/conversations/${conversationId}/restore`, {
+    method: 'POST',
+  });
+  return payload?.data ?? null;
+}
+
