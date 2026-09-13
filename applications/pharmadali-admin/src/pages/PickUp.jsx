@@ -182,6 +182,8 @@ export function PickUp() {
               setPaymentMethod={setPaymentMethod}
               onOpenPaymentModal={handleOpenPaymentModal}
               isPaymentEntered={isPaymentEntered}
+              cashReceived={cashReceived}
+              changeAmount={changeAmount}
               onCompleteSale={handleCompleteOrderClick}
             />
           </div>
