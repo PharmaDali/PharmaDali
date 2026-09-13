@@ -19,6 +19,8 @@ export function PickupOrderDetailsSidebar({
   setPaymentMethod,
   onOpenPaymentModal,
   isPaymentEntered,
+  cashReceived,
+  changeAmount,
   onCompleteSale,
 }) {
   const isReady = activeOrder && activeOrder.status === 'ready_for_pickup';
@@ -127,6 +129,32 @@ export function PickupOrderDetailsSidebar({
             <span style={{ color: "var(--pd-primary)" }}>
               PHP {Number(activeOrder.total_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
+          </div>
+          {(activeOrder.payment_method === 'cash' || activeOrder.payment_method === 'Cash' || (!activeOrder.payment_method)) && (activeOrder.amount_received !== null && activeOrder.amount_received !== undefined) && (
+            <>
+              <div className="d-flex justify-content-between text-muted mt-2 mb-1" style={{ fontSize: 13.5 }}>
+                <span>Amount Received</span>
+                <span className="text-dark">PHP {Number(activeOrder.amount_received || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div className="d-flex justify-content-between text-muted" style={{ fontSize: 13.5 }}>
+                <span>Change</span>
+                <span className="text-dark">PHP {Number(activeOrder.change_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Entered Payment Details for Ready Orders */}
+      {isReady && isPaymentEntered && paymentMethod === 'cash' && (
+        <div className="p-3 bg-light rounded-3 mb-3 border border-light-subtle" style={{ fontSize: 13.5 }}>
+          <div className="d-flex justify-content-between text-muted mb-1">
+            <span>Amount Paid</span>
+            <span className="text-dark">PHP {Number(cashReceived).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+          </div>
+          <div className="d-flex justify-content-between fw-bold text-dark pt-1">
+            <span>Change</span>
+            <span style={{ color: "var(--pd-primary)" }}>PHP {Number(changeAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
           </div>
         </div>
       )}
