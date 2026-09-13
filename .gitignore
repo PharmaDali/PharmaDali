@@ -5,6 +5,5 @@
 .env
 
 # Deployment and server setup files
-deploy.sh
 VPS_PURCHASE_AND_SETUP_GUIDE.md
 DOCKER_DEPLOYMENT_README.md
