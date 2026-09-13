@@ -257,3 +257,48 @@
     height: 260px;
   }
 }
+
+@media (min-width: 992px) {
+  /* Prevent whole page from scrolling on desktop */
+  body:has(.dashboard-page) {
+    overflow: hidden;
+  }
+  
+  .dashboard-page {
+    height: calc(100vh - var(--pd-navbar-height) - 60px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dashboard-desktop-only {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  
+  /* flex: 1 1 auto means: do grow (1), do shrink (1), natural height (auto) */
+  .dashboard-desktop-only > .row:last-child {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .dashboard-desktop-only > .row:last-child > .col-12,
+  .dashboard-desktop-only > .row:last-child .dashboard-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .dashboard-table-scroll-container {
+    overflow-y: auto;
+    min-height: 0;
+  }
+  
+  .dashboard-table-scroll-container table {
+    margin-bottom: 0;
+  }
+}
+
+

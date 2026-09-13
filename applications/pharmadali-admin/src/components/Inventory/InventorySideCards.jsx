@@ -44,22 +44,22 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                     <td className="text-center">
                       {!item.ordered_at && handleMarkOrdered && (
                         <button
-                          className="btn btn-sm py-0 px-2"
+                          className="btn py-1 px-2"
                           style={{ 
-                            fontSize: "10px", 
-                            borderRadius: "10px",
-                            color: "var(--pd-primary)",
-                            border: "1px solid var(--pd-primary)",
-                            backgroundColor: "transparent",
-                            whiteSpace: "nowrap"
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            borderRadius: "6px",
+                            color: "white",
+                            border: "none",
+                            backgroundColor: "var(--pd-primary)",
+                            whiteSpace: "nowrap",
+                            transition: "all 0.2s ease"
                           }}
                           onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "var(--pd-primary)";
-                            e.target.style.color = "white";
+                            e.target.style.opacity = "0.85";
                           }}
                           onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "transparent";
-                            e.target.style.color = "var(--pd-primary)";
+                            e.target.style.opacity = "1";
                           }}
                           onClick={(e) => {
                             e.stopPropagation();

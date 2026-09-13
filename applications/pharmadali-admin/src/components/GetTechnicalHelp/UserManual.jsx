@@ -10,7 +10,7 @@ const MANUAL_ITEMS = [
         title: "Getting Started",
         subtitle: "Learn how to use and manage PharmaDali.",
         content: (
-            <div className="row g-4 align-items-start">
+            <div className="row g-3 align-items-start">
                 <div className="col-12 col-lg-7 tech-help-manual-content-text">
                     <h6 className="fw-bold" style={{ color: "#475569" }}>1.1 Overview</h6>
                     <p style={{ color: "#64748b" }}>

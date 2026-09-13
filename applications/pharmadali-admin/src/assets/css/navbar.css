@@ -98,7 +98,7 @@
   }
 
   .navbar-logo {
-    height: 22px;
+    height: 24px;
   }
 
   .navbar-meta-wrap {
@@ -106,7 +106,8 @@
     flex-shrink: 0;
   }
 
-  .navbar-greeting-text {
+  .navbar-greeting-text,
+  .navbar-greeting-icon {
     display: none;
   }
 

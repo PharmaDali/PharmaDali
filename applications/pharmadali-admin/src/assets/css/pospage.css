@@ -1,7 +1,18 @@
-.pos-page,
+@media (min-width: 992px) {
+  body:has(.pos-page) {
+    overflow: hidden !important;
+  }
+}
+
+.pos-page {
+  min-width: 0;
+  height: calc(100vh - 135px);
+  overflow: hidden;
+}
+
 .pos-pane {
   min-width: 0;
-  min-height: calc(100vh - 140px);
+  height: 100%;
 }
 
 .pos-search input::placeholder {
@@ -15,8 +26,8 @@
 .pos-card {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 140px);
-  min-height: 560px;
+  height: 100%;
+  min-height: 500px;
   border-radius: 16px;
   border: 1px solid #e1e9f3;
   background: #f4f7fb;
@@ -404,6 +415,8 @@
 @media (max-width: 991.98px) {
   .pos-page {
     gap: 1rem !important;
+    height: auto;
+    overflow: visible;
   }
 
   .pos-card {
@@ -413,6 +426,7 @@
 
   .pos-pane {
     min-height: auto;
+    height: auto;
   }
 
   .pos-order-pane {

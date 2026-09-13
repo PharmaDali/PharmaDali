@@ -212,7 +212,7 @@ function Profile() {
 
       <div className="card border-0 shadow-sm profile-card">
         <div className="card-body p-4 p-lg-5">
-          <div className="row g-4 align-items-start">
+          <div className="row g-3 align-items-start">
 
             {/* ── Avatar column ── */}
             <div className="col-12 col-md-auto d-flex flex-column align-items-center profile-avatar-col p-5">

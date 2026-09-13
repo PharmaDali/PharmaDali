@@ -58,7 +58,7 @@ export function Inventory() {
 
       <InventoryFilterBar {...filter} loadData={loadData} onReset={filter.resetFilters} />
 
-      <div className="row g-4 inventory-content-row">
+      <div className="row g-3 inventory-content-row">
         <div className="col-12 col-xl-8">
           <InventoryTable
             {...table}

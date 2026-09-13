@@ -64,7 +64,7 @@ const BackupAndRestore = ({ onNavigate }) => {
             </p>
           </div>
 
-          <div className="row g-4 align-items-center">
+          <div className="row g-3 align-items-center">
             <div className="col-12 col-md-7 col-lg-8">
               <div
                 style={{
@@ -150,7 +150,7 @@ const BackupAndRestore = ({ onNavigate }) => {
             </div>
           </div>
 
-          <div className="row g-4">
+          <div className="row g-3">
             {/* Left Column: Select Backup File */}
             <div className="col-12 col-md-6">
               <h6 className="settings-section-title" style={{ fontSize: "1rem", marginBottom: "1rem" }}>

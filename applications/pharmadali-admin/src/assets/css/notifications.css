@@ -89,58 +89,52 @@
 .alert-badge {
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.35rem 0.8rem;
-  border-radius: 50px;
   display: inline-flex;
   align-items: center;
 }
 
 .alert-badge-stocks {
-  background-color: #e0f2fe;
-  color: #2aabe2;
-  border: 1px solid #7dd3fc;
+  background-color: transparent;
+  color: #38bdf8;
+  border: none;
 }
 
 .alert-badge-expiry {
-  background-color: #fef3c7;
-  color: #b45309;
-  border: 1px solid #fde68a;
+  background-color: transparent;
+  color: #f59e0b;
+  border: none;
 }
 
 .alert-badge-shortage {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fca5a5;
+  background-color: transparent;
+  color: #ef4444;
+  border: none;
 }
 
 .alert-badge-system {
-  background-color: #f1f5f9;
-  color: #475569;
-  border: 1px solid #cbd5e1;
+  background-color: transparent;
+  color: #64748b;
+  border: none;
 }
 
 .alert-badge-stock-units {
-  background-color: #fee2e2;
+  background-color: transparent;
   color: #ef4444;
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.35rem 0.8rem;
-  border-radius: 50px;
   display: inline-flex;
   align-items: center;
-  border: 1px solid #fca5a5;
+  border: none;
 }
 
 .alert-badge-warning {
-  background-color: #fef9c3;
-  color: #1e293b;
+  background-color: transparent;
+  color: #f59e0b;
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.35rem 0.8rem;
-  border-radius: 50px;
   display: inline-flex;
   align-items: center;
-  border: 1px solid #fef08a;
+  border: none;
 }
 
 .unread-dot {

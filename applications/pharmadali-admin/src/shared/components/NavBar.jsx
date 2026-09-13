@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 function NavBar({ onToggleSidebar, sidebarOpen }) {
   const [time, setTime] = useState("");
   const [date, setDate] = useState("");
+  const [shortDate, setShortDate] = useState("");
   const [greeting, setGreeting] = useState("Good Morning");
   const [iconClass, setIconClass] = useState("fa-sun");
   const [iconColor, setIconColor] = useState("#FFD700");
@@ -16,6 +17,13 @@ function NavBar({ onToggleSidebar, sidebarOpen }) {
         now.toLocaleDateString("en-US", {
           day: "numeric",
           month: "long",
+          year: "numeric",
+        })
+      );
+      setShortDate(
+        now.toLocaleDateString("en-US", {
+          day: "numeric",
+          month: "short",
           year: "numeric",
         })
       );
@@ -71,7 +79,7 @@ function NavBar({ onToggleSidebar, sidebarOpen }) {
         </Link>
       </div>
 
-      <div className="d-flex align-items-center gap-2 gap-sm-3 ms-auto navbar-meta-wrap">
+      <div className="d-flex flex-column align-items-end ms-auto navbar-meta-wrap">
         <div className="d-flex align-items-center gap-2 fw-medium navbar-greeting-wrap">
           <i
             className={`fa-solid ${iconClass} navbar-greeting-icon`}
@@ -79,9 +87,10 @@ function NavBar({ onToggleSidebar, sidebarOpen }) {
           />
           <span className="navbar-greeting-text">{greeting}</span>
         </div>
-        <div className="small navbar-datetime">
-          <div>{date}</div>
-          <div>{time}</div>
+        <div className="small text-muted d-flex flex-column flex-sm-row align-items-end align-items-sm-center gap-0 gap-sm-2 navbar-datetime" style={{ fontSize: '0.8rem' }}>
+          <span className="d-none d-sm-inline">{date}</span>
+          <span className="d-inline d-sm-none">{shortDate}</span>
+          <span>{time}</span>
         </div>
       </div>
     </div>

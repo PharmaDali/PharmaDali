@@ -76,7 +76,7 @@ function ReportIssue({ setView }) {
                 </p>
             </header>
 
-            <div className="row g-4 align-items-start">
+            <div className="row g-3 align-items-start">
                 <div className="col-12 col-xl-8">
                     <article className="tech-help-ticket-card">
                         <form onSubmit={handleReportSubmit}>
