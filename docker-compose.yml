@@ -106,6 +106,8 @@ services:
       args:
         VITE_API_BASE_URL: https://${BACKEND_DOMAIN}/api
         VITE_REVERB_HOST: ${REVERB_DOMAIN}
+        VITE_REVERB_PORT: "443"
+        VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-pharmadali-app-key}
     restart: unless-stopped
     environment:
       VIRTUAL_HOST: ${ADMIN_DOMAIN}
