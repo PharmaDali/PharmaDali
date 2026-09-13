@@ -1,10 +1,25 @@
 import { useState, useEffect } from "react";
 import { fetchOrderExchangeEligibility } from "../../services/itemExchangeService";
+import { PaymentResultModal } from "../../shared/components/PaymentModals";
 
-function TransactionDetailModal({ row, onClose, onOpenExchange }) {
+function TransactionDetailModal({ row, onClose, onOpenExchange, onRefundSuccess }) {
   const [btnHovered, setBtnHovered] = useState(false);
   const [eligibilityState, setEligibilityState] = useState(null);
   const [loadingEligibility, setLoadingEligibility] = useState(false);
+  const [isRefunding, setIsRefunding] = useState(false);
+  const [showRefundSuccess, setShowRefundSuccess] = useState(false);
+
+  const handleCashRefund = () => {
+    setIsRefunding(true);
+    // Simulate refund API call
+    setTimeout(() => {
+      setIsRefunding(false);
+      setShowRefundSuccess(true);
+      if (row && onRefundSuccess) {
+        onRefundSuccess(row.id || row.order_id);
+      }
+    }, 800);
+  };
 
   useEffect(() => {
     if (!row) return;
@@ -204,24 +219,57 @@ function TransactionDetailModal({ row, onClose, onOpenExchange }) {
                 </button>
               </div>
             ) : (
-              <button
-                className="btn w-100 mt-3 d-flex align-items-center justify-content-center fw-semibold rounded-3 shadow-sm report-exchange-btn"
-                style={{
-                  backgroundColor: btnHovered ? "#2aabe2" : "#ffffff",
-                  color: btnHovered ? "#ffffff" : "#2aabe2",
-                  border: "1.5px solid #2aabe2",
-                  transition: "all 0.2s ease-in-out",
-                }}
-                onMouseEnter={() => setBtnHovered(true)}
-                onMouseLeave={() => setBtnHovered(false)}
-                onClick={() => onOpenExchange(row)}
-              >
-                <i className="fa-solid fa-right-left me-2"></i> Process Change Item / Exchange
-              </button>
+              <div className="d-flex gap-2 mt-3 flex-column flex-md-row">
+                <button
+                  className="btn flex-fill d-flex align-items-center justify-content-center fw-semibold rounded-3 shadow-sm report-exchange-btn py-2"
+                  style={{
+                    backgroundColor: btnHovered ? "#2aabe2" : "#ffffff",
+                    color: btnHovered ? "#ffffff" : "#2aabe2",
+                    border: "1.5px solid #2aabe2",
+                    transition: "all 0.2s ease-in-out",
+                    fontSize: "14px"
+                  }}
+                  onMouseEnter={() => setBtnHovered(true)}
+                  onMouseLeave={() => setBtnHovered(false)}
+                  onClick={() => onOpenExchange(row)}
+                >
+                  <i className="fa-solid fa-right-left me-2"></i> Item Exchange
+                </button>
+                <button
+                  className="btn flex-fill d-flex align-items-center justify-content-center fw-semibold rounded-3 shadow-sm py-2"
+                  style={{
+                    backgroundColor: row.is_refunded ? "#f8f9fa" : "#ffffff",
+                    color: row.is_refunded ? "#6c757d" : "#dc3545",
+                    border: row.is_refunded ? "1px solid #dee2e6" : "1.5px solid #dc3545",
+                    transition: "all 0.2s ease-in-out",
+                    fontSize: "14px"
+                  }}
+                  onClick={handleCashRefund}
+                  disabled={isRefunding || row.is_refunded}
+                >
+                  {isRefunding ? (
+                    <><div className="spinner-border spinner-border-sm me-2" role="status" /> Processing...</>
+                  ) : row.is_refunded ? (
+                    <><i className="fa-solid fa-check me-2"></i> Refunded</>
+                  ) : (
+                    <><i className="fa-solid fa-hand-holding-dollar me-2"></i> Cash Refund</>
+                  )}
+                </button>
+              </div>
             )}
           </>
         )}
       </div>
+
+      <PaymentResultModal
+        isOpen={showRefundSuccess}
+        onClose={() => {
+          setShowRefundSuccess(false);
+          onClose(); // Optional: close the transaction details modal when refund is acknowledged
+        }}
+        result="success"
+        message="The cash refund has been successfully processed for this transaction."
+      />
     </div>
   );
 }
