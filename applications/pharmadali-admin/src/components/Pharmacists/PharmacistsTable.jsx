@@ -107,18 +107,22 @@ export function PharmacistsTable({
       {/* Desktop View */}
       <div className="d-none d-md-flex flex-column flex-grow-1 admin-card h-100">
         <div className="pharmacists-toolbar">
-          <div className="pharmacists-toolbar-left">
+          <div className="pharmacists-toolbar-left" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <h6 className="pharmacists-title mb-0">Pharmacist</h6>
-            <span className="pharmacists-count">{rows.length} account(s)</span>
+            <div style={{ minWidth: 260 }}>
+              <SearchBar
+                id="pharmacists-search"
+                value={search}
+                onChange={(val) => setSearch(val)}
+                placeholder="Search by name, phone..."
+              />
+            </div>
           </div>
 
-          <div style={{ minWidth: 260 }}>
-            <SearchBar
-              id="pharmacists-search"
-              value={search}
-              onChange={(val) => setSearch(val)}
-              placeholder="Search by name, phone..."
-            />
+          <div className="pharmacists-toolbar-right">
+            <button type="button" className="admin-btn-primary" onClick={() => onOpenModal()}>
+              + Add new pharmacist
+            </button>
           </div>
         </div>
 

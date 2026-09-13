@@ -112,7 +112,7 @@ export function Notifications() {
       </div>
 
       {/* Notifications Card List Container */}
-      <div className="d-flex flex-column gap-3">
+      <div className="d-flex flex-column gap-2">
         {loading ? (
           <ListSkeleton count={4} />
         ) : paginatedNotifications.length === 0 ? (
