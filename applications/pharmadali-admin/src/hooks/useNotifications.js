@@ -12,7 +12,7 @@ import {
 
 const REVERB_APP_KEY = import.meta.env.VITE_REVERB_APP_KEY;
 const REVERB_HOST = import.meta.env.VITE_REVERB_HOST;
-const REVERB_PORT = import.meta.env.VITE_REVERB_PORT;
+const REVERB_PORT = import.meta.env.VITE_REVERB_PORT || (window.location.protocol === "https:" ? 443 : 8080);
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const useNotifications = () => {
