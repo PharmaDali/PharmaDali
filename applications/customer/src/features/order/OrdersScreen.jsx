@@ -34,18 +34,18 @@ export default function OrdersScreen() {
   return (
     <View style={styles.container}>
       <View className="items-center">
-        <View className="flex-row items-center justify-center mt-5 rounded-2xl shadow-xl px-8 py-2 bg-white elevation-2 border border-gray-200">
-          <TouchableOpacity onPress={() => setActiveTab('active')} className="px-4">
-            <Text className="text-lg" style={activeTab === 'active' ? styles.activeTabLabelBold : styles.inactiveTabLabelBold}>
+        <View style={{ height: 40 }} className="flex-row items-center justify-center mt-4 rounded-xl px-6 bg-white shadow-sm border border-gray-200">
+          <TouchableOpacity onPress={() => setActiveTab('active')} className="px-4 h-full justify-center items-center">
+            <Text className="text-sm" style={activeTab === 'active' ? styles.activeTabLabelBold : styles.inactiveTabLabelBold}>
               Active
             </Text>
-            {activeTab === 'active' && <View className="mt-1 h-0.5" style={{ backgroundColor: colors.buttonColor }} />}
+            {activeTab === 'active' && <View className="absolute bottom-1 left-3 right-3 h-[2px] rounded-full" style={{ backgroundColor: colors.buttonColor }} />}
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setActiveTab('completed')} className="px-4">
-            <Text className="text-lg" style={activeTab === 'completed' ? styles.activeTabLabelBold : styles.inactiveTabLabelBold}>
+          <TouchableOpacity onPress={() => setActiveTab('completed')} className="px-4 h-full justify-center items-center">
+            <Text className="text-sm" style={activeTab === 'completed' ? styles.activeTabLabelBold : styles.inactiveTabLabelBold}>
               Completed
             </Text>
-            {activeTab === 'completed' && <View className="mt-1 h-0.5" style={{ backgroundColor: colors.buttonColor }} />}
+            {activeTab === 'completed' && <View className="absolute bottom-1 left-3 right-3 h-[2px] rounded-full" style={{ backgroundColor: colors.buttonColor }} />}
           </TouchableOpacity>
         </View>
       </View>
