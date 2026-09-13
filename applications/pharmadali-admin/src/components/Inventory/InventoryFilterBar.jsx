@@ -77,13 +77,10 @@ export function InventoryFilterBar({
       />
 
       <div className="inventory-field inventory-search-action">
-        <button type="button" className="btn inventory-search-btn" onClick={loadData}>
-          Search
-        </button>
         {isFiltered && (
           <button
             type="button"
-            className="btn inventory-reset-btn"
+            className="btn inventory-reset-btn w-100"
             onClick={onReset}
             title="Reset all filters"
           >
