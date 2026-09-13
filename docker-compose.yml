@@ -123,6 +123,7 @@ services:
 
   nginx-proxy:
     image: nginxproxy/nginx-proxy:1.7-alpine
+    container_name: nginx-proxy
     restart: unless-stopped
     ports:
       - "80:80"
@@ -132,11 +133,15 @@ services:
       - certs:/etc/nginx/certs
       - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
+    labels:
+      - "com.github.nginx-proxy.nginx"
+      - "com.github.nginx-proxy.docker-gen"
     networks:
       - proxy-network
 
   acme-companion:
     image: nginxproxy/acme-companion:2.5
+    container_name: nginx-proxy-acme
     restart: unless-stopped
     depends_on:
       - nginx-proxy
