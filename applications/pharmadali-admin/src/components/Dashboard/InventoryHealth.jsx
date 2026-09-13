@@ -85,7 +85,7 @@ export function InventoryHealth({ data, onKnowMore }) {
           {lowStock.length === 0 ? (
             <div style={{ fontSize: 13, color: "#888", padding: "16px 0" }}>No low stock alerts</div>
           ) : (
-            <div className="table-responsive">
+            <div className="table-responsive dashboard-table-scroll-container">
               <table className="table table-sm table-borderless align-middle mb-0" style={{ fontSize: 12 }}>
                 <thead>
                   <tr style={{ color: "#64748b", borderBottom: "1.5px solid #e2e8f0" }}>
@@ -134,7 +134,7 @@ export function InventoryHealth({ data, onKnowMore }) {
           {expiringSoon.length === 0 ? (
             <div style={{ fontSize: 13, color: "#888", padding: "16px 0" }}>No expiring alerts</div>
           ) : (
-            <div className="table-responsive">
+            <div className="table-responsive dashboard-table-scroll-container">
               <table className="table table-sm table-borderless align-middle mb-0" style={{ fontSize: 12 }}>
                 <thead>
                   <tr style={{ color: "#64748b", borderBottom: "1.5px solid #e2e8f0" }}>

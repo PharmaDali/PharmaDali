@@ -6,7 +6,7 @@ export default function TabBar({ activeTab, onTabChange }) {
   const isSales = activeTab === "sales";
 
   return (
-    <div className="analytics-tabs mb-4">
+    <div className="analytics-tabs mb-3">
       <button 
         className={`analytics-tab ${isDemand ? "active" : ""}`}
         onClick={() => onTabChange("demand")}

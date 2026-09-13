@@ -124,7 +124,7 @@ export default function AnalyticsChart({
 
   return (
     <div className="analytics-panel p-4 w-100 d-flex flex-column">
-      <div className="analytics-table-header mb-4">
+      <div className="analytics-table-header mb-3">
         <h5 className="analytics-table-title">{chartTitle}</h5>
 
         <div className="analytics-filter ms-auto d-flex align-items-center">

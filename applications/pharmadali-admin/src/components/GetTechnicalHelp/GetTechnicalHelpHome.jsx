@@ -101,7 +101,7 @@ function GetTechnicalHelpHome({ setView }) {
             </header>
 
             {/* Top Cards Row */}
-            <div className="row g-3 mb-4">
+            <div className="row g-3 mb-3">
                 {/* User Manual Card */}
                 <div className="col-12 col-md-6">
                     <article className="tech-help-hero-card h-100 d-flex flex-column justify-content-between">

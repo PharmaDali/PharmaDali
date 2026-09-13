@@ -3,7 +3,7 @@ import { WavingDots } from "../../shared/components/loading";
 
 export default function AnalyticsMetrics({ metrics, loading }) {
   return (
-    <div className="row g-3 mb-4 analytics-metrics-row">
+    <div className="row g-3 mb-3 analytics-metrics-row">
       {metrics.map((metric, idx) => (
         <div key={metric.label || idx} className="col-6 col-lg-3">
           <div className="admin-card h-100" style={{ padding: "16px" }}>

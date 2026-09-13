@@ -53,7 +53,7 @@ export function DashBoard() {
       />
 
       <div className="dashboard-desktop-only">
-      <div className="row g-3 mb-4">
+      <div className="row g-3 mb-3">
         {statCards.map((c) => (
           <div key={c.label} className="col-12 col-sm-6 col-md-4 col-lg">
             <StatCard {...c} loading={loading && !overviewData} />
@@ -61,7 +61,7 @@ export function DashBoard() {
         ))}
       </div>
 
-      <div className="row g-4 mb-4">
+      <div className="row g-3 mb-3">
         <div className="col-12 col-md-7 col-lg-8">
           <SalesTrend initialTrend={overviewData?.sales_trend} loading={loading && !overviewData} />
         </div>
@@ -70,7 +70,7 @@ export function DashBoard() {
         </div>
       </div>
 
-      <div className="row g-4">
+      <div className="row g-3">
         <div className="col-12">
           <InventoryHealth data={overviewData?.inventory_health} onKnowMore={() => navigate("/inventory")} />
         </div>

@@ -257,3 +257,47 @@
     height: 260px;
   }
 }
+
+@media (min-width: 992px) {
+  /* Prevent whole page from scrolling on desktop */
+  body:has(.dashboard-page) {
+    overflow: hidden;
+  }
+  
+  .dashboard-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--pd-navbar-height) - 60px);
+  }
+
+  .dashboard-desktop-only {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+  
+  /* Make the last row (Inventory Health) stretch and become internally scrollable */
+  .dashboard-desktop-only > .row:last-child {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .dashboard-desktop-only > .row:last-child > .col-12,
+  .dashboard-desktop-only > .row:last-child .dashboard-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .dashboard-table-scroll-container {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    margin: -0.5rem -1rem;
+  }
+  
+  .dashboard-table-scroll-container table {
+    margin-bottom: 0;
+  }
+}

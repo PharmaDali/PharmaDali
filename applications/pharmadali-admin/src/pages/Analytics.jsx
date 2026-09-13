@@ -20,7 +20,7 @@ export default function Analytics() {
 
       <AnalyticsMetrics metrics={metrics.data} loading={metrics.loading} />
 
-      <div className="row g-4 mb-4">
+      <div className="row g-3 mb-3">
         <div className="col-lg-3">
           <InsightsBox
             text={insight.text}

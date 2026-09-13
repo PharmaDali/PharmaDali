@@ -58,7 +58,7 @@ export function PickUp() {
 
   return (
     <section className="inventory-page d-flex flex-column" aria-label="Pickup Order Fulfillment">
-      <div className="row g-4 align-items-stretch">
+      <div className="row g-3 align-items-stretch">
         <div className={activeOrder ? "col-12 col-lg-8 col-xl-9 d-flex flex-column" : "col-12 d-flex flex-column"}>
           <div className="bg-white rounded-3 shadow-sm p-4 d-flex flex-column flex-grow-1">
             <div className="d-flex flex-column flex-md-row align-items-start align-items-md-end justify-content-between gap-2 gap-md-0" style={{ marginBottom: "0" }}>
