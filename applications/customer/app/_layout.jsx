@@ -8,6 +8,7 @@ export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     "Modulus-Medium": require("@assets/fonts/Modulus-Medium.otf"),
     "Modulus-Bold": require("@assets/fonts/Modulus-Bold.otf"),
+    "Poppins-Regular": require("@assets/fonts/Poppins-Medium.ttf"),
     "Poppins-Medium": require("@assets/fonts/Poppins-Medium.ttf"),
     "Poppins-Bold": require("@assets/fonts/Poppins-Bold.ttf"),
     "Poppins-SemiBold": require("@assets/fonts/Poppins-SemiBold.ttf"),

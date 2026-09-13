@@ -89,31 +89,67 @@ const Notifications = () => {
     if (!item.read_at) {
       await markAsRead(item.id);
     }
-
     const parsedData = getParsedData(item.data);
-    if (parsedData.order_id) {
-      router.push({
-        pathname: '/tabs/orders/ViewOrderDetails',
-        params: {
-          orderId: String(parsedData.order_id),
-          orderNumber: parsedData.order_number,
-        },
-      });
-      return;
-    }
+    const resolvedCustomer =
+      parsedData.customer_name ||
+      parsedData.customer ||
+      parsedData.customerName ||
+      item.customer_name ||
+      item.customer ||
+      item.customerName ||
+      '';
+    const resolvedPharmacy =
+      parsedData.pharmacy_name ||
+      parsedData.pharmacy ||
+      item.pharmacy_name ||
+      item.pharmacy ||
+      '';
+    const resolvedLocation =
+      parsedData.location ||
+      parsedData.city ||
+      item.location ||
+      item.city ||
+      '';
+    const resolvedOrderNumber =
+      parsedData.order_number ||
+      parsedData.orderNumber ||
+      item.order_number ||
+      item.orderNumber ||
+      '';
+    const resolvedOrderId =
+      parsedData.order_id ||
+      parsedData.orderId ||
+      item.order_id ||
+      item.orderId ||
+      '';
+    const resolvedStatus =
+      parsedData.status ||
+      item.status ||
+      '';
+    const resolvedOrderDate =
+      parsedData.order_date ||
+      item.order_date ||
+      '';
 
-    const type = String(item?.type || '');
-    if (
-      type.includes('OrderCompleted') ||
-      type.includes('OrderExpired') ||
-      type.includes('OrderRejected')
-    ) {
-      router.push({ pathname: '/tabs/orders/Orders', params: { tab: 'completed' } });
-      return;
-    }
-    if (type.includes('OrderPlaced') || type.includes('OrderStatus')) {
-      router.push('/tabs/orders/Orders');
-    }
+    router.push({
+      pathname: '/tabs/NotificationDetails',
+      params: {
+        id: String(item.id),
+        type: String(item.type || parsedData.type || ''),
+        title: parsedData.title || item.title || '',
+        message: getNotificationMessage(parsedData),
+        orderId: resolvedOrderId ? String(resolvedOrderId) : '',
+        orderNumber: resolvedOrderNumber,
+        pharmacyName: resolvedPharmacy,
+        pharmacy_name: resolvedPharmacy,
+        customerName: resolvedCustomer,
+        customer_name: resolvedCustomer,
+        location: resolvedLocation,
+        orderDate: resolvedOrderDate,
+        status: resolvedStatus,
+        createdAt: item.created_at || item.dateTime || '',
+      },
+    });
   };
 
   const displayedNotifications = notifications.slice(0, page * PAGE_SIZE);
@@ -186,7 +222,7 @@ const Notifications = () => {
               {notifications.length > 0 && (
                 <TouchableOpacity
                   onPress={() => setIsClearOverlayVisible(true)}
-                  className="flex-row items-center px-3 py-1.5 rounded-full bg-sky-50 active:bg-sky-100"
+                  className="flex-row items-center px-3 py-1.5 rounded-full bg-sky-50 bg-[#FFFFFF]"
                 >
                   <MaterialCommunityIcons name="delete-sweep-outline" size={18} color="#48AAD9" />
                   <Text

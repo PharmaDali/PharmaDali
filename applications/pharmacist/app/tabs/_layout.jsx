@@ -3,6 +3,7 @@ import { PaperProvider } from 'react-native-paper';
 import { Slot, usePathname, useRouter } from 'expo-router';
 import TopBar from './TopBar';
 import BottomBar from './BottomBar';
+import NotificationDetailsHeader from '@shared/components/NotificationDetailsHeader';
 import { useEffect, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
 import { configureForegroundNotifications, syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
@@ -63,9 +64,13 @@ function LayoutContent() {
     };
   }, []);
 
+  const isNotificationDetails = pathname?.startsWith('/tabs/NotificationDetails');
+
   return (
     <View style={styles.container}>
-      {!isChatRoute && <TopBar />}
+      {!isChatRoute && (
+        isNotificationDetails ? <NotificationDetailsHeader /> : <TopBar />
+      )}
       <Slot />
       {!isChatRoute && <BottomBar />}
 

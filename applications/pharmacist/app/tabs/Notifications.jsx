@@ -50,20 +50,67 @@ export default function PharmacistNotifications() {
     if (!item.read_at) {
       await markAsRead(item.id);
     }
-
     const parsedData = getParsedData(item.data);
+    const resolvedCustomer =
+      parsedData.customer_name ||
+      parsedData.customer ||
+      parsedData.customerName ||
+      item.customer_name ||
+      item.customer ||
+      item.customerName ||
+      '';
+    const resolvedOrderNumber =
+      parsedData.order_number ||
+      parsedData.orderNumber ||
+      item.order_number ||
+      item.orderNumber ||
+      '';
+    const resolvedLocation =
+      parsedData.location ||
+      parsedData.city ||
+      item.location ||
+      item.city ||
+      '';
+    const resolvedOrderId =
+      parsedData.order_id ||
+      parsedData.orderId ||
+      item.order_id ||
+      item.orderId ||
+      '';
+    const resolvedStatus =
+      parsedData.status ||
+      item.status ||
+      '';
+    const resolvedOrderDate =
+      parsedData.order_date ||
+      item.order_date ||
+      '';
 
-    if (parsedData.order_id) {
-      router.push({
-        pathname: '/tabs/orders/Orders',
-        params: {
-          highlightOrderId: String(parsedData.order_id),
-          orderNumber: parsedData.order_number ?? '',
-        },
-      });
-    } else {
-      router.push('/tabs/orders/Orders');
-    }
+    router.push({
+      pathname: '/tabs/NotificationDetails',
+      params: {
+        id: String(item.id),
+        type: String(item.type || parsedData.type || ''),
+        title: parsedData.title || getNotificationTitle(item.type) || '',
+        message: parsedData.message || parsedData.body || '',
+        orderId: parsedData.order_id ? String(parsedData.order_id) : '',
+        orderNumber: parsedData.order_number || '',
+        customerName: parsedData.customer_name || parsedData.customer || '',
+        location: parsedData.location || parsedData.city || '',
+        orderDate: parsedData.order_date || item.created_at || item.dateTime || '',
+        status: parsedData.status || '',
+        title: parsedData.title || item.title || getNotificationTitle(item.type) || '',
+        message: parsedData.message || parsedData.body || item.message || '',
+        orderId: resolvedOrderId ? String(resolvedOrderId) : '',
+        orderNumber: resolvedOrderNumber,
+        customerName: resolvedCustomer,
+        customer_name: resolvedCustomer,
+        location: resolvedLocation,
+        orderDate: resolvedOrderDate,
+        status: resolvedStatus,
+        createdAt: item.created_at || item.dateTime || '',
+      },
+    });
   };
 
   const displayedNotifications = notifications.slice(0, page * PAGE_SIZE);
@@ -86,6 +133,9 @@ export default function PharmacistNotifications() {
         message={parsedData.message ?? ''}
         customerName={parsedData.customer_name}
         orderNumber={parsedData.order_number}
+        message={parsedData.message ?? item.message ?? ''}
+        customerName={parsedData.customer_name || parsedData.customer || item.customer_name || item.customer}
+        orderNumber={parsedData.order_number || item.order_number}
         timeText={timeAgo(item.created_at || item.dateTime)}
       />
     );

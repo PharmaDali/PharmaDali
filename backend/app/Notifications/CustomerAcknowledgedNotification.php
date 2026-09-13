@@ -77,9 +77,14 @@ class CustomerAcknowledgedNotification extends Notification implements ShouldQue
             }
         }
 
+        $customerUser = $this->order->customer?->user;
+        $customerName = $customerUser ? trim(($customerUser->first_name ?? '') . ' ' . ($customerUser->last_name ?? '')) : 'Customer';
+
         return [
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
+            'customer_name' => $customerName,
+            'customer' => $customerName,
             'message' => "Customer acknowledged the {$this->issueType} issue for order #{$this->order->order_number}.",
             'type' => 'customer_acknowledged',
         ];
@@ -90,10 +95,15 @@ class CustomerAcknowledgedNotification extends Notification implements ShouldQue
      */
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $customerUser = $this->order->customer?->user;
+        $customerName = $customerUser ? trim(($customerUser->first_name ?? '') . ' ' . ($customerUser->last_name ?? '')) : 'Customer';
+
         return new BroadcastMessage([
             'id' => $this->id,
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
+            'customer_name' => $customerName,
+            'customer' => $customerName,
             'message' => "Customer acknowledged the {$this->issueType} issue for order #{$this->order->order_number}.",
             'type' => 'customer_acknowledged',
             'dateTime' => now()->format('M. d, Y g:i A'),
