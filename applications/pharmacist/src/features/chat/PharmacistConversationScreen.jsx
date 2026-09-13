@@ -76,6 +76,9 @@ export default function PharmacistConversationScreen() {
   const insets = useSafeAreaInsets();
   const { conversationId } = useLocalSearchParams();
   const flatListRef = useRef(null);
+  const isNearBottomRef = useRef(true);
+  const initialScrollDoneRef = useRef(false);
+  const lastMessageIdRef = useRef(null);
 
   const [conversation, setConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -199,7 +202,19 @@ export default function PharmacistConversationScreen() {
   );
 
   useEffect(() => {
-    if (flatListRef.current && messages.length > 0) {
+    if (!flatListRef.current || messages.length === 0) return;
+
+    const latestMsg = messages[messages.length - 1];
+    const isNew = latestMsg && latestMsg.id !== lastMessageIdRef.current;
+    lastMessageIdRef.current = latestMsg?.id;
+
+    if (!initialScrollDoneRef.current) {
+      initialScrollDoneRef.current = true;
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 100);
+      return;
+    }
+
+    if (isNew && isNearBottomRef.current) {
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }
   }, [messages]);
@@ -213,8 +228,10 @@ export default function PharmacistConversationScreen() {
       setDraft('');
       const img = selectedImage;
       setSelectedImage(null);
+      isNearBottomRef.current = true;
       await sendPharmacistMessage(conversationId, trimmed || '', img);
       await loadConversation();
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     } catch (e) {
       setDraft(trimmed);
       setSelectedImage(selectedImage);
@@ -363,6 +380,13 @@ export default function PharmacistConversationScreen() {
           keyExtractor={(item) => String(item.id)}
           renderItem={renderMessage}
           style={{ flex: 1 }}
+          onScroll={(event) => {
+            const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+            const paddingToBottom = 80;
+            isNearBottomRef.current =
+              layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
+          }}
+          scrollEventThrottle={16}
           contentContainerStyle={{
             paddingHorizontal: 16,
             paddingTop: 16,

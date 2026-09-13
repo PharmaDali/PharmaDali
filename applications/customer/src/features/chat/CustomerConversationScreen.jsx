@@ -70,6 +70,9 @@ export default function CustomerConversationScreen() {
   const insets = useSafeAreaInsets();
 
   const flatListRef = useRef(null);
+  const isNearBottomRef = useRef(true);
+  const initialScrollDoneRef = useRef(false);
+  const lastMessageIdRef = useRef(null);
   const conversationId = params?.conversationId ?? null;
 
   const [conversation, setConversation] = useState(null);
@@ -194,7 +197,19 @@ export default function CustomerConversationScreen() {
   }, []);
 
   useEffect(() => {
-    if (flatListRef.current && messages.length > 0) {
+    if (!flatListRef.current || messages.length === 0) return;
+
+    const latestMsg = messages[messages.length - 1];
+    const isNew = latestMsg && latestMsg.id !== lastMessageIdRef.current;
+    lastMessageIdRef.current = latestMsg?.id;
+
+    if (!initialScrollDoneRef.current) {
+      initialScrollDoneRef.current = true;
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 100);
+      return;
+    }
+
+    if (isNew && isNearBottomRef.current) {
       setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     }
   }, [messages]);
@@ -207,8 +222,10 @@ export default function CustomerConversationScreen() {
       setDraft('');
       const img = selectedImage;
       setSelectedImage(null);
+      isNearBottomRef.current = true;
       await sendCustomerMessage(conversationId, trimmed || '', img);
       await loadConversation(conversationId);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
     } catch (e) {
       setDraft(trimmed);
       setSelectedImage(selectedImage);
@@ -363,6 +380,13 @@ export default function CustomerConversationScreen() {
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           className="flex-1"
+          onScroll={(event) => {
+            const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+            const paddingToBottom = 80;
+            isNearBottomRef.current =
+              layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom;
+          }}
+          scrollEventThrottle={16}
           contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
