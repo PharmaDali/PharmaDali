@@ -217,7 +217,7 @@ export default function CustomerChatScreen() {
         onLongPress={() => handleLongPress(item)}
         delayLongPress={350}
         style={{ backgroundColor: isSelected ? '#E2E8F0' : 'transparent' }}
-        className="flex-row items-center px-4 py-3"
+        className="flex-row items-center px-4 py-2"
         activeOpacity={0.7}
       >
         {/* Avatar */}

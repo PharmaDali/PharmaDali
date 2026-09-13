@@ -229,7 +229,7 @@ export default function PharmacistChatScreen() {
         onLongPress={() => handleLongPress(item)}
         delayLongPress={350}
         style={{ backgroundColor: isSelected ? '#E2E8F0' : 'transparent' }}
-        className="flex-row items-center px-4 py-3"
+        className="flex-row items-center px-4 py-2"
         activeOpacity={0.7}
       >
         {/* Avatar */}
@@ -287,7 +287,7 @@ export default function PharmacistChatScreen() {
       <View
         className="flex-row items-center px-5 pb-5"
         style={{
-          backgroundColor: colors.buttonColor,
+          backgroundColor: '#96D2EE',
           paddingTop: insets.top + 12,
         }}
       >
