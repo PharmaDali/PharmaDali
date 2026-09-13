@@ -59,3 +59,18 @@ export async function sendPharmacistMessage(conversationId, body, imageFile = nu
   }
 }
 
+export async function deletePharmacistConversation(conversationId) {
+  const payload = await apiRequest(`/pharmacist/messages/conversations/${conversationId}`, {
+    method: 'DELETE',
+  });
+  return payload?.data ?? null;
+}
+
+export async function restorePharmacistConversation(conversationId) {
+  const payload = await apiRequest(`/pharmacist/messages/conversations/${conversationId}/restore`, {
+    method: 'POST',
+  });
+  return payload?.data ?? null;
+}
+
+
