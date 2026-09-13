@@ -33,13 +33,19 @@ const AVAILABLE_PERMISSIONS = [
     description: "Allow creating and completing product exchange and item return transactions.",
     icon: "fa-solid fa-arrow-rotate-left",
   },
+  {
+    key: "process_cash_refund",
+    label: "Process Cash Refunds",
+    description: "Allow processing cash refunds for completed transactions.",
+    icon: "fa-solid fa-hand-holding-dollar",
+  },
 ];
 
 const PRESETS = [
   {
     name: "Full Pharmacist",
     icon: "fa-solid fa-user-shield",
-    permissions: ["access_pos", "access_pickup", "view_inventory", "view_sales_reports", "process_item_exchange"],
+    permissions: ["access_pos", "access_pickup", "view_inventory", "view_sales_reports", "process_item_exchange", "process_cash_refund"],
   },
   {
     name: "POS Cashier",
@@ -72,6 +78,7 @@ export default function PharmacistPermissionsModal({ isOpen, onClose, pharmacist
         "view_inventory",
         "view_sales_reports",
         "process_item_exchange",
+        "process_cash_refund",
       ];
       setSelectedPermissions(existing);
       setError(null);

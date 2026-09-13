@@ -90,4 +90,9 @@ class OrderController extends Controller
     {
         return response()->json($this->orderService->getTodayStats());
     }
+
+    public function refund(Order $order): JsonResponse
+    {
+        return $this->orderService->refund(request()->user(), $order);
+    }
 }
