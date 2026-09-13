@@ -15,7 +15,7 @@ const TopBar = () => {
   const { unreadChatCount } = useUnreadChatCount()
 
   return (
-    <View className="bg-sky-500" style={{ paddingTop: insets.top }}>
+    <View style={{ backgroundColor: '#96D2EE', paddingTop: insets.top }}>
       <View className="flex-row items-center justify-between px-4 py-2">
 
         {/* Left — Notification Bell */}
