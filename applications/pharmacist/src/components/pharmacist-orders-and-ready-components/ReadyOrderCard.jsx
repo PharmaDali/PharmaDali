@@ -25,8 +25,8 @@ const statusConfig = {
   Expired: {
     label: 'Overdue',
     borderColor: 'rgba(255, 178, 89, 0.70)',
-    backgroundColor: '#FF9114',
-    textColor: '#FFFFFF',
+    backgroundColor: '#FFF4E5',
+    textColor: '#D35400',
   },
 };
 
