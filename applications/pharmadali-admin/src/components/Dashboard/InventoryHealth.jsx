@@ -83,7 +83,9 @@ export function InventoryHealth({ data, onKnowMore }) {
             </span>
           </div>
           {lowStock.length === 0 ? (
-            <div style={{ fontSize: 13, color: "#888", padding: "16px 0" }}>No low stock alerts</div>
+            <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1 py-5 text-muted">
+              <span style={{ fontSize: 13, fontWeight: 500, color: "#94a3b8" }}>No low stock alerts</span>
+            </div>
           ) : (
             <div className="table-responsive dashboard-table-scroll-container">
               <table className="table table-sm table-borderless align-middle mb-0" style={{ fontSize: 12 }}>
@@ -103,12 +105,12 @@ export function InventoryHealth({ data, onKnowMore }) {
                           {item.name}
                         </td>
                         <td className="text-center py-2">
-                          <span className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-2 py-1" style={{ fontSize: 11 }}>
+                          <span style={{ color: "#f59e0b", fontWeight: 600, fontSize: 12 }}>
                             {item.stockText}
                           </span>
                         </td>
                         <td className="text-end py-2">
-                          <span className="badge bg-info-subtle text-info-emphasis border border-info-subtle px-2 py-1" style={{ fontSize: 11 }}>
+                          <span style={{ color: "#4fa7e3", fontWeight: 600, fontSize: 12 }}>
                             {item.weeksText}
                           </span>
                         </td>
@@ -132,7 +134,9 @@ export function InventoryHealth({ data, onKnowMore }) {
             </span>
           </div>
           {expiringSoon.length === 0 ? (
-            <div style={{ fontSize: 13, color: "#888", padding: "16px 0" }}>No expiring alerts</div>
+            <div className="d-flex flex-column align-items-center justify-content-center flex-grow-1 py-5 text-muted">
+              <span style={{ fontSize: 13, fontWeight: 500, color: "#94a3b8" }}>No expiring alerts</span>
+            </div>
           ) : (
             <div className="table-responsive dashboard-table-scroll-container">
               <table className="table table-sm table-borderless align-middle mb-0" style={{ fontSize: 12 }}>
@@ -152,12 +156,12 @@ export function InventoryHealth({ data, onKnowMore }) {
                           {item.name}
                         </td>
                         <td className="text-center py-2">
-                          <span className="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle px-2 py-1" style={{ fontSize: 11 }}>
+                          <span style={{ color: "#64748b", fontWeight: 600, fontSize: 12 }}>
                             {item.stockText || "—"}
                           </span>
                         </td>
                         <td className="text-end py-2">
-                          <span className="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle px-2 py-1" style={{ fontSize: 11 }}>
+                          <span style={{ color: "#ef4444", fontWeight: 600, fontSize: 12 }}>
                             {item.weeksText}
                           </span>
                         </td>
@@ -171,14 +175,13 @@ export function InventoryHealth({ data, onKnowMore }) {
         </div>
       </div>
 
-      <div className="mt-3 text-end">
+      <div className="mt-auto pt-3 text-end">
         <button
           type="button"
-          className="btn btn-sm btn-link text-decoration-none p-0 fw-semibold"
-          style={{ color: "#2aabe2", fontSize: 13 }}
+          className="dashboard-link-btn d-inline-flex align-items-center gap-1"
           onClick={onKnowMore}
         >
-          View Full Inventory
+          View Full Inventory <i className="fi fi-rr-arrow-right small"></i>
         </button>
       </div>
     </div>
