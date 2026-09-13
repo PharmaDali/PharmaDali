@@ -206,7 +206,7 @@ const ProductView = () => {
         <View className="h-2 bg-gray-100" />
 
         <View className="px-5 pt-4 pb-6">
-          <Text className="text-lg mb-3" style={styles.fontBold}>Similar Products</Text>
+          <Text className="text-lg mb-3" style={styles.fontBold}>From Similar Category</Text>
           {similarProducts.length > 0 ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {similarProducts.map((item) => (
