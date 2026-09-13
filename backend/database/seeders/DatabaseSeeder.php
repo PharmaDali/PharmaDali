@@ -17,13 +17,8 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
-            PharmacySeeder::class,
             SuperAdminSeeder::class,
-            PharmacyAdminSeeder::class,
             CategorySeeder::class,
-            ProductsSeeder::class,
-            PharmacyProductSeeder::class,
-            AnalyticsAndAprioriSeeder::class,
         ]);
     }
 }
