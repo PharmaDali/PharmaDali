@@ -147,6 +147,7 @@ const getStatusStyles = (statusStr) => {
       border: '#EF4444',
       text: '#991B1B',
     };
+  }
   if (s.includes('overdue')) {
     return {
       bg: '#FFF4E5',
