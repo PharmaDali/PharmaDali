@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSelectionPhase } from '@shared/context/SelectionPhaseContext';
 import {
   buildCartViewState,
   changeCartItemQuantity,
+  clearCart,
   getCartItems,
+  removeCartItem,
   toggleAllCartItems,
   toggleCartItemSelection,
 } from '@shared/services/cartService';
 
 export function useCartTab() {
+  const { selectedPharmacy } = useSelectionPhase();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -45,7 +49,7 @@ export function useCartTab() {
 
   const clearAll = useCallback(async () => {
     try {
-      await import('@shared/services/cartService').then(m => m.clearCart());
+      await clearCart();
       setCartItems([]);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to clear cart.');
@@ -54,7 +58,7 @@ export function useCartTab() {
 
   const removeItem = useCallback(async (id) => {
     try {
-      await import('@shared/services/cartService').then(m => m.removeCartItem(id));
+      await removeCartItem(id);
       setCartItems((prev) => prev.filter((item) => item.id !== id));
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to remove item.');
@@ -68,20 +72,39 @@ export function useCartTab() {
   }, [viewState.allSelected]);
 
   const pharmacyLabel = useMemo(() => {
+    const validCartName = viewState.pharmacyNames.find(
+      (name) => name && name !== 'Unknown pharmacy' && name !== 'Selected pharmacy' && name !== 'No pharmacy selected'
+    );
+    if (validCartName) {
+      return validCartName;
+    }
+
     if (viewState.pharmacyNames.length > 1) {
       return `${viewState.pharmacyNames.length} pharmacies selected`;
     }
 
-    return viewState.pharmacyNames[0] || 'No pharmacy selected';
-  }, [viewState.pharmacyNames]);
+    const contextName = selectedPharmacy?.name || selectedPharmacy?.pharmacy_name;
+    if (contextName && contextName !== 'Selected pharmacy') {
+      return contextName;
+    }
+
+    return viewState.pharmacyNames[0] || contextName || 'Selected pharmacy';
+  }, [viewState.pharmacyNames, selectedPharmacy]);
 
   const pharmacyLocationLabel = useMemo(() => {
+    const validCartLocation = viewState.pharmacyLocations.find(
+      (loc) => loc && loc.trim() !== ''
+    );
+    if (validCartLocation) {
+      return validCartLocation;
+    }
+
     if (viewState.pharmacyLocations.length > 1) {
       return 'Multiple locations';
     }
 
-    return viewState.pharmacyLocations[0] || '';
-  }, [viewState.pharmacyLocations]);
+    return selectedPharmacy?.address || selectedPharmacy?.location || viewState.pharmacyLocations[0] || '';
+  }, [viewState.pharmacyLocations, selectedPharmacy]);
 
   return {
     cartItems,
