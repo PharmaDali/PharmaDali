@@ -21,8 +21,8 @@ function SalesReportTable({
         <table className="admin-table sales-report-table">
           <thead className="report-thead">
             <tr>
-              <th className="text-center">Order ID</th>
-              <th className="text-center">Channel</th>
+              <th className="text-start" style={{ paddingLeft: "64px" }}>Order ID</th>
+              <th className="text-center" style={{ paddingRight: "72px", paddingLeft: "0px" }}>Channel</th>
               <th className="text-center">Items</th>
               <th className="text-center">Processed By</th>
               <th className="text-center">Unit Price</th>
@@ -61,8 +61,8 @@ function SalesReportTable({
                     className={selectedRow?.id === row.id && selectedRow?.rowIndex === index ? "table-active" : ""}
                     style={{ cursor: "pointer" }}
                   >
-                    <td className="fw-medium text-dark text-center">{row.id}</td>
-                    <td className="text-center">{channel}</td>
+                    <td className="text-start fw-medium text-dark" style={{ paddingLeft: "64px" }}>{row.id}</td>
+                    <td className="text-center" style={{ paddingRight: "72px", paddingLeft: "0px" }}>{channel}</td>
                     <td className="text-center">{row.items}</td>
                     <td className="fw-medium text-center">{row.processedBy}</td>
                     <td className="text-center">PHP {unitPrice.toFixed(2)}</td>

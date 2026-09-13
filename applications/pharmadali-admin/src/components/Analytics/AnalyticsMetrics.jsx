@@ -22,12 +22,12 @@ export default function AnalyticsMetrics({ metrics, loading }) {
                 </span>
               )}
             </div>
-            <div style={{ fontWeight: 900, lineHeight: 2, color: "#334155", fontSize: 32, wordBreak: "break-word" }}>
+            <div className="analytics-metric-value" style={{ fontWeight: 900, lineHeight: 2, color: "#334155", wordBreak: "break-word" }}>
               {loading ? (
                 <WavingDots />
               ) : (
                 <span title={typeof metric.value === "string" ? metric.value : ""}>
-                  {metric.prefix && <span style={{ fontSize: 18, fontWeight: 900, verticalAlign: "middle", marginRight: 5 }}>{metric.prefix}</span>}
+                  {metric.prefix && <span style={{ fontSize: "0.55em", fontWeight: 900, verticalAlign: "middle", marginRight: 5 }}>{metric.prefix}</span>}
                   {metric.value}
                 </span>
               )}

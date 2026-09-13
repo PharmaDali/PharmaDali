@@ -97,6 +97,17 @@
   height: 32px;
 }
 
+/* ── Responsive Metric Values ── */
+.analytics-metric-value {
+  font-size: 32px;
+}
+
+@media (max-width: 767.98px) {
+  .analytics-metric-value {
+    font-size: 22px !important;
+  }
+}
+
 .analytics-insight-box {
   background: #f0f5ff;
   border-radius: 12px;
