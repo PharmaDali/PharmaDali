@@ -82,6 +82,18 @@ export function useSalesReports() {
     setSelectedRow({ ...row, rowIndex: index });
   };
 
+  const markRowAsRefunded = (rowId) => {
+    setSalesRows((prev) =>
+      prev.map((r) => (r.id === rowId ? { ...r, is_refunded: true } : r))
+    );
+    setSelectedRow((prev) => {
+      if (prev && prev.id === rowId) {
+        return { ...prev, is_refunded: true };
+      }
+      return prev;
+    });
+  };
+
   const totalAmount = salesRows.reduce((sum, row) => sum + parseFloat(row.total ?? 0), 0);
 
   const SUMMARY_CARDS = summary
@@ -98,6 +110,7 @@ export function useSalesReports() {
     selectedRow,
     setSelectedRow,
     handleRowClick,
+    markRowAsRefunded,
     // Summary
     summary,
     summaryLoading,
