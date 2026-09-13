@@ -17,6 +17,7 @@ class OrderService
         private readonly CancelCustomerOrderService $cancelCustomerOrderService,
         private readonly UpdateOrderStatusByPharmacistService $updateOrderStatusByPharmacistService,
         private readonly CustomerOrderActionService $customerOrderActionService,
+        private readonly RefundOrderService $refundOrderService,
     ) {}
 
     public function index(?User $user): JsonResponse
@@ -83,5 +84,10 @@ class OrderService
     public function getTodayStats(): array
     {
         return (new GetTodayStatsService())->handle();
+    }
+
+    public function refund(?User $user, Order $order): JsonResponse
+    {
+        return $this->refundOrderService->handle($user, $order);
     }
 }

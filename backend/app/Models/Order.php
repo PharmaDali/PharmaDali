@@ -40,6 +40,8 @@ class Order extends Model
         'completed_at',
         'cancelled_at',
         'cancellation_reason',
+        'is_refunded',
+        'refunded_at',
     ];
 
     protected $casts = [
@@ -56,6 +58,8 @@ class Order extends Model
         'placed_at' => 'datetime',
         'completed_at' => 'datetime',
         'cancelled_at' => 'datetime',
+        'is_refunded' => 'boolean',
+        'refunded_at' => 'datetime',
     ];
 
     protected $appends = [

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchOrderExchangeEligibility } from "../../services/itemExchangeService";
+import { processCashRefund } from "../../services/salesReportService";
 import { PaymentResultModal } from "../../shared/components/PaymentModals";
 
 function TransactionDetailModal({ row, onClose, onOpenExchange, onRefundSuccess }) {
@@ -9,16 +10,21 @@ function TransactionDetailModal({ row, onClose, onOpenExchange, onRefundSuccess 
   const [isRefunding, setIsRefunding] = useState(false);
   const [showRefundSuccess, setShowRefundSuccess] = useState(false);
 
-  const handleCashRefund = () => {
-    setIsRefunding(true);
-    // Simulate refund API call
-    setTimeout(() => {
+  const handleCashRefund = async () => {
+    try {
+      setIsRefunding(true);
+      const orderId = row.id || row.order_id;
+      await processCashRefund(orderId);
+      
       setIsRefunding(false);
       setShowRefundSuccess(true);
       if (row && onRefundSuccess) {
-        onRefundSuccess(row.id || row.order_id);
+        onRefundSuccess(orderId);
       }
-    }, 800);
+    } catch (err) {
+      setIsRefunding(false);
+      alert(err.response?.data?.message || err.message || "Failed to process cash refund.");
+    }
   };
 
   useEffect(() => {

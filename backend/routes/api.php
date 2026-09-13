@@ -204,6 +204,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacy/orders/stats', [OrderController::class, 'getTodayStats']);
         Route::get('pharmacy/orders', [OrderController::class, 'index']);
         Route::get('pharmacy/orders/{order}', [OrderController::class, 'show']);
+        Route::post('pharmacy/orders/{order}/refund', [OrderController::class, 'refund']);
 
         // inventory
         Route::get('pharmacy/inventory/metrics', [InventoryController::class, 'getInventoryMetrics']);

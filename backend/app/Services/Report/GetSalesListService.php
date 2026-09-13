@@ -62,6 +62,7 @@ class GetSalesListService
                         'created_at' => $exc->created_at ? $exc->created_at->format('Y-m-d H:i') : null,
                     ];
                 }) : [],
+                'is_refunded' => (bool) $order->is_refunded,
                 'date' => $order->completed_at ? $order->completed_at->format('Y-m-d H:i') : null,
                 'orderItems' => $order->items->map(function ($item) {
                     return [

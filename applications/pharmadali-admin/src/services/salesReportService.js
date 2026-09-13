@@ -36,3 +36,8 @@ export const exportSalesPdf = async (filters = {}) => {
   return data;
 };
 
+export const processCashRefund = async (orderId) => {
+  const data = await apiRequest.post(`/pharmacy/orders/${orderId}/refund`);
+  return data;
+};
+
