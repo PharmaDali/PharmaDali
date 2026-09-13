@@ -133,9 +133,6 @@ services:
       - certs:/etc/nginx/certs
       - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
-    labels:
-      - "com.github.nginx-proxy.nginx"
-      - "com.github.nginx-proxy.docker-gen"
     networks:
       - proxy-network
 

@@ -162,11 +162,11 @@ export default function HomeScreen() {
 
       {/* ── Categories Section ── */}
       <View>
-        <View className="flex-row items-center justify-between px-4 py-2 mt-4">
-          <Text className="text-2xl text-gray-600 px-2 py-2 mt-6" style={{ fontFamily: 'Poppins-Bold' }}>
+        <View className="flex-row items-center justify-between px-4 py-2 mt-5">
+          <Text className="text-2xl text-gray-600 px-2" style={{ fontFamily: 'Poppins-Bold' }}>
             Categories
           </Text>
-          <Text className="text-md text-gray-600 px-2 py-2 mt-6" style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}
+          <Text className="text-md text-gray-600 px-2" style={[styles.seeAllLink, { fontFamily: 'Poppins-SemiBold' }]}
             onPress={() => route.push({ pathname: '/tabs/shop/Shop', params: { expandCategories: 'true' } })}
           >
             See all

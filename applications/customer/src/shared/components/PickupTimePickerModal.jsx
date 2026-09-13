@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import {
   StyleSheet,
   Text,
@@ -10,6 +10,109 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { formatMinutesToAmPm } from '@src/utils/pickupScheduleUtils'
 import BlueClockIcon from '@assets/icons/blue_clock_icon.svg'
+
+const ITEM_HEIGHT = 48
+const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
+const PERIODS = ['AM', 'PM']
+
+function WheelColumn({ items, selectedIndex, onSelect, width = 76 }) {
+  const scrollViewRef = useRef(null)
+  const isUserScrolling = useRef(false)
+  const currentScrolledIndex = useRef(selectedIndex)
+
+  // Scroll to new position when selectedIndex changes externally (e.g. preset clicked or modal opened)
+  useEffect(() => {
+    if (!isUserScrolling.current && selectedIndex >= 0 && selectedIndex !== currentScrolledIndex.current) {
+      currentScrolledIndex.current = selectedIndex
+      scrollViewRef.current?.scrollTo({
+        y: selectedIndex * ITEM_HEIGHT,
+        animated: true,
+      })
+    }
+  }, [selectedIndex])
+
+  // Initial scroll when component mounts or modal opens
+  useEffect(() => {
+    if (selectedIndex >= 0) {
+      currentScrolledIndex.current = selectedIndex
+      const timer = setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          y: selectedIndex * ITEM_HEIGHT,
+          animated: false,
+        })
+      }, 30)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
+  const handleScrollBegin = () => {
+    isUserScrolling.current = true
+  }
+
+  const handleScrollEnd = (e) => {
+    const y = e.nativeEvent.contentOffset.y
+    const index = Math.round(y / ITEM_HEIGHT)
+    const clampedIndex = Math.max(0, Math.min(items.length - 1, index))
+    currentScrolledIndex.current = clampedIndex
+    isUserScrolling.current = false
+    if (clampedIndex !== selectedIndex) {
+      onSelect(clampedIndex)
+    }
+  }
+
+  return (
+    <View style={{ height: ITEM_HEIGHT * 3, width }} className="overflow-hidden">
+      <ScrollView
+        ref={scrollViewRef}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={ITEM_HEIGHT}
+        decelerationRate="fast"
+        nestedScrollEnabled={true}
+        onScrollBeginDrag={handleScrollBegin}
+        onMomentumScrollBegin={handleScrollBegin}
+        onMomentumScrollEnd={handleScrollEnd}
+        onScrollEndDrag={(e) => {
+          if (!e.nativeEvent.velocity || Math.abs(e.nativeEvent.velocity.y) < 0.1) {
+            handleScrollEnd(e)
+          }
+        }}
+        contentContainerStyle={{
+          paddingTop: ITEM_HEIGHT,
+          paddingBottom: ITEM_HEIGHT,
+        }}
+      >
+        {items.map((item, idx) => {
+          const isSelected = idx === selectedIndex
+          return (
+            <TouchableOpacity
+              key={String(item) + idx}
+              style={{ height: ITEM_HEIGHT }}
+              className="items-center justify-center"
+              onPress={() => {
+                currentScrolledIndex.current = idx
+                isUserScrolling.current = false
+                onSelect(idx)
+                scrollViewRef.current?.scrollTo({
+                  y: idx * ITEM_HEIGHT,
+                  animated: true,
+                })
+              }}
+              activeOpacity={0.7}
+            >
+              <Text
+                className={isSelected ? 'text-2xl text-[#48AAD9]' : 'text-base text-slate-400'}
+                style={isSelected ? styles.fontBold : styles.fontMedium}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
+      </ScrollView>
+    </View>
+  )
+}
 
 export default function PickupTimePickerModal({
   visible,
@@ -25,33 +128,42 @@ export default function PickupTimePickerModal({
 }) {
   const [tempSelectedTime, setTempSelectedTime] = useState(null)
 
-  // Bounds clamping helper
-  const clampDate = (date) => {
+  const minMs = useMemo(() => {
+    if (minimumDateTime instanceof Date) {
+      return minimumDateTime.getTime()
+    }
+    return Date.now() + 30 * 60 * 1000
+  }, [minimumDateTime])
+
+  const maxMs = useMemo(() => {
+    if (closingDateTime instanceof Date) {
+      return closingDateTime.getTime() - 15 * 60 * 1000
+    }
+    return minMs + 8 * 3600 * 1000
+  }, [closingDateTime, minMs])
+
+  const clampDate = useCallback((date) => {
     if (!date || !(date instanceof Date)) {
-      const fallback = minimumDateTime ? new Date(minimumDateTime) : new Date(Date.now() + 30 * 60 * 1000)
+      const fallback = new Date(minMs)
       fallback.setSeconds(0, 0)
       return fallback
     }
     const res = new Date(date)
     res.setSeconds(0, 0)
     const timeMs = res.getTime()
-    const minMs = minimumDateTime ? minimumDateTime.getTime() : new Date().getTime() + 30 * 60 * 1000
-    
-    // Max pickup time is 15 minutes before store closing
-    let maxMs = closingDateTime ? closingDateTime.getTime() - 15 * 60 * 1000 : minMs + 8 * 3600 * 1000
-    if (maxMs < minMs) maxMs = minMs
+    const effectiveMax = maxMs < minMs ? minMs : maxMs
 
     if (timeMs < minMs) return new Date(minMs)
-    if (timeMs > maxMs) return new Date(maxMs)
+    if (timeMs > effectiveMax) return new Date(effectiveMax)
     return res
-  }
+  }, [minMs, maxMs])
 
   useEffect(() => {
     if (visible) {
-      const initial = selectedTime || minimumDateTime || new Date(Date.now() + 30 * 60 * 1000)
+      const initial = selectedTime || new Date(minMs)
       setTempSelectedTime(clampDate(new Date(initial)))
     }
-  }, [visible, selectedTime, minimumDateTime, closingDateTime])
+  }, [visible, selectedTime, clampDate, minMs])
 
   const formatTime12Hour = (date) => {
     if (!date || !(date instanceof Date)) return '--:--'
@@ -63,27 +175,56 @@ export default function PickupTimePickerModal({
     })
   }
 
-  const adjustMinutes = (deltaMinutes) => {
-    setTempSelectedTime((prevDate) => {
-      const base = prevDate ? new Date(prevDate) : new Date(minimumDateTime || Date.now() + 30 * 60 * 1000)
-      const updatedMs = base.getTime() + deltaMinutes * 60 * 1000
-      return clampDate(new Date(updatedMs))
-    })
+  // Derive hour, minute (0-59), and period from tempSelectedTime
+  const { hourIndex, minuteIndex, periodIndex } = useMemo(() => {
+    if (!tempSelectedTime) {
+      return { hourIndex: 0, minuteIndex: 0, periodIndex: 0 }
+    }
+    const h24 = tempSelectedTime.getHours()
+    const mins = tempSelectedTime.getMinutes()
+    const isPm = h24 >= 12
+    const h12 = (h24 % 12) === 0 ? 12 : h24 % 12
+
+    const hIdx = Math.max(0, HOURS.indexOf(h12))
+    const mIdx = Math.max(0, Math.min(59, mins))
+    const pIdx = isPm ? 1 : 0
+
+    return { hourIndex: hIdx, minuteIndex: mIdx, periodIndex: pIdx }
+  }, [tempSelectedTime])
+
+  const handleWheelChange = (newHourIdx, newMinIdx, newPeriodIdx) => {
+    const hour12 = HOURS[newHourIdx]
+    const minute = Number(MINUTES[newMinIdx])
+    const isPm = newPeriodIdx === 1
+
+    let hour24 = hour12 % 12
+    if (isPm) hour24 += 12
+
+    const updated = new Date(tempSelectedTime || Date.now())
+    updated.setHours(hour24, minute, 0, 0)
+    setTempSelectedTime(updated)
   }
 
-  const isAtMin = useMemo(() => {
-    if (!tempSelectedTime || !minimumDateTime) return false
-    return tempSelectedTime.getTime() <= minimumDateTime.getTime()
-  }, [tempSelectedTime, minimumDateTime])
+  const isValidTime = useMemo(() => {
+    if (!tempSelectedTime) return false
+    const timeMs = tempSelectedTime.getTime()
+    return timeMs >= minMs && timeMs <= maxMs
+  }, [tempSelectedTime, minMs, maxMs])
 
-  const isAtMax = useMemo(() => {
-    if (!tempSelectedTime || !closingDateTime) return false
-    const maxMs = closingDateTime.getTime() - 15 * 60 * 1000
-    return tempSelectedTime.getTime() >= maxMs
-  }, [tempSelectedTime, closingDateTime])
+  const validationWarning = useMemo(() => {
+    if (!tempSelectedTime) return null
+    const timeMs = tempSelectedTime.getTime()
+    if (timeMs < minMs) {
+      return `Earliest pickup is ${formatTime12Hour(new Date(minMs))} (30m prep required)`
+    }
+    if (timeMs > maxMs) {
+      return `Latest pickup is ${formatTime12Hour(new Date(maxMs))} (15m before closing)`
+    }
+    return null
+  }, [tempSelectedTime, minMs, maxMs])
 
   const handleConfirm = () => {
-    if (tempSelectedTime) {
+    if (tempSelectedTime && isValidTime) {
       const finalTime = new Date(tempSelectedTime)
       finalTime.setSeconds(0, 0)
       onSelectTime(finalTime)
@@ -91,10 +232,8 @@ export default function PickupTimePickerModal({
     onClose()
   }
 
-  const minFormatted = minimumDateTime ? formatTime12Hour(minimumDateTime) : formatMinutesToAmPm(openingMinutes)
-  const maxFormatted = closingDateTime
-    ? formatTime12Hour(new Date(closingDateTime.getTime() - 15 * 60 * 1000))
-    : formatMinutesToAmPm(closingMinutes - 15)
+  const minFormatted = formatTime12Hour(new Date(minMs))
+  const maxFormatted = formatTime12Hour(new Date(maxMs))
 
   return (
     <Modal
@@ -112,7 +251,7 @@ export default function PickupTimePickerModal({
             <View className="w-8 h-1 rounded-full bg-slate-200" />
           </View>
 
-          {/* Minimalist Header */}
+          {/* Header */}
           <View className="flex-row items-center justify-between px-6 py-2 border-b border-slate-100">
             <View className="flex-row items-center flex-1">
               <View className="w-8 h-8 rounded-lg bg-sky-50 items-center justify-center mr-2.5">
@@ -132,129 +271,103 @@ export default function PickupTimePickerModal({
               className="w-7 h-7 rounded-full bg-slate-100 items-center justify-center"
               onPress={onClose}
               activeOpacity={0.7}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Text className="text-xs font-semibold text-slate-400">✕</Text>
             </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} className="px-6 pt-3 pb-2">
-            {/* HERO MINIMALIST ADJUSTABLE TIME DISPLAY */}
-            <View className="items-center my-2 py-2">
-              <Text className="text-[10px] text-slate-400 uppercase tracking-widest mb-3" style={styles.fontBold}>
-                Pickup Time
+          {/* SCROLL WHEEL PICKER */}
+          <View className="items-center justify-center my-3">
+            <View className="relative flex-row items-center justify-center w-full px-8">
+              {/* Center Highlight Bar Behind Wheels */}
+              <View
+                style={{ height: ITEM_HEIGHT, top: ITEM_HEIGHT }}
+                className="absolute left-10 right-10 bg-sky-50/80 border-y border-[#48AAD9]/30 rounded-xl"
+                pointerEvents="none"
+              />
+
+              {/* Hours Column (1-12) */}
+              <WheelColumn
+                items={HOURS}
+                selectedIndex={hourIndex}
+                onSelect={(newH) => handleWheelChange(newH, minuteIndex, periodIndex)}
+                width={76}
+              />
+
+              {/* Colon Separator */}
+              <Text
+                style={styles.fontBold}
+                className="text-2xl text-[#48AAD9] px-2 mb-1"
+              >
+                :
               </Text>
 
-              <View className="flex-row items-center justify-center w-full px-4 gap-4">
-                {/* Minus 15m Button */}
-                <TouchableOpacity
-                  disabled={isAtMin}
-                  className={`w-12 h-12 rounded-full items-center justify-center ${
-                    isAtMin
-                      ? 'bg-slate-100 opacity-30'
-                      : 'bg-slate-100 active:bg-sky-50'
-                  }`}
-                  onPress={() => adjustMinutes(-15)}
-                  activeOpacity={0.7}
-                >
-                  <Text className={`text-2xl ${isAtMin ? 'text-slate-400' : 'text-slate-700'}`} style={styles.fontBold}>
-                    −
-                  </Text>
-                </TouchableOpacity>
+              {/* Minutes Column (00-59, 1-min increments) */}
+              <WheelColumn
+                items={MINUTES}
+                selectedIndex={minuteIndex}
+                onSelect={(newM) => handleWheelChange(hourIndex, newM, periodIndex)}
+                width={76}
+              />
 
-                {/* Prominent Minimalist Time Text */}
-                <View className="items-center px-6 py-2.5 rounded-2xl bg-sky-50/70 border border-sky-100">
-                  <Text className="text-3xl text-[#48AAD9]" style={styles.fontBold}>
-                    {formatTime12Hour(tempSelectedTime)}
-                  </Text>
-                </View>
+              {/* AM/PM Column */}
+              <WheelColumn
+                items={PERIODS}
+                selectedIndex={periodIndex}
+                onSelect={(newP) => handleWheelChange(hourIndex, minuteIndex, newP)}
+                width={76}
+              />
+            </View>
 
-                {/* Plus 15m Button */}
-                <TouchableOpacity
-                  disabled={isAtMax}
-                  className={`w-12 h-12 rounded-full items-center justify-center ${
-                    isAtMax
-                      ? 'bg-slate-100 opacity-30'
-                      : 'bg-slate-100 active:bg-sky-50'
-                  }`}
-                  onPress={() => adjustMinutes(15)}
-                  activeOpacity={0.7}
-                >
-                  <Text className={`text-2xl ${isAtMax ? 'text-slate-400' : 'text-slate-700'}`} style={styles.fontBold}>
-                    +
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              {/* Operating Window Limits */}
-              <Text className="text-[11px] text-slate-400 mt-3 text-center" style={styles.fontMedium}>
-                Earliest (30m min): {minFormatted} • Latest: {maxFormatted}
+            {/* Operating Window or Validation Warning */}
+            {validationWarning ? (
+              <Text className="text-[11px] text-[#B42318] mt-2.5 px-6 text-center" style={styles.fontMedium}>
+                {validationWarning}
               </Text>
-            </View>
+            ) : (
+              <Text className="text-[11px] text-slate-400 mt-2.5 text-center" style={styles.fontMedium}>
+                Earliest: {minFormatted} • Latest: {maxFormatted}
+              </Text>
+            )}
+          </View>
 
-            {/* QUICK STEP ADJUSTMENT PILLS */}
-            <View className="flex-row gap-1.5 my-3">
-              {[
-                { label: '−30m', delta: -30 },
-                { label: '−15m', delta: -15 },
-                { label: '+15m', delta: 15 },
-                { label: '+30m', delta: 30 },
-                { label: '+1h', delta: 60 },
-              ].map((step) => (
-                <TouchableOpacity
-                  key={step.label}
-                  className="flex-1 py-2 rounded-lg bg-slate-50 border border-slate-200/50 items-center justify-center active:bg-slate-100"
-                  onPress={() => adjustMinutes(step.delta)}
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-xs text-slate-600" style={styles.fontMedium}>
-                    {step.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* PRESETS */}
-            <Text className="text-[10px] text-slate-400 uppercase tracking-widest mb-2" style={styles.fontBold}>
-              Quick Presets
-            </Text>
-            <View className="flex-row flex-wrap gap-2 mb-4">
+          {/* QUICK PRESETS */}
+          <View className="px-6 pt-1 pb-2">
+            <View className="flex-row gap-2">
               {[
                 {
-                  label: 'Earliest (In 30m)',
-                  getDate: () => minimumDateTime || new Date(Date.now() + 30 * 60 * 1000),
+                  label: 'Earliest',
+                  getDate: () => new Date(minMs),
                 },
                 {
-                  label: 'In 45 Minutes',
-                  getDate: () => new Date(Date.now() + 45 * 60 * 1000),
+                  label: '+1 Hour',
+                  getDate: () => clampDate(new Date(Date.now() + 60 * 60 * 1000)),
                 },
                 {
-                  label: 'In 1 Hour',
-                  getDate: () => new Date(Date.now() + 60 * 60 * 1000),
+                  label: '+2 Hours',
+                  getDate: () => clampDate(new Date(Date.now() + 120 * 60 * 1000)),
                 },
                 {
-                  label: 'Before Closing',
-                  getDate: () =>
-                    closingDateTime
-                      ? new Date(closingDateTime.getTime() - 30 * 60 * 1000)
-                      : new Date(),
+                  label: 'Before Close',
+                  getDate: () => new Date(maxMs),
                 },
               ].map((preset) => (
                 <TouchableOpacity
                   key={preset.label}
-                  style={{ width: '48.5%' }}
-                  className="py-2.5 px-3 rounded-xl border border-slate-200/60 bg-white items-center justify-center active:bg-sky-50 active:border-[#48AAD9]"
+                  className="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 items-center justify-center active:bg-sky-50 active:border-[#48AAD9]"
                   onPress={() => setTempSelectedTime(clampDate(preset.getDate()))}
                   activeOpacity={0.75}
                 >
-                  <Text className="text-xs text-slate-600 text-center" style={styles.fontMedium}>
+                  <Text className="text-[11px] text-slate-600" style={styles.fontMedium}>
                     {preset.label}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
-          </ScrollView>
+          </View>
 
-          {/* ACTION FOOTER WITH BOTTOM MARGIN & PADDING */}
+          {/* ACTION FOOTER */}
           <View className="px-6 pt-3 pb-6 mb-2 border-t border-slate-100 bg-white">
             <View className="flex-row gap-3">
               <TouchableOpacity
@@ -268,7 +381,10 @@ export default function PickupTimePickerModal({
               </TouchableOpacity>
 
               <TouchableOpacity
-                className="flex-[2] py-3 rounded-xl bg-[#48AAD9] items-center justify-center shadow-xs"
+                disabled={!isValidTime}
+                className={`flex-[2] py-3 rounded-xl items-center justify-center ${
+                  isValidTime ? 'bg-[#48AAD9]' : 'bg-slate-300'
+                }`}
                 onPress={handleConfirm}
                 activeOpacity={0.85}
               >

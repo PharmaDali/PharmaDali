@@ -26,7 +26,7 @@ const TopBar = () => {
   }, [pathname, searchQuery, setSearchQuery]);
 
   return (
-    <View style={{ backgroundColor: colors.buttonColor }} className="py-4 px-5 pt-3">
+    <View style={{ backgroundColor: '#96D2EE' }} className="py-4 px-5 pt-3">
       <View className="flex-row items-center justify-between mb-[-20px]">
         <MainLogo />
         <CartButton />
@@ -35,14 +35,16 @@ const TopBar = () => {
         ref={searchInputRef}
         placeholder="Search"
         mode="outlined"
+        dense
         textColor="#444444"
-        contentStyle={{ color: '#444444' }}
-        style={{ color: '#444444' }}
-        left={<TextInput.Icon icon="magnify" />}
+        contentStyle={{ color: '#444444', paddingVertical: 0 }}
+        style={{ height: 40, backgroundColor: '#FFFFFF', fontSize: 13 }}
+        left={<TextInput.Icon icon="magnify" size={20} />}
         right={
           searchQuery ? (
             <TextInput.Icon
               icon="close"
+              size={18}
               onPress={() => {
                 setSearchQuery('');
               }}

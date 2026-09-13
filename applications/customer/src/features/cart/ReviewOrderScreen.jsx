@@ -79,9 +79,9 @@ const ReviewOrderScreen = () => {
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="flex-row items-start mx-4 mt-4 mb-3">
-          <RedLocationIcon width={18} height={18} />
-          <View className="ml-2 flex-1">
+        <View className="flex-row items-center mx-4 mt-4 mb-3">
+          <RedLocationIcon width={24} height={24} />
+          <View className="ml-2.5 flex-1 justify-center">
             <Text className="text-xs" style={styles.fontSemiBold}>Pickup at {pharmacyLabel || 'Selected pharmacy'}</Text>
             {pharmacyLocationLabel ? (
               <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>

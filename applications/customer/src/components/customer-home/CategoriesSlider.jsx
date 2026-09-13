@@ -2,9 +2,9 @@ import { ScrollView, TouchableOpacity, View, Text } from 'react-native'
 import React from 'react'
 import { CATEGORY_ICONS } from '@src/utils/categoryUtils';
 
-function CategoryCard({ icon, label, onPress }) {
+function CategoryCard({ icon, label, onPress, isLast }) {
   return (
-    <TouchableOpacity className="items-center mr-2 w-20" onPress={onPress}>
+    <TouchableOpacity className={`items-center w-20 ${isLast ? '' : 'mr-2'}`} onPress={onPress}>
       <View className="w-16 h-16 rounded-lg bg-[#F7F9FF] border border-[#C1BCBC] items-center justify-center">
         {icon}
       </View>
@@ -32,8 +32,13 @@ const CategoriesSlider = ({ categories = [], limit = 8, onCategoryPress }) => {
   const visibleCategories = limit ? categories.slice(0, limit) : categories;
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} className="px-4 mt-2">
-      {visibleCategories.map((item) => {
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      className="mt-2"
+      contentContainerStyle={{ paddingHorizontal: 16 }}
+    >
+      {visibleCategories.map((item, idx) => {
         const rawLabel = item?.category_name || 'Category';
         const label = toTitleCase(rawLabel.trim());
         const IconComponent = CATEGORY_ICONS[label];
@@ -43,6 +48,7 @@ const CategoriesSlider = ({ categories = [], limit = 8, onCategoryPress }) => {
             key={item?.id || label}
             icon={IconComponent ? <IconComponent width={24} height={24} /> : <Text className="text-2xl">🛍️</Text>}
             label={label}
+            isLast={idx === visibleCategories.length - 1}
             onPress={() => onCategoryPress?.(item, label)}
           />
         );

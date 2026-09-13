@@ -26,6 +26,6 @@ export default function LogoHeader({ showBackButton = true }) {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: colors.buttonColor,
+    backgroundColor: '#96D2EE',
   },
 })

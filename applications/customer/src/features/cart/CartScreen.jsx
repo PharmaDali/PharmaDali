@@ -62,7 +62,7 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
   const displayName = truncateText(item.description);
 
   return (
-    <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-3" style={{ opacity: item.isAvailable === false ? 0.7 : 1 }}>
+    <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-2" style={{ opacity: item.isAvailable === false ? 0.7 : 1 }}>
       {item.isAvailable !== false && (
         <Checkbox checked={item.selected} onPress={onToggle} />
       )}
@@ -82,7 +82,11 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
           <Text className="text-xs flex-1 pr-2" style={styles.fontSemiBold} numberOfLines={2}>
             {displayName}
           </Text>
-          <TouchableOpacity onPress={onRemove} className="p-1">
+          <TouchableOpacity
+            onPress={onRemove}
+            className="p-1"
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+          >
             <DeleteIcon width={18} height={18} />
           </TouchableOpacity>
         </View>
@@ -185,9 +189,9 @@ export default function CartScreen() {
         </TouchableOpacity>
       </View>
 
-      <View className="flex-row items-start bg-[#E8F4FD] rounded-xl mx-4 mt-4 p-3 border border-[#B8DEF0]">
-        <LocationIcon width={17} height={17} />
-        <View className="flex-1 ml-2">
+      <View className="flex-row items-center bg-[#E8F4FD] rounded-xl mx-4 mt-4 p-3 border border-[#B8DEF0]">
+        <LocationIcon width={24} height={24} />
+        <View className="flex-1 ml-2.5 justify-center">
           <Text className="text-xs" style={styles.fontSemiBold}>Pickup at {pharmacyLabel}</Text>
           {pharmacyLocationLabel ? (
             <Text className="text-[10px] text-gray-600 mt-0.5" style={styles.fontMedium}>

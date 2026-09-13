@@ -45,18 +45,22 @@ const OrderSubmittedScreen = () => {
       <Stack.Screen options={{ gestureEnabled: false }} />
       <LogoHeader showBackButton={false} />
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-        <View className="items-center px-6 mt-6">
-          <OrderSuccessIcon width={260} height={164} />
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 16 }}>
+        <View className="items-center px-6 mt-3">
+          <View className="items-center justify-center">
+            <OrderSuccessIcon width={260} height={164} />
+          </View>
 
-          <Text className="text-xl text-center mt-5" style={styles.titleText}>
-            Pickup Request Submitted!
-          </Text>
-          <Text className="text-sm text-center mt-2 px-4" style={styles.subtitleText}>
-            Your order has been submitted and is{'\n'}awaiting pharmacist review.
-          </Text>
+          <View className="items-center mt-6">
+            <Text className="text-xl text-center" style={styles.titleText}>
+              Pickup Request Submitted!
+            </Text>
+            <Text className="text-sm text-center mt-1 px-4" style={styles.subtitleText}>
+              Your order has been submitted and is{'\n'}awaiting pharmacist review.
+            </Text>
+          </View>
 
-          <View className="bg-white rounded-2xl border border-gray-200 w-full mt-6 p-4">
+          <View className="bg-white rounded-2xl border border-gray-200 w-full mt-3 p-3.5">
             <View className="flex-row items-start">
               <BlueClockIcon width={20} height={20} />
               <View className="flex-1 ml-2">
@@ -69,8 +73,8 @@ const OrderSubmittedScreen = () => {
           </View>
 
           {summary && (
-            <View className="bg-white rounded-2xl border border-gray-200 w-full mt-4 p-4">
-              <View className="flex-row items-start mb-4">
+            <View className="bg-white rounded-2xl border border-gray-200 w-full mt-3 p-3.5">
+              <View className="flex-row items-start mb-2.5">
                 <BlueBasketIcon width={20} height={20} />
                 <View className="flex-1 ml-2">
                   <Text className="text-sm" style={styles.fontBold}>Order Summary:</Text>
@@ -131,9 +135,9 @@ const OrderSubmittedScreen = () => {
         </View>
       </ScrollView>
 
-      <View className="px-6 pt-2 pb-4 bg-[#F1F4FF]">
+      <View className="px-6 pt-2 pb-3 bg-[#F1F4FF]">
         <TouchableOpacity
-          className="bg-[#48AAD9] rounded-xl py-3 items-center"
+          className="bg-[#48AAD9] rounded-xl py-2 items-center justify-center"
           onPress={() => router.replace('/tabs/orders/Orders')}
         >
           <Text className="text-sm text-white" style={styles.fontSemiBold}>View Orders</Text>

@@ -36,7 +36,7 @@ const fullScreenRoutes = [
 function DetailTopBar({ title }) {
   const router = useRouter()
   return (
-    <View className="flex-row items-center px-5 pt-12 pb-5" style={{ backgroundColor: colors.buttonColor }}>
+    <View className="flex-row items-center px-5 pt-12 pb-5" style={{ backgroundColor: '#96D2EE' }}>
       <TouchableOpacity onPress={() => router.back()} className="mr-3">
         <ArrowBackIcon width={24} height={24} />
       </TouchableOpacity>
