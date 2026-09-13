@@ -25,6 +25,7 @@ services:
   db:
     image: mysql:8.0
     restart: unless-stopped
+    command: --innodb-buffer-pool-size=256M --performance-schema=OFF
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${DB_DATABASE}
@@ -78,6 +79,10 @@ services:
     <<: *backend-common
     command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=90"]
 
+  scheduler:
+    <<: *backend-common
+    command: ["php", "artisan", "schedule:work"]
+
   reverb-server:
     <<: *backend-common
     command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080", "--no-interaction"]
@@ -99,7 +104,7 @@ services:
       context: ./applications/pharmadali-admin
       dockerfile: Dockerfile
       args:
-        VITE_API_BASE_URL: http://${BACKEND_DOMAIN}/api
+        VITE_API_BASE_URL: https://${BACKEND_DOMAIN}/api
         VITE_REVERB_HOST: ${REVERB_DOMAIN}
     restart: unless-stopped
     environment:
