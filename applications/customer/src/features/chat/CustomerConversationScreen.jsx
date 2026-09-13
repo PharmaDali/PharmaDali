@@ -240,7 +240,7 @@ export default function CustomerConversationScreen() {
   const renderItem = ({ item }) => {
     if (item._type === 'separator') {
       return (
-        <View className="flex-row items-center my-3.5">
+        <View className="flex-row items-center my-2">
           <View className="flex-1 h-px bg-slate-200" />
           <Text style={s.dateLabel} className="mx-2.5">{item.label}</Text>
           <View className="flex-1 h-px bg-slate-200" />
@@ -250,7 +250,7 @@ export default function CustomerConversationScreen() {
 
     if (item.message_type === 'system') {
       return (
-        <View className="items-center my-2">
+        <View className="items-center my-1">
           <View className="bg-slate-100 rounded-full px-3.5 py-1">
             <Text style={s.systemText}>{item.body}</Text>
           </View>
@@ -261,7 +261,7 @@ export default function CustomerConversationScreen() {
     const isMine = item?.sender_user_id === currentUserId;
 
     return (
-      <View className={`flex-row mb-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+      <View className={`flex-row mb-1.5 ${isMine ? 'justify-end' : 'justify-start'}`}>
         {!isMine && (
           <View className="h-[30px] w-[30px] rounded-full bg-sky-100 items-center justify-center mr-2 self-end">
             <Text style={s.partnerAvatarText}>{getInitials(partnerName)}</Text>
@@ -274,7 +274,7 @@ export default function CustomerConversationScreen() {
               isMine ? s.mineBubble : s.theirsBubble,
               (item?.message_type === 'image' || item?.metadata?.image_url) && { padding: 4, borderRadius: 12 },
             ]}
-            className="rounded-[18px] px-3.5 py-2"
+            className="rounded-[18px] px-3.5 py-1.5"
           >
             {(item?.message_type === 'image' || item?.metadata?.image_url) && item?.metadata?.image_url ? (
               <Image

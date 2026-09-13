@@ -6,7 +6,6 @@ import { colors } from '@src/shared/theme/colorPalette';
 import PersonalDetailsIcon from '@assets/icons/account/personal_details.svg';
 import ChangePassIcon from '@assets/icons/account/change-password/change_pass.svg';
 import LogoutIcon from '@assets/icons/account/logout.svg';
-import EditIcon from '@assets/icons/edit_icon.svg';
 import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
 import { logoutPharmacist } from '@shared/services/authService';
 import { toTitleCase } from '@shared/utils/stringUtils';
@@ -85,7 +84,7 @@ const Account = () => {
 
   return (
     <View className="flex-1 bg-[#F1F4FF]">
-      <View className="m-4 p-6 my-10 rounded-2xl border border-gray-200 bg-white items-center">
+      <View className="mx-4 mt-4 mb-3 p-6 rounded-2xl border border-gray-200 bg-white items-center">
         <Text className="text-2xl" style={styles.textSemiBold}>My Profile</Text>
 
         <View className="items-center mt-4">
@@ -94,9 +93,6 @@ const Account = () => {
               {initial}
             </Text>
           </View>
-          <TouchableOpacity className="w-6 h-6 rounded-full items-center justify-center -mt-3 ml-10">
-            <EditIcon width={25} height={25} className="text-white" />
-          </TouchableOpacity>
         </View>
 
         <Text className="text-lg mt-2" style={styles.textSemiBoldDark}>{toTitleCase(displayName)}</Text>

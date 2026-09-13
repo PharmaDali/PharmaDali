@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   // Messages
   messageRow: {
     flexDirection: 'row',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   rowMine: { justifyContent: 'flex-end' },
   rowTheirs: { justifyContent: 'flex-start' },
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
   bubble: {
     borderRadius: 18,
     paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingVertical: 7,
   },
   mineBubble: {
     backgroundColor: colors.buttonColor,
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
   dateSepRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 14,
+    marginVertical: 8,
   },
   dateSepLine: {
     flex: 1,
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   },
   systemRow: {
     alignItems: 'center',
-    marginVertical: 8,
+    marginVertical: 4,
   },
   systemPill: {
     backgroundColor: '#F1F5F9',

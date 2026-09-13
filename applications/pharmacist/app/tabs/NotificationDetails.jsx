@@ -148,6 +148,13 @@ const getStatusStyles = (statusStr) => {
       text: '#991B1B',
     };
   }
+  if (s.includes('overdue')) {
+    return {
+      bg: '#FFF4E5',
+      border: 'rgba(255, 178, 89, 0.70)',
+      text: '#D35400',
+    };
+  }
   if (s.includes('stand_by') || s.includes('pending')) {
     return {
       bg: '#FFF9C4',
@@ -478,7 +485,7 @@ export default function PharmacistNotificationDetailsScreen() {
           <TouchableOpacity
             onPress={handleViewOrder}
             activeOpacity={0.8}
-            className="bg-[#54A9DA] rounded-xl py-3.5 items-center justify-center active:opacity-80 w-full"
+            className="bg-[#54A9DA] rounded-xl py-2.5 items-center justify-center active:opacity-80 w-full"
           >
             <Text
               className="text-[15px] text-white"

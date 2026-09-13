@@ -526,7 +526,7 @@ export default function Orders() {
         ListFooterComponent={renderListFooter}
         ListEmptyComponent={
           !currentTabState.loading ? (
-            <Text className="px-4 py-6 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#7A7A7A' }}>
+            <Text className="px-4 py-6 text-center text-xs" style={{ fontFamily: 'Poppins-Medium', color: '#7A7A7A', fontSize: 12 }}>
               {emptyMessage}
             </Text>
           ) : null

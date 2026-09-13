@@ -42,7 +42,7 @@ export default function NotificationDetailsHeader() {
 
 const styles = StyleSheet.create({
   headerContainer: {
-    backgroundColor: '#48AAD9',
+    backgroundColor: '#96D2EE',
     paddingHorizontal: 16,
     paddingBottom: 14,
   },

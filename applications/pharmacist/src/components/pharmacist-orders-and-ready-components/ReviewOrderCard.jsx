@@ -470,22 +470,22 @@ const styles = StyleSheet.create({
   },
   rejectButton: {
     borderColor: '#DC3545',
-    backgroundColor: 'transparent',
+    backgroundColor: '#DC3545',
   },
   rejectText: {
     fontFamily: 'Poppins-SemiBold',
-    color: '#DC3545',
+    color: '#FFFFFF',
   },
   discountApproveButton: {
     backgroundColor: '#48AAD9',
   },
   discountRejectButton: {
     borderColor: '#DC3545',
-    backgroundColor: '#FFF0F0',
+    backgroundColor: '#DC3545',
   },
   discountRejectText: {
     fontFamily: 'Poppins-SemiBold',
-    color: '#DC3545',
+    color: '#FFFFFF',
   },
   mutedPendingButton: {
     backgroundColor: '#D8DDE3',

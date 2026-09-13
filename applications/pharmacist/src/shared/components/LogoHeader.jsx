@@ -24,6 +24,6 @@ export default function LogoHeader() {
 
 const styles = StyleSheet.create({
   header: {
-    backgroundColor: colors.buttonColor,
+    backgroundColor: '#96D2EE',
   },
 })
