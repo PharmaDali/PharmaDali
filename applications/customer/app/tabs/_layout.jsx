@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import BottomBar from '@components/BottomBar';
 import TopBar from '@components/TopBar';
+import NotificationDetailsHeader from '@shared/components/NotificationDetailsHeader';
 import { Slot, usePathname, useRouter } from 'expo-router';
 import { colors } from '@src/shared/theme/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
@@ -103,9 +104,19 @@ function LayoutContent() {
     };
   }, []);
 
+  const isNotificationDetails = pathname?.startsWith('/tabs/NotificationDetails');
+
   return (
     <View style={styles.container}>
-      {!selectionPhase && !isFullScreen && (detailTitle ? <DetailTopBar title={detailTitle} /> : <TopBar />)}
+      {!selectionPhase && !isFullScreen && (
+        isNotificationDetails ? (
+          <NotificationDetailsHeader />
+        ) : detailTitle ? (
+          <DetailTopBar title={detailTitle} />
+        ) : (
+          <TopBar />
+        )
+      )}
       <Slot />
       {!selectionPhase && !isFullScreen && <BottomBar />}
     </View>

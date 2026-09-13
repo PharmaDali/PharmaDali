@@ -45,6 +45,7 @@ export default function BottomBar() {
 
   const index = routes.findIndex(r => {
     if (pathname === r.path) return true;
+    if (r.key === 'notifications' && pathname.startsWith('/tabs/Notification')) return true;
     const dir = r.path.substring(0, r.path.lastIndexOf('/') + 1);
     return dir !== '/tabs/' && pathname.startsWith(dir);
   });
