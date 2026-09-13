@@ -96,6 +96,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('customer/messages/conversations', [ConversationController::class, 'store']);
         Route::get('customer/messages/conversations/{conversation}', [ConversationController::class, 'show']);
         Route::post('customer/messages/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage']);
+        Route::delete('customer/messages/conversations/{conversation}', [ConversationController::class, 'destroy']);
+        Route::post('customer/messages/conversations/{conversation}/restore', [ConversationController::class, 'restore']);
 
         // Profile
         Route::get('customer/profile', [CustomerProfileController::class, 'show']);
@@ -130,6 +132,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('pharmacist/messages/conversations', [ConversationController::class, 'store']);
         Route::get('pharmacist/messages/conversations/{conversation}', [ConversationController::class, 'show']);
         Route::post('pharmacist/messages/conversations/{conversation}/messages', [ConversationController::class, 'sendMessage']);
+        Route::delete('pharmacist/messages/conversations/{conversation}', [ConversationController::class, 'destroy']);
+        Route::post('pharmacist/messages/conversations/{conversation}/restore', [ConversationController::class, 'restore']);
 
         Route::get('pos/products', [PosController::class, 'getProducts']);
         Route::post('pos/orders', [PosController::class, 'storeOrder']);

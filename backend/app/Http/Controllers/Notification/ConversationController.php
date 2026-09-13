@@ -53,4 +53,14 @@ class ConversationController extends Controller
             $request->file('image')
         );
     }
+
+    public function destroy(Request $request, Conversation $conversation): JsonResponse
+    {
+        return $this->conversationService->deleteConversation($request->user(), $conversation);
+    }
+
+    public function restore(Request $request, Conversation $conversation): JsonResponse
+    {
+        return $this->conversationService->restoreConversation($request->user(), $conversation);
+    }
 }

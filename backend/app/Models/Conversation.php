@@ -21,11 +21,15 @@ class Conversation extends Model
         'status',
         'last_message_at',
         'closed_at',
+        'deleted_by_customer_at',
+        'deleted_by_pharmacist_at',
     ];
 
     protected $casts = [
         'last_message_at' => 'datetime',
         'closed_at' => 'datetime',
+        'deleted_by_customer_at' => 'datetime',
+        'deleted_by_pharmacist_at' => 'datetime',
     ];
 
     public function order(): BelongsTo
@@ -77,11 +81,13 @@ class Conversation extends Model
     {
         return $query->where(function ($builder) use ($user) {
             if ($user->role === 'customer') {
-                $builder->where('customer_user_id', $user->id);
+                $builder->where('customer_user_id', $user->id)
+                    ->whereNull('deleted_by_customer_at');
                 return;
             }
 
             if (in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)) {
+                $builder->whereNull('deleted_by_pharmacist_at');
                 // Auto-scoped by BelongsToPharmacy middleware
             }
         });
