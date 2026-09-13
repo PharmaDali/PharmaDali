@@ -90,7 +90,8 @@ CMD ["php-fpm"]
 # ---- Stage 3: Nginx Web Server ----
 FROM nginx:1.27-alpine AS web
 
-# Copy only the compiled static assets nginx needs to serve directly
+# Copy public directory and compiled assets for Nginx
+COPY public/ /var/www/public/
 COPY --from=node-builder /app/public/build /var/www/public/build
 
 COPY docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
