@@ -73,7 +73,7 @@ export function Pharmacists() {
         editingId={editingId}
         formData={formData}
         handleInputChange={handleInputChange}
-        handleSave={handleSave}
+        handleSave={(e) => handleSave(e, (msg) => setSuccessMessage(msg))}
         isSaving={isSaving}
         fieldErrors={fieldErrors}
         formError={formError}
