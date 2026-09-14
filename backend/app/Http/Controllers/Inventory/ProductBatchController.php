@@ -44,6 +44,7 @@ class ProductBatchController extends Controller
 
         $validated = $request->validate([
             'batch_number'      => 'nullable|string|max:100',
+            'supplier_name'     => 'nullable|string|max:255',
             'stock'             => 'required|integer|min:0',
             'expiry_date'       => 'nullable|date',
             'manufactured_date' => 'nullable|date',

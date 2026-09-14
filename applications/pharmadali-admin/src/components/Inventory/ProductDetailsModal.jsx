@@ -374,6 +374,7 @@ export function ProductDetailsModal({
                 <div className="inventory-batch-table">
                   <div className="inventory-batch-head">
                     <span>Batch No.</span>
+                    <span>Supplier Name</span>
                     <span>Stock</span>
                     <span>Manufactured</span>
                     <span>Expiry Date</span>
@@ -383,6 +384,9 @@ export function ProductDetailsModal({
                   <div key={batch.id} className="inventory-batch-row">
                     <span className="inventory-batch-num">
                       {batch.batch_number || <em className="text-muted">—</em>}
+                    </span>
+                    <span className="inventory-batch-supplier" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {batch.supplier_name || <em className="text-muted">—</em>}
                     </span>
                     <span>
                       {isModalEditing ? (
@@ -475,6 +479,18 @@ export function ProductDetailsModal({
                         />
                       </div>
                       <div>
+                        <label className="inventory-modal-label">Supplier Name <span className="text-muted fw-normal" style={{ fontSize: "0.85em" }}>(Optional)</span></label>
+                        <input
+                          type="text"
+                          className="form-control inventory-modal-input"
+                          placeholder="e.g. Unilab"
+                          value={newBatch.supplier_name || ""}
+                          onChange={(e) =>
+                            setNewBatch((p) => ({ ...p, supplier_name: e.target.value }))
+                          }
+                        />
+                      </div>
+                      <div>
                         <label className="inventory-modal-label">Stock *</label>
                         <input
                           type="number"
@@ -529,6 +545,7 @@ export function ProductDetailsModal({
                           setShowAddBatch(false);
                           setNewBatch({
                             batch_number: "",
+                            supplier_name: "",
                             stock: "",
                             expiry_date: "",
                             manufactured_date: "",

@@ -126,6 +126,7 @@ class ProductBatchService
         return [
             'id'                => $batch->id,
             'batch_number'      => $batch->batch_number,
+            'supplier_name'     => $batch->supplier_name,
             'stock'             => $batch->stock,
             'expiry_date'       => $expiryDate instanceof Carbon ? $expiryDate->toDateString() : null,
             'manufactured_date' => $manufacturedDate instanceof Carbon ? $manufacturedDate->toDateString() : null,

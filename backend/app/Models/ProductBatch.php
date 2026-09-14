@@ -12,6 +12,7 @@ class ProductBatch extends Model
     protected $fillable = [
         'pharmacy_product_id',
         'batch_number',
+        'supplier_name',
         'stock',
         'expiry_date',
         'manufactured_date',
