@@ -58,6 +58,7 @@ export function useInventory() {
   const [showAddBatch, setShowAddBatch] = useState(false);
   const [newBatch, setNewBatch] = useState({
     batch_number: "",
+    supplier_name: "",
     stock: "",
     expiry_date: "",
     manufactured_date: "",
@@ -257,6 +258,7 @@ export function useInventory() {
     setShowAddBatch(false);
     setNewBatch({
       batch_number: "",
+      supplier_name: "",
       stock: "",
       expiry_date: "",
       manufactured_date: "",
@@ -307,6 +309,7 @@ export function useInventory() {
     setShowAddBatch(false);
     setNewBatch({
       batch_number: "",
+      supplier_name: "",
       stock: "",
       expiry_date: "",
       manufactured_date: "",
@@ -425,6 +428,7 @@ export function useInventory() {
         if (!isNaN(finalStock) && finalStock >= 0) {
           await addProductBatch(selectedItem.id, {
             batch_number: draftBatch.batch_number || null,
+            supplier_name: draftBatch.supplier_name || null,
             stock: finalStock,
             expiry_date: draftBatch.expiry_date || null,
             manufactured_date: draftBatch.manufactured_date || null,
@@ -510,6 +514,7 @@ export function useInventory() {
     const created = {
       id: draftId,
       batch_number: newBatch.batch_number || "",
+      supplier_name: newBatch.supplier_name || "",
       stock,
       expiry_date: newBatch.expiry_date || null,
       manufactured_date: newBatch.manufactured_date || null,
@@ -522,6 +527,7 @@ export function useInventory() {
     
     setNewBatch({
       batch_number: "",
+      supplier_name: "",
       stock: "",
       expiry_date: "",
       manufactured_date: "",

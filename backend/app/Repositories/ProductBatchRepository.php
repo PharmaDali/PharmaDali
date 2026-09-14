@@ -33,6 +33,7 @@ class ProductBatchRepository
         $batch = ProductBatch::create([
             'pharmacy_product_id' => $pharmacyProductId,
             'batch_number'      => $data['batch_number'] ?? null,
+            'supplier_name'     => $data['supplier_name'] ?? null,
             'stock'             => $data['stock'] ?? 0,
             'expiry_date'       => $data['expiry_date'] ?? null,
             'manufactured_date' => $data['manufactured_date'] ?? null,
