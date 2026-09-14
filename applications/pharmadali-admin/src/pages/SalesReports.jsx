@@ -76,7 +76,7 @@ function SalesReports() {
     setShowExportDropdown(false);
     try {
       const data = await exportSalesPdf({ start_date: startDate || undefined, end_date: endDate || undefined });
-      openSalesPdf(data);
+      await openSalesPdf(data);
     } catch (err) {
       alert(err?.message ?? "Failed to export PDF.");
     }

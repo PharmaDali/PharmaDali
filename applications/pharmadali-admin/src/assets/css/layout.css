@@ -208,7 +208,7 @@
   color: white;
   border: none;
   padding: 10px 20px;
-  border-radius: 8px;
+  border-radius: var(--pd-btn-radius, 8px);
   font-weight: 600;
   font-size: 14px;
   transition: all 0.2s ease;
@@ -228,7 +228,7 @@
   color: var(--pd-text-medium);
   border: 1px solid var(--pd-border);
   padding: 10px 20px;
-  border-radius: 8px;
+  border-radius: var(--pd-btn-radius, 8px);
   font-weight: 600;
   font-size: 14px;
   transition: all 0.2s ease;
