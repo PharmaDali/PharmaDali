@@ -34,6 +34,7 @@ function SalesReports() {
     handleStartDateChange, handleEndDateChange,
     handleFilter, handleClearFilter,
     markRowAsRefunded,
+    allowCashRefund,
   } = useSalesReports();
 
   const handleOpenExchange = (row) => {
@@ -139,6 +140,7 @@ function SalesReports() {
         onClose={() => setSelectedRow(null)}
         onOpenExchange={handleOpenExchange}
         onRefundSuccess={markRowAsRefunded}
+        allowCashRefund={allowCashRefund}
       />
 
       {exchangeOrder && (
