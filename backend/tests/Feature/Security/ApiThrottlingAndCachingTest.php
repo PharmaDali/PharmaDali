@@ -150,10 +150,14 @@ class ApiThrottlingAndCachingTest extends TestCase
         $res->assertStatus(200);
         $this->assertTrue(Cache::has('admin_categories_all'));
 
-        // Creating a new category clears the cache
-        $this->postJson('/api/pharmacy/categories/store', [
+        // Super admin creates a new master category, which clears the cache
+        $superAdmin = User::factory()->create(['role' => 'super_admin']);
+        Sanctum::actingAs($superAdmin, ['super_admin']);
+
+        $res = $this->postJson('/api/pharmacy/categories/store', [
             'name' => 'Antibiotics',
         ]);
+        $res->assertStatus(201);
 
         $this->assertFalse(Cache::has('admin_categories_all'));
     }

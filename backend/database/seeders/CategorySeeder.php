@@ -14,30 +14,102 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            'Branded'          => ['background_color' => '#48AAD9', 'font_color' => '#FFFFFF'],
-            'Generic'          => ['background_color' => '#01A768', 'font_color' => '#FFFFFF'],
-            'Injectables/Vial' => ['background_color' => '#1B6CA8', 'font_color' => '#FFFFFF'],
-            'Injectables'      => ['background_color' => '#1B6CA8', 'font_color' => '#FFFFFF'],
-            'Eye Med'          => ['background_color' => '#67A1B4', 'font_color' => '#FFFFFF'],
-            'Cream'            => ['background_color' => '#B059D0', 'font_color' => '#FFFFFF'],
-            'Cosmetics'        => ['background_color' => '#F2577C', 'font_color' => '#FFFFFF'],
-            'Hygiene'          => ['background_color' => '#31C0B3', 'font_color' => '#FFFFFF'],
-            'Diapers'          => ['background_color' => '#72AAD9', 'font_color' => '#FFFFFF'],
-            'Infant'           => ['background_color' => '#FB8A79', 'font_color' => '#FFFFFF'],
-            'Milk'             => ['background_color' => '#DAB55A', 'font_color' => '#FFFFFF'],
-            'Drinks'           => ['background_color' => '#F2994A', 'font_color' => '#FFFFFF'],
-            'Vitamins'         => ['background_color' => '#E2B019', 'font_color' => '#FFFFFF'],
-            'Supplies'         => ['background_color' => '#48AAD9', 'font_color' => '#FFFFFF'],
+            'Branded'          => [
+                'background_color'       => '#48AAD9',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Health & Recovery Recommendations',
+                'hero_subtitle_template' => 'Since you recently bought {product_name}, check out these health essentials and recovery boosters',
+            ],
+            'Generic'          => [
+                'background_color'       => '#01A768',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Health & Recovery Recommendations',
+                'hero_subtitle_template' => 'Since you recently bought {product_name}, check out these health essentials and recovery boosters',
+            ],
+            'Injectables/Vial' => [
+                'background_color'       => '#1B6CA8',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Health & Recovery Recommendations',
+                'hero_subtitle_template' => 'Since you recently bought {product_name}, check out these health essentials and recovery boosters',
+            ],
+            'Injectables'      => [
+                'background_color'       => '#1B6CA8',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Health & Recovery Recommendations',
+                'hero_subtitle_template' => 'Since you recently bought {product_name}, check out these health essentials and recovery boosters',
+            ],
+            'Eye Med'          => [
+                'background_color'       => '#67A1B4',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Health & Recovery Recommendations',
+                'hero_subtitle_template' => 'Since you recently bought {product_name}, check out these health essentials and recovery boosters',
+            ],
+            'Cream'            => [
+                'background_color'       => '#B059D0',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Personal Care & Hygiene Essentials',
+                'hero_subtitle_template' => 'Complement your purchase of {product_name} with these daily personal care and grooming items',
+            ],
+            'Cosmetics'        => [
+                'background_color'       => '#F2577C',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Personal Care & Hygiene Essentials',
+                'hero_subtitle_template' => 'Complement your purchase of {product_name} with these daily personal care and grooming items',
+            ],
+            'Hygiene'          => [
+                'background_color'       => '#31C0B3',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Personal Care & Hygiene Essentials',
+                'hero_subtitle_template' => 'Complement your purchase of {product_name} with these daily personal care and grooming items',
+            ],
+            'Diapers'          => [
+                'background_color'       => '#72AAD9',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Baby & Child Care Essentials',
+                'hero_subtitle_template' => 'Based on your purchase of {product_name}, here are recommended diapers, formulas, and baby care items',
+            ],
+            'Infant'           => [
+                'background_color'       => '#FB8A79',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Baby & Child Care Essentials',
+                'hero_subtitle_template' => 'Based on your purchase of {product_name}, here are recommended diapers, formulas, and baby care items',
+            ],
+            'Milk'             => [
+                'background_color'       => '#DAB55A',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Baby & Child Care Essentials',
+                'hero_subtitle_template' => 'Based on your purchase of {product_name}, here are recommended diapers, formulas, and baby care items',
+            ],
+            'Drinks'           => [
+                'background_color'       => '#F2994A',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Health & Recovery Recommendations',
+                'hero_subtitle_template' => 'Since you recently bought {product_name}, check out these health essentials and recovery boosters',
+            ],
+            'Vitamins'         => [
+                'background_color'       => '#E2B019',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Immunity & Daily Wellness',
+                'hero_subtitle_template' => 'Since you recently bought {product_name}, check out these top vitamins and daily health boosters',
+            ],
+            'Supplies'         => [
+                'background_color'       => '#48AAD9',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'First Aid & Medical Supplies',
+                'hero_subtitle_template' => 'Since you bought {product_name}, keep your home prepared with these essential medical supplies',
+            ],
         ];
 
-        foreach ($categories as $name => $colors) {
+        foreach ($categories as $name => $data) {
             Category::updateOrCreate(
                 ['category_name' => $name],
                 [
-                    'description'      => 'Description for ' . $name,
-                    'is_enabled'       => true,
-                    'background_color' => $colors['background_color'],
-                    'font_color'       => $colors['font_color'],
+                    'description'            => 'Description for ' . $name,
+                    'is_enabled'             => true,
+                    'background_color'       => $data['background_color'],
+                    'font_color'             => $data['font_color'],
+                    'hero_title'             => $data['hero_title'],
+                    'hero_subtitle_template' => $data['hero_subtitle_template'],
                 ]
             );
         }

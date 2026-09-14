@@ -31,8 +31,12 @@ class ShowPharmacyCategoriesService
             ->select('categories.id', 'categories.category_name', 'categories.description', 'categories.background_color', 'categories.font_color', 'categories.is_enabled')
             ->selectRaw('COUNT(pharmacy_products.id) as product_count')
             ->join('pharmacy_products', 'pharmacy_products.category_id', '=', 'categories.id')
+            ->leftJoin('pharmacy_categories', function ($join) use ($pharmacyId) {
+                $join->on('pharmacy_categories.category_id', '=', 'categories.id')
+                    ->where('pharmacy_categories.pharmacy_id', '=', $pharmacyId);
+            })
             ->where('pharmacy_products.pharmacy_id', $pharmacyId)
-            ->where('categories.is_enabled', true)
+            ->whereRaw('COALESCE(pharmacy_categories.is_enabled, categories.is_enabled) = 1')
             ->groupBy('categories.id', 'categories.category_name', 'categories.description', 'categories.background_color', 'categories.font_color', 'categories.is_enabled')
             ->orderByDesc('product_count')
             ->orderBy('categories.category_name')
