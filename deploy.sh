@@ -60,6 +60,9 @@ sleep 5
 echo -e "${YELLOW}>>> Running database migrations...${NC}"
 docker compose exec -T backend-app php artisan migrate --force
 
+echo -e "${YELLOW}>>> Ensuring public storage symlink exists...${NC}"
+docker compose exec -T backend-app php artisan storage:link 2>/dev/null || true
+
 echo -e "${YELLOW}>>> Refreshing Laravel optimizations and caches...${NC}"
 docker compose exec -T backend-app php artisan optimize:clear
 docker compose exec -T backend-app php artisan optimize
