@@ -146,7 +146,7 @@
 }
 
 .inventory-search-btn {
-  border-radius: var(--pd-radius-md);
+  border-radius: var(--pd-btn-radius, 8px);
   background: #ffffff;
   border: 1px solid #8fcdf1;
   color: #2f80c7;
@@ -166,13 +166,18 @@
 }
 
 .inventory-reset-btn {
-  border-radius: var(--pd-radius-md);
+  border-radius: var(--pd-btn-radius, 8px);
   background: #fff5f5;
   border: 1px solid #fca5a5;
   color: #dc2626;
   font-weight: 600;
-  padding: 0.45rem 1rem;
+  padding: 0 1rem;
   font-size: 13px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 

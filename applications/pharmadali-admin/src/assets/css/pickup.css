@@ -231,7 +231,7 @@
   background: var(--pd-primary);
   color: #fff;
   border: none;
-  border-radius: var(--pd-radius-md);
+  border-radius: var(--pd-btn-radius, 8px);
   font-size: 13px;
 }
 

@@ -107,9 +107,8 @@ export function PharmacistsTable({
       {/* Desktop View */}
       <div className="d-none d-md-flex flex-column flex-grow-1 admin-card h-100">
         <div className="pharmacists-toolbar">
-          <div className="pharmacists-toolbar-left" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-            <h6 className="pharmacists-title mb-0">Pharmacist</h6>
-            <div style={{ minWidth: 260 }}>
+          <div className="pharmacists-toolbar-left" style={{ display: "flex", alignItems: "center", flex: 1 }}>
+            <div style={{ width: "380px", maxWidth: "100%" }}>
               <SearchBar
                 id="pharmacists-search"
                 value={search}

@@ -20,6 +20,13 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
 
   useEffect(() => {
     fetchCategories();
+    // Lock both body and html scroll to ensure only the table scrolls
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    };
   }, []);
 
   const fetchCategories = async () => {
@@ -66,8 +73,8 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
   };
 
   return (
-    <>
-      <div className="settings-header">
+    <div className="d-flex flex-column" style={{ height: "calc(100vh - 160px)" }}>
+      <div className="settings-header flex-shrink-0">
         <Breadcrumb
           crumbs={
             onBack
@@ -101,7 +108,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
         </div>
       )}
 
-      <div className="admin-card">
+      <div className="admin-card d-flex flex-column flex-grow-1" style={{ minHeight: 0 }}>
         <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
           <div>
             <h5 className="settings-header-title mb-1">Category Availability</h5>
@@ -124,7 +131,7 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
         {loading ? (
           <ListSkeleton count={4} />
         ) : (
-          <div className="custom-scrollbar" style={{ maxHeight: "520px", overflowY: "auto", paddingRight: "6px" }}>
+          <div className="custom-scrollbar flex-grow-1" style={{ overflowY: "auto", paddingRight: "6px", minHeight: 0 }}>
             {filteredData.map((cat) => (
               <div key={cat.id} className="product-config-item">
                 <div className="d-flex align-items-center gap-2">
@@ -182,6 +189,6 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 };
