@@ -207,7 +207,7 @@ export function usePharmacists() {
     }
   };
 
-  const handleSave = async (e) => {
+  const handleSave = async (e, onSuccess) => {
     e.preventDefault();
 
     setFieldErrors({});
@@ -266,6 +266,13 @@ export function usePharmacists() {
       }
 
       handleCloseModal();
+      if (onSuccess) {
+        onSuccess(
+          editingId
+            ? "Pharmacist information has been updated successfully."
+            : "New pharmacist has been added successfully."
+        );
+      }
     } catch (err) {
       console.error("Failed to save pharmacist:", err);
       if (err.response?.data?.errors) {
