@@ -1,7 +1,7 @@
 import React from "react";
 import { DiscountSelect, DiscountControl } from "../../shared/components/DiscountSelect";
 import PaymentMethodSelect from "../../shared/components/PaymentMethodSelect";
-import { formatCustomerName, formatCustomerPhone } from "../../utils/formatUtils";
+import { formatCustomerName, formatCustomerPhone, formatDateTime } from "../../utils/formatUtils";
 
 export function PickupOrderDetailsSidebar({
   activeOrder,
@@ -61,9 +61,15 @@ export function PickupOrderDetailsSidebar({
           <strong className="fw-semibold">{customerName}</strong>
         </div>
         {customerPhone && (
-          <div className="text-dark">
+          <div className="text-dark mb-1">
             <span className="text-muted">Contact: </span>
             <span>{customerPhone}</span>
+          </div>
+        )}
+        {activeOrder.scheduled_pickup_at && (
+          <div className="text-dark mb-1">
+            <span className="text-muted">Scheduled Pickup: </span>
+            <span>{formatDateTime(activeOrder.scheduled_pickup_at)}</span>
           </div>
         )}
       </div>
