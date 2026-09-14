@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchSalesSummary, fetchSalesList } from "../services/salesReportService";
+import { getPharmacySettings } from "../services/pharmacySettingsService";
 
 /**
  * Manages all state and data fetching for the Sales Reports page.
@@ -22,6 +23,9 @@ export function useSalesReports() {
   const [endDate, setEndDate] = useState("");
   const [dateError, setDateError] = useState(null);
 
+  // Settings
+  const [allowCashRefund, setAllowCashRefund] = useState(false);
+
   // Load summary cards on mount
   useEffect(() => {
     setSummaryLoading(true);
@@ -29,6 +33,13 @@ export function useSalesReports() {
       .then((data) => setSummary(data))
       .catch(() => setSummary(null))
       .finally(() => setSummaryLoading(false));
+
+    getPharmacySettings()
+      .then((res) => {
+        const exchangeSettings = res?.data?.exchange_settings || {};
+        setAllowCashRefund(Boolean(exchangeSettings.allow_cash_refund));
+      })
+      .catch((err) => console.error("Failed to load pharmacy settings:", err));
   }, []);
 
   // Load sales list
@@ -130,5 +141,7 @@ export function useSalesReports() {
     handleEndDateChange,
     handleFilter,
     handleClearFilter,
+    // Settings
+    allowCashRefund,
   };
 }

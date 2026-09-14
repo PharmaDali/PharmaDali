@@ -3,7 +3,7 @@ import { fetchOrderExchangeEligibility } from "../../services/itemExchangeServic
 import { processCashRefund } from "../../services/salesReportService";
 import { PaymentResultModal } from "../../shared/components/PaymentModals";
 
-function TransactionDetailModal({ row, onClose, onOpenExchange, onRefundSuccess }) {
+function TransactionDetailModal({ row, onClose, onOpenExchange, onRefundSuccess, allowCashRefund }) {
   const [btnHovered, setBtnHovered] = useState(false);
   const [eligibilityState, setEligibilityState] = useState(null);
   const [loadingEligibility, setLoadingEligibility] = useState(false);
@@ -241,26 +241,28 @@ function TransactionDetailModal({ row, onClose, onOpenExchange, onRefundSuccess 
                 >
                   <i className="fa-solid fa-right-left me-2"></i> Item Exchange
                 </button>
-                <button
-                  className="btn flex-fill d-flex align-items-center justify-content-center fw-semibold rounded-3 shadow-sm py-2"
-                  style={{
-                    backgroundColor: row.is_refunded ? "#f8f9fa" : "#ffffff",
-                    color: row.is_refunded ? "#6c757d" : "#dc3545",
-                    border: row.is_refunded ? "1px solid #dee2e6" : "1.5px solid #dc3545",
-                    transition: "all 0.2s ease-in-out",
-                    fontSize: "14px"
-                  }}
-                  onClick={handleCashRefund}
-                  disabled={isRefunding || row.is_refunded}
-                >
-                  {isRefunding ? (
-                    <><div className="spinner-border spinner-border-sm me-2" role="status" /> Processing...</>
-                  ) : row.is_refunded ? (
-                    <><i className="fa-solid fa-check me-2"></i> Refunded</>
-                  ) : (
-                    <><i className="fa-solid fa-hand-holding-dollar me-2"></i> Cash Refund</>
-                  )}
-                </button>
+                {allowCashRefund && (
+                  <button
+                    className="btn flex-fill d-flex align-items-center justify-content-center fw-semibold rounded-3 shadow-sm py-2"
+                    style={{
+                      backgroundColor: row.is_refunded ? "#f8f9fa" : "#ffffff",
+                      color: row.is_refunded ? "#6c757d" : "#dc3545",
+                      border: row.is_refunded ? "1px solid #dee2e6" : "1.5px solid #dc3545",
+                      transition: "all 0.2s ease-in-out",
+                      fontSize: "14px"
+                    }}
+                    onClick={handleCashRefund}
+                    disabled={isRefunding || row.is_refunded}
+                  >
+                    {isRefunding ? (
+                      <><div className="spinner-border spinner-border-sm me-2" role="status" /> Processing...</>
+                    ) : row.is_refunded ? (
+                      <><i className="fa-solid fa-check me-2"></i> Refunded</>
+                    ) : (
+                      <><i className="fa-solid fa-hand-holding-dollar me-2"></i> Cash Refund</>
+                    )}
+                  </button>
+                )}
               </div>
             )}
           </>
