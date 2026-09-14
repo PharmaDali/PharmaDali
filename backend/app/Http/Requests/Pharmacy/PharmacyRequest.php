@@ -21,11 +21,21 @@ class PharmacyRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'pharmacy_name' => 'required|string|max:255',
-            'location' => 'required|string|max:255',
+        $rules = [
+            'pharmacy_name'  => 'required|string|max:255',
+            'location'       => 'required|string|max:255',
             'contact_number' => 'required|string|max:20',
-            'is_active' => 'boolean',
+            'email'          => 'nullable|email|max:255',
+            'is_active'      => 'boolean',
         ];
+
+        if ($this->isMethod('post')) {
+            $rules['admin_first_name']    = 'required|string|max:255';
+            $rules['admin_last_name']     = 'nullable|string|max:255';
+            $rules['admin_email']         = 'required|email|max:255|unique:users,email';
+            $rules['admin_mobile_number'] = 'nullable|string|max:20';
+        }
+
+        return $rules;
     }
 }

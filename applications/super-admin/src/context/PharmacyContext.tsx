@@ -14,10 +14,22 @@ export interface Pharmacy {
   pharmacists?: string[]
 }
 
+export interface AddPharmacyInput {
+  name: string
+  location: string
+  contact: string
+  email?: string
+  status: string
+  admin_first_name?: string
+  admin_last_name?: string
+  admin_email?: string
+  admin_mobile_number?: string
+}
+
 interface PharmacyContextType {
   pharmacies: Pharmacy[]
   fetchPharmacies: () => Promise<void>
-  addPharmacy: (pharmacy: Omit<Pharmacy, 'id'>) => Promise<void>
+  addPharmacy: (pharmacy: AddPharmacyInput) => Promise<void>
   updatePharmacy: (pharmacy: Pharmacy) => Promise<void>
   deletePharmacy: (id: number) => void
   totalPharmacies: number
@@ -64,13 +76,18 @@ export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     fetchPharmacies()
   }, [fetchPharmacies])
 
-  const addPharmacy = async (newPharmacyData: Omit<Pharmacy, 'id'>) => {
+  const addPharmacy = async (newPharmacyData: AddPharmacyInput) => {
     try {
       await pharmacyService.createPharmacy({
         pharmacy_name: newPharmacyData.name,
         location: newPharmacyData.location,
         contact_number: newPharmacyData.contact,
+        email: newPharmacyData.email,
         is_active: newPharmacyData.status === 'Active',
+        admin_first_name: newPharmacyData.admin_first_name,
+        admin_last_name: newPharmacyData.admin_last_name,
+        admin_email: newPharmacyData.admin_email,
+        admin_mobile_number: newPharmacyData.admin_mobile_number,
       })
       
       await fetchPharmacies()
@@ -86,6 +103,7 @@ export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         pharmacy_name: updated.name,
         location: updated.location,
         contact_number: updated.contact,
+        email: updated.email,
         is_active: updated.status === 'Active',
       })
       

@@ -43,7 +43,7 @@ const mapDisplayToRole = (display: string) => {
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([])
-  const { pharmacies } = usePharmacies()
+  const { pharmacies, fetchPharmacies } = usePharmacies()
   const BRANCHES = ['All', ...pharmacies.map(p => p.name)]
   
   const [searchInput, setSearchInput] = useState('')
@@ -62,6 +62,8 @@ const Users: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10)
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [addError, setAddError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -80,8 +82,9 @@ const Users: React.FC = () => {
   useEffect(() => {
     if (localStorage.getItem('token')) {
       fetchUsers()
+      fetchPharmacies()
     }
-  }, [])
+  }, [fetchPharmacies])
 
   const fetchUsers = async () => {
     try {
@@ -162,16 +165,32 @@ const Users: React.FC = () => {
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.firstName.trim()) return
+    if (!formData.firstName.trim()) {
+      setAddError('First name is required.')
+      return
+    }
+    if (!formData.email.trim()) {
+      setAddError('Email is required.')
+      return
+    }
+
+    const role = mapDisplayToRole(formData.role || 'Pharmacist')
+    const pharmacyId = pharmacies.find(p => p.name === formData.branchName)?.id
+
+    if ((role === 'pharmacy_admin' || role === 'pharmacist') && !pharmacyId) {
+      setAddError('Please select a valid Branch Name for this Manager or Pharmacist.')
+      return
+    }
 
     try {
-      const pharmacyId = pharmacies.find(p => p.name === formData.branchName)?.id
+      setIsSubmitting(true)
+      setAddError('')
       await userService.createUser({
         first_name: formData.firstName,
         last_name: formData.lastName,
         email: formData.email,
         mobile_number: formData.phoneNumber,
-        role: mapDisplayToRole(formData.role || 'Pharmacist'),
+        role: role,
         pharmacy_id: pharmacyId,
         is_active: formData.status === 'Active'
       })
@@ -186,8 +205,10 @@ const Users: React.FC = () => {
         status: 'Active',
       })
       setIsAddModalOpen(false)
-    } catch (error) {
-      console.error('Error adding user:', error)
+    } catch (error: any) {
+      setAddError(error.response?.data?.message || error.message || 'Error adding user.')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -518,7 +539,10 @@ const Users: React.FC = () => {
       {/* Add User Modal */}
       <Modal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        onClose={() => {
+          setIsAddModalOpen(false)
+          setAddError('')
+        }}
         maxWidth="max-w-[460px]"
         animate={false}
         className="bg-[#2b2f3a] border border-[rgba(255,255,255,0.06)] rounded-[16px] p-7 text-white"
@@ -526,6 +550,12 @@ const Users: React.FC = () => {
         <h2 className="text-2xl font-bold text-center mb-6 text-white tracking-wide">
           Add New User
         </h2>
+
+        {addError && (
+          <div className="mb-4 p-3 bg-red-500/15 border border-red-500/30 rounded-[8px] text-red-400 text-xs">
+            {addError}
+          </div>
+        )}
 
         <form onSubmit={handleAddUser} className="space-y-6">
           {/* Section 1: Basic Info */}
@@ -650,16 +680,21 @@ const Users: React.FC = () => {
           <div className="flex items-center gap-4 pt-2">
             <button
               type="button"
-              onClick={() => setIsAddModalOpen(false)}
-              className="flex-1 border border-[#48aad9]/50 hover:border-[#48aad9] hover:bg-[#48aad9]/10 text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm"
+              disabled={isSubmitting}
+              onClick={() => {
+                setIsAddModalOpen(false)
+                setAddError('')
+              }}
+              className="flex-1 border border-[#48aad9]/50 hover:border-[#48aad9] hover:bg-[#48aad9]/10 text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 bg-[#48aad9] hover:bg-[#3ba0d0] text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm shadow"
+              disabled={isSubmitting}
+              className="flex-1 bg-[#48aad9] hover:bg-[#3ba0d0] text-white font-medium py-2.5 rounded-[8px] transition-colors cursor-pointer text-sm shadow disabled:opacity-50"
             >
-              Save
+              {isSubmitting ? 'Saving...' : 'Save'}
             </button>
           </div>
         </form>
