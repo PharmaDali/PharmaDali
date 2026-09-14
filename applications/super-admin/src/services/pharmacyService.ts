@@ -4,7 +4,12 @@ export interface PharmacyPayload {
   pharmacy_name: string;
   location: string;
   contact_number: string;
+  email?: string;
   is_active: boolean;
+  admin_first_name?: string;
+  admin_last_name?: string;
+  admin_email?: string;
+  admin_mobile_number?: string;
 }
 
 export const getPharmacies = async () => {

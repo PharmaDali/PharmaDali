@@ -15,13 +15,18 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  const [addError, setAddError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
-    owner: '',
     contact: '',
     email: '',
     location: '',
     status: 'Active',
+    adminFirstName: '',
+    adminLastName: '',
+    adminEmail: '',
+    adminPhone: '',
   })
 
   const [editingPharmacy, setEditingPharmacy] = useState<Pharmacy | null>(null)
@@ -98,18 +103,58 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
 
   const handleSavePharmacy = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name.trim()) return
+    if (!formData.name.trim()) {
+      setAddError('Pharmacy branch name is required.')
+      return
+    }
+    if (!formData.location.trim()) {
+      setAddError('Pharmacy location is required.')
+      return
+    }
+    if (!formData.contact.trim()) {
+      setAddError('Pharmacy contact number is required.')
+      return
+    }
+    if (!formData.adminFirstName.trim()) {
+      setAddError('Manager first name is required.')
+      return
+    }
+    if (!formData.adminEmail.trim()) {
+      setAddError('Manager email is required.')
+      return
+    }
 
-    await addPharmacy({
-      name: formData.name,
-      owner: formData.owner,
-      contact: formData.contact,
-      email: formData.email,
-      location: formData.location,
-      status: formData.status || 'Active',
-    })
-    setFormData({ name: '', owner: '', contact: '', email: '', location: '', status: 'Active' })
-    setIsAddModalOpen(false)
+    try {
+      setIsSubmitting(true)
+      setAddError('')
+      await addPharmacy({
+        name: formData.name,
+        contact: formData.contact,
+        email: formData.email,
+        location: formData.location,
+        status: formData.status || 'Active',
+        admin_first_name: formData.adminFirstName,
+        admin_last_name: formData.adminLastName,
+        admin_email: formData.adminEmail,
+        admin_mobile_number: formData.adminPhone,
+      })
+      setFormData({
+        name: '',
+        contact: '',
+        email: '',
+        location: '',
+        status: 'Active',
+        adminFirstName: '',
+        adminLastName: '',
+        adminEmail: '',
+        adminPhone: '',
+      })
+      setIsAddModalOpen(false)
+    } catch (err: any) {
+      setAddError(err.response?.data?.message || err.message || 'Failed to create pharmacy and manager.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const filteredPharmacies = pharmacies.filter((p) => {
@@ -339,76 +384,135 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       {/* Add New Pharmacy Modal */}
       <Modal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        maxWidth="max-w-[500px]"
+        onClose={() => {
+          setIsAddModalOpen(false)
+          setAddError('')
+        }}
+        maxWidth="max-w-[560px]"
         animate={false}
       >
-        <h2 className="text-white text-2xl font-bold text-center mb-8">Add New Pharmacy</h2>
+        <h2 className="text-white text-2xl font-bold text-center mb-6">Add New Pharmacy</h2>
+
+        {addError && (
+          <div className="mb-4 p-3 bg-red-500/15 border border-red-500/30 rounded-[8px] text-red-400 text-xs">
+            {addError}
+          </div>
+        )}
 
         <form onSubmit={handleSavePharmacy} className="space-y-4">
-          <Input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleInputChange}
-            placeholder="Pharmacy Name"
-            required
-          />
+          <div className="space-y-3">
+            <h3 className="text-[#38bdf8] font-semibold text-xs uppercase tracking-wider">
+              Pharmacy Details
+            </h3>
 
-          <Input
-            type="text"
-            name="owner"
-            value={formData.owner}
-            onChange={handleInputChange}
-            placeholder="Manager"
-          />
-
-          <div className="grid grid-cols-2 gap-4">
             <Input
               type="text"
-              name="contact"
-              value={formData.contact}
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
-              placeholder="Contact Number"
+              placeholder="Pharmacy Branch Name"
+              required
             />
-            <Input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              placeholder="Email"
-            />
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <Input
               type="text"
               name="location"
               value={formData.location}
               onChange={handleInputChange}
-              placeholder="Location"
+              placeholder="Location / Address"
+              required
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                type="text"
+                name="contact"
+                value={formData.contact}
+                onChange={handleInputChange}
+                placeholder="Branch Contact Number"
+                required
+              />
+              <Input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                placeholder="Branch Email (Optional)"
+              />
+            </div>
+
             <Select
               name="status"
               value={formData.status}
               onChange={handleInputChange}
-              options={['Active', 'Inactive', 'Pending']}
+              options={['Active', 'Inactive']}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-6">
+          <div className="border-t border-[rgba(255,255,255,0.08)] pt-4 space-y-3">
+            <h3 className="text-[#38bdf8] font-semibold text-xs uppercase tracking-wider">
+              Pharmacy Admin (Manager) Account
+            </h3>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                type="text"
+                name="adminFirstName"
+                value={formData.adminFirstName}
+                onChange={handleInputChange}
+                placeholder="Manager First Name"
+                required
+              />
+              <Input
+                type="text"
+                name="adminLastName"
+                value={formData.adminLastName}
+                onChange={handleInputChange}
+                placeholder="Manager Last Name"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                type="email"
+                name="adminEmail"
+                value={formData.adminEmail}
+                onChange={handleInputChange}
+                placeholder="Manager Email"
+                required
+              />
+              <Input
+                type="text"
+                name="adminPhone"
+                value={formData.adminPhone}
+                onChange={handleInputChange}
+                placeholder="Manager Phone (Optional)"
+              />
+            </div>
+
+            <p className="text-[11px] text-gray-400">
+              * A secure temporary password will be automatically generated and emailed to this manager.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 pt-4">
             <button
               type="button"
-              onClick={() => setIsAddModalOpen(false)}
-              className="w-full py-3.5 px-4 rounded-[12px] border border-[#2aa6e0] text-[#38bdf8] hover:bg-[#2aa6e0]/10 font-semibold transition-colors cursor-pointer"
+              disabled={isSubmitting}
+              onClick={() => {
+                setIsAddModalOpen(false)
+                setAddError('')
+              }}
+              className="w-full py-3 px-4 rounded-[12px] border border-[#2aa6e0] text-[#38bdf8] hover:bg-[#2aa6e0]/10 font-semibold transition-colors cursor-pointer text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="w-full py-3.5 px-4 rounded-[12px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors cursor-pointer"
+              disabled={isSubmitting}
+              className="w-full py-3 px-4 rounded-[12px] bg-[#38bdf8] hover:bg-[#2aa6e0] text-white font-semibold shadow transition-colors cursor-pointer text-sm disabled:opacity-50"
             >
-              Save
+              {isSubmitting ? 'Saving...' : 'Save'}
             </button>
           </div>
         </form>

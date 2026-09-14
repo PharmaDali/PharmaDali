@@ -5,10 +5,15 @@ namespace App\Http\Controllers\Pharmacy;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Pharmacy\PharmacyRequest;
 use App\Models\Pharmacy;
+use App\Models\User;
+use App\Notifications\NewPharmacyAdminNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class PharmacyController extends Controller
 {
@@ -31,12 +36,44 @@ class PharmacyController extends Controller
     */
     public function store(PharmacyRequest $request): JsonResponse
     {
-        $pharmacy = Pharmacy::create($request->validated());
+        $validated = $request->validated();
+
+        $pharmacy = DB::transaction(function () use ($validated) {
+            $pharmacy = Pharmacy::create([
+                'pharmacy_name'  => $validated['pharmacy_name'],
+                'location'       => $validated['location'],
+                'contact_number' => $validated['contact_number'],
+                'email'          => $validated['email'] ?? null,
+                'is_active'      => $validated['is_active'] ?? true,
+            ]);
+
+            if (!empty($validated['admin_email'])) {
+                $tempPassword = Str::password(12);
+
+                $admin = User::create([
+                    'first_name'               => $validated['admin_first_name'],
+                    'last_name'                => $validated['admin_last_name'] ?? null,
+                    'email'                    => $validated['admin_email'],
+                    'mobile_number'            => $validated['admin_mobile_number'] ?? null,
+                    'password'                 => Hash::make($tempPassword),
+                    'role'                     => 'pharmacy_admin',
+                    'pharmacy_id'              => $pharmacy->id,
+                    'is_active'                => true,
+                    'requires_password_change' => true,
+                ]);
+
+                $admin->notify(new NewPharmacyAdminNotification($tempPassword));
+            }
+
+            return $pharmacy;
+        });
 
         Cache::forget('pharmacies_all');
 
+        $pharmacy->load(['admins', 'pharmacists.pharmacist']);
+
         return response()->json([
-            'message' => 'Pharmacy created',
+            'message'  => 'Pharmacy and admin created successfully',
             'pharmacy' => $pharmacy,
         ], 201);
     }
