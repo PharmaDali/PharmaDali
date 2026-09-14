@@ -7,7 +7,7 @@
 
 
 .pharmacists-add-btn {
-  border-radius: var(--pd-radius-md);
+  border-radius: var(--pd-btn-radius, 8px);
   background: #2aabe2;
   border: 1px solid #2aabe2;
   color: #fff;
@@ -208,7 +208,7 @@
 }
 
 .pharmacists-btn-details {
-  border-radius: var(--pd-radius-md);
+  border-radius: var(--pd-btn-radius, 8px);
   background: #2aabe2;
   border: 1px solid #2aabe2;
   color: #fff;
@@ -226,7 +226,7 @@
 }
 
 .pharmacists-btn-permissions {
-  border-radius: var(--pd-radius-md);
+  border-radius: var(--pd-btn-radius, 8px);
   background: transparent;
   border: 1px solid #2aabe2;
   color: #2aabe2;
@@ -500,7 +500,7 @@
 }
 
 .pharmacists-btn-cancel {
-  border-radius: var(--pd-radius-md);
+  border-radius: var(--pd-btn-radius, 8px);
   background: #f3f4f6;
   border: 1px solid #d1d5db;
   color: #374151;
@@ -518,7 +518,7 @@
 }
 
 .pharmacists-btn-save {
-  border-radius: var(--pd-radius-md);
+  border-radius: var(--pd-btn-radius, 8px);
   background: #2aabe2;
   border: 1px solid #2aabe2;
   color: #fff;
@@ -607,7 +607,7 @@
 }
 
 .pharmacists-btn-outline {
-  border-radius: var(--pd-radius-md);
+  border-radius: var(--pd-btn-radius, 8px);
   background: transparent;
   border: 1px solid #2aabe2;
   color: #2aabe2;
