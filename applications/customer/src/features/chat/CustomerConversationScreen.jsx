@@ -12,7 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -22,6 +22,7 @@ import {
   sendCustomerMessage,
 } from '@shared/services/chatService';
 import { getCustomerProfile } from '@shared/services/customerProfileService';
+import ChatOrderContextCard from '@shared/components/ChatOrderContextCard';
 
 const formatTime = (value) => {
   if (!value) return '';
@@ -135,7 +136,9 @@ export default function CustomerConversationScreen() {
 
   const conversationPartner = useMemo(() => {
     if (!conversation) return null;
-    if (conversation.customer_user_id === currentUserId) return conversation.pharmacist;
+    if (conversation.customer_user_id === currentUserId) {
+      return conversation.pharmacist || conversation.assigned_pharmacist || null;
+    }
     return conversation.customer;
   }, [conversation, currentUserId]);
 
@@ -152,11 +155,11 @@ export default function CustomerConversationScreen() {
     }
   }, []);
 
-  const loadConversation = useCallback(async (id) => {
-    if (!id) return;
+  const loadConversation = useCallback(async () => {
+    if (!conversationId) return;
     try {
       setError('');
-      const payload = await getCustomerConversation(id);
+      const payload = await getCustomerConversation(conversationId);
       setConversation(payload?.conversation ?? null);
       setMessages(payload?.messages?.data ?? []);
     } catch (e) {
@@ -164,37 +167,39 @@ export default function CustomerConversationScreen() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [conversationId]);
 
-  useEffect(() => {
-    let cancelled = false;
-    let interval = null;
-
-    const init = async () => {
-      if (cancelled) return;
+  const loadAll = useCallback(async () => {
+    try {
       const userId = await loadProfile();
-      if (!cancelled) setCurrentUserId(userId);
-    };
+      setCurrentUserId(userId);
+    } catch {
+      setCurrentUserId(null);
+    }
 
-    const refresh = async () => {
-      if (cancelled) return;
-      await loadConversation(conversationId);
-    };
+    await loadConversation();
+  }, [loadConversation, loadProfile]);
 
-    setLoading(true);
-    init().then(() => {
-      if (!cancelled) {
-        refresh();
-        interval = setInterval(refresh, 6000);
-      }
-    });
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      setLoading(true);
 
-    return () => {
-      cancelled = true;
-      if (interval) clearInterval(interval);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      const refresh = async () => {
+        if (!cancelled) {
+          await loadAll();
+        }
+      };
+
+      refresh();
+      const interval = setInterval(refresh, 6000);
+
+      return () => {
+        cancelled = true;
+        clearInterval(interval);
+      };
+    }, [loadAll]),
+  );
 
   useEffect(() => {
     if (!flatListRef.current || messages.length === 0) return;
@@ -234,6 +239,15 @@ export default function CustomerConversationScreen() {
       setSending(false);
     }
   }, [conversationId, draft, selectedImage, loadConversation]);
+
+  const handleViewOrderDetails = useCallback(() => {
+    if (conversation?.order?.id) {
+      router.push({
+        pathname: '/tabs/orders/ViewOrderDetails',
+        params: { orderId: conversation.order.id },
+      });
+    }
+  }, [conversation?.order?.id, router]);
 
   const grouped = useMemo(() => groupMessagesByDate(messages), [messages]);
 
@@ -364,6 +378,14 @@ export default function CustomerConversationScreen() {
           )}
         </View>
       </View>
+
+      {/* ── Order Context Banner ── */}
+      {conversation?.order && (
+        <ChatOrderContextCard
+          order={conversation.order}
+          onPressDetails={handleViewOrderDetails}
+        />
+      )}
 
       {/* ── Scrollable area + input ── */}
       <View style={{ flex: 1, marginBottom: keyboardHeight > 0 ? keyboardHeight + 50 : 0 }}>
