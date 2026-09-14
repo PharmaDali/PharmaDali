@@ -130,12 +130,21 @@ class CustomerOrderActionService
             // Recalculate totals
             $newSubtotal = $remainingItems->sum('line_total');
             $discountAmount = (float) ($order->discount_amount ?? 0);
+
+            if (!empty($order->discount_percentage) && $order->discount_percentage > 0) {
+                $discountAmount = round($newSubtotal * ($order->discount_percentage / 100), 2);
+            } else {
+                $discountAmount = min($discountAmount, $newSubtotal);
+            }
+
             $newTotal = max(0, $newSubtotal - $discountAmount);
 
             $order->update([
-                'subtotal' => $newSubtotal,
-                'total_amount' => $newTotal,
-                'status' => OrderStatus::REVIEWING,
+                'subtotal'            => $newSubtotal,
+                'discount_amount'     => $discountAmount,
+                'total_amount'        => $newTotal,
+                'status'              => OrderStatus::REVIEWING,
+                'cancellation_reason' => null,
             ]);
 
             $this->conversationService->appendSystemMessage(
@@ -143,10 +152,12 @@ class CustomerOrderActionService
                 'Customer removed prescription items. Order updated to proceed with OTC items.'
             );
 
+            $this->notifyPharmacists($order, 'Prescription');
+
             return response()->json([
-                'status' => 'success',
+                'status'  => 'success',
                 'message' => 'Prescription items removed. Order will proceed with remaining items.',
-                'data' => $order->fresh(['items.pharmacyProduct.product']),
+                'data'    => $order->fresh(['items.pharmacyProduct.product']),
             ]);
         });
     }
