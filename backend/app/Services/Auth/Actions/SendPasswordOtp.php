@@ -35,7 +35,17 @@ class SendPasswordOtp
         $this->cacheStore()->put($rateLimitKey, true, now()->addSeconds(60));
 
         // Send OTP Notification email
-        $user->notify($notificationCallback($otp));
+        try {
+            $user->notify($notificationCallback($otp));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("Failed to send password OTP to {$user->email}: " . $e->getMessage(), [
+                'exception' => $e
+            ]);
+
+            $this->cacheStore()->forget($rateLimitKey);
+
+            return $this->errorResponse('Failed to send verification email: ' . $e->getMessage(), 500);
+        }
 
         return response()->json([
             'success'            => true,
