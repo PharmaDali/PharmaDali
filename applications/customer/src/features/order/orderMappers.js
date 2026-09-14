@@ -14,7 +14,7 @@ const STATUS_LABELS = {
   awaiting_payment: 'Awaiting Payment',
 }
 
-function formatCurrency(value) {
+export function formatCurrency(value) {
   const amount = Number(value)
   if (!Number.isFinite(amount)) {
     return 'PHP 0.00'
@@ -43,10 +43,9 @@ function formatOrderDate(value) {
   })
 }
 
-function toStatusLabel(rawStatus) {
-  const key = String(rawStatus || '').toLowerCase()
-
-  if (STATUS_LABELS[key]) {
+function toStatusLabel(status) {
+  const key = String(status || '').toLowerCase()
+  if (key in STATUS_LABELS) {
     return STATUS_LABELS[key]
   }
 
@@ -80,14 +79,20 @@ function mapOrderProduct(item) {
     product.category = pharmacyProduct.category;
   }
 
+  const unitPrice = Number(item?.unit_price_snapshot || 0)
+  const quantity = Number(item?.quantity || 0)
+  const lineTotal = Number(item?.line_total ?? (unitPrice * quantity))
+
   return {
     id: Number(item?.id || 0),
     img: product?.image_url || null,
     product,
     categoryName,
     description,
-    price: formatCurrency(item?.unit_price_snapshot),
-    quantity: Number(item?.quantity || 0),
+    price: formatCurrency(unitPrice),
+    unitPrice,
+    lineTotal,
+    quantity,
     sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
     size: product?.size || product?.strength || 'N/A',
     prescriptionRequired,
@@ -172,6 +177,8 @@ export function mapApiOrderToViewModel(order) {
     date: formatOrderDate(order?.placed_at || order?.created_at),
     products: items.map(mapOrderProduct),
     orderSummary: formatCurrency(order?.total_amount ?? order?.subtotal ?? 0),
+    discountAmount: Number(order?.discount_amount || 0),
+    discountPercentage: Number(order?.discount_percentage || 0),
     reason: reason || null,
     onHoldReason: onHoldReason || 'Your order is currently on hold by the pharmacist.',
     cancellationReason: order?.cancellation_reason || '',

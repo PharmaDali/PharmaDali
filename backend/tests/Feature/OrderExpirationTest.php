@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\OrderStatus;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Pharmacy;
@@ -137,8 +138,8 @@ class OrderExpirationTest extends TestCase
         $freshOpenOrder = Order::withoutGlobalScopes()->find($openOrder->id);
         $freshReadyOrder = Order::withoutGlobalScopes()->find($readyOrder->id);
 
-        $this->assertEquals('overdue', $freshOpenOrder->status);
-        $this->assertEquals('overdue', $freshReadyOrder->status);
+        $this->assertEquals(OrderStatus::OVERDUE, $freshOpenOrder->status);
+        $this->assertEquals(OrderStatus::OVERDUE, $freshReadyOrder->status);
         $this->assertStringContainsString('not picked up', $freshReadyOrder->cancellation_reason);
 
         Notification::assertSentTo(
@@ -184,6 +185,6 @@ class OrderExpirationTest extends TestCase
 
         // Verify order remains pending and is NOT marked overdue
         $freshOrder = Order::withoutGlobalScopes()->find($lateOrder->id);
-        $this->assertEquals('pending', $freshOrder->status);
+        $this->assertEquals(OrderStatus::PENDING, $freshOrder->status);
     }
 }

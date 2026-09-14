@@ -258,13 +258,18 @@ class UpdateOrderStatusByPharmacistService
                 $systemMsg = 'Discount ID approved by pharmacist.';
                 $order = $order->fresh()->load(['items.orderItemPrescription']);
 
-                // Auto-transition to awaiting_payment for GCash orders if no pending prescriptions remain
+                // Auto-transition to awaiting_payment for GCash orders if no unverified prescriptions remain
                 if ($order->payment_method === 'gcash' && $order->payment_status === \App\Enums\PaymentStatus::UNPAID) {
-                    $hasPendingPrescription = $order->items->contains(function ($item) {
+                    $order->loadMissing(['items.pharmacyProduct.product', 'items.orderItemPrescription']);
+                    $hasUnverifiedPrescription = $order->items->contains(function ($item) {
+                        $isPrescribed = (bool) ($item->pharmacyProduct?->product?->is_prescribed ?? false);
                         $rx = $item->orderItemPrescription;
-                        return $rx && in_array($rx->status, ['pending', null]);
+                        if ($isPrescribed) {
+                            return !$rx || $rx->status !== PrescriptionStatus::VERIFIED;
+                        }
+                        return $rx && $rx->status !== PrescriptionStatus::VERIFIED;
                     });
-                    if (!$hasPendingPrescription) {
+                    if (!$hasUnverifiedPrescription) {
                         $order->status = OrderStatus::AWAITING_PAYMENT;
                         $order->save();
                         $order = $order->fresh();

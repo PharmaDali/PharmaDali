@@ -40,15 +40,36 @@ class CustomerAcknowledgedNotification extends Notification implements ShouldQue
         return ['database', 'broadcast'];
     }
 
+    protected function getNotificationTitle(): string
+    {
+        return match ($this->issueType) {
+            'Prescription' => 'Prescription Items Removed',
+            'Receipt'      => 'Customer In-Store Payment Confirmed',
+            'ID'           => 'Customer ID Notice Acknowledged',
+            default        => 'Customer Acknowledged',
+        };
+    }
+
+    protected function getNotificationMessage(): string
+    {
+        if ($this->issueType === 'Prescription') {
+            return "Customer removed prescription items from order #{$this->order->order_number} to proceed with OTC items.";
+        }
+        return "Customer acknowledged the {$this->issueType} issue for order #{$this->order->order_number}.";
+    }
+
     /**
      * Get the mail representation of the notification.
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $title = $this->getNotificationTitle();
+        $message = $this->getNotificationMessage();
+
         return (new MailMessage)
-            ->subject('Customer Acknowledged Issue - ' . $this->order->order_number)
+            ->subject("{$title} - {$this->order->order_number}")
             ->greeting('Hello Pharmacist!')
-            ->line("The customer has acknowledged the {$this->issueType} rejection for order #" . $this->order->order_number . ".")
+            ->line($message)
             ->action('View Order', url('/pharmacist/orders/' . $this->order->id))
             ->line('You may now proceed with processing this order.');
     }
@@ -60,16 +81,19 @@ class CustomerAcknowledgedNotification extends Notification implements ShouldQue
      */
     public function toArray(object $notifiable): array
     {
+        $title = $this->getNotificationTitle();
+        $message = $this->getNotificationMessage();
+
         if ($notifiable->fcm_token && !$this->pushSent) {
             $this->pushSent = true;
             try {
                 app(FcmService::class)->sendPushNotification(
                     $notifiable,
-                    'Customer Acknowledged',
-                    "Customer acknowledged the {$this->issueType} issue for order #" . $this->order->order_number . ".",
+                    $title,
+                    $message,
                     [
                         'order_id' => (string) $this->order->id,
-                        'type' => 'customer_acknowledged',
+                        'type'     => 'customer_acknowledged',
                     ]
                 );
             } catch (\Throwable $e) {
@@ -81,12 +105,14 @@ class CustomerAcknowledgedNotification extends Notification implements ShouldQue
         $customerName = $customerUser ? trim(($customerUser->first_name ?? '') . ' ' . ($customerUser->last_name ?? '')) : 'Customer';
 
         return [
-            'order_id' => $this->order->id,
-            'order_number' => $this->order->order_number,
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
             'customer_name' => $customerName,
-            'customer' => $customerName,
-            'message' => "Customer acknowledged the {$this->issueType} issue for order #{$this->order->order_number}.",
-            'type' => 'customer_acknowledged',
+            'customer'      => $customerName,
+            'title'         => $title,
+            'message'       => $message,
+            'issue_type'    => $this->issueType,
+            'type'          => 'customer_acknowledged',
         ];
     }
 
@@ -99,15 +125,17 @@ class CustomerAcknowledgedNotification extends Notification implements ShouldQue
         $customerName = $customerUser ? trim(($customerUser->first_name ?? '') . ' ' . ($customerUser->last_name ?? '')) : 'Customer';
 
         return new BroadcastMessage([
-            'id' => $this->id,
-            'order_id' => $this->order->id,
-            'order_number' => $this->order->order_number,
+            'id'            => $this->id,
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
             'customer_name' => $customerName,
-            'customer' => $customerName,
-            'message' => "Customer acknowledged the {$this->issueType} issue for order #{$this->order->order_number}.",
-            'type' => 'customer_acknowledged',
-            'dateTime' => now()->format('M. d, Y g:i A'),
-            'read_at' => null,
+            'customer'      => $customerName,
+            'title'         => $this->getNotificationTitle(),
+            'message'       => $this->getNotificationMessage(),
+            'issue_type'    => $this->issueType,
+            'type'          => 'customer_acknowledged',
+            'dateTime'      => now()->format('M. d, Y g:i A'),
+            'read_at'       => null,
         ]);
     }
 }

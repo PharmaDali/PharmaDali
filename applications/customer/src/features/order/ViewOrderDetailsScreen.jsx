@@ -5,6 +5,7 @@ import * as ImagePicker from 'expo-image-picker'
 import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
 import CancelOrderOverlay from '@src/shared/components/CancelOrderOverlay'
+import ProceedOtcOverlay from '@src/shared/components/ProceedOtcOverlay'
 import {
   fetchCustomerOrderDetails,
   cancelCustomerOrder,
@@ -35,6 +36,9 @@ export default function ViewOrderDetailsScreen() {
   const [cancelVisible, setCancelVisible] = useState(false)
   const [cancelSubmitting, setCancelSubmitting] = useState(false)
   const [cancelError, setCancelError] = useState('')
+
+  // Proceed OTC Modal State
+  const [proceedOtcVisible, setProceedOtcVisible] = useState(false)
 
   // Re-upload photo State
   const [reuploadImage, setReuploadImage] = useState(null)
@@ -108,6 +112,7 @@ export default function ViewOrderDetailsScreen() {
     setActionError('')
     try {
       await removeRxItemsAndProceed(order.id)
+      setProceedOtcVisible(false)
       await loadOrder()
     } catch (e) {
       setActionError(e instanceof Error ? e.message : 'Failed to remove prescription items.')
@@ -244,12 +249,28 @@ export default function ViewOrderDetailsScreen() {
   }
 
   const isStandBy = order.rawStatus === 'stand_by'
-  const isCancellable = isStandBy || ['pending', 'reviewing', 'id_rejected', 'receipt_rejected'].includes(order.rawStatus)
+  const isCancellable = isStandBy || ['pending', 'reviewing', 'awaiting_payment', 'id_rejected', 'receipt_rejected'].includes(order.rawStatus)
   const onHoldNote = order.onHoldReason || order.cancellationReason || order.discountRemarks || order.note || order.reason || 'Order is on hold awaiting review.'
 
   const isReceiptRejected = order.rawStatus === 'receipt_rejected' || (isStandBy && (order.note?.toLowerCase().includes('receipt') || order.paymentStatus === 'failed'))
   const isDiscountRejected = order.rawStatus === 'id_rejected' || (isStandBy && order.discountRemarks?.toLowerCase().includes('rejected'))
-  const isPrescriptionRejected = (order.rawStatus === 'stand_by' || order.status === 'Rejected') && !isReceiptRejected && !isDiscountRejected && (order.reason?.toLowerCase().includes('prescription') || order.cancellationReason?.toLowerCase().includes('prescription'))
+
+  const rxItems = (order.products || []).filter((p) => p.prescriptionRequired)
+  const otcItems = (order.products || []).filter((p) => !p.prescriptionRequired)
+  const hasPrescription = rxItems.length > 0 || Boolean(order.prescriptionImagePath)
+  const isMixedOrder = rxItems.length > 0 && otcItems.length > 0
+  const isPrescriptionRejected = (order.rawStatus === 'stand_by' || order.status === 'Rejected')
+    && !isReceiptRejected
+    && !isDiscountRejected
+    && (hasPrescription || order.reason?.toLowerCase().includes('prescription') || order.cancellationReason?.toLowerCase().includes('prescription'))
+
+  const rawOtcTotal = otcItems.reduce((sum, item) => sum + (item.lineTotal || (item.unitPrice * item.quantity) || 0), 0)
+  let discountedOtcTotal = rawOtcTotal
+  if (order.discountPercentage > 0) {
+    discountedOtcTotal = Math.max(0, rawOtcTotal - (rawOtcTotal * (order.discountPercentage / 100)))
+  } else if (order.discountAmount > 0) {
+    discountedOtcTotal = Math.max(0, rawOtcTotal - Math.min(order.discountAmount, rawOtcTotal))
+  }
 
   const isDiscountApproved = order.discountRemarks?.toLowerCase() === 'approved'
   const isReceiptApproved = order.paymentStatus === 'paid'
@@ -477,6 +498,22 @@ export default function ViewOrderDetailsScreen() {
               </TouchableOpacity>
             </View>
 
+            {isMixedOrder && (
+              <TouchableOpacity
+                className="w-full mt-3 py-1.5 items-center justify-center"
+                onPress={() => setProceedOtcVisible(true)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Text
+                  className="text-xs text-center"
+                  style={[styles.fontSemiBold, { color: '#48AAD9', textDecorationLine: 'underline' }]}
+                >
+                  Click here if you want to proceed to OTC items only
+                </Text>
+              </TouchableOpacity>
+            )}
+
             {!!reuploadSuccess && <Text className="text-xs text-green-600 mt-3 text-center" style={styles.fontMedium}>{reuploadSuccess}</Text>}
             {!!reuploadError && <Text className="text-xs text-red-500 mt-3 text-center" style={styles.fontMedium}>{reuploadError}</Text>}
           </View>
@@ -607,8 +644,40 @@ export default function ViewOrderDetailsScreen() {
         </View>
       )}
 
+      {/* Awaiting Payment Banner & Action */}
+      {order.rawStatus === 'awaiting_payment' && (
+        <View className="bg-white rounded-2xl border border-[#FDE68A] mx-4 mt-4 p-4 shadow-sm">
+          <View className="flex-row items-center mb-1">
+            <View className="w-2.5 h-2.5 rounded-full bg-[#D97706] mr-2" />
+            <Text className="text-sm text-[#92400E]" style={styles.textBold}>Payment Required</Text>
+          </View>
+          <Text className="text-xs text-[#78350F] leading-5 mt-1" style={styles.fontMedium}>
+            Your order has been approved! Please complete your online payment so our pharmacy team can prepare your items.
+          </Text>
+          <View className="flex-row gap-3 mt-3">
+            <TouchableOpacity
+              className="flex-1 rounded-xl py-2.5 border border-[#DC3545] bg-[#FFF0F0] items-center justify-center"
+              onPress={() => setCancelVisible(true)}
+              activeOpacity={0.8}
+            >
+              <Text className="text-xs font-semibold text-[#DC3545]" style={styles.fontSemiBold}>Cancel Order</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              className="flex-1 rounded-xl py-2.5 bg-[#48AAD9] items-center justify-center"
+              onPress={() => router.push({
+                pathname: '/tabs/orders/PayOrder',
+                params: { orderId: String(order.id), orderNumber: order.orderNumber }
+              })}
+              activeOpacity={0.8}
+            >
+              <Text className="text-xs text-white" style={styles.fontSemiBold}>Pay Now</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
       {/* Cancel Order Action */}
-      {isCancellable && !isPrescriptionRejected && (
+      {isCancellable && !isPrescriptionRejected && order.rawStatus !== 'awaiting_payment' && (
         <View className="mx-4 mt-5 items-center">
           <TouchableOpacity
             className="rounded-xl border border-[#DC3545] px-8 py-2.5 bg-[#FFF0F0] items-center w-full"
@@ -627,6 +696,17 @@ export default function ViewOrderDetailsScreen() {
         onConfirm={handleConfirmCancel}
         submitting={cancelSubmitting}
         errorMessage={cancelError}
+      />
+
+      <ProceedOtcOverlay
+        visible={proceedOtcVisible}
+        onClose={() => setProceedOtcVisible(false)}
+        onConfirm={handleRemoveRxItems}
+        submitting={actionLoading}
+        rxItems={rxItems}
+        otcItems={otcItems}
+        newTotal={discountedOtcTotal}
+        errorMessage={actionError}
       />
 
       {modalImage && (

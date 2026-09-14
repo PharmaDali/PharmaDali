@@ -25,6 +25,7 @@ const getNotificationTitle = (type) => {
   if (type?.includes('OrderCompleted')) return 'Order Completed';
   if (type?.includes('OrderExpired')) return 'Order Expired';
   if (type?.includes('OrderRejected')) return 'Order Rejected';
+  if (type?.includes('CustomerAcknowledged')) return 'Customer Order Update';
   return 'Notification';
 };
 
@@ -129,7 +130,7 @@ export default function PharmacistNotifications() {
         onSwipeDelete={() => removeNotification(item.id)}
         onPress={() => handleNotificationPress(item)}
         isRead={isRead}
-        title={getNotificationTitle(item.type)}
+        title={parsedData.title || getNotificationTitle(item.type)}
         message={parsedData.message ?? ''}
         customerName={parsedData.customer_name}
         orderNumber={parsedData.order_number}
