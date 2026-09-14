@@ -22,6 +22,7 @@ import {
   sendPharmacistMessage,
 } from '@shared/services/chatService';
 import { getPharmacistProfile } from '@shared/services/pharmacistProfileService';
+import ChatOrderContextCard from '@shared/components/ChatOrderContextCard';
 
 const formatTime = (value) => {
   if (!value) return '';
@@ -241,6 +242,24 @@ export default function PharmacistConversationScreen() {
     }
   }, [conversationId, draft, selectedImage, loadConversation]);
 
+  const handleViewOrderDetails = useCallback(() => {
+    if (conversation?.order) {
+      const status = String(conversation.order.status || '').toLowerCase();
+      if (['completed', 'ready_for_pickup'].includes(status)) {
+        router.push('/tabs/ready/Ready');
+        return;
+      }
+      let targetTab = 'For Review';
+      if (status === 'preparing') targetTab = 'Preparing';
+      else if (['cancelled', 'rejected', 'stand_by'].includes(status)) targetTab = 'Issues';
+
+      router.push({
+        pathname: '/tabs/orders/Orders',
+        params: { tab: targetTab },
+      });
+    }
+  }, [conversation?.order, router]);
+
   const grouped = useMemo(() => groupMessagesByDate(messages), [messages]);
 
   const renderMessage = ({ item }) => {
@@ -364,6 +383,14 @@ export default function PharmacistConversationScreen() {
           )}
         </View>
       </View>
+
+      {/* ── Order Context Banner ── */}
+      {conversation?.order && (
+        <ChatOrderContextCard
+          order={conversation.order}
+          onPressDetails={handleViewOrderDetails}
+        />
+      )}
 
       {/* ── Scrollable area + input ── */}
       <View style={{ flex: 1, marginBottom: keyboardHeight > 0 ? keyboardHeight + 50 : 0 }}>
