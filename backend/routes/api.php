@@ -166,11 +166,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('pharmacy/settings/logo', [PharmacySettingsController::class, 'uploadLogo'])->middleware('throttle:file-upload');
         Route::patch('pharmacy/settings/password', [PharmacySettingsController::class, 'updatePassword']);
 
-        // Category settings CRUD
+        // Category settings
         Route::get('pharmacy/categories/all', [CategoryController::class, 'index']);
-        Route::post('pharmacy/categories/store', [CategoryController::class, 'store']);
-        Route::put('pharmacy/categories/{id}', [CategoryController::class, 'update']);
-        Route::delete('pharmacy/categories/{id}', [CategoryController::class, 'destroy']);
+        Route::patch('pharmacy/categories/{id}/toggle-status', [CategoryController::class, 'toggleStatus']);
 
         // Discount settings CRUD
         Route::get('pharmacy/discounts', [DiscountController::class, 'index']);
@@ -234,6 +232,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::middleware(['ability:super_admin'])->group(function () {
         Route::get('admin/dashboard/metrics', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'metrics']);
         Route::post('admin/register', [AuthController::class, 'adminRegister'])->middleware('throttle:auth-register');
+
+        // Master category management (super admin only)
+        Route::post('pharmacy/categories/store', [CategoryController::class, 'store']);
+        Route::put('pharmacy/categories/{id}', [CategoryController::class, 'update']);
+        Route::delete('pharmacy/categories/{id}', [CategoryController::class, 'destroy']);
 
         Route::apiResource('pharmacies', PharmacyController::class)->except(['index', 'show']);
         Route::apiResource('users', \App\Http\Controllers\Admin\AdminUserController::class);

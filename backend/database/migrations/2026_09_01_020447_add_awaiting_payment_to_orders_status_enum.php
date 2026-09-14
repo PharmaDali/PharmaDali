@@ -12,7 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'reviewing', 'preparing', 'ready_for_pickup', 'completed', 'overdue', 'cancelled', 'stand_by', 'awaiting_payment') DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'reviewing', 'preparing', 'ready_for_pickup', 'completed', 'overdue', 'cancelled', 'stand_by', 'awaiting_payment') DEFAULT 'pending'");
+        }
     }
 
     /**
@@ -20,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'reviewing', 'preparing', 'ready_for_pickup', 'completed', 'overdue', 'cancelled', 'stand_by') DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('pending', 'reviewing', 'preparing', 'ready_for_pickup', 'completed', 'overdue', 'cancelled', 'stand_by') DEFAULT 'pending'");
+        }
     }
 };

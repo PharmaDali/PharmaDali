@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\PharmacyProduct;
+use App\Models\Category;
 use App\Models\User;
 use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
@@ -44,29 +45,18 @@ class CustomerRecommendationService
             // HAS HISTORY: Run Apriori & Hybrid logic
             $allRecommendedIds = $this->getRecommendedProductIds($customer, $pharmacyId);
 
-            // Extract primary purchased item & category details dynamically
-            $firstItem = $lastOrder->items->first();
-            $primaryProductName = $firstItem->product_name ?? $firstItem->pharmacyProduct->product->product_name ?? 'your recent purchase';
-            $categoryName = strtolower($firstItem->pharmacyProduct->category->category_name ?? '');
+            // Extract primary purchased item & category details dynamically from the database
+            $firstItem = $lastOrder->items->first(function ($item) {
+                return $item->pharmacyProduct?->category || $item->pharmacyProduct?->category_id;
+            }) ?? $lastOrder->items->first();
 
-            $catLower = strtolower($categoryName);
-            $prodLower = strtolower($primaryProductName);
+            $primaryProductName = $firstItem->product_name ?? $firstItem->pharmacyProduct?->product?->product_name ?? 'your recent purchase';
+            $category = $firstItem->pharmacyProduct?->category
+                ?? ($firstItem->pharmacyProduct?->category_id ? Category::find($firstItem->pharmacyProduct->category_id) : null);
 
-            if (str_contains($catLower, 'milk') || str_contains($catLower, 'infant') || str_contains($catLower, 'diaper') || str_contains($catLower, 'baby')) {
-                $heroTitle = "Baby & Child Care Essentials";
-                $heroSubtitle = "Based on your purchase of {$primaryProductName}, here are recommended diapers, formulas, and baby care items";
-            } elseif (str_contains($catLower, 'vitamin') || str_contains($catLower, 'supplement')) {
-                $heroTitle = "Immunity & Daily Wellness";
-                $heroSubtitle = "Since you recently bought {$primaryProductName}, check out these top vitamins and daily health boosters";
-            } elseif (str_contains($catLower, 'personal') || str_contains($catLower, 'hygiene') || str_contains($catLower, 'skincare') || str_contains($catLower, 'soap') || str_contains($catLower, 'shampoo') || str_contains($catLower, 'cosmetics')) {
-                $heroTitle = "Personal Care & Hygiene Essentials";
-                $heroSubtitle = "Complement your purchase of {$primaryProductName} with these daily personal care and grooming items";
-            } elseif (str_contains($catLower, 'first aid') || str_contains($catLower, 'wound') || str_contains($catLower, 'bandage') || str_contains($catLower, 'device') || str_contains($catLower, 'equipment')) {
-                $heroTitle = "First Aid & Medical Supplies";
-                $heroSubtitle = "Since you bought {$primaryProductName}, keep your home prepared with these essential medical supplies";
-            } elseif (str_contains($catLower, 'generic') || str_contains($catLower, 'branded') || str_contains($catLower, 'rx') || str_contains($catLower, 'medicine') || str_contains($prodLower, 'biogesic') || str_contains($prodLower, 'paracetamol')) {
-                $heroTitle = "Health & Recovery Recommendations";
-                $heroSubtitle = "Since you recently bought {$primaryProductName}, check out these health essentials and recovery boosters";
+            if ($category && !empty($category->hero_title)) {
+                $heroTitle = $category->hero_title;
+                $heroSubtitle = $category->formatHeroSubtitle($primaryProductName);
             } else {
                 $heroTitle = "Recommended for You";
                 $heroSubtitle = "Based on your recent purchase of {$primaryProductName}, here are complementary items you might like";
@@ -84,26 +74,32 @@ class CustomerRecommendationService
         $items = collect();
         if (!empty($pageIds)) {
             $idsString = implode(',', $pageIds);
-            $items = PharmacyProduct::with(['product', 'category'])
+            $itemsQuery = PharmacyProduct::with(['product', 'category'])
                 ->where('pharmacy_id', $pharmacyId)
                 ->whereIn('id', $pageIds)
-                ->where('stock', '>', 0)
-                ->orderByRaw("FIELD(id, {$idsString})")
-                ->get();
+                ->where('stock', '>', 0);
+            $this->applyBranchCategoryFilter($itemsQuery, $pharmacyId);
+
+            if (DB::getDriverName() === 'mysql') {
+                $items = $itemsQuery->orderByRaw("FIELD(id, {$idsString})")->get();
+            } else {
+                $items = $itemsQuery->get()->sortBy(function ($model) use ($pageIds) {
+                    return array_search($model->id, $pageIds);
+                })->values();
+            }
         }
 
         // If page recommendation items count is less than perPage, append general pharmacy products as fallbacks for infinite feed
         if ($items->count() < $perPage) {
             $needed = $perPage - $items->count();
             $existingIds = array_merge(array_slice($validIds, 0, $offset + count($pageIds)), $items->pluck('id')->toArray());
-            
-            $fallbacks = PharmacyProduct::with(['product', 'category'])
+
+            $fallbacksQuery = PharmacyProduct::with(['product', 'category'])
                 ->where('pharmacy_id', $pharmacyId)
                 ->whereNotIn('id', array_unique($existingIds))
-                ->where('stock', '>', 0)
-                ->orderBy('id')
-                ->limit($needed)
-                ->get();
+                ->where('stock', '>', 0);
+            $this->applyBranchCategoryFilter($fallbacksQuery, $pharmacyId);
+            $fallbacks = $fallbacksQuery->orderBy('id')->limit($needed)->get();
 
             $items = $items->concat($fallbacks);
         }
@@ -187,10 +183,12 @@ class CustomerRecommendationService
         }
 
         if (!empty($consequentCategoryIds)) {
-            $poolB_CategoryApriori = PharmacyProduct::where('pharmacy_id', $pharmacyId)
+            $poolBQuery = PharmacyProduct::where('pharmacy_id', $pharmacyId)
                 ->whereIn('category_id', array_unique($consequentCategoryIds))
                 ->whereNotIn('id', $recentProductIds)
-                ->where('stock', '>', 0)
+                ->where('stock', '>', 0);
+            $this->applyBranchCategoryFilter($poolBQuery, $pharmacyId);
+            $poolB_CategoryApriori = $poolBQuery
                 ->limit(15)
                 ->pluck('id')
                 ->map('intval')
@@ -209,10 +207,12 @@ class CustomerRecommendationService
         })->filter()->unique()->toArray();
 
         if (!empty($nonMedicineCategoryIds)) {
-            $poolC_NonMedicineBrands = PharmacyProduct::where('pharmacy_id', $pharmacyId)
+            $poolCQuery = PharmacyProduct::where('pharmacy_id', $pharmacyId)
                 ->whereIn('category_id', $nonMedicineCategoryIds)
                 ->whereNotIn('id', $recentProductIds)
-                ->where('stock', '>', 0)
+                ->where('stock', '>', 0);
+            $this->applyBranchCategoryFilter($poolCQuery, $pharmacyId);
+            $poolC_NonMedicineBrands = $poolCQuery
                 ->inRandomOrder()
                 ->limit(15)
                 ->pluck('id')
@@ -245,25 +245,44 @@ class CustomerRecommendationService
      */
     private function getVitaminProducts(int $pharmacyId): \Illuminate\Support\Collection
     {
-        $vitamins = PharmacyProduct::with(['product', 'category'])
+        $vitaminsQuery = PharmacyProduct::with(['product', 'category'])
             ->where('pharmacy_id', $pharmacyId)
             ->whereHas('category', function ($query) {
                 $query->where('category_name', 'like', '%Vitamin%')
                       ->orWhere('category_name', 'like', '%Supplement%');
             })
-            ->where('stock', '>', 0)
-            ->inRandomOrder()
-            ->limit(20)
-            ->get();
+            ->where('stock', '>', 0);
+        $this->applyBranchCategoryFilter($vitaminsQuery, $pharmacyId);
+        $vitamins = $vitaminsQuery->inRandomOrder()->limit(20)->get();
 
         if ($vitamins->isEmpty()) {
-            $vitamins = PharmacyProduct::with(['product', 'category'])
+            $fallbackQuery = PharmacyProduct::with(['product', 'category'])
                 ->where('pharmacy_id', $pharmacyId)
-                ->where('stock', '>', 0)
-                ->limit(20)
-                ->get();
+                ->where('stock', '>', 0);
+            $this->applyBranchCategoryFilter($fallbackQuery, $pharmacyId);
+            $vitamins = $fallbackQuery->limit(20)->get();
         }
 
         return $vitamins;
+    }
+
+    /**
+     * Apply filter to exclude products belonging to disabled categories for this pharmacy branch.
+     */
+    private function applyBranchCategoryFilter($query, int $pharmacyId)
+    {
+        return $query->where(function ($productQuery) use ($pharmacyId) {
+            $productQuery->whereNull('category_id')
+                ->orWhereHas('category', function ($categoryQuery) use ($pharmacyId) {
+                    $categoryQuery->where('categories.is_enabled', true)
+                        ->whereNotExists(function ($sub) use ($pharmacyId) {
+                            $sub->selectRaw(1)
+                                ->from('pharmacy_categories')
+                                ->whereColumn('pharmacy_categories.category_id', 'categories.id')
+                                ->where('pharmacy_categories.pharmacy_id', $pharmacyId)
+                                ->where('pharmacy_categories.is_enabled', false);
+                        });
+                });
+        });
     }
 }

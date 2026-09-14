@@ -12,6 +12,8 @@ class Category extends Model
     protected $fillable = [
         'category_name',
         'description',
+        'hero_title',
+        'hero_subtitle_template',
         'is_enabled',
         'background_color',
         'font_color',
@@ -20,6 +22,18 @@ class Category extends Model
     protected $casts = [
         'is_enabled' => 'boolean',
     ];
+
+    public function formatHeroSubtitle(string $productName): string
+    {
+        $template = $this->hero_subtitle_template
+            ?: "Based on your recent purchase of {product_name}, here are complementary items you might like";
+        return str_replace(['{product_name}', ':product_name'], $productName, $template);
+    }
+
+    public function pharmacyCategories()
+    {
+        return $this->hasMany(PharmacyCategory::class);
+    }
 
     public function pharmacyProducts()
     {

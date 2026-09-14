@@ -71,6 +71,15 @@ export const updateCategory = async (id, payload) => {
 };
 
 /**
+ * PATCH /pharmacy/categories/{id}/toggle-status
+ * Toggle category enabled/disabled state for current pharmacy branch.
+ */
+export const toggleCategoryStatus = async (id, enabled) => {
+  const response = await apiRequest.patch(`/pharmacy/categories/${id}/toggle-status`, { enabled });
+  return response;
+};
+
+/**
  * DELETE /pharmacy/categories/{id}
  * Delete a category.
  */
@@ -78,3 +87,4 @@ export const deleteCategory = async (id) => {
   const response = await apiRequest.delete(`/pharmacy/categories/${id}`);
   return response;
 };
+

@@ -7,27 +7,16 @@ import "../../assets/css/settings/product-config.css";
 import "../../assets/css/settings/overlays.css";
 import {
   getCategories,
-  createCategory,
-  updateCategory,
-  deleteCategory,
+  toggleCategoryStatus,
 } from "../../services/pharmacySettingsService";
-
-const defaultCategoryForm = {
-  enabled: true,
-  name: "",
-  background: "#e8f0fe",
-  font: "#000000",
-};
 
 export const CategoryManagement = ({ onBack, onNavigate }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+  const [togglingId, setTogglingId] = useState(null);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [query, setQuery] = useState("");
-  const [modal, setModal] = useState({ type: null, categoryId: null });
-  const [formData, setFormData] = useState(defaultCategoryForm);
 
   useEffect(() => {
     fetchCategories();
@@ -50,84 +39,31 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
   const filteredData = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return categories;
-    return categories.filter((cat) => cat.name.toLowerCase().includes(normalizedQuery));
+    return categories.filter((cat) => (cat.name || "").toLowerCase().includes(normalizedQuery));
   }, [categories, query]);
 
-  const openAddModal = () => {
-    setFormData(defaultCategoryForm);
+  const handleToggle = async (cat) => {
+    if (togglingId) return;
+    const newStatus = !cat.enabled;
+    setTogglingId(cat.id);
     setErrorMessage("");
-    setModal({ type: "add", categoryId: null });
-  };
-
-  const openEditModal = (cat) => {
-    setFormData({
-      enabled: cat.enabled ?? true,
-      name: cat.name ?? "",
-      background: cat.background ?? "#e8f0fe",
-      font: cat.font ?? "#000000",
-    });
-    setErrorMessage("");
-    setModal({ type: "edit", categoryId: cat.id });
-  };
-
-  const openDeleteModal = (cat) => {
-    setErrorMessage("");
-    setModal({ type: "delete", categoryId: cat.id });
-  };
-
-  const closeModal = () => {
-    setModal({ type: null, categoryId: null });
-    setErrorMessage("");
-  };
-
-  const handleSave = async () => {
-    if (!formData.name.trim()) {
-      setErrorMessage("Category name cannot be empty.");
-      return;
-    }
 
     try {
-      setSaving(true);
-      setErrorMessage("");
-
-      if (modal.type === "add") {
-        await createCategory(formData);
-        setSuccessMessage("Category created successfully.");
-      } else {
-        await updateCategory(modal.categoryId, formData);
-        setSuccessMessage("Category updated successfully.");
-      }
-
-      await fetchCategories();
-      closeModal();
+      await toggleCategoryStatus(cat.id, newStatus);
+      setCategories((prev) =>
+        prev.map((c) => (c.id === cat.id ? { ...c, enabled: newStatus } : c))
+      );
+      setSuccessMessage(
+        `Category "${cat.name}" has been ${newStatus ? "enabled" : "disabled"} for this pharmacy.`
+      );
       setTimeout(() => setSuccessMessage(""), 4000);
     } catch (err) {
-      const apiMsg = err.response?.data?.message || err.message || "Failed to save category.";
+      const apiMsg = err.response?.data?.message || err.message || "Failed to update category status.";
       setErrorMessage(apiMsg);
     } finally {
-      setSaving(false);
+      setTogglingId(null);
     }
   };
-
-  const handleDelete = async () => {
-    try {
-      setSaving(true);
-      setErrorMessage("");
-
-      await deleteCategory(modal.categoryId);
-      setSuccessMessage("Category deleted successfully.");
-      await fetchCategories();
-      closeModal();
-      setTimeout(() => setSuccessMessage(""), 4000);
-    } catch (err) {
-      const apiMsg = err.response?.data?.message || err.message || "Failed to delete category.";
-      setErrorMessage(apiMsg);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const activeItem = categories.find((c) => c.id === modal.categoryId);
 
   return (
     <>
@@ -159,14 +95,22 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
         </div>
       )}
 
+      {errorMessage && (
+        <div className="alert alert-danger py-2 px-3 mb-3 small rounded-3 border-0 bg-danger-subtle text-danger">
+          {errorMessage}
+        </div>
+      )}
+
       <div className="admin-card">
         <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-4">
           <div>
-            <h5 className="settings-header-title mb-1">Category</h5>
-            <p className="settings-header-subtitle mb-0">Import, add, delete, and update category.</p>
+            <h5 className="settings-header-title mb-1">Category Availability</h5>
+            <p className="settings-header-subtitle mb-0">
+              Enable or disable master categories for your pharmacy branch.
+            </p>
           </div>
           <div className="d-flex align-items-center gap-2 w-100 w-sm-auto justify-content-sm-end">
-            <div className="flex-grow-1 flex-sm-grow-0" style={{ minWidth: "160px", maxWidth: "260px" }}>
+            <div className="flex-grow-1 flex-sm-grow-0" style={{ minWidth: "180px", maxWidth: "280px" }}>
               <SearchBar
                 id="category-search"
                 value={query}
@@ -174,147 +118,70 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
                 placeholder="Search category"
               />
             </div>
-            <button className="btn-add-circle flex-shrink-0" onClick={openAddModal}>+</button>
           </div>
         </div>
 
         {loading ? (
           <ListSkeleton count={4} />
         ) : (
-          <div className="custom-scrollbar" style={{ maxHeight: "480px", overflowY: "auto", paddingRight: "10px" }}>
+          <div className="custom-scrollbar" style={{ maxHeight: "520px", overflowY: "auto", paddingRight: "6px" }}>
             {filteredData.map((cat) => (
               <div key={cat.id} className="product-config-item">
                 <div className="d-flex align-items-center gap-2">
                   <span
-                    className="badge rounded-pill px-2 py-1 small"
-                    style={{ backgroundColor: cat.background, color: cat.font, fontSize: "0.8rem", border: "1px solid #ddd" }}
+                    className="badge rounded-pill px-3 py-1 fw-semibold"
+                    style={{
+                      backgroundColor: cat.background || "#e8f0fe",
+                      color: cat.font || "#000000",
+                      fontSize: "0.82rem",
+                      border: "1px solid rgba(0,0,0,0.1)",
+                    }}
                   >
                     {cat.name}
                   </span>
-                  {!cat.enabled && <span className="badge bg-secondary text-white ms-1">Disabled</span>}
+                  {cat.hero_title && (
+                    <span className="text-muted small ms-2 d-none d-md-inline" style={{ fontSize: "0.78rem" }}>
+                      • {cat.hero_title}
+                    </span>
+                  )}
                 </div>
-                <div className="product-config-actions">
-                  <button className="btn-action btn-action--ghost" onClick={() => openEditModal(cat)}>Edit</button>
-                  <button className="btn-action btn-action--danger" onClick={() => openDeleteModal(cat)}>Delete</button>
+
+                <div className="d-flex align-items-center gap-3">
+                  <span
+                    className={`badge ${
+                      cat.enabled
+                        ? "bg-success-subtle text-success border border-success-subtle"
+                        : "bg-secondary-subtle text-secondary border border-secondary-subtle"
+                    } px-2 py-1`}
+                    style={{ fontSize: "0.75rem", minWidth: "62px", textAlign: "center" }}
+                  >
+                    {cat.enabled ? "Active" : "Disabled"}
+                  </span>
+                  <div
+                    className={`toggle-switch${cat.enabled ? " active" : ""}`}
+                    onClick={() => handleToggle(cat)}
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={cat.enabled}
+                    style={{
+                      cursor: togglingId === cat.id ? "wait" : "pointer",
+                      opacity: togglingId === cat.id ? 0.6 : 1,
+                    }}
+                    title={cat.enabled ? "Click to disable category for this branch" : "Click to enable category for this branch"}
+                  >
+                    <div className="toggle-handle" />
+                  </div>
                 </div>
               </div>
             ))}
-            {filteredData.length === 0 && <div style={{ textAlign: "center", padding: "3rem", color: "#888" }}>No categories found.</div>}
+            {filteredData.length === 0 && (
+              <div style={{ textAlign: "center", padding: "3rem", color: "#888" }}>
+                No categories found.
+              </div>
+            )}
           </div>
         )}
       </div>
-
-      {modal.type && (
-        <div className="settings-modal-backdrop" onClick={closeModal}>
-          <div
-            className={`settings-modal${modal.type === "delete" ? " settings-modal--confirm" : ""}`}
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: modal.type === "delete" ? "420px" : "550px" }}
-          >
-            {errorMessage && (
-              <div className="alert alert-danger py-2 px-3 mb-3 small rounded-3 border-0 bg-danger-subtle text-danger">
-                {errorMessage}
-              </div>
-            )}
-
-            {modal.type === "delete" ? (
-              <div style={{ textAlign: "center" }}>
-                <h4 style={{ fontSize: "1.25rem", fontWeight: "700", color: "#333", marginBottom: "1rem" }}>
-                  Are you sure you want to delete<br />"{activeItem?.name}" category?
-                </h4>
-                <p style={{ color: "#aaa", fontSize: "0.9rem", marginBottom: "2rem" }}>All data related to it will be lost.</p>
-                <div style={{ display: "flex", gap: "1.5rem" }}>
-                  <button onClick={handleDelete} disabled={saving} className="btn-action btn-action--primary" style={{ flex: 1, height: "48px" }}>
-                    {saving ? "Deleting..." : "Continue"}
-                  </button>
-                  <button onClick={closeModal} disabled={saving} className="btn-action btn-action--ghost" style={{ flex: 1, height: "48px" }}>Cancel</button>
-                </div>
-              </div>
-            ) : (
-              <>
-                <div className="settings-modal-header">
-                  <h4 className="settings-modal-title">{modal.type === "add" ? "Add Category" : "Edit Category"}</h4>
-                </div>
-
-                <div className="settings-modal-body" style={{ opacity: formData.enabled ? 1 : 0.6 }}>
-                  <div className="settings-flex-row" style={{ marginBottom: "0.5rem" }}>
-                    <span className="settings-modal-label" style={{ fontSize: "1rem" }}>Enabled</span>
-                    <div
-                      className={`toggle-switch${formData.enabled ? " active" : ""}`}
-                      onClick={() => setFormData((prev) => ({ ...prev, enabled: !prev.enabled }))}
-                      role="button"
-                      aria-pressed={formData.enabled}
-                    >
-                      <div className="toggle-handle" />
-                    </div>
-                  </div>
-
-                  <div className="settings-modal-field">
-                    <label className="settings-modal-label">Name</label>
-                    <input
-                      type="text"
-                      className="settings-modal-input"
-                      placeholder="Category name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      disabled={!formData.enabled || saving}
-                    />
-                  </div>
-
-                  <div className="settings-modal-divider" />
-
-                  <div className="settings-modal-field">
-                    <label className="settings-modal-label">Background Color</label>
-                    <div className="d-flex align-items-center gap-2">
-                      <input
-                        type="color"
-                        className="form-control form-control-color"
-                        value={formData.background}
-                        onChange={(e) => setFormData({ ...formData, background: e.target.value })}
-                        disabled={!formData.enabled || saving}
-                      />
-                      <input
-                        type="text"
-                        className="settings-modal-input"
-                        value={formData.background}
-                        onChange={(e) => setFormData({ ...formData, background: e.target.value })}
-                        disabled={!formData.enabled || saving}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="settings-modal-field">
-                    <label className="settings-modal-label">Font Color</label>
-                    <div className="d-flex align-items-center gap-2">
-                      <input
-                        type="color"
-                        className="form-control form-control-color"
-                        value={formData.font}
-                        onChange={(e) => setFormData({ ...formData, font: e.target.value })}
-                        disabled={!formData.enabled || saving}
-                      />
-                      <input
-                        type="text"
-                        className="settings-modal-input"
-                        value={formData.font}
-                        onChange={(e) => setFormData({ ...formData, font: e.target.value })}
-                        disabled={!formData.enabled || saving}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="settings-modal-footer">
-                  <button onClick={handleSave} disabled={saving} className="btn-action btn-action--primary">
-                    {saving ? "Saving..." : "Save"}
-                  </button>
-                  <button onClick={closeModal} disabled={saving} className="btn-action btn-action--ghost">Cancel</button>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 };
