@@ -31,7 +31,7 @@ class OrderItem extends Model
 
     public function pharmacyProduct()
     {
-        return $this->belongsTo(PharmacyProduct::class);
+        return $this->belongsTo(PharmacyProduct::class)->withoutGlobalScopes();
     }
 
     public function orderItemPrescription(): HasOne

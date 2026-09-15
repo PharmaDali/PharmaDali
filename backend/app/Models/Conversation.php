@@ -34,7 +34,7 @@ class Conversation extends Model
 
     public function order(): BelongsTo
     {
-        return $this->belongsTo(Order::class);
+        return $this->belongsTo(Order::class)->withoutGlobalScopes();
     }
 
     public function pharmacy(): BelongsTo

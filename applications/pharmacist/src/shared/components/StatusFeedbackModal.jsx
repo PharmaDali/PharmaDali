@@ -33,7 +33,7 @@ const ACTION_CONFIG = {
   },
   reject: {
     title: 'Order Rejected',
-    icon: 'close-circle-outline',
+    icon: 'checkmark-circle-outline',
     iconColor: '#EF4444',
     bgColor: '#FEF2F2',
     instruction: 'Order has been rejected and the customer has been notified.',

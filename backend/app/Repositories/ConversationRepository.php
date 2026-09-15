@@ -19,7 +19,25 @@ class ConversationRepository
         return Conversation::query()
             ->forUser($user)
             ->with([
-                'order:id,order_number,customer_id,pharmacy_id,status,placed_at,completed_at,cancelled_at',
+                // Closure-based: string syntax bypasses withoutGlobalScopes() on the relation
+                'order' => fn ($q) => $q->withoutGlobalScopes()->select([
+                    'id', 'order_number', 'customer_id', 'pharmacy_id', 'status',
+                    'payment_method', 'payment_status', 'subtotal', 'total_amount',
+                    'placed_at', 'completed_at', 'cancelled_at',
+                ]),
+                'order.items' => fn ($q) => $q->select([
+                    'id', 'order_id', 'pharmacy_product_id',
+                    'quantity', 'unit_price_snapshot', 'line_total', 'product_name',
+                ]),
+                'order.items.orderItemPrescription',
+                'order.items.pharmacyProduct' => fn ($q) => $q->withoutGlobalScopes()
+                    ->select(['id', 'product_id', 'category_id']),
+                'order.items.pharmacyProduct.product' => fn ($q) => $q->withoutGlobalScopes()
+                    ->select([
+                        'id', 'product_name', 'generic_name', 'brand_name',
+                        'strength', 'form', 'size', 'is_prescribed', 'image_path',
+                    ]),
+                'order.items.pharmacyProduct.category' => fn ($q) => $q->select(['id', 'category_name']),
                 'pharmacy:id,pharmacy_name,location',
                 'customer:id,first_name,last_name,email,pharmacy_id',
                 'assignedPharmacist:id,first_name,last_name,email,pharmacy_id',
@@ -29,6 +47,7 @@ class ConversationRepository
             ->orderByDesc('id')
             ->paginate($perPage);
     }
+
 
     public function findOrderById(int $orderId): ?Order
     {
