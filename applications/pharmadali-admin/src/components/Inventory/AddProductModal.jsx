@@ -231,6 +231,18 @@ export function AddProductModal({
               />
             </div>
             <div className="add-product-field">
+              <label className="add-product-label">Make Available</label>
+              <SelectDropdown
+                selectClassName="add-product-select"
+                value={addForm.isAvailable || "Available"}
+                onChange={(val) => setAddForm(prev => ({ ...prev, isAvailable: val }))}
+                options={[
+                  { label: "Available", value: "Available" },
+                  { label: "Unavailable", value: "Unavailable" },
+                ]}
+              />
+            </div>
+            <div className="add-product-field">
               <label className="add-product-label">Selling Price</label>
               <input
                 type="number"

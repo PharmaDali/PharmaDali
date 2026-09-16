@@ -81,9 +81,11 @@ class ProductBatchRepository
         if ($pharmacyProduct) {
             $pharmacyProduct->stock = $totalStock;
             
-            // Auto-mark unavailable if no sellable stock is left
-            if ($sellableStock <= 0) {
-                $pharmacyProduct->is_available = false;
+            if ($sellableStock > 0) {
+                $pharmacyProduct->is_available = true;
+                $pharmacyProduct->is_out_of_stock = false;
+            } else {
+                $pharmacyProduct->is_out_of_stock = true;
             }
 
             // Auto-mark as expired if there is physical stock but none of it is sellable

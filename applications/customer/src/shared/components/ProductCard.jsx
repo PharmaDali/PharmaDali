@@ -23,6 +23,8 @@ const ProductCard = ({
   onAddToCart,
   isPrescribed = false,
   isAvailable = true,
+  isOutOfStock = false,
+  stock = undefined,
 }) => {
   const router = useRouter();
   const { triggerFlyToCart } = useFlyToCart();
@@ -30,6 +32,9 @@ const ProductCard = ({
   const [quantity, setQuantity] = useState(1);
   const [isAddedSuccess, setIsAddedSuccess] = useState(false);
   const [tapPos, setTapPos] = useState({ x: null, y: null });
+
+  const isOutOfStockComputed = Boolean(isOutOfStock) || (stock !== undefined && stock !== null && Number(stock) <= 0);
+  const canAddToCart = isAvailable !== false && !isOutOfStockComputed;
 
   const handlePress = () => {
     router.push({
@@ -45,7 +50,7 @@ const ProductCard = ({
   const handleAddToCartPress = (event) => {
     event?.stopPropagation?.();
 
-    if (!isAvailable) {
+    if (!canAddToCart) {
       return;
     }
 
@@ -94,6 +99,8 @@ const ProductCard = ({
           product={product}
           categoryName={categoryName}
           isAvailable={isAvailable}
+          isOutOfStock={isOutOfStockComputed}
+          stock={stock}
           width={120}
           height={120}
           containerStyle={{ borderRadius: 8, alignSelf: 'center' }}
@@ -119,8 +126,8 @@ const ProductCard = ({
           <TouchableOpacity
             onPress={handleAddToCartPress}
             hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            disabled={!isAvailable}
-            style={!isAvailable ? styles.addToCartDisabled : null}
+            disabled={!canAddToCart}
+            style={!canAddToCart ? styles.addToCartDisabled : null}
           >
             <AddToCartIcon width={28} height={28} />
           </TouchableOpacity>

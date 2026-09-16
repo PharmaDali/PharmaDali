@@ -60,9 +60,9 @@ class ProductBatchRepositoryTest extends TestCase
         $repo->syncPharmacyProductStock($pharmacyProduct->id);
         $pharmacyProduct->refresh();
 
-        // Stock should be 10, but it should be marked expired and unavailable
+        // Stock should be 10, but it should be marked expired and out of stock
         $this->assertEquals(10, $pharmacyProduct->stock);
-        $this->assertFalse((bool)$pharmacyProduct->is_available);
+        $this->assertTrue((bool)$pharmacyProduct->is_out_of_stock);
         $this->assertTrue((bool)$pharmacyProduct->is_expired);
 
         // 2. Add a valid batch
@@ -77,11 +77,10 @@ class ProductBatchRepositoryTest extends TestCase
         $repo->syncPharmacyProductStock($pharmacyProduct->id);
         $pharmacyProduct->refresh();
 
-        // Stock should be 15, should NOT be marked expired
+        // Stock should be 15, should NOT be marked expired, should be available and not out of stock
         $this->assertEquals(15, $pharmacyProduct->stock);
         $this->assertFalse((bool)$pharmacyProduct->is_expired);
-        // Note: we don't automatically set is_available back to true, 
-        // to not overwrite admin overrides. If it was false, it remains false unless admin changes it, 
-        // OR wait, my code only sets it to false if sellableStock <= 0. It does NOT set it to true.
+        $this->assertTrue((bool)$pharmacyProduct->is_available);
+        $this->assertFalse((bool)$pharmacyProduct->is_out_of_stock);
     }
 }

@@ -106,6 +106,7 @@ export function useInventory() {
     barcode: "",
     description: "",
     needsPrescription: "False",
+    isAvailable: "Available",
   });
 
   // Load summary metrics and side cards once on mount or when products are modified
@@ -276,11 +277,12 @@ export function useInventory() {
       unitCost: item.unitCost ?? item.unit_cost ?? "",
       sellingPrice: item.sellingPrice,
       isDiscountable: Boolean(item.is_discountable ?? item.isDiscountable ?? true),
+      isAvailable: Boolean(item.is_available ?? item.isAvailable ?? true),
       reorderPoint: item.reorderPoint,
       quantity: item.quantity,
       expiryDate: item.expiryDate || "",
       manufacturedDate: item.manufacturedDate || "",
-      needsPrescription: false,
+      needsPrescription: Boolean(item.is_prescribed ?? item.isPrescribed ?? item.needsPrescription ?? false),
       imageUrl: item.image_url || null,
       imageFile: null,
       imagePreview: null,
@@ -623,6 +625,8 @@ export function useInventory() {
         selling_price: toNumber(modalDraft.sellingPrice, selectedItem.sellingPrice),
         unit_cost: toNumber(modalDraft.unitCost, selectedItem.unitCost || 0),
         is_discountable: modalDraft.isDiscountable !== undefined ? modalDraft.isDiscountable : Boolean(selectedItem.is_discountable),
+        is_available: modalDraft.isAvailable !== undefined ? modalDraft.isAvailable : Boolean(selectedItem.is_available),
+        is_prescribed: isMedicine ? Boolean(modalDraft.needsPrescription) : false,
         category_name: modalDraft.category.trim() || selectedItem.category,
       };
 
@@ -656,6 +660,10 @@ export function useInventory() {
         unitCost: payload.unit_cost,
         is_discountable: payload.is_discountable,
         isDiscountable: payload.is_discountable,
+        is_available: payload.is_available,
+        isAvailable: payload.is_available,
+        is_prescribed: payload.is_prescribed,
+        needsPrescription: payload.is_prescribed,
         image_url: updatedImageUrl,
       };
 
@@ -727,6 +735,7 @@ export function useInventory() {
       unit_cost: addForm.unitCost ? parseFloat(addForm.unitCost) : 0.0,
       selling_price: addForm.sellingPrice ? parseFloat(addForm.sellingPrice) : 0.0,
       is_discountable: addForm.discountable === "True",
+      is_available: addForm.isAvailable !== "Unavailable",
       expiry_date: addForm.expiryDate || null,
       is_prescribed: isMedicine ? addForm.needsPrescription === "True" : false,
       category_name: addForm.categoryName || null,
@@ -766,11 +775,12 @@ export function useInventory() {
         categoryName: "",
         quantity: "",
         unitCost: "",
-        discountable: "False",
+        discountable: "True",
         sellingPrice: "",
         barcode: "",
         description: "",
         needsPrescription: "False",
+        isAvailable: "Available",
       });
       setIsAddModalOpen(false);
       setSuccessModal({

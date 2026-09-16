@@ -81,6 +81,8 @@ export default function ProductImage({
   categoryName,
   isPrescribed,
   isAvailable = true,
+  isOutOfStock = false,
+  stock = undefined,
   width = 64,
   height = 64,
   containerStyle,
@@ -100,6 +102,25 @@ export default function ProductImage({
   const prescribed = typeof isPrescribed === 'boolean'
     ? isPrescribed
     : Boolean(Number(productData?.is_prescribed ?? 0));
+
+  const isActuallyOutOfStock =
+    Boolean(isOutOfStock) ||
+    Boolean(productData?.is_out_of_stock) ||
+    Boolean(productData?.pharmacy_product?.is_out_of_stock) ||
+    Boolean(productData?.pharmacyProduct?.is_out_of_stock) ||
+    (stock !== undefined && stock !== null && Number(stock) <= 0) ||
+    (productData?.stock !== undefined && productData?.stock !== null && Number(productData?.stock) <= 0) ||
+    (productData?.pharmacy_product?.stock !== undefined && productData?.pharmacy_product?.stock !== null && Number(productData?.pharmacy_product?.stock) <= 0);
+
+  const isActuallyUnavailable = !isActuallyOutOfStock && (
+    isAvailable === false ||
+    productData?.is_available === false ||
+    productData?.pharmacy_product?.is_available === false ||
+    productData?.pharmacyProduct?.is_available === false
+  );
+
+  const overlayText = isActuallyOutOfStock ? 'Out of Stock' : (isActuallyUnavailable ? 'Unavailable' : '');
+  const showOverlay = Boolean(overlayText);
 
   const categoryObj = productData?.category || null;
   const categoryToUse = categoryName || productData?.category_name || categoryObj?.category_name;
@@ -126,10 +147,10 @@ export default function ProductImage({
           resizeMode={resizeMode || 'cover'}
           onError={() => setImageError(true)}
         />
-        {!isAvailable && (
-          <View className="absolute inset-0 bg-black/60 items-center justify-center z-10">
-            <Text className="text-white font-bold" style={{ fontSize: 11 * scale, fontFamily: 'Poppins-Bold' }}>
-              Unavailable
+        {showOverlay && (
+          <View className="absolute inset-0 bg-black/60 items-center justify-center z-10 px-1">
+            <Text className="text-white font-bold text-center" style={{ fontSize: (isActuallyOutOfStock ? 9.5 : 11) * scale, fontFamily: 'Poppins-Bold' }}>
+              {overlayText}
             </Text>
           </View>
         )}
@@ -234,13 +255,13 @@ export default function ProductImage({
       </View>
 
       {/* Overlay sits OUTSIDE the overflow:hidden card — never gets clipped */}
-      {!isAvailable && (
+      {showOverlay && (
         <View
-          className="absolute inset-0 bg-black/60 items-center justify-center z-10"
+          className="absolute inset-0 bg-black/60 items-center justify-center z-10 px-1"
           style={{ borderTopRightRadius: 24 * scale, borderBottomLeftRadius: 24 * scale }}
         >
-          <Text className="text-white font-bold" style={{ fontSize: 11 * scale, fontFamily: 'Poppins-Bold' }}>
-            Unavailable
+          <Text className="text-white font-bold text-center" style={{ fontSize: (isActuallyOutOfStock ? 9.5 : 11) * scale, fontFamily: 'Poppins-Bold' }}>
+            {overlayText}
           </Text>
         </View>
       )}

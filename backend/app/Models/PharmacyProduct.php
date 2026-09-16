@@ -21,9 +21,17 @@ class PharmacyProduct extends Model
         'selling_price',
         'is_discountable',
         'is_available',
+        'is_out_of_stock',
         'is_expired',
         'lead_time_days',
         'ordered_at',
+    ];
+
+    protected $casts = [
+        'is_discountable' => 'boolean',
+        'is_available' => 'boolean',
+        'is_out_of_stock' => 'boolean',
+        'is_expired' => 'boolean',
     ];
 
     public function pharmacy()
