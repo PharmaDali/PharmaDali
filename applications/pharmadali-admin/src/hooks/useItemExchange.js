@@ -158,10 +158,33 @@ export const useItemExchange = (order, show, onExchangeSuccess) => {
   const hasSelectedReturns = Object.values(selectedReturns).some((q) => Number(q) > 0);
   const hasReplacementItems = replacementCart.length > 0;
 
+  const setExactPayment = () => {
+    if (financialSummary.additionalPaymentRequired > 0) {
+      setAmountReceived(financialSummary.additionalPaymentRequired.toFixed(2));
+    }
+  };
+
+  const addCashDenomination = (amount) => {
+    const current = Number(amountReceived) || 0;
+    setAmountReceived((current + amount).toFixed(2));
+  };
+
   const handleSubmitExchange = async () => {
     try {
       setSubmitting(true);
       setErrorMsg("");
+
+      // Validate payment if additional payment is required
+      if (financialSummary.additionalPaymentRequired > 0) {
+        const received = Number(amountReceived) || 0;
+        if (received < financialSummary.additionalPaymentRequired) {
+          setErrorMsg(
+            `Amount received (PHP ${received.toFixed(2)}) is less than the required additional payment of PHP ${financialSummary.additionalPaymentRequired.toFixed(2)}.`
+          );
+          setSubmitting(false);
+          return;
+        }
+      }
 
       const payload = formatExchangePayload({
         orderId: order.id,
@@ -169,7 +192,9 @@ export const useItemExchange = (order, show, onExchangeSuccess) => {
         returnConditions,
         replacementCart,
         paymentMethod,
-        amountReceived,
+        amountReceived: financialSummary.additionalPaymentRequired > 0
+          ? (amountReceived !== "" ? Number(amountReceived) : financialSummary.additionalPaymentRequired)
+          : 0,
         reason,
         notes,
       });
@@ -181,7 +206,8 @@ export const useItemExchange = (order, show, onExchangeSuccess) => {
         onExchangeSuccess(exchangeData);
       }
     } catch (err) {
-      setErrorMsg(err.message || "Failed to process item exchange.");
+      const message = err.response?.data?.message || err.message || "Failed to process item exchange.";
+      setErrorMsg(message);
     } finally {
       setSubmitting(false);
     }
@@ -199,6 +225,8 @@ export const useItemExchange = (order, show, onExchangeSuccess) => {
     setPaymentMethod,
     amountReceived,
     setAmountReceived,
+    setExactPayment,
+    addCashDenomination,
     reason,
     setReason,
     notes,
