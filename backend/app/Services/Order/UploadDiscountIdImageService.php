@@ -41,6 +41,17 @@ class UploadDiscountIdImageService
             throw new \Exception("Unauthorized: Order does not belong to your account or pharmacy.", 403);
         }
 
+        // Verify that the order has at least one discountable item if the order has items
+        if ($order->items()->exists()) {
+            $hasDiscountableItems = $order->items()
+                ->whereHas('pharmacyProduct', fn ($q) => $q->withoutGlobalScopes()->where('is_discountable', true))
+                ->exists();
+
+            if (!$hasDiscountableItems) {
+                throw new \Exception("Cannot apply discount: None of the products in this order are eligible for discount.", 422);
+            }
+        }
+
         // Delete previous image if one exists
         if ($order->discount_id_image_path && Storage::disk(self::DISK)->exists($order->discount_id_image_path)) {
             Storage::disk(self::DISK)->delete($order->discount_id_image_path);

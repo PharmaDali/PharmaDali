@@ -30,6 +30,13 @@ const getDiscountLabel = (type) => {
 export default function PosCurrentOrder() {
   const {
     orderItems: items,
+    totalQty,
+    subtotal,
+    discountableSubtotal,
+    hasDiscountableItems,
+    discountAmount,
+    orderTotal: netTotal,
+    isItemDiscountable,
     paymentMethod,
     setPaymentMethod,
     paymentError,
@@ -48,17 +55,6 @@ export default function PosCurrentOrder() {
     setShouldPrintReceipt,
   } = usePosContext();
 
-  const totalQty = items.reduce((sum, item) => sum + item.qty, 0);
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.qty * item.selling_price,
-    0
-  );
-  const discountPctNum = parseFloat(discountPercentage) || 0;
-  const discountAmount =
-    discountType !== "none"
-      ? Math.round(subtotal * (discountPctNum / 100) * 100) / 100
-      : 0;
-  const netTotal = Math.max(0, subtotal - discountAmount);
   const isOrderEmpty = items.length === 0;
 
   const numericCash = Number(cashReceived);
@@ -216,6 +212,67 @@ export default function PosCurrentOrder() {
                   </td>
                 </tr>
               ))}
+              {items.map((item) => {
+                const isDiscountable = isItemDiscountable ? isItemDiscountable(item) : true;
+                return (
+                  <tr key={item.id}>
+                    <td
+                      className="px-3 py-2 border-0 border-bottom text-start text-truncate"
+                      style={{ color: "#333", fontWeight: 500 }}
+                    >
+                      <div className="d-flex align-items-center gap-1">
+                        <span className="text-truncate">{getFullProductName(item.product)}</span>
+                        {!isDiscountable && (
+                          <span
+                            className="badge bg-secondary-subtle text-secondary fw-normal flex-shrink-0"
+                            style={{ fontSize: "9px" }}
+                            title="Non-discountable product"
+                          >
+                            Non-discountable
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td
+                      className="px-2 py-2 border-0 border-bottom text-center"
+                      style={{ color: "#333" }}
+                    >
+                      {item.qty}
+                    </td>
+                    <td
+                      className="px-2 py-2 border-0 border-bottom text-end"
+                      style={{ color: "#333" }}
+                    >
+                      {parseFloat(item.selling_price).toFixed(2)}
+                    </td>
+                    <td
+                      className="px-3 py-2 border-0 border-bottom text-end"
+                      style={{ color: "#333" }}
+                    >
+                      <div className="d-flex align-items-center justify-content-end gap-2">
+                        <span>{(item.qty * item.selling_price).toFixed(2)}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeFromOrder(item.id)}
+                          style={{
+                            background: "none",
+                            border: "none",
+                            padding: 0,
+                            cursor: "pointer",
+                            color: "#e25252",
+                            fontSize: 16,
+                            fontWeight: "bold",
+                            lineHeight: 1,
+                          }}
+                          title="Remove item"
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -229,6 +286,7 @@ export default function PosCurrentOrder() {
         discountIdNumber={discountIdNumber}
         setDiscountIdNumber={setDiscountIdNumber}
         className="mb-2"
+        disabled={!hasDiscountableItems}
       />
 
       <PaymentMethodSelect

@@ -569,6 +569,11 @@
   white-space: nowrap;
 }
 
+.inventory-status-no-stocks {
+  background: transparent;
+  color: #dc2626;
+}
+
 .inventory-status-low-stocks {
   background: transparent;
   color: #f59e0b;

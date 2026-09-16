@@ -260,9 +260,10 @@ export default function HomeScreen() {
                     : (typeof item?.is_available === 'boolean'
                       ? item.is_available
                       : Number(item.is_available) === 1)) &&
-                  (item?.is_expired == null ? true : !Boolean(Number(item.is_expired))) &&
-                  (item?.stock === undefined || Number(item?.stock) > 0)
+                  (item?.is_expired == null ? true : !Boolean(Number(item.is_expired)))
                 }
+                isOutOfStock={Boolean(item?.is_out_of_stock) || (item?.stock !== undefined && Number(item?.stock) <= 0)}
+                stock={item?.stock}
                 onAddToCart={handleAddToCart}
                 style={{ width: '100%' }}
               />

@@ -48,9 +48,8 @@ class PosOrderService
                 $lineTotal = $item['qty'] * $pharmacyProduct->selling_price;
                 $subtotal += $lineTotal;
 
-                $isPrescribed = (bool) ($pharmacyProduct->product?->is_prescribed ?? false);
                 $isProductDiscountable = (bool) ($pharmacyProduct->is_discountable ?? true);
-                if ($isPrescribed || $isProductDiscountable) {
+                if ($isProductDiscountable) {
                     $discountableSubtotal += $lineTotal;
                 }
             }
@@ -59,6 +58,12 @@ class PosOrderService
             $discountType = $data['discount_type'] ?? 'none';
             $discountPercentageInput = isset($data['discount_percentage']) ? (float) $data['discount_percentage'] : null;
             $discountAmountInput = isset($data['discount_amount']) ? (float) $data['discount_amount'] : null;
+
+            if ($discountableSubtotal <= 0) {
+                $discountType = 'none';
+                $discountPercentageInput = 0;
+                $discountAmountInput = 0;
+            }
 
             [$discountAmount, $discountPercentage] = $this->discountCalculator->calculateDiscount(
                 subtotal: $subtotal,
@@ -87,6 +92,10 @@ class PosOrderService
                 'discount_percentage' => $discountPercentage,
                 'discount_id_number' => $data['discount_id_number'] ?? null,
                 'discount_remarks' => $data['discount_remarks'] ?? null,
+                'discount_type' => ($discountableSubtotal > 0) ? $discountType : 'none',
+                'discount_percentage' => ($discountableSubtotal > 0) ? $discountPercentage : 0,
+                'discount_id_number' => ($discountableSubtotal > 0 && $discountType !== 'none') ? ($data['discount_id_number'] ?? null) : null,
+                'discount_remarks' => ($discountableSubtotal > 0 && $discountType !== 'none') ? ($data['discount_remarks'] ?? null) : null,
                 'discount_amount' => $discountAmount,
                 'total_amount' => $totalAmount,
                 'amount_received' => $amountReceived,

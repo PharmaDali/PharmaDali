@@ -60,10 +60,11 @@ function truncateText(value, maxLength = 48) {
 
 function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
   const displayName = truncateText(item.description);
+  const canCheckout = item.canCheckout !== false;
 
   return (
-    <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-2" style={{ opacity: item.isAvailable === false ? 0.7 : 1 }}>
-      {item.isAvailable !== false && (
+    <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-2" style={{ opacity: canCheckout ? 1 : 0.7 }}>
+      {canCheckout && (
         <Checkbox checked={item.selected} onPress={onToggle} />
       )}
       <ProductImage
@@ -73,9 +74,11 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
         quantity={item?.quantity}
         isPrescribed={item?.prescriptionRequired}
         isAvailable={item?.isAvailable}
+        isOutOfStock={item?.isOutOfStock}
+        stock={item?.stock}
         width={80}
         height={80}
-        containerStyle={{ borderRadius: 8, marginLeft: item.isAvailable !== false ? 0 : 8 }}
+        containerStyle={{ borderRadius: 8, marginLeft: canCheckout ? 0 : 8 }}
       />
       <View className="flex-1 ml-3">
         <View className="flex-row justify-between items-start">
@@ -103,14 +106,23 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
           <Text className="text-sm" style={styles.priceText}>
             PHP {item.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
           </Text>
-          {item.isAvailable !== false ? (
+          {canCheckout ? (
             <QuantityControl
               quantity={item.quantity}
               onIncrement={onIncrement}
               onDecrement={onDecrement}
             />
           ) : (
-            <Text className="text-xs text-gray-400" style={styles.fontMedium}>Qty: {item.quantity}</Text>
+            <View className="items-end">
+              <Text className="text-xs text-gray-400" style={styles.fontMedium}>Qty: {item.quantity}</Text>
+              {!item.isAvailable ? (
+                <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>Unavailable</Text>
+              ) : item.isOutOfStock ? (
+                <Text className="text-[10px] text-[#D92D20] mt-0.5" style={styles.fontMedium}>Out of Stock</Text>
+              ) : item.isExpired ? (
+                <Text className="text-[10px] text-[#D92D20] mt-0.5" style={styles.fontMedium}>Expired</Text>
+              ) : null}
+            </View>
           )}
         </View>
       </View>
@@ -242,8 +254,8 @@ export default function CartScreen() {
         )}
 
         {!loading && !errorMessage && (() => {
-          const availableItems = cartItems.filter(i => i.isAvailable);
-          const unavailableItems = cartItems.filter(i => !i.isAvailable);
+          const availableItems = cartItems.filter(i => i.canCheckout);
+          const unavailableItems = cartItems.filter(i => !i.canCheckout);
 
           return (
             <View>
@@ -262,10 +274,10 @@ export default function CartScreen() {
 
               {unavailableItems.length > 0 && (
                 <View className="mt-4 border-t border-gray-200 pt-4 px-4">
-                  <Text className="text-sm mb-3" style={styles.fontBold}>Unavailable Items</Text>
+                  <Text className="text-sm mb-3" style={styles.fontBold}>Unavailable / Out of Stock Items</Text>
                   <View className="bg-gray-100 rounded-xl p-3 mb-4">
                     <Text className="text-xs text-gray-600" style={styles.fontMedium}>
-                      These items are out of stock and cannot be checked out.
+                      These items are out of stock or unavailable and cannot be checked out.
                     </Text>
                   </View>
                   {unavailableItems.map((item) => (

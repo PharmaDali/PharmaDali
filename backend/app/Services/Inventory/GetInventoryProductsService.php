@@ -110,7 +110,10 @@ class GetInventoryProductsService
                 ->where('expiry_date', '>', $todayStr)
                 ->where('expiry_date', '<=', $expiringLimit)
             );
+        } elseif ($status === 'No Stocks') {
+            $query->where('stock', '<=', 0);
         } elseif ($status === 'Low Stocks') {
+            $query->where('stock', '>', 0);
             if (!empty($this->dynamicLowStockIds)) {
                 $query->where(function ($q) {
                     $q->whereIn('id', $this->dynamicLowStockIds)
@@ -158,12 +161,14 @@ class GetInventoryProductsService
         $expiringInDays = $earliestExpiryDate ? (int) $this->today->diffInDays($earliestExpiryDate, false) : 365;
 
         $prediction = $this->restockMap[$bp->id] ?? null;
+        $isNoStock  = $realStock <= 0;
         $isLowStock = in_array($bp->id, $this->dynamicLowStockIds, true) || ($realStock <= $this->lowStockThreshold);
 
         // Compute FEFO status
         $status = match (true) {
             $earliestExpiryDate !== null && $expiringInDays <= 0 => 'Expired',
             $earliestExpiryDate !== null && $expiringInDays <= $this->expiryDaysThreshold => 'Expiring soon',
+            $isNoStock => 'No Stocks',
             $isLowStock => 'Low Stocks',
             default => 'Healthy',
         };
@@ -194,8 +199,10 @@ class GetInventoryProductsService
             'sellingPrice'     => (float) $bp->selling_price,
             'unitCost'         => (float) ($bp->unit_cost ?? 0.00),
             'status'           => $status,
-            'is_available'     => $bp->is_available,
+            'is_available'     => (bool) $bp->is_available,
+            'is_out_of_stock'  => (bool) ($bp->is_out_of_stock ?? ($realStock <= 0)),
             'is_discountable'  => $bp->is_discountable,
+            'is_prescribed'    => (bool) ($product->is_prescribed ?? false),
             'product_id'       => $product->id ?? null,
             'product_type'     => $product->product_type ?? 'medicine',
             'image_url'        => $product->image_url ?? null,

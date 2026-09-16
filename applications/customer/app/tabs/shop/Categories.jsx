@@ -178,6 +178,8 @@ const Categories = () => {
               ? item.is_available
               : Number(item.is_available) === 1)
         }
+        isOutOfStock={Boolean(item?.is_out_of_stock) || (item?.stock !== undefined && Number(item?.stock) <= 0)}
+        stock={item?.stock}
         onAddToCart={handleAddToCart}
         style={{ width: '100%' }}
       />

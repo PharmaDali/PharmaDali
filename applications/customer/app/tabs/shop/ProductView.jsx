@@ -130,13 +130,16 @@ const ProductView = () => {
     );
   }
 
-  const { product, selling_price, category, is_available, is_expired, stock } = productData;
+  const { product, selling_price, category, is_available, is_out_of_stock, is_expired, stock } = productData;
   const name = product?.product_name || product?.brand_name || 'Unnamed Product';
   const description = product?.description || 'No description available.';
-  const isAvailable = 
-    (is_available === undefined ? true : (typeof is_available === 'boolean' ? is_available : Number(is_available) === 1)) && 
-    (is_expired === undefined ? true : !Boolean(Number(is_expired))) &&
-    (stock === undefined || Number(stock) > 0);
+
+  const isAvailable = (is_available === undefined ? true : (typeof is_available === 'boolean' ? is_available : Number(is_available) === 1)) && 
+    (is_expired === undefined ? true : !Boolean(Number(is_expired)));
+
+  const isOutOfStock = Boolean(is_out_of_stock) || (stock !== undefined && stock !== null && Number(stock) <= 0);
+  const canAddToCart = isAvailable && !isOutOfStock;
+  const buttonText = isOutOfStock ? 'Out of Stock' : (!isAvailable ? 'Unavailable' : 'Add to cart');
 
   return (
     <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
@@ -159,6 +162,8 @@ const ProductView = () => {
             product={product}
             categoryName={category?.category_name}
             isAvailable={isAvailable}
+            isOutOfStock={isOutOfStock}
+            stock={stock}
             width={260}
             height={260}
           />
@@ -175,12 +180,12 @@ const ProductView = () => {
 
         <View className="px-5 mb-4">
           <TouchableOpacity
-            className={`rounded-xl py-3 items-center flex-row justify-center ${isAvailable ? 'bg-[#48AAD9]' : 'bg-gray-400'}`}
-            onPress={isAvailable ? handleAddToCartPress : undefined}
-            disabled={!isAvailable}
+            className={`rounded-xl py-3 items-center flex-row justify-center ${canAddToCart ? 'bg-[#48AAD9]' : 'bg-gray-400'}`}
+            onPress={canAddToCart ? handleAddToCartPress : undefined}
+            disabled={!canAddToCart}
           >
             <Text className="text-sm text-white" style={styles.fontSemiBold}>
-              {isAvailable ? 'Add to cart' : 'Out of Stock'}
+              {buttonText}
             </Text>
           </TouchableOpacity>
         </View>
@@ -222,6 +227,8 @@ const ProductView = () => {
                   pharmacyId={pharmacyId}
                   isPrescribed={Boolean(item.product?.is_prescribed)}
                   isAvailable={item.is_available}
+                  isOutOfStock={Boolean(item.is_out_of_stock) || (item.stock !== undefined && Number(item.stock) <= 0)}
+                  stock={item.stock}
                   style={{ width: 150, marginRight: 12 }}
                 />
               ))}

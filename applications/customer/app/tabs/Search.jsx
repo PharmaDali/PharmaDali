@@ -91,8 +91,8 @@ export default function SearchTab() {
   const renderProduct = useCallback(({ item }) => {
     const isAvailable =
       (item.is_available === undefined ? true : Boolean(Number(item.is_available))) &&
-      (item.is_expired === undefined ? true : !Boolean(Number(item.is_expired))) &&
-      (item.stock === undefined || Number(item.stock) > 0);
+      (item.is_expired === undefined ? true : !Boolean(Number(item.is_expired)));
+    const isOutOfStock = Boolean(item.is_out_of_stock) || (item.stock !== undefined && Number(item.stock) <= 0);
 
     return (
       <View style={styles.productWrapper}>
@@ -109,6 +109,8 @@ export default function SearchTab() {
           onAddToCart={handleAddToCart}
           isPrescribed={Boolean(item.product?.is_prescribed)}
           isAvailable={isAvailable}
+          isOutOfStock={isOutOfStock}
+          stock={item.stock}
         />
       </View>
     );

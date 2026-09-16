@@ -67,10 +67,14 @@ function mapCartApiItem(item) {
       hasRxMarker(categoryName) ||
       hasRxMarker(description) ||
       hasRxMarker(item?.product?.description),
-    isDiscountable:
-      typeof item?.is_discountable === 'boolean'
-        ? item.is_discountable
-        : true,
+    isDiscountable: (() => {
+      const val = item?.is_discountable ?? item?.pharmacy_product?.is_discountable ?? item?.pharmacyProduct?.is_discountable;
+      if (val === undefined || val === null) return true;
+      if (typeof val === 'boolean') return val;
+      if (typeof val === 'number') return val !== 0;
+      if (typeof val === 'string') return val === '1' || val.toLowerCase() === 'true';
+      return Boolean(val);
+    })(),
     pharmacy: {
       id: item?.pharmacy?.id ?? null,
       pharmacyName: item?.pharmacy?.pharmacy_name || 'Unknown pharmacy',
@@ -83,25 +87,30 @@ function mapCartApiItem(item) {
     category: item?.category || {},
     availability: item?.availability || {},
     img: item?.product?.image_url || item?.product?.image_path || null,
+    stock: item?.availability?.stock ?? item?.stock ?? 0,
     isAvailable: (() => {
       const isAvailFlag = item?.availability?.is_available ?? item?.is_available;
-      const isExpiredFlag = item?.availability?.is_expired ?? item?.is_expired;
-      const stock = item?.availability?.stock ?? item?.stock;
-      
-      const avail = isAvailFlag == null 
-        ? true 
-        : (typeof isAvailFlag === 'boolean' ? isAvailFlag : Number(isAvailFlag) === 1);
-        
-      const expired = isExpiredFlag != null && (typeof isExpiredFlag === 'boolean' ? isExpiredFlag : Number(isExpiredFlag) === 1);
-      
-      if (stock !== undefined && stock <= 0) {
-        return false;
-      }
-      if (expired) {
-        return false;
-      }
-      return avail;
+      if (isAvailFlag == null) return true;
+      return typeof isAvailFlag === 'boolean' ? isAvailFlag : Number(isAvailFlag) === 1;
     })(),
+    isOutOfStock: (() => {
+      const isOosFlag = item?.availability?.is_out_of_stock ?? item?.is_out_of_stock;
+      if (isOosFlag != null) {
+        return typeof isOosFlag === 'boolean' ? isOosFlag : Number(isOosFlag) === 1;
+      }
+      const stock = item?.availability?.stock ?? item?.stock;
+      if (stock !== undefined && stock !== null) {
+        return Number(stock) <= 0;
+      }
+      return false;
+    })(),
+    isExpired: (() => {
+      const isExpiredFlag = item?.availability?.is_expired ?? item?.is_expired;
+      return isExpiredFlag != null && (typeof isExpiredFlag === 'boolean' ? isExpiredFlag : Number(isExpiredFlag) === 1);
+    })(),
+    get canCheckout() {
+      return Boolean(this.isAvailable && !this.isOutOfStock && !this.isExpired);
+    },
   };
 }
 
@@ -162,7 +171,7 @@ export async function clearCart() {
 
 export function toggleCartItemSelection(items, id) {
   return items.map((item) =>
-    item.id === id && item.isAvailable !== false ? { ...item, selected: !item.selected } : item,
+    item.id === id && item.canCheckout ? { ...item, selected: !item.selected } : item,
   );
 }
 
@@ -186,7 +195,7 @@ export function changeCartItemQuantity(items, id, direction) {
 }
 
 export function toggleAllCartItems(items, selectedValue) {
-  return items.map((item) => (item.isAvailable ? { ...item, selected: selectedValue } : item));
+  return items.map((item) => (item.canCheckout ? { ...item, selected: selectedValue } : item));
 }
 
 function parseTimeToMinutes(timeValue) {
@@ -257,7 +266,7 @@ export function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
 }
 
 export function buildCartViewState(items) {
-  const availableItems = items.filter((item) => item.isAvailable);
+  const availableItems = items.filter((item) => item.canCheckout);
   const selectedItems = items.filter((item) => item.selected);
   const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const hasPrescription = items.some((item) => item.prescriptionRequired && item.selected);

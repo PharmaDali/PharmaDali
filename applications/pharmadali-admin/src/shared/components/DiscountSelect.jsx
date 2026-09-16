@@ -55,6 +55,7 @@ export function DiscountControl({
   discountIdNumber,
   setDiscountIdNumber,
   className = "mb-3",
+  disabled = false,
 }) {
   const [fetchedDiscounts, setFetchedDiscounts] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
@@ -86,6 +87,7 @@ export function DiscountControl({
   ];
 
   const handleTypeChange = (newType, selectedOpt) => {
+    if (disabled) return;
     setDiscountType(newType);
 
     if (newType === "none") {
@@ -103,61 +105,91 @@ export function DiscountControl({
     <div
       className={`pos-discount-wrap p-3 rounded-4 ${className}`}
       style={{
-        backgroundColor: "rgba(72, 170, 217, 0.16)",
-        border: "1px solid rgba(150, 210, 238, 0.2)",
+        backgroundColor: disabled ? "#f8fafc" : "rgba(72, 170, 217, 0.16)",
+        border: disabled ? "1px solid #e2e8f0" : "1px solid rgba(150, 210, 238, 0.2)",
+        opacity: disabled ? 0.75 : 1,
+        transition: "all 0.2s ease",
       }}
     >
-      <div className="pos-discount-title fw-semibold mb-2" style={{ color: "#444444", fontSize: "14px" }}>
-        Discount
+      <div className="d-flex align-items-center justify-content-between mb-2">
+        <div
+          className="pos-discount-title fw-semibold"
+          style={{ color: disabled ? "#64748b" : "#444444", fontSize: "14px" }}
+        >
+          Discount
+        </div>
+        {disabled && (
+          <span
+            className="badge rounded-pill fw-normal"
+            style={{
+              fontSize: "10px",
+              backgroundColor: "#e2e8f0",
+              color: "#64748b",
+              padding: "3px 8px",
+            }}
+          >
+            Order not discountable
+          </span>
+        )}
       </div>
 
       <div className="row g-2 align-items-end">
         <div className="col-6">
-          <label style={{ fontSize: "11px", color: "#64748b" }} className="fw-semibold mb-1 d-block">
+          <label
+            style={{ fontSize: "11px", color: disabled ? "#94a3b8" : "#64748b" }}
+            className="fw-semibold mb-1 d-block"
+          >
             Type
           </label>
           <DiscountSelect
-            value={discountType}
+            value={disabled ? "none" : discountType}
             onChange={handleTypeChange}
             optionsList={discountOptions}
+            disabled={disabled}
             style={{
               fontSize: "12px",
               borderRadius: "8px",
-              backgroundColor: "#E3EBF3",
+              backgroundColor: disabled ? "#f1f5f9" : "#E3EBF3",
               border: "1px solid rgba(217, 217, 217, 0.45)",
-              color: "#334155",
+              color: disabled ? "#94a3b8" : "#334155",
               height: "36px",
+              cursor: disabled ? "not-allowed" : "pointer",
             }}
           />
         </div>
 
         <div className="col-6">
-          <label style={{ fontSize: "11px", color: "#64748b" }} className="fw-semibold mb-1 d-block">
+          <label
+            style={{ fontSize: "11px", color: disabled ? "#94a3b8" : "#64748b" }}
+            className="fw-semibold mb-1 d-block"
+          >
             ID No. (Optional)
           </label>
           <input
             type="text"
             className="form-control form-control-sm"
+            disabled={disabled}
             style={{
               fontSize: "12px",
               borderRadius: "8px",
-              backgroundColor: isFocused || discountIdNumber ? "#ffffff" : "#E3EBF3",
-              border: isFocused ? "1.5px solid #96D2EE" : "1px solid rgba(217, 217, 217, 0.45)",
-              color: "#334155",
+              backgroundColor: disabled ? "#f1f5f9" : (isFocused || discountIdNumber ? "#ffffff" : "#E3EBF3"),
+              border: isFocused && !disabled ? "1.5px solid #96D2EE" : "1px solid rgba(217, 217, 217, 0.45)",
+              color: disabled ? "#94a3b8" : "#334155",
               height: "36px",
               boxShadow: "none",
+              cursor: disabled ? "not-allowed" : "text",
               transition: "all 0.2s ease",
             }}
-            placeholder="Enter ID number"
-            value={discountIdNumber}
-            onFocus={() => setIsFocused(true)}
+            placeholder={disabled ? "N/A" : "Enter ID number"}
+            value={disabled ? "" : discountIdNumber}
+            onFocus={() => !disabled && setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            onChange={(e) => setDiscountIdNumber(e.target.value)}
+            onChange={(e) => !disabled && setDiscountIdNumber(e.target.value)}
           />
         </div>
       </div>
 
-      {discountType === "custom" && (
+      {!disabled && discountType === "custom" && (
         <div className="mt-2" style={{ maxWidth: "50%" }}>
           <label style={{ fontSize: "11px", color: "#64748b" }} className="fw-semibold mb-1 d-block">
             Custom Rate (%)

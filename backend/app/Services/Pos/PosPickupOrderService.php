@@ -81,9 +81,8 @@ class PosPickupOrderService
             $discountableSubtotal = 0;
             foreach ($order->items as $item) {
                 $pharmacyProduct = $item->pharmacyProduct;
-                $isPrescribed = (bool) ($pharmacyProduct?->product?->is_prescribed ?? false);
                 $isProductDiscountable = (bool) ($pharmacyProduct?->is_discountable ?? true);
-                if ($isPrescribed || $isProductDiscountable) {
+                if ($isProductDiscountable) {
                     $discountableSubtotal += (float) $item->line_total;
                 }
             }

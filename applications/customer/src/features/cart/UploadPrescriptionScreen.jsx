@@ -38,6 +38,8 @@ function PrescriptionItemRow({ item }) {
         quantity={item.quantity}
         isPrescribed={item.prescriptionRequired}
         isAvailable={item.isAvailable}
+        isOutOfStock={item.isOutOfStock}
+        stock={item.stock}
         width={56}
         height={56}
         containerStyle={{ borderRadius: 8 }}

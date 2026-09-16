@@ -67,8 +67,8 @@ export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCar
   const renderProduct = ({ item }) => {
     const isAvailable =
       (item.is_available === undefined ? true : Boolean(Number(item.is_available))) &&
-      (item.is_expired === undefined ? true : !Boolean(Number(item.is_expired))) &&
-      (item.stock === undefined || Number(item.stock) > 0);
+      (item.is_expired === undefined ? true : !Boolean(Number(item.is_expired)));
+    const isOutOfStock = Boolean(item.is_out_of_stock) || (item.stock !== undefined && Number(item.stock) <= 0);
 
     return (
       <View className="flex-1 p-1.5 items-center" style={{ maxWidth: '50%' }}>
@@ -85,6 +85,8 @@ export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCar
           onAddToCart={onAddToCart}
           isPrescribed={Boolean(item.product?.is_prescribed)}
           isAvailable={isAvailable}
+          isOutOfStock={isOutOfStock}
+          stock={item.stock}
         />
       </View>
     );

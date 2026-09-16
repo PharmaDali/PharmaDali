@@ -72,7 +72,14 @@ const PickupDetailsScreen = () => {
 
   const hasDiscountableItems = useMemo(() => {
     if (!items || items.length === 0) return false
-    return items.some((item) => item.isDiscountable !== false)
+    return items.some((item) => {
+      const val = item?.isDiscountable ?? item?.is_discountable
+      if (val === undefined || val === null) return true
+      if (typeof val === 'boolean') return val
+      if (typeof val === 'number') return val !== 0
+      if (typeof val === 'string') return val === '1' || val.toLowerCase() === 'true'
+      return Boolean(val)
+    })
   }, [items])
 
   const { minimumDateTime, closingDateTime, hasWindowToday } = useMemo(
@@ -352,7 +359,7 @@ const PickupDetailsScreen = () => {
     const selectedPharmacyLabel = selectedPharmacy?.name || pharmacyLabel || ''
     
     const scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, selectedTime)
-    const isAvailingDiscount = Boolean(discountIdImage?.uri && discountType && discountIdNumber)
+    const isAvailingDiscount = Boolean(hasDiscountableItems && discountIdImage?.uri && discountType && discountIdNumber)
     const payload = {
       items,
       hasPrescription,
