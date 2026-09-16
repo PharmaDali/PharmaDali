@@ -30,7 +30,7 @@ class ViewCustomerCart
 			->with([
 				'cart:id,customer_id,pharmacy_id,status',
 				'cart.pharmacy:id,pharmacy_name,location,opening_hour,closing_hour,is_active,allow_otc_discount',
-				'pharmacyProduct:id,pharmacy_id,product_id,category_id,stock,selling_price,is_available,is_discountable',
+				'pharmacyProduct:id,pharmacy_id,product_id,category_id,stock,selling_price,is_available,is_discountable,is_out_of_stock',
 				'pharmacyProduct.batches:id,pharmacy_product_id,stock,expiry_date',
 				'pharmacyProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
 				'pharmacyProduct.category:id,category_name,description',
@@ -46,8 +46,7 @@ class ViewCustomerCart
 			$quantity = (int) $item->quantity;
 			$unitPrice = (float) $item->price_snapshot;
 			$prescriptionRequired = (bool) ($item->pharmacyProduct?->product?->is_prescribed ?? false);
-			$isProductDiscountable = (bool) ($item->pharmacyProduct?->is_discountable ?? true);
-			$isDiscountable = $prescriptionRequired || $isProductDiscountable;
+			$isDiscountable = (bool) ($item->pharmacyProduct?->is_discountable ?? true);
 
 			return [
 				'id' => $item->id,
@@ -87,6 +86,7 @@ class ViewCustomerCart
 				],
 				'availability' => [
 					'is_available' => (bool) ($item->pharmacyProduct?->is_available ?? false),
+					'is_out_of_stock' => (bool) ($item->pharmacyProduct?->is_out_of_stock ?? (($item->pharmacyProduct?->stock ?? 0) <= 0)),
 					'stock' => (int) ($item->pharmacyProduct?->stock ?? 0),
 					'current_selling_price' => (float) ($item->pharmacyProduct?->selling_price ?? 0),
 					'expiry_date' => $item->pharmacyProduct?->batches

@@ -33,6 +33,8 @@ function OrderItemRow({ item }) {
         quantity={item.quantity}
         isPrescribed={item.prescriptionRequired}
         isAvailable={item.isAvailable}
+        isOutOfStock={item.isOutOfStock}
+        stock={item.stock}
         width={64}
         height={64}
         containerStyle={{ borderRadius: 8 }}
@@ -49,7 +51,7 @@ function OrderItemRow({ item }) {
         )}
         <View className="flex-row justify-between items-center mt-1">
           <Text className="text-sm" style={styles.priceText}>
-            ₱{item.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            PHP {item.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
           </Text>
           <View className="items-end">
             <Text className="text-[10px] text-gray-500" style={styles.fontMedium}>{item.quantity}x</Text>

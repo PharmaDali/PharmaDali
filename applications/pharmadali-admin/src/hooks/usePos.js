@@ -122,16 +122,43 @@ export function usePos() {
     setOrderItems((prev) => prev.filter((i) => i.id !== productId));
   };
 
+  const isItemDiscountable = (item) => {
+    const val = item?.is_discountable ?? item?.product?.is_discountable;
+    if (val === undefined || val === null) return true;
+    if (typeof val === 'boolean') return val;
+    if (typeof val === 'number') return val !== 0;
+    if (typeof val === 'string') return val === '1' || val.toLowerCase() === 'true';
+    return Boolean(val);
+  };
+
   // Calculations
+  const totalQty = orderItems.reduce((sum, item) => sum + item.qty, 0);
+
   const subtotal = orderItems.reduce(
     (sum, item) => sum + item.qty * item.selling_price,
     0
   );
 
+  const discountableSubtotal = orderItems.reduce(
+    (sum, item) => sum + (isItemDiscountable(item) ? item.qty * item.selling_price : 0),
+    0
+  );
+
+  const hasDiscountableItems = discountableSubtotal > 0;
+
+  // Auto reset discount fields if order contains no discountable products
+  useEffect(() => {
+    if (orderItems.length > 0 && !hasDiscountableItems && discountType !== "none") {
+      setDiscountType("none");
+      setDiscountPercentage("");
+      setDiscountIdNumber("");
+    }
+  }, [orderItems.length, hasDiscountableItems, discountType]);
+
   const discountPctNum = parseFloat(discountPercentage) || 0;
   const discountAmount =
-    discountType !== "none"
-      ? Math.round(subtotal * (discountPctNum / 100) * 100) / 100
+    discountType !== "none" && hasDiscountableItems
+      ? Math.round(discountableSubtotal * (discountPctNum / 100) * 100) / 100
       : 0;
   const orderTotal = Math.max(0, subtotal - discountAmount);
 
@@ -174,11 +201,14 @@ export function usePos() {
         discount_type: discountType,
         discount_percentage: discountPctNum,
         discount_id_number: discountIdNumber,
+        discount_type: hasDiscountableItems ? discountType : "none",
+        discount_percentage: hasDiscountableItems ? discountPctNum : 0,
+        discount_id_number: hasDiscountableItems ? discountIdNumber : null,
         amount_received: Number(cashReceived),
         change_amount: Math.max(changeAmount, 0),
         note: `POS Sale - ${paymentMethod.toUpperCase()}${
           paymentMethod === "gcash" ? " Ref: " + gcashReference : ""
-        }${discountType !== "none" ? " [" + discountType.toUpperCase() + " Discount]" : ""}`,
+        }${hasDiscountableItems && discountType !== "none" ? " [" + discountType.toUpperCase() + " Discount]" : ""}`,
       };
 
       const response = await createPosOrder(orderData);
@@ -269,7 +299,13 @@ export function usePos() {
     setGcashReference,
     paymentResult,
     isProcessingPayment,
+    totalQty,
+    subtotal,
+    discountableSubtotal,
+    hasDiscountableItems,
+    discountAmount,
     orderTotal,
+    isItemDiscountable,
     handleScroll,
     handleSelectProduct,
     handleAddQuantityToOrder,

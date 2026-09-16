@@ -14,6 +14,10 @@ export default function PosMobileOrderSummary() {
   const [isExpanded, setIsExpanded] = useState(false);
   const {
     orderItems: items,
+    totalQty,
+    subtotal,
+    discountAmount,
+    orderTotal: netTotal,
     paymentMethod,
     paymentError,
     cashReceived,
@@ -25,17 +29,6 @@ export default function PosMobileOrderSummary() {
     setShouldPrintReceipt,
   } = usePosContext();
 
-  const totalQty = items.reduce((sum, item) => sum + item.qty, 0);
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.qty * item.selling_price,
-    0
-  );
-  const discountPctNum = parseFloat(discountPercentage) || 0;
-  const discountAmount =
-    discountType !== "none"
-      ? Math.round(subtotal * (discountPctNum / 100) * 100) / 100
-      : 0;
-  const netTotal = Math.max(0, subtotal - discountAmount);
   const isOrderEmpty = items.length === 0;
 
   const numericCash = Number(cashReceived);

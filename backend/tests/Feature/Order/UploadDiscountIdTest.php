@@ -4,7 +4,11 @@ namespace Tests\Feature\Order;
 
 use App\Models\Customer;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Pharmacy;
+use App\Models\PharmacyProduct;
+use App\Models\Products;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -128,5 +132,49 @@ class UploadDiscountIdTest extends TestCase
         ]);
 
         $response->assertStatus(429);
+    }
+
+    public function test_cannot_upload_discount_id_if_order_has_only_non_discountable_items(): void
+    {
+        $category = Category::create(['category_name' => 'General']);
+        $product = Products::create([
+            'product_name' => 'Cosmetic Lotion',
+            'product_type' => 'non_medicine',
+            'is_prescribed' => false,
+        ]);
+        $pharmacyProduct = PharmacyProduct::create([
+            'pharmacy_id' => $this->pharmacy->id,
+            'product_id' => $product->id,
+            'category_id' => $category->id,
+            'stock' => 50,
+            'selling_price' => 100.00,
+            'is_discountable' => false,
+            'is_available' => true,
+        ]);
+
+        OrderItem::create([
+            'order_id' => $this->order->id,
+            'pharmacy_product_id' => $pharmacyProduct->id,
+            'product_name' => 'Cosmetic Lotion',
+            'quantity' => 1,
+            'unit_price_snapshot' => 100.00,
+            'line_total' => 100.00,
+        ]);
+
+        Sanctum::actingAs($this->customerUser, ['customer']);
+
+        $fakeImage = UploadedFile::fake()->image('senior_id.jpg', 500, 500);
+
+        $response = $this->postJson("/api/customer/orders/{$this->order->id}/discount-id", [
+            'discount_id_image' => $fakeImage,
+            'discount_type' => 'senior_citizen',
+            'discount_id_number' => 'SC-12345',
+        ]);
+
+        $response->assertStatus(422)
+                 ->assertJson([
+                     'success' => false,
+                     'message' => 'Cannot apply discount: None of the products in this order are eligible for discount.',
+                 ]);
     }
 }
