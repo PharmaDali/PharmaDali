@@ -45,22 +45,32 @@ class ProductBatchService
     }
 
     /**
+     * Update a batch's stock and details.
+     */
+    public function updateBatch(PharmacyProduct $pharmacyProduct, ProductBatch $batch, array $data): array
+    {
+        $oldStock = (int) $batch->stock;
+        $updated  = $this->batchRepository->updateBatch($batch, $data);
+
+        if (array_key_exists('stock', $data) && (int) $data['stock'] !== $oldStock) {
+            $this->logService->logAdjustment(
+                pharmacyId:          $pharmacyProduct->pharmacy_id,
+                pharmacyProductId:   $pharmacyProduct->id,
+                batchId:             $batch->id,
+                oldStock:            $oldStock,
+                newStock:            (int) $updated->stock,
+            );
+        }
+
+        return $this->formatBatch($updated, Carbon::today());
+    }
+
+    /**
      * Update a batch's stock directly (mid-level approach).
      */
     public function updateBatchStock(PharmacyProduct $pharmacyProduct, ProductBatch $batch, int $newStock): array
     {
-        $oldStock = (int) $batch->stock;
-        $updated  = $this->batchRepository->updateBatchStock($batch, $newStock);
-
-        $this->logService->logAdjustment(
-            pharmacyId:          $pharmacyProduct->pharmacy_id,
-            pharmacyProductId:   $pharmacyProduct->id,
-            batchId:             $batch->id,
-            oldStock:            $oldStock,
-            newStock:            (int) $updated->stock,
-        );
-
-        return $this->formatBatch($updated, Carbon::today());
+        return $this->updateBatch($pharmacyProduct, $batch, ['stock' => $newStock]);
     }
 
     /**

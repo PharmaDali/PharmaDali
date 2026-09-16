@@ -73,14 +73,18 @@ class ProductBatchController extends Controller
             ->findOrFail($batch->pharmacy_product_id);
 
         $validated = $request->validate([
-            'stock' => 'required|integer|min:0',
+            'stock'             => 'sometimes|integer|min:0',
+            'supplier_name'     => 'nullable|string|max:255',
+            'batch_number'      => 'nullable|string|max:100',
+            'expiry_date'       => 'nullable|date',
+            'manufactured_date' => 'nullable|date',
         ]);
 
-        $updated = $this->batchService->updateBatchStock($pharmacyProduct, $batch, $validated['stock']);
+        $updated = $this->batchService->updateBatch($pharmacyProduct, $batch, $validated);
 
         return response()->json([
             'status'  => 'success',
-            'message' => 'Batch stock updated successfully',
+            'message' => 'Batch updated successfully',
             'data'    => $updated,
         ]);
     }

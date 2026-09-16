@@ -38,6 +38,7 @@ class CreatePharmacyProductRequest extends FormRequest
             'expiry_date'  => 'nullable|date',
             'is_prescribed'=> 'nullable|boolean',
             'batch_number' => 'nullable|string|max:100',
+            'supplier_name' => 'nullable|string|max:255',
             'manufactured_date' => 'nullable|date',
         ];
     }

@@ -153,4 +153,65 @@ class InventoryStatusAndPrescriptionTest extends TestCase
         $this->assertFalse($filteredLowStock->contains('product_id', $outOfStockProduct->id));
         $this->assertTrue($filteredLowStock->contains('product_id', $lowStockProduct->id));
     }
+
+    public function test_inventory_batches_include_supplier_name_and_support_update(): void
+    {
+        Sanctum::actingAs($this->adminUser, ['pharmacy_admin']);
+
+        $category = Category::create(['category_name' => 'Vitamins']);
+        $product = Products::create([
+            'pharmacy_id'   => $this->pharmacy->id,
+            'product_type'  => 'medicine',
+            'product_name'  => 'Vitamin B Complex',
+            'is_prescribed' => false,
+        ]);
+
+        $pharmacyProduct = PharmacyProduct::create([
+            'pharmacy_id'     => $this->pharmacy->id,
+            'product_id'      => $product->id,
+            'category_id'     => $category->id,
+            'stock'           => 50,
+            'selling_price'   => 20.00,
+            'is_discountable' => true,
+            'is_available'    => true,
+        ]);
+
+        // Add a batch with supplier_name
+        $batch = \App\Models\ProductBatch::create([
+            'pharmacy_product_id' => $pharmacyProduct->id,
+            'batch_number'        => 'LOT-VTB-001',
+            'supplier_name'       => 'Unilab Philippines',
+            'stock'               => 50,
+            'expiry_date'         => now()->addYear(),
+            'manufactured_date'   => now()->subMonth(),
+            'received_at'         => now(),
+        ]);
+
+        // 1. Verify GET /api/pharmacy/inventory/products returns supplier_name
+        $listResponse = $this->getJson('/api/pharmacy/inventory/products');
+        $listResponse->assertStatus(200);
+
+        $item = collect($listResponse->json('data'))->firstWhere('product_id', $product->id);
+        $this->assertNotNull($item);
+        $this->assertNotEmpty($item['batches']);
+        $this->assertEquals('Unilab Philippines', $item['batches'][0]['supplier_name']);
+        $this->assertEquals('LOT-VTB-001', $item['batches'][0]['batch_number']);
+
+        // 2. Verify PATCH /api/pharmacy/inventory/batches/{id} can update supplier_name
+        $patchResponse = $this->patchJson("/api/pharmacy/inventory/batches/{$batch->id}", [
+            'stock'         => 45,
+            'supplier_name' => 'Zuellig Pharma',
+        ]);
+        $patchResponse->assertStatus(200);
+        $this->assertEquals('Zuellig Pharma', $patchResponse->json('data.supplier_name'));
+        $this->assertEquals(45, $patchResponse->json('data.stock'));
+
+        // 3. Verify updated batch in database
+        $this->assertDatabaseHas('product_batches', [
+            'id'            => $batch->id,
+            'supplier_name' => 'Zuellig Pharma',
+            'stock'         => 45,
+        ]);
+    }
 }
+

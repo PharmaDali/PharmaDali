@@ -78,6 +78,7 @@ class StorePharmacyProductService
                     if ($pharmacyProduct) {
                         $this->batchRepository->createBatch($pharmacyProduct->id, [
                             'batch_number'      => $validated['batch_number'] ?? null,
+                            'supplier_name'     => $validated['supplier_name'] ?? null,
                             'stock'             => $stock,
                             'expiry_date'       => $expiryDate,
                             'manufactured_date' => $validated['manufactured_date'] ?? null,

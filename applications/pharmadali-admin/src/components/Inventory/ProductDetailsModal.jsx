@@ -20,6 +20,8 @@ export function ProductDetailsModal({
   handleBatchStockChange,
   batchEditDates,
   handleBatchDateChange,
+  batchEditSuppliers,
+  handleBatchSupplierChange,
   handleSaveAllBatches,
   hasBatchChanges,
   batchSaving,
@@ -36,6 +38,33 @@ export function ProductDetailsModal({
   const isMedicine = selectedItem?.product_type === "medicine";
   const fileInputRef = React.useRef(null);
   const today = new Date().toISOString().split("T")[0];
+
+  const getBatchStatusBadgeClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case "expired":
+        return "bg-danger-subtle text-danger border border-danger-subtle";
+      case "expiring soon":
+      case "expiring_soon":
+        return "bg-warning-subtle text-warning-emphasis border border-warning-subtle";
+      case "normal":
+      default:
+        return "bg-success-subtle text-success border border-success-subtle";
+    }
+  };
+
+  const formatMonthYear = (dateStr) => {
+    if (!dateStr) return "N/A";
+    try {
+      const parts = String(dateStr).split("T")[0].split("-");
+      if (parts.length === 3) {
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        return d.toLocaleDateString("en-PH", { month: "short", year: "numeric" });
+      }
+      return new Date(dateStr).toLocaleDateString("en-PH", { month: "short", year: "numeric" });
+    } catch {
+      return dateStr;
+    }
+  };
 
   const displayImage = modalDraft?.imagePreview || modalDraft?.imageUrl || selectedItem?.image_url;
 
@@ -368,123 +397,193 @@ export function ProductDetailsModal({
           </div>
 
           <div className="inventory-modal-section">
-            <div className="inventory-batch-section-header">
-              <h6 className="inventory-modal-section-title mb-0">Stock Batches</h6>
-              <span className="inventory-batch-total">
-                Total: <strong>{batches.reduce((s, b) => s + (b.stock ?? 0), 0)}</strong> units
+            <div className="d-flex align-items-center justify-content-between mb-2">
+              <div className="d-flex align-items-center gap-2">
+                <h6 className="inventory-modal-section-title mb-0">Stock Batches</h6>
+                <span
+                  className="badge rounded-pill px-2.5 py-1 fw-semibold"
+                  style={{ backgroundColor: "#e8f0fe", color: "#48aad9", fontSize: "11px" }}
+                >
+                  {batches.length} {batches.length === 1 ? "Batch" : "Batches"}
+                </span>
+              </div>
+              <span className="inventory-batch-total text-muted small">
+                Total In Stock: <strong style={{ color: "#48aad9", fontSize: "13.5px" }}>{batches.reduce((s, b) => s + (b.stock ?? 0), 0)}</strong> units
               </span>
             </div>
 
             {(() => {
               const displayBatches = isModalEditing ? batches : batches.filter((b) => (b.stock ?? 0) > 0);
               return batchLoading ? (
-                <div className="inventory-batch-loading">
-                  <div className="spinner-border spinner-border-sm" style={{ color: "#1f2937" }} role="status" />
+                <div className="inventory-batch-loading py-3 text-center d-flex align-items-center justify-content-center gap-2 text-muted small">
+                  <div className="spinner-border spinner-border-sm" style={{ color: "#48aad9" }} role="status" />
                   <span>Loading batches...</span>
                 </div>
               ) : displayBatches.length === 0 ? (
-                <p className="inventory-batch-empty">No active batches recorded for this product.</p>
+                <div className="p-3 text-center border rounded-3 bg-light text-muted small my-2">
+                  <i className="fa-solid fa-boxes-stacked me-1.5" style={{ color: "#94a3b8" }}></i>
+                  No active batches recorded for this product.
+                </div>
               ) : (
-                <div className="inventory-batch-table">
-                  <div className="inventory-batch-head">
-                    <span>Batch No.</span>
-                    <span>Supplier Name</span>
-                    <span>Stock</span>
-                    <span>Manufactured</span>
-                    <span>Expiry Date</span>
-                    <span>Status</span>
+                <div className="inventory-batch-table-container">
+                  <div className="table-responsive">
+                    <table className="table inventory-batch-table align-middle mb-0">
+                      <thead>
+                        <tr>
+                          <th style={{ width: "32%" }}>Batch / Supplier</th>
+                          <th className="text-center" style={{ width: "16%" }}>Stock</th>
+                          <th style={{ width: "34%" }}>Expiration & Mfg</th>
+                          <th className="text-center" style={{ width: "18%" }}>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {displayBatches.map((batch) => (
+                          <tr key={batch.id}>
+                            <td>
+                              <div className="fw-semibold text-dark text-truncate" style={{ maxWidth: "160px" }}>
+                                {batch.batch_number ? (
+                                  <span className="batch-num-text">{batch.batch_number}</span>
+                                ) : (
+                                  <em className="text-muted small">—</em>
+                                )}
+                              </div>
+                              {isModalEditing && !isPharmacist ? (
+                                <input
+                                  type="text"
+                                  className="form-control form-control-sm inventory-batch-supplier-input mt-1"
+                                  placeholder="Supplier name"
+                                  value={
+                                    batchEditSuppliers?.[batch.id] !== undefined
+                                      ? batchEditSuppliers[batch.id]
+                                      : (batch.supplier_name || "")
+                                  }
+                                  onChange={(e) => handleBatchSupplierChange?.(batch.id, e.target.value)}
+                                  style={{ fontSize: "11px", padding: "2px 6px", height: "24px", maxWidth: "155px" }}
+                                />
+                              ) : (
+                                <div
+                                  className="text-muted small text-truncate"
+                                  style={{ fontSize: "11px", maxWidth: "160px" }}
+                                  title={batch.supplier_name || ""}
+                                >
+                                  {batch.supplier_name ? (
+                                    <span>{batch.supplier_name}</span>
+                                  ) : (
+                                    <span className="fst-italic text-muted">No supplier</span>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td className="text-center">
+                              {isModalEditing ? (
+                                <input
+                                  type="number"
+                                  className="form-control form-control-sm text-center mx-auto inventory-batch-stock-input"
+                                  value={batchEditStocks[batch.id] ?? batch.stock}
+                                  min="0"
+                                  onChange={(e) => handleBatchStockChange(batch.id, e.target.value)}
+                                />
+                              ) : (
+                                <div>
+                                  <span className="fw-bold text-dark">{batch.stock}</span>
+                                  <span className="text-muted ms-1" style={{ fontSize: "11px" }}>units</span>
+                                </div>
+                              )}
+                            </td>
+                            <td>
+                              {isModalEditing ? (
+                                <div className="d-flex flex-column gap-1 py-1">
+                                  <div className="d-flex align-items-center gap-1">
+                                    <span className="text-muted fw-semibold" style={{ fontSize: "10.5px", width: "26px", flexShrink: 0 }}>Exp:</span>
+                                    <FormattedDateInput
+                                      className="form-control form-control-sm inventory-batch-date-input"
+                                      value={batchEditDates?.[batch.id]?.expiry_date !== undefined ? batchEditDates[batch.id].expiry_date : batch.expiry_date}
+                                      min={batchEditDates?.[batch.id]?.manufactured_date !== undefined ? batchEditDates[batch.id].manufactured_date : batch.manufactured_date}
+                                      onChange={(val) => handleBatchDateChange(batch.id, 'expiry_date', val)}
+                                    />
+                                  </div>
+                                  <div className="d-flex align-items-center gap-1">
+                                    <span className="text-muted fw-semibold" style={{ fontSize: "10.5px", width: "26px", flexShrink: 0 }}>Mfg:</span>
+                                    <FormattedDateInput
+                                      className="form-control form-control-sm inventory-batch-date-input"
+                                      value={batchEditDates?.[batch.id]?.manufactured_date !== undefined ? batchEditDates[batch.id].manufactured_date : batch.manufactured_date}
+                                      max={today}
+                                      onChange={(val) => handleBatchDateChange(batch.id, 'manufactured_date', val)}
+                                    />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div>
+                                  <div className="text-dark" style={{ fontSize: "12px" }}>
+                                    <span className="text-muted me-1" style={{ fontSize: "11px" }}>Exp:</span>
+                                    <strong className="text-dark">
+                                      {formatMonthYear(batch.expiry_date)}
+                                    </strong>
+                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "11px" }}>
+                                    <span className="me-1">Mfg:</span>
+                                    {formatMonthYear(batch.manufactured_date)}
+                                  </div>
+                                </div>
+                              )}
+                            </td>
+                            <td className="text-center">
+                              <span
+                                className={`badge rounded-pill text-uppercase px-2 py-1 ${getBatchStatusBadgeClass(
+                                  batch.status
+                                )}`}
+                                style={{ fontSize: "10.5px" }}
+                              >
+                                {batch.status ?? "Normal"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                  {displayBatches.map((batch) => (
-                  <div key={batch.id} className="inventory-batch-row">
-                    <span className="inventory-batch-num">
-                      {batch.batch_number || <em className="text-muted">—</em>}
-                    </span>
-                    <span className="inventory-batch-supplier" style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                      {batch.supplier_name || <em className="text-muted">—</em>}
-                    </span>
-                    <span>
-                      {isModalEditing ? (
-                        <input
-                          type="number"
-                          className="form-control inventory-batch-stock-input"
-                          value={batchEditStocks[batch.id] ?? batch.stock}
-                          min="0"
-                          onChange={(e) => handleBatchStockChange(batch.id, e.target.value)}
-                        />
-                      ) : (
-                        <span>{batch.stock}</span>
-                      )}
-                    </span>
-                    <span>
-                      {isModalEditing ? (
-                        <FormattedDateInput
-                          className="form-control inventory-batch-date-input"
-                          value={batchEditDates?.[batch.id]?.manufactured_date !== undefined ? batchEditDates[batch.id].manufactured_date : batch.manufactured_date}
-                          max={today}
-                          onChange={(val) => handleBatchDateChange(batch.id, 'manufactured_date', val)}
-                        />
-                      ) : (
-                        batch.manufactured_date
-                          ? new Date(batch.manufactured_date).toLocaleDateString("en-PH", {
-                            month: "2-digit",
-                            year: "numeric",
-                          })
-                          : "N/A"
-                      )}
-                    </span>
-                    <span>
-                      {isModalEditing ? (
-                        <FormattedDateInput
-                          className="form-control inventory-batch-date-input"
-                          value={batchEditDates?.[batch.id]?.expiry_date !== undefined ? batchEditDates[batch.id].expiry_date : batch.expiry_date}
-                          min={batchEditDates?.[batch.id]?.manufactured_date !== undefined ? batchEditDates[batch.id].manufactured_date : batch.manufactured_date}
-                          onChange={(val) => handleBatchDateChange(batch.id, 'expiry_date', val)}
-                        />
-                      ) : (
-                        batch.expiry_date
-                          ? new Date(batch.expiry_date).toLocaleDateString("en-PH", {
-                            month: "2-digit",
-                            year: "numeric",
-                          })
-                          : "N/A"
-                      )}
-                    </span>
-                    <span>
-                      <span
-                        className={`inventory-status-chip inventory-status-${(
-                          batch.status ?? "normal"
-                        )
-                          .toLowerCase()
-                          .replace(/\s+/g, "-")}`}
-                      >
-                        {batch.status ?? "Normal"}
-                      </span>
-                    </span>
-                  </div>
-                ))}
-              </div>
-            );
-          })()}
+                </div>
+              );
+            })()}
 
             {isModalEditing && !isPharmacist && (
               <div className="inventory-batch-add-area">                
-              {!showAddBatch ? (
+                {!showAddBatch ? (
                   <button
                     type="button"
-                    className="inventory-batch-add-trigger"
+                    className="inventory-batch-add-trigger w-100 d-flex align-items-center justify-content-center gap-2 py-2"
                     onClick={() => setShowAddBatch(true)}
                   >
-                    + Add Batch
+                    <i className="fa-solid fa-plus-circle"></i> Add New Batch
                   </button>
                 ) : (
-                  <form onSubmit={handleAddBatchSubmit} className="inventory-batch-add-form">
-                    <p className="inventory-batch-add-title">New Batch</p>
-                    <div className="inventory-batch-add-grid">
-                      <div>
-                        <label className="inventory-modal-label">Batch No.</label>
+                  <form onSubmit={handleAddBatchSubmit} className="inventory-batch-add-form mt-2 p-3">
+                    <div className="d-flex align-items-center justify-content-between mb-3">
+                      <h6 className="fw-bold mb-0" style={{ color: "#48aad9", fontSize: "13.5px" }}>
+                        <i className="fa-solid fa-boxes-stacked me-1.5"></i> New Batch Details
+                      </h6>
+                      <button
+                        type="button"
+                        className="btn-close shadow-none"
+                        style={{ fontSize: "10px" }}
+                        onClick={() => {
+                          setShowAddBatch(false);
+                          setNewBatch({
+                            batch_number: "",
+                            supplier_name: "",
+                            stock: "",
+                            expiry_date: "",
+                            manufactured_date: "",
+                          });
+                        }}
+                      />
+                    </div>
+                    <div className="row g-2 mb-3">
+                      <div className="col-md-6">
+                        <label className="inventory-modal-label mb-1">Batch No.</label>
                         <input
                           type="text"
-                          className="form-control inventory-modal-input"
+                          className="form-control form-control-sm inventory-modal-input"
                           placeholder="e.g. LOT-2024-001"
                           value={newBatch.batch_number}
                           onChange={(e) =>
@@ -492,11 +591,13 @@ export function ProductDetailsModal({
                           }
                         />
                       </div>
-                      <div>
-                        <label className="inventory-modal-label">Supplier Name <span className="text-muted fw-normal" style={{ fontSize: "0.85em" }}>(Optional)</span></label>
+                      <div className="col-md-6">
+                        <label className="inventory-modal-label mb-1">
+                          Supplier Name <span className="text-muted fw-normal" style={{ textTransform: "none" }}>(Optional)</span>
+                        </label>
                         <input
                           type="text"
-                          className="form-control inventory-modal-input"
+                          className="form-control form-control-sm inventory-modal-input"
                           placeholder="e.g. Unilab"
                           value={newBatch.supplier_name || ""}
                           onChange={(e) =>
@@ -504,11 +605,11 @@ export function ProductDetailsModal({
                           }
                         />
                       </div>
-                      <div>
-                        <label className="inventory-modal-label">Stock *</label>
+                      <div className="col-md-4">
+                        <label className="inventory-modal-label mb-1">Stock *</label>
                         <input
                           type="number"
-                          className={`form-control inventory-modal-input ${inputErrors.newBatchStock ? 'is-invalid' : ''}`}
+                          className={`form-control form-control-sm inventory-modal-input ${inputErrors.newBatchStock ? 'is-invalid' : ''}`}
                           placeholder="Quantity"
                           min="0"
                           required
@@ -519,22 +620,10 @@ export function ProductDetailsModal({
                         />
                         {inputErrors.newBatchStock && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.newBatchStock}</span>}
                       </div>
-                      <div>
-                        <label className="inventory-modal-label">Expiry Date</label>
+                      <div className="col-md-4">
+                        <label className="inventory-modal-label mb-1">Manufactured Date</label>
                         <FormattedDateInput
-                          className={`form-control inventory-modal-input ${inputErrors.newBatchExpiryDate ? 'is-invalid' : ''}`}
-                          value={newBatch.expiry_date}
-                          min={newBatch.manufactured_date || undefined}
-                          onChange={(val) =>
-                            setNewBatch((p) => ({ ...p, expiry_date: val }))
-                          }
-                        />
-                        {inputErrors.newBatchExpiryDate && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.newBatchExpiryDate}</span>}
-                      </div>
-                      <div>
-                        <label className="inventory-modal-label">Manufactured Date</label>
-                        <FormattedDateInput
-                          className={`form-control inventory-modal-input ${inputErrors.newBatchManufacturedDate ? 'is-invalid' : ''}`}
+                          className={`form-control form-control-sm inventory-modal-input ${inputErrors.newBatchManufacturedDate ? 'is-invalid' : ''}`}
                           value={newBatch.manufactured_date}
                           max={today}
                           onChange={(val) =>
@@ -543,18 +632,23 @@ export function ProductDetailsModal({
                         />
                         {inputErrors.newBatchManufacturedDate && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.newBatchManufacturedDate}</span>}
                       </div>
+                      <div className="col-md-4">
+                        <label className="inventory-modal-label mb-1">Expiry Date</label>
+                        <FormattedDateInput
+                          className={`form-control form-control-sm inventory-modal-input ${inputErrors.newBatchExpiryDate ? 'is-invalid' : ''}`}
+                          value={newBatch.expiry_date}
+                          min={newBatch.manufactured_date || undefined}
+                          onChange={(val) =>
+                            setNewBatch((p) => ({ ...p, expiry_date: val }))
+                          }
+                        />
+                        {inputErrors.newBatchExpiryDate && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.newBatchExpiryDate}</span>}
+                      </div>
                     </div>
                     <div className="inventory-batch-add-actions">
                       <button
-                        type="submit"
-                        className="inventory-batch-confirm-btn"
-                        disabled={batchSaving || Object.keys(inputErrors).length > 0}
-                      >
-                        {batchSaving ? "Adding..." : "Add Batch"}
-                      </button>
-                      <button
                         type="button"
-                        className="inventory-batch-cancel-btn"
+                        className="btn btn-sm btn-light border px-3 rounded-2"
                         onClick={() => {
                           setShowAddBatch(false);
                           setNewBatch({
@@ -567,6 +661,17 @@ export function ProductDetailsModal({
                         }}
                       >
                         Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        className="inventory-batch-confirm-btn"
+                        disabled={batchSaving || Object.keys(inputErrors).length > 0}
+                      >
+                        {batchSaving ? (
+                          <><span className="spinner-border spinner-border-sm me-1" /> Adding...</>
+                        ) : (
+                          <><i className="fa-solid fa-plus me-1"></i> Add Batch</>
+                        )}
                       </button>
                     </div>
                   </form>
