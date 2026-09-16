@@ -26,6 +26,10 @@ class Products extends Model
         'image_path',
     ];
 
+    protected $casts = [
+        'is_prescribed' => 'boolean',
+    ];
+
     /**
      * Get the full public URL for the product image.
      * Returns null when no image has been uploaded.

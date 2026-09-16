@@ -20,8 +20,11 @@ class UpdatePharmacyProductService
 
         // Separate Products fields from PharmacyProduct fields
         $productFields = array_intersect_key($validated, array_flip([
-            'product_type', 'product_name', 'generic_name', 'brand_name', 'description', 'form', 'strength', 'size'
+            'product_type', 'product_name', 'generic_name', 'brand_name', 'description', 'form', 'strength', 'size', 'is_prescribed'
         ]));
+        if (isset($productFields['is_prescribed'])) {
+            $productFields['is_prescribed'] = filter_var($productFields['is_prescribed'], FILTER_VALIDATE_BOOLEAN);
+        }
         
         file_put_contents(storage_path('logs/debug_update.txt'), json_encode([
             'validated' => $validated,
@@ -46,6 +49,9 @@ class UpdatePharmacyProductService
                 }
                 if (isset($validated['is_discountable'])) {
                     $bpFields['is_discountable'] = filter_var($validated['is_discountable'], FILTER_VALIDATE_BOOLEAN);
+                }
+                if (isset($validated['is_available'])) {
+                    $bpFields['is_available'] = filter_var($validated['is_available'], FILTER_VALIDATE_BOOLEAN);
                 }
 
                 // Handle category update

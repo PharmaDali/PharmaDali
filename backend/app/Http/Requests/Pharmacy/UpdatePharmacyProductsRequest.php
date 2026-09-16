@@ -32,6 +32,8 @@ class UpdatePharmacyProductsRequest extends FormRequest
             'size'           => 'sometimes|nullable|string|max:255',
             'selling_price'  => 'sometimes|numeric|min:0',
             'is_discountable'=> 'sometimes|boolean',
+            'is_available'   => 'sometimes|boolean',
+            'is_prescribed'  => 'sometimes|boolean',
             'category_name'  => 'sometimes|string|max:255',
             'expiry_date'    => 'sometimes|nullable|date',
             'manufactured_date' => 'sometimes|nullable|date',

@@ -350,6 +350,20 @@ export function ProductDetailsModal({
                   selectClassName="form-select inventory-modal-input"
                 />
               </div>
+              <div>
+                <p className="inventory-modal-label">Make Available</p>
+                <SelectDropdown
+                  id="edit-product-available"
+                  value={modalDraft.isAvailable ? "Available" : "Unavailable"}
+                  onChange={(val) => handleDraftChange("isAvailable", val === "Available")}
+                  options={[
+                    { label: "Available", value: "Available" },
+                    { label: "Unavailable", value: "Unavailable" },
+                  ]}
+                  disabled={!isModalEditing}
+                  selectClassName="form-select inventory-modal-input"
+                />
+              </div>
             </div>
           </div>
 
