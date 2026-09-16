@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
-import { fetchOrderExchangeEligibility } from "../../services/itemExchangeService";
+import { fetchOrderExchangeEligibility, fetchExchangeDetails } from "../../services/itemExchangeService";
 import { processCashRefund } from "../../services/salesReportService";
 import { PaymentResultModal } from "../../shared/components/PaymentModals";
 
-function TransactionDetailModal({ row, onClose, onOpenExchange, onRefundSuccess, allowCashRefund }) {
+function TransactionDetailModal({ row, onClose, onOpenExchange, onViewExchange, onRefundSuccess, allowCashRefund }) {
   const [btnHovered, setBtnHovered] = useState(false);
+  const [viewBtnHovered, setViewBtnHovered] = useState(false);
   const [eligibilityState, setEligibilityState] = useState(null);
   const [loadingEligibility, setLoadingEligibility] = useState(false);
+  const [loadingExchangeDetails, setLoadingExchangeDetails] = useState(false);
   const [isRefunding, setIsRefunding] = useState(false);
   const [showRefundSuccess, setShowRefundSuccess] = useState(false);
 
@@ -24,6 +26,23 @@ function TransactionDetailModal({ row, onClose, onOpenExchange, onRefundSuccess,
     } catch (err) {
       setIsRefunding(false);
       alert(err.response?.data?.message || err.message || "Failed to process cash refund.");
+    }
+  };
+
+  const handleViewExchangeBreakdown = async () => {
+    const firstExchange = row.exchanges?.[0];
+    if (!firstExchange) return;
+    try {
+      setLoadingExchangeDetails(true);
+      const res = await fetchExchangeDetails(firstExchange.id);
+      const fullExchange = res.data || res;
+      if (onViewExchange) {
+        onViewExchange(fullExchange);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || "Failed to load exchange breakdown details.");
+    } finally {
+      setLoadingExchangeDetails(false);
     }
   };
 
@@ -196,7 +215,36 @@ function TransactionDetailModal({ row, onClose, onOpenExchange, onRefundSuccess,
         {/* Exchange Action Button / Ineligible State */}
         {onOpenExchange && (
           <>
-            {row.has_exchange || row.status === 'exchanged' || eligibilityState?.eligible === false ? (
+            {row.has_exchange || row.status === 'exchanged' ? (
+              <div className="mt-3">
+                {row.exchanges && row.exchanges.length > 0 && onViewExchange && (
+                  <button
+                    type="button"
+                    className="btn btn-view-exchange w-100 d-flex align-items-center justify-content-center fw-semibold rounded-3 py-2 shadow-sm mb-2"
+                    style={{
+                      backgroundColor: viewBtnHovered ? "#2aabe2" : "#ffffff",
+                      color: viewBtnHovered ? "#ffffff" : "#2aabe2",
+                      border: "1.5px solid #2aabe2",
+                      transition: "all 0.2s ease-in-out",
+                    }}
+                    onMouseEnter={() => setViewBtnHovered(true)}
+                    onMouseLeave={() => setViewBtnHovered(false)}
+                    onClick={handleViewExchangeBreakdown}
+                    disabled={loadingExchangeDetails}
+                  >
+                    {loadingExchangeDetails ? (
+                      <><div className="spinner-border spinner-border-sm me-2" role="status" style={{ color: viewBtnHovered ? "#ffffff" : "#2aabe2" }} /> Loading Breakdown...</>
+                    ) : (
+                      <><i className="fa-solid fa-receipt me-2"></i> View Exchange Breakdown</>
+                    )}
+                  </button>
+                )}
+                <div className="small text-muted text-center mt-1" style={{ fontSize: "12px" }}>
+                  <i className="fa-solid fa-circle-check me-1 text-success"></i> 
+                  This order has already been exchanged ({row.exchanges?.[0]?.exchange_number || "Completed"}).
+                </div>
+              </div>
+            ) : eligibilityState?.eligible === false ? (
               <div className="mt-3">
                 <button
                   disabled
@@ -207,9 +255,7 @@ function TransactionDetailModal({ row, onClose, onOpenExchange, onRefundSuccess,
                 </button>
                 <div className="small text-muted text-center mt-2" style={{ fontSize: "12px" }}>
                   <i className="fa-solid fa-circle-info me-1" style={{ color: "#2aabe2" }}></i> 
-                  {row.has_exchange || row.status === 'exchanged' 
-                    ? "This order has already been exchanged." 
-                    : (eligibilityState?.reason || "This order is not eligible for an item exchange.")}{" "}
+                  {eligibilityState?.reason || "This order is not eligible for an item exchange."}{" "}
                   Exchange rules can be configured in <strong>Settings</strong>.
                 </div>
               </div>

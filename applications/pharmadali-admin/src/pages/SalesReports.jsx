@@ -139,6 +139,10 @@ function SalesReports() {
         row={selectedRow}
         onClose={() => setSelectedRow(null)}
         onOpenExchange={handleOpenExchange}
+        onViewExchange={(exchange) => {
+          setSelectedRow(null);
+          setCompletedExchange(exchange);
+        }}
         onRefundSuccess={markRowAsRefunded}
         allowCashRefund={allowCashRefund}
       />

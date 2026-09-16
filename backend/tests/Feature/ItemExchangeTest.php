@@ -213,4 +213,76 @@ class ItemExchangeTest extends TestCase
             ->assertJsonPath('data.additional_payment', '0.00')
             ->assertJsonPath('data.change_amount', '0.00'); // NO CASH REFUND ALLOWED
     }
+
+    public function test_handles_higher_value_replacement_with_payment_and_change(): void
+    {
+        $orderItem = $this->order->items->first();
+
+        // Return 5 units of product1 (PHP 50) and take 3 units of product2 (3 * PHP 25 = PHP 75)
+        // Additional payment: PHP 25, Amount tendered: PHP 50, Change: PHP 25
+        $payload = [
+            'order_id' => $this->order->id,
+            'returned_items' => [
+                [
+                    'order_item_id' => $orderItem->id,
+                    'quantity' => 5,
+                    'condition' => 'resalable',
+                ],
+            ],
+            'replacement_items' => [
+                [
+                    'pharmacy_product_id' => $this->product2->id,
+                    'quantity' => 3,
+                ],
+            ],
+            'payment_method' => 'cash',
+            'amount_received' => 50.00,
+            'reason' => 'Upgrade item',
+        ];
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/pos/exchanges', $payload);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.total_returned_value', '50.00')
+            ->assertJsonPath('data.total_replacement_value', '75.00')
+            ->assertJsonPath('data.additional_payment', '25.00')
+            ->assertJsonPath('data.amount_received', '50.00')
+            ->assertJsonPath('data.change_amount', '25.00');
+    }
+
+    public function test_rejects_insufficient_payment_for_higher_value_replacement(): void
+    {
+        $orderItem = $this->order->items->first();
+
+        // Return 5 units of product1 (PHP 50) and take 3 units of product2 (PHP 75)
+        // Additional payment required is PHP 25, but tendered is only PHP 10
+        $payload = [
+            'order_id' => $this->order->id,
+            'returned_items' => [
+                [
+                    'order_item_id' => $orderItem->id,
+                    'quantity' => 5,
+                    'condition' => 'resalable',
+                ],
+            ],
+            'replacement_items' => [
+                [
+                    'pharmacy_product_id' => $this->product2->id,
+                    'quantity' => 3,
+                ],
+            ],
+            'payment_method' => 'cash',
+            'amount_received' => 10.00,
+            'reason' => 'Upgrade item',
+        ];
+
+        $response = $this->actingAs($this->user)
+            ->postJson('/api/pos/exchanges', $payload);
+
+        $response->assertStatus(400)
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('message', 'Amount received (PHP 10.00) is less than the additional payment required (PHP 25.00).');
+    }
 }

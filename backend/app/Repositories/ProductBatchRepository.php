@@ -46,14 +46,42 @@ class ProductBatchRepository
     }
 
     /**
+     * Update a batch's stock and details (syncs parent total and nearest expiry).
+     */
+    public function updateBatch(ProductBatch $batch, array $data): ProductBatch
+    {
+        $fields = [];
+        if (array_key_exists('stock', $data)) {
+            $fields['stock'] = max(0, (int) $data['stock']);
+        }
+        if (array_key_exists('supplier_name', $data)) {
+            $fields['supplier_name'] = $data['supplier_name'];
+        }
+        if (array_key_exists('batch_number', $data)) {
+            $fields['batch_number'] = $data['batch_number'];
+        }
+        if (array_key_exists('expiry_date', $data)) {
+            $fields['expiry_date'] = $data['expiry_date'];
+        }
+        if (array_key_exists('manufactured_date', $data)) {
+            $fields['manufactured_date'] = $data['manufactured_date'];
+        }
+
+        if (!empty($fields)) {
+            $batch->update($fields);
+        }
+
+        $this->syncPharmacyProductStock($batch->pharmacy_product_id);
+
+        return $batch->fresh();
+    }
+
+    /**
      * Update a batch's stock (mid-level: direct edit allowed, syncs parent total).
      */
     public function updateBatchStock(ProductBatch $batch, int $newStock): ProductBatch
     {
-        $batch->update(['stock' => max(0, $newStock)]);
-        $this->syncPharmacyProductStock($batch->pharmacy_product_id);
-
-        return $batch->fresh();
+        return $this->updateBatch($batch, ['stock' => $newStock]);
     }
 
     /**

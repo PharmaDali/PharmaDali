@@ -84,6 +84,11 @@ class ItemExchangeController extends Controller
 
             return $this->successResponse($exchange, 'Item exchange completed successfully.', 201);
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Item exchange store error: ' . $e->getMessage(), [
+                'user_id' => $request->user()?->id,
+                'payload' => $request->validated(),
+                'trace' => $e->getTraceAsString(),
+            ]);
             return $this->errorResponse($e->getMessage(), 400);
         }
     }

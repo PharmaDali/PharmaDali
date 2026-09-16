@@ -231,7 +231,8 @@ class GetInventoryProductsService
                 return [
                     'id'                => $batch->id,
                     'batch_number'      => $batch->batch_number,
-                    'stock'             => $batch->stock,
+                    'supplier_name'     => $batch->supplier_name,
+                    'stock'             => (int) $batch->stock,
                     'expiry_date'       => $batch->expiry_date?->toDateString(),
                     'manufactured_date' => $batch->manufactured_date?->toDateString(),
                     'received_at'       => $batch->received_at?->toDateTimeString(),

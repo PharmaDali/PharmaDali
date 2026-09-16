@@ -6,6 +6,7 @@ import {
   fetchPriorityRestocks,
   createInventoryProduct,
   updateInventoryProduct,
+  fetchProductBatches,
   addProductBatch,
   updateProductBatch,
   stockOutProduct,
@@ -55,6 +56,7 @@ export function useInventory() {
   const [batchSaving, setBatchSaving] = useState(false);
   const [batchEditStocks, setBatchEditStocks] = useState({});
   const [batchEditDates, setBatchEditDates] = useState({});
+  const [batchEditSuppliers, setBatchEditSuppliers] = useState({});
   const [showAddBatch, setShowAddBatch] = useState(false);
   const [newBatch, setNewBatch] = useState({
     batch_number: "",
@@ -266,6 +268,7 @@ export function useInventory() {
     });
     setBatchEditStocks({});
     setBatchEditDates({});
+    setBatchEditSuppliers({});
     setModalDraft({
       name: item.name,
       brand: item.brand,
@@ -295,6 +298,24 @@ export function useInventory() {
       stockMap[b.id] = b.stock;
     });
     setBatchEditStocks(stockMap);
+
+    // Fetch fresh batches in background to ensure up-to-the-second suppliers & status
+    if (item.id) {
+      fetchProductBatches(item.id)
+        .then((freshBatches) => {
+          if (Array.isArray(freshBatches)) {
+            setBatches(freshBatches);
+            const freshStockMap = {};
+            freshBatches.forEach((b) => {
+              freshStockMap[b.id] = b.stock;
+            });
+            setBatchEditStocks(freshStockMap);
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to load fresh batches:", err);
+        });
+    }
   };
 
   const handleModalClose = () => {
@@ -308,6 +329,7 @@ export function useInventory() {
     setBatches([]);
     setBatchEditStocks({});
     setBatchEditDates({});
+    setBatchEditSuppliers({});
     setShowAddBatch(false);
     setNewBatch({
       batch_number: "",
@@ -388,6 +410,13 @@ export function useInventory() {
     }));
   };
 
+  const handleBatchSupplierChange = (batchId, value) => {
+    setBatchEditSuppliers((prev) => ({
+      ...prev,
+      [batchId]: value
+    }));
+  };
+
   const hasBatchChanges = useMemo(() => {
     return batches.some((b) => {
       if (b.isDraft) return false;
@@ -400,10 +429,13 @@ export function useInventory() {
       const editedDates = batchEditDates[b.id] || {};
       const expChanged = editedDates.expiry_date !== undefined && editedDates.expiry_date !== b.expiry_date;
       const mfgChanged = editedDates.manufactured_date !== undefined && editedDates.manufactured_date !== b.manufactured_date;
+
+      const editedSupplier = batchEditSuppliers[b.id];
+      const supplierChanged = editedSupplier !== undefined && editedSupplier !== (b.supplier_name || "");
       
-      return stockChanged || expChanged || mfgChanged;
+      return stockChanged || expChanged || mfgChanged || supplierChanged;
     });
-  }, [batches, batchEditStocks, batchEditDates]);
+  }, [batches, batchEditStocks, batchEditDates, batchEditSuppliers]);
 
   const handleSaveAllBatches = async () => {
     const draftBatches = batches.filter(b => b.isDraft);
@@ -416,8 +448,11 @@ export function useInventory() {
       const editedDates = batchEditDates[b.id] || {};
       const expChanged = editedDates.expiry_date !== undefined && editedDates.expiry_date !== b.expiry_date;
       const mfgChanged = editedDates.manufactured_date !== undefined && editedDates.manufactured_date !== b.manufactured_date;
+
+      const editedSupplier = batchEditSuppliers[b.id];
+      const supplierChanged = editedSupplier !== undefined && editedSupplier !== (b.supplier_name || "");
       
-      return stockChanged || expChanged || mfgChanged;
+      return stockChanged || expChanged || mfgChanged || supplierChanged;
     });
 
     if (changedBatches.length === 0 && draftBatches.length === 0) return;
@@ -453,12 +488,34 @@ export function useInventory() {
           if (editedDates.manufactured_date !== undefined) {
             payload.manufactured_date = editedDates.manufactured_date;
           }
+
+          if (batchEditSuppliers[batch.id] !== undefined) {
+            payload.supplier_name = batchEditSuppliers[batch.id] || null;
+          }
           
           await updateProductBatch(batch.id, payload);
         })
       );
 
       await loadData();
+
+      if (selectedItem?.id) {
+        try {
+          const freshBatches = await fetchProductBatches(selectedItem.id);
+          if (Array.isArray(freshBatches)) {
+            setBatches(freshBatches);
+            const freshStockMap = {};
+            freshBatches.forEach((b) => {
+              freshStockMap[b.id] = b.stock;
+            });
+            setBatchEditStocks(freshStockMap);
+            setBatchEditDates({});
+            setBatchEditSuppliers({});
+          }
+        } catch (refreshErr) {
+          console.error("Failed to refresh batches after save:", refreshErr);
+        }
+      }
       
       setSuccessModal({
         isOpen: true,
@@ -872,6 +929,10 @@ export function useInventory() {
       batchLoading,
       batchEditStocks,
       handleBatchStockChange,
+      batchEditDates,
+      handleBatchDateChange,
+      batchEditSuppliers,
+      handleBatchSupplierChange,
       handleSaveAllBatches,
       hasBatchChanges,
       batchSaving,

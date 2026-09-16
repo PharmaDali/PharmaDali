@@ -16,6 +16,8 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
     setPaymentMethod,
     amountReceived,
     setAmountReceived,
+    setExactPayment,
+    addCashDenomination,
     reason,
     setReason,
     notes,
@@ -59,40 +61,43 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
 
   const isEligible = eligibilityData?.eligible;
 
-  // Compute dummy/simulated exchangeData for Step 3 preview if submission hasn't happened yet
-  const previewExchangeData = {
-    exchange_number: "EXC-PREVIEW",
-    order: order,
-    order_id: order?.id,
-    processed_by: { first_name: "Staff", last_name: "" },
-    created_at: new Date().toISOString(),
-    reason: reason || "DEFECTIVE / WRONG ITEM",
-    returned_items: (eligibilityData?.items || [])
-      .filter(item => (Number(selectedReturns[item.order_item_id]) || 0) > 0)
-      .map(item => ({
-        product_name: item.product_name,
-        quantity: Number(selectedReturns[item.order_item_id]) || 0,
-        condition: returnConditions[item.order_item_id] || "resalable",
-        subtotal: (Number(selectedReturns[item.order_item_id]) || 0) * Number(item.unit_price_snapshot)
-      })),
-    replacement_items: replacementCart.map(item => ({
-      pharmacy_product: { product: { product_name: item.product_name } },
-      quantity: Number(item.qty) || 0,
-      unit_price_snapshot: item.selling_price,
-      subtotal: item.selling_price * (Number(item.qty) || 0)
-    })),
-    total_returned_value: returnedTotal,
-    total_replacement_value: replacementTotal,
-    additional_payment: financialSummary.additionalPaymentRequired,
-    amount_received: Number(amountReceived || financialSummary.additionalPaymentRequired),
-    change_amount: financialSummary.changeAmount,
-    payment_method: paymentMethod
+  const getConditionBadgeClass = (condition) => {
+    switch (condition?.toLowerCase()) {
+      case "resalable":
+        return "bg-success-subtle text-success border border-success-subtle";
+      case "damaged":
+        return "bg-warning-subtle text-warning-emphasis border border-warning-subtle";
+      case "expired":
+        return "bg-danger-subtle text-danger border border-danger-subtle";
+      default:
+        return "bg-secondary-subtle text-secondary border border-secondary-subtle";
+    }
   };
 
   return (
-    <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0,0,0,0.5)", zIndex: 1055 }}>
-      <div className="modal-dialog modal-dialog-centered modal-dialog-scrollable" style={{ maxWidth: "680px", width: "95%" }}>
-        <div className="modal-content border-0 shadow-lg" style={{ borderRadius: "20px", overflow: "hidden" }}>
+    <div
+      className="modal fade show d-block"
+      tabIndex="-1"
+      style={{
+        backgroundColor: "rgba(16, 30, 44, 0.45)",
+        backdropFilter: "blur(2px)",
+        zIndex: 1055,
+      }}
+      onClick={onClose}
+    >
+      <div
+        className="modal-dialog modal-dialog-centered modal-dialog-scrollable"
+        style={{ maxWidth: "680px", width: "95%" }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          className="modal-content border-0 shadow-lg"
+          style={{
+            borderRadius: "20px",
+            overflow: "hidden",
+            fontFamily: "var(--pd-font-family, 'Poppins', sans-serif)",
+          }}
+        >
           
           {/* Modal Header */}
           <div className="modal-header border-0 px-4 pt-4 pb-2 align-items-start">
@@ -330,75 +335,304 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                   </div>
                 )}
 
-                {/* Step 3: Review & Complete */}
+                {/* Step 3: Review Breakdown & Complete */}
                 {step === 3 && (
                   <div>
-                    <h5 className="exchange-step-heading mb-1">Step 3: Review & Complete</h5>
-                    <p className="exchange-step-subheading mb-3">Review the official item exchange slip from active branch.</p>
+                    <h5 className="exchange-step-heading mb-1">Step 3: Review Breakdown & Settlement</h5>
+                    <p className="exchange-step-subheading mb-3">Review the transaction breakdown and complete payment settlement.</p>
 
-                    <div className="border rounded-3 p-3 mb-3 bg-light overflow-auto" style={{ maxHeight: "360px" }}>
-                      {/* Thermal receipt preview element */}
-                      <div className="bg-white p-3 mx-auto shadow-sm border" style={{ maxWidth: "420px", fontFamily: "'Courier New', Courier, monospace", fontSize: "12px" }}>
-                        <div className="text-center mb-2">
-                          <div className="fw-bold text-uppercase fs-6">PHARMADALI PHARMACY</div>
-                          <div className="fw-bold border-top border-bottom border-dark py-1 my-1">OFFICIAL ITEM EXCHANGE SLIP</div>
-                          <div className="small">*** STORE POLICY: NO CASH REFUNDS ***</div>
+                    {/* Exchange Reason & Notes */}
+                    <div className="card border-0 shadow-sm rounded-3 mb-3 p-3 bg-light">
+                      <div className="row g-2">
+                        <div className="col-md-6">
+                          <label className="form-label small fw-semibold text-dark mb-1">Reason for Exchange *</label>
+                          <SelectDropdown
+                            selectClassName="form-select-sm"
+                            value={reason}
+                            onChange={(val) => setReason(val)}
+                            options={[
+                              { label: "Defective / Wrong Item", value: "Defective / Wrong Item" },
+                              { label: "Damaged Packaging", value: "Damaged Packaging" },
+                              { label: "Customer Preference / Wrong Product", value: "Customer Preference / Wrong Product" },
+                              { label: "Near Expiry / Expired Item", value: "Near Expiry / Expired Item" },
+                              { label: "Adverse Reaction / Medical Reason", value: "Adverse Reaction / Medical Reason" },
+                              { label: "Other", value: "Other" },
+                            ]}
+                          />
                         </div>
-
-                        <div className="mb-2 border-bottom border-dark pb-2">
-                          <div>Exchange No: <span className="fw-bold">{previewExchangeData.exchange_number}</span></div>
-                          <div>Original Order Ref: <span className="fw-bold">{order?.order_number || `#${order?.id}`}</span></div>
-                          <div>Processed By: <span className="fw-bold">Staff</span></div>
-                          <div>Date & Time: <span>{new Date().toLocaleString("en-PH")}</span></div>
-                          <div>Reason: <span className="fw-bold text-uppercase">{reason || "DEFECTIVE / WRONG ITEM"}</span></div>
+                        <div className="col-md-6">
+                          <label className="form-label small fw-semibold text-dark mb-1">Notes / Remarks (Optional)</label>
+                          <input
+                            type="text"
+                            className="form-control form-control-sm"
+                            placeholder="Add any specific exchange notes..."
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                          />
                         </div>
+                      </div>
+                    </div>
 
-                        <div className="mb-2">
-                          <div className="fw-bold border-bottom border-dark">[RETURNED ITEMS]</div>
-                          {previewExchangeData.returned_items.map((it, idx) => (
-                            <div key={idx} className="d-flex justify-content-between">
-                              <span>{it.product_name} x{it.quantity}</span>
-                              <span>-PHP {it.subtotal.toFixed(2)}</span>
-                            </div>
-                          ))}
-                          <div className="d-flex justify-content-between fw-bold border-top border-dark pt-1 mt-1">
-                            <span>TOTAL RETURN CREDIT:</span>
-                            <span>-PHP {returnedTotal.toFixed(2)}</span>
+                    {/* Transaction Breakdown Tables */}
+                    <div className="mb-3 overflow-auto" style={{ maxHeight: "360px" }}>
+                      {/* Returned Items Card */}
+                      <div className="mb-3">
+                        <div className="d-flex align-items-center justify-content-between mb-2">
+                          <h6 className="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style={{ fontSize: "13px" }}>
+                            <i className="fa-solid fa-arrow-rotate-left text-danger"></i>
+                            Items Being Returned
+                          </h6>
+                          <span className="badge bg-danger-subtle text-danger fw-semibold px-2 py-1" style={{ fontSize: "11px" }}>
+                            Credit: -PHP {returnedTotal.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="exchange-card-box">
+                          <div className="table-responsive">
+                            <table className="table exchange-table align-middle mb-0">
+                              <thead>
+                                <tr>
+                                  <th>Item Details</th>
+                                  <th className="text-center">Condition</th>
+                                  <th className="text-center">Qty</th>
+                                  <th className="text-end">Price</th>
+                                  <th className="text-end">Credit</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {(eligibilityData?.items || [])
+                                  .filter((item) => (Number(selectedReturns[item.order_item_id]) || 0) > 0)
+                                  .map((item) => {
+                                    const qty = Number(selectedReturns[item.order_item_id]) || 0;
+                                    const price = Number(item.unit_price_snapshot || 0);
+                                    const sub = qty * price;
+                                    const cond = returnConditions[item.order_item_id] || "resalable";
+
+                                    return (
+                                      <tr key={item.order_item_id}>
+                                        <td className="fw-medium text-dark">{item.product_name}</td>
+                                        <td className="text-center">
+                                          <span
+                                            className={`badge rounded-pill text-uppercase px-2 py-1 ${getConditionBadgeClass(
+                                              cond
+                                            )}`}
+                                            style={{ fontSize: "10px" }}
+                                          >
+                                            {cond}
+                                          </span>
+                                        </td>
+                                        <td className="text-center fw-semibold">{qty}</td>
+                                        <td className="text-end text-muted">PHP {price.toFixed(2)}</td>
+                                        <td className="text-end fw-bold text-danger">-PHP {sub.toFixed(2)}</td>
+                                      </tr>
+                                    );
+                                  })}
+                              </tbody>
+                              <tfoot className="table-light border-top">
+                                <tr>
+                                  <td colSpan="4" className="fw-bold text-dark">
+                                    Total Return Credit Available
+                                  </td>
+                                  <td className="text-end fw-bold text-danger">
+                                    -PHP {returnedTotal.toFixed(2)}
+                                  </td>
+                                </tr>
+                              </tfoot>
+                            </table>
                           </div>
                         </div>
+                      </div>
 
-                        <div className="mb-2">
-                          <div className="fw-bold border-bottom border-dark">[REPLACEMENT ITEMS]</div>
-                          {previewExchangeData.replacement_items.map((it, idx) => (
-                            <div key={idx} className="d-flex justify-content-between">
-                              <span>{it.pharmacy_product?.product?.product_name} x{it.quantity}</span>
-                              <span>PHP {it.subtotal.toFixed(2)}</span>
-                            </div>
-                          ))}
-                          <div className="d-flex justify-content-between fw-bold border-top border-dark pt-1 mt-1">
-                            <span>TOTAL REPLACEMENTS:</span>
-                            <span>PHP {replacementTotal.toFixed(2)}</span>
+                      {/* Replacement Items Card */}
+                      <div className="mb-2">
+                        <div className="d-flex align-items-center justify-content-between mb-2">
+                          <h6 className="fw-bold text-dark mb-0 d-flex align-items-center gap-2" style={{ fontSize: "13px" }}>
+                            <i className="fa-solid fa-boxes-stacked" style={{ color: "#48aad9" }}></i>
+                            Replacement Items Selected
+                          </h6>
+                          <span className="badge bg-primary-subtle fw-semibold px-2 py-1" style={{ color: "#48aad9", fontSize: "11px" }}>
+                            Cost: PHP {replacementTotal.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="exchange-card-box">
+                          <div className="table-responsive">
+                            <table className="table exchange-table align-middle mb-0">
+                              <thead>
+                                <tr>
+                                  <th>Item Details</th>
+                                  <th className="text-center">Qty</th>
+                                  <th className="text-end">Price</th>
+                                  <th className="text-end">Subtotal</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {replacementCart.map((item) => {
+                                  const qty = Number(item.qty) || 0;
+                                  const price = Number(item.selling_price || 0);
+                                  const sub = qty * price;
+
+                                  return (
+                                    <tr key={item.id}>
+                                      <td className="fw-medium text-dark">{item.product_name}</td>
+                                      <td className="text-center fw-semibold">{qty}</td>
+                                      <td className="text-end text-muted">PHP {price.toFixed(2)}</td>
+                                      <td className="text-end fw-bold text-dark">PHP {sub.toFixed(2)}</td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                              <tfoot className="table-light border-top">
+                                <tr>
+                                  <td colSpan="3" className="fw-bold text-dark">
+                                    Total Replacements Cost
+                                  </td>
+                                  <td className="text-end fw-bold text-dark">
+                                    PHP {replacementTotal.toFixed(2)}
+                                  </td>
+                                </tr>
+                              </tfoot>
+                            </table>
                           </div>
                         </div>
+                      </div>
+                    </div>
 
-                        <div className="border-top border-dark pt-2">
-                          <div className="d-flex justify-content-between"><span>Returned Credit:</span><span>-PHP {returnedTotal.toFixed(2)}</span></div>
-                          <div className="d-flex justify-content-between"><span>Replacement Total:</span><span>PHP {replacementTotal.toFixed(2)}</span></div>
+                    {/* Settlement & Interactive Payment Card */}
+                    <div className="exchange-card-box p-3 bg-light mb-3">
+                      <div className="d-flex justify-content-between text-muted small mb-1">
+                        <span>Total Return Credit:</span>
+                        <span className="fw-bold text-danger">-PHP {returnedTotal.toFixed(2)}</span>
+                      </div>
+                      <div className="d-flex justify-content-between text-muted small mb-2">
+                        <span>Total Replacements Cost:</span>
+                        <span className="fw-bold text-dark">PHP {replacementTotal.toFixed(2)}</span>
+                      </div>
 
-                          {financialSummary.isLowerValueReturn ? (
-                            <div className="border border-dark p-2 my-2 text-center small">
-                              <div className="fw-bold">NO CASH REFUND ISSUED</div>
-                              <div>Excess Return Credit Forfeited: PHP {Math.abs(financialSummary.netDifference).toFixed(2)}</div>
-                              <div className="fw-bold">CASH REFUND = PHP 0.00</div>
+                      <hr className="my-2" style={{ borderColor: "#e2e8f0" }} />
+
+                      {financialSummary.additionalPaymentRequired > 0 ? (
+                        <div>
+                          <div className="d-flex justify-content-between align-items-center mb-3">
+                            <span className="fw-bold text-dark fs-6">Additional Amount Due:</span>
+                            <span className="fw-bold fs-5" style={{ color: "#48aad9" }}>
+                              PHP {financialSummary.additionalPaymentRequired.toFixed(2)}
+                            </span>
+                          </div>
+
+                          {/* Payment Method Selector */}
+                          <div className="mb-3">
+                            <label className="form-label small fw-semibold text-dark mb-1">Payment Method</label>
+                            <div className="d-flex gap-2">
+                              {["cash", "gcash", "card"].map((method) => (
+                                <button
+                                  key={method}
+                                  type="button"
+                                  className={`btn btn-sm px-3 py-1 rounded-3 text-uppercase fw-semibold ${
+                                    paymentMethod === method
+                                      ? "btn-primary shadow-sm"
+                                      : "btn-outline-secondary"
+                                  }`}
+                                  style={paymentMethod === method ? { backgroundColor: "#48aad9", borderColor: "#48aad9" } : {}}
+                                  onClick={() => setPaymentMethod(method)}
+                                >
+                                  {method}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Amount Tendered Input */}
+                          <div className="mb-3">
+                            <label className="form-label small fw-semibold text-dark mb-1">
+                              Amount Tendered / Received (PHP) *
+                            </label>
+                            <div className="input-group input-group-sm mb-2">
+                              <span className="input-group-text fw-bold bg-white text-muted">PHP</span>
+                              <input
+                                type="number"
+                                step="any"
+                                min="0"
+                                className="form-control form-control-sm fw-bold fs-6"
+                                placeholder={financialSummary.additionalPaymentRequired.toFixed(2)}
+                                value={amountReceived}
+                                onChange={(e) => setAmountReceived(e.target.value)}
+                              />
+                              <button
+                                type="button"
+                                className="btn btn-outline-primary fw-semibold"
+                                style={{ borderColor: "#48aad9", color: "#48aad9" }}
+                                onClick={setExactPayment}
+                              >
+                                Exact Amount
+                              </button>
+                            </div>
+
+                            {/* Quick Denomination Pills */}
+                            <div className="d-flex flex-wrap gap-1">
+                              <span className="small text-muted me-1 align-self-center" style={{ fontSize: "11px" }}>Quick:</span>
+                              {[20, 50, 100, 200, 500, 1000].map((denom) => (
+                                <button
+                                  key={denom}
+                                  type="button"
+                                  className="btn btn-sm btn-outline-secondary py-0 px-2 rounded-2"
+                                  style={{ fontSize: "11px" }}
+                                  onClick={() => addCashDenomination(denom)}
+                                >
+                                  +{denom}
+                                </button>
+                              ))}
+                              {amountReceived !== "" && (
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-link text-danger py-0 px-2 text-decoration-none"
+                                  style={{ fontSize: "11px" }}
+                                  onClick={() => setAmountReceived("")}
+                                >
+                                  Clear
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Live Change Box */}
+                          {Number(amountReceived || 0) >= financialSummary.additionalPaymentRequired ? (
+                            <div className="alert alert-success d-flex justify-content-between align-items-center py-2 px-3 mb-0 rounded-3 border-0">
+                              <span className="small fw-semibold">
+                                <i className="fa-solid fa-circle-check me-1"></i> Change Due to Customer:
+                              </span>
+                              <span className="fw-bold fs-6">
+                                PHP {financialSummary.changeAmount.toFixed(2)}
+                              </span>
                             </div>
                           ) : (
-                            <div className="d-flex justify-content-between fw-bold pt-1 border-top border-dark">
-                              <span>ADDITIONAL PAYMENT:</span>
-                              <span>PHP {financialSummary.additionalPaymentRequired.toFixed(2)}</span>
+                            <div className="alert alert-warning py-2 px-3 mb-0 rounded-3 border-0 small text-warning-emphasis">
+                              <i className="fa-solid fa-triangle-exclamation me-1"></i>
+                              {amountReceived === "" ? (
+                                <span>Please enter amount tendered or click <strong>Exact Amount</strong>.</span>
+                              ) : (
+                                <span>
+                                  Amount entered is short by{" "}
+                                  <strong>PHP {(financialSummary.additionalPaymentRequired - Number(amountReceived)).toFixed(2)}</strong>.
+                                </span>
+                              )}
                             </div>
                           )}
                         </div>
-                      </div>
+                      ) : financialSummary.isLowerValueReturn ? (
+                        <div className="alert alert-warning d-flex align-items-start gap-2 py-2 px-3 mb-0 rounded-3 border-0 small text-warning-emphasis">
+                          <i className="fa-solid fa-shield-halved mt-1 fs-5"></i>
+                          <div>
+                            <strong>No Cash Refund Policy:</strong> Replacements total less than returned credit.
+                            Excess return credit of <strong>PHP {financialSummary.excessCreditForfeited.toFixed(2)}</strong> is forfeited. Cash refund: <strong>PHP 0.00</strong>.
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="alert alert-success d-flex align-items-center gap-2 py-2 px-3 mb-0 rounded-3 border-0 small">
+                          <i className="fa-solid fa-circle-check text-success fs-5"></i>
+                          <div>
+                            <strong>Equal Value Exchange:</strong> Returned credit matches replacement cost. No additional payment required. Balance is <strong>PHP 0.00</strong>.
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -456,7 +690,11 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                   type="button"
                   className="btn btn-primary-step px-4"
                   onClick={handleSubmitExchange}
-                  disabled={submitting}
+                  disabled={
+                    submitting ||
+                    (financialSummary.additionalPaymentRequired > 0 &&
+                      Number(amountReceived || 0) < financialSummary.additionalPaymentRequired)
+                  }
                 >
                   {submitting ? (
                     <>
