@@ -42,8 +42,9 @@ class PharmacyOperatingHoursChecker
         }
 
         if ($windowDays === 1) {
-            if (!$isSameCalendarDay) {
-                $reason = "Item exchange is only allowed on the same day of purchase during store operating hours ({$openingStr} - {$closingStr}) per pharmacy policy.";
+            $isWithin24Hours = $orderCarbon->diffInHours($nowPht) <= 24;
+            if (!$isSameCalendarDay && !$isWithin24Hours) {
+                $reason = "Item exchange is only allowed on the same day of purchase or within 24 hours during store operating hours ({$openingStr} - {$closingStr}) per pharmacy policy.";
                 return false;
             }
 

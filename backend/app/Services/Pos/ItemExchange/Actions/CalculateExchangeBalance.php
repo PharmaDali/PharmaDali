@@ -13,9 +13,13 @@ class CalculateExchangeBalance
 
         if ($netDifference > 0) {
             $additionalPayment = $netDifference;
-            $amountReceived = isset($data['amount_received']) ? (float) $data['amount_received'] : $additionalPayment;
+            $rawAmount = $data['amount_received'] ?? null;
+            $amountReceived = ($rawAmount !== null && $rawAmount !== '') ? (float) $rawAmount : $additionalPayment;
+
             if ($amountReceived < $additionalPayment) {
-                throw new \Exception("Amount received (₱{$amountReceived}) is less than the additional payment required (₱{$additionalPayment}).");
+                $formattedReceived = number_format($amountReceived, 2);
+                $formattedRequired = number_format($additionalPayment, 2);
+                throw new \Exception("Amount received (PHP {$formattedReceived}) is less than the additional payment required (PHP {$formattedRequired}).");
             }
             $changeAmount = max(0, round($amountReceived - $additionalPayment, 2));
         } else {
