@@ -28,12 +28,24 @@ class OrderExpiredNotification extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
+        $customerName = $notifiable->first_name ?? $notifiable->name ?? 'Valued Customer';
+
         return (new MailMessage)
-            ->subject('Order Expired - ' . $this->order->order_number)
-            ->greeting('Hello ' . $notifiable->name . '!')
-            ->line('Unfortunately, your order #' . $this->order->order_number . ' could not be fulfilled before the pharmacy closed.')
-            ->line('You may place a new order during operating hours.')
-            ->line('We apologize for the inconvenience.');
+            ->subject('Order Expired - #' . $this->order->order_number)
+            ->greeting("Hello {$customerName}!")
+            ->line('Unfortunately, your order #' . $this->order->order_number . ' could not be fulfilled before pharmacy operating hours closed.')
+            ->line(new \Illuminate\Support\HtmlString('
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #fffbeb; border: 1px solid #fde68a; border-left: 4px solid #f59e0b; border-radius: 8px;">
+    <tr>
+        <td style="padding: 16px 20px;">
+            <div style="font-size: 13px; font-weight: 700; color: #92400e; margin-bottom: 4px;">Order Status: Expired</div>
+            <div style="font-size: 13px; color: #78350f;">Orders not completed during pharmacy operating hours expire automatically. You may place a new order during store hours.</div>
+        </td>
+    </tr>
+</table>
+'))
+            ->line('We sincerely apologize for any inconvenience caused.')
+            ->salutation("Warm regards,\nThe PharmaDali Team");
     }
 
     /**

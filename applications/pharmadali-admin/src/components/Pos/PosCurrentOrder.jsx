@@ -1,6 +1,5 @@
 import React from "react";
 import { usePosContext } from "../../context/PosContext";
-import PosEmptyState from "./PosEmptyState";
 import { DiscountControl } from "../../shared/components/DiscountSelect";
 import PaymentMethodSelect from "../../shared/components/PaymentMethodSelect";
 import { toTitleCase } from "../../utils/stringUtils";
@@ -60,33 +59,6 @@ export default function PosCurrentOrder() {
   const numericCash = Number(cashReceived);
   const hasFulfilledPayment =
     cashReceived !== "" && !Number.isNaN(numericCash) && numericCash > 0;
-
-  if (isOrderEmpty) {
-    return (
-      <div
-        className="card border-1 shadow-sm rounded-4 overflow-hidden"
-        style={{
-          height: "100%",
-          minHeight: "380px",
-          border: "1px solid #e2e8f0",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div
-          className="card-body d-flex flex-column align-items-center justify-content-center p-0"
-          style={{ flex: 1, minHeight: 0, height: "100%" }}
-        >
-          <PosEmptyState
-            minHeight="100%"
-            iconWidth={100}
-            className="pos-order-empty-state"
-            message="Search for items"
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
@@ -165,135 +137,105 @@ export default function PosCurrentOrder() {
               </tr>
             </thead>
             <tbody>
-              {items.map(({ id, product, qty, selling_price }) => (
-                <tr key={id}>
+              {isOrderEmpty ? (
+                <tr>
                   <td
-                    className="px-3 py-2 border-0 border-bottom text-start text-truncate"
-                    style={{ color: "#333", fontWeight: 500 }}
+                    colSpan={4}
+                    className="text-center py-4 border-0 text-muted"
+                    style={{ height: "140px", verticalAlign: "middle" }}
                   >
-                    {getFullProductName(product)}
-                  </td>
-                  <td
-                    className="px-2 py-2 border-0 border-bottom text-center"
-                    style={{ color: "#333" }}
-                  >
-                    {qty}
-                  </td>
-                  <td
-                    className="px-2 py-2 border-0 border-bottom text-end"
-                    style={{ color: "#333" }}
-                  >
-                    {parseFloat(selling_price).toFixed(2)}
-                  </td>
-                  <td
-                    className="px-3 py-2 border-0 border-bottom text-end"
-                    style={{ color: "#333" }}
-                  >
-                    <div className="d-flex align-items-center justify-content-end gap-2">
-                      <span>{(qty * selling_price).toFixed(2)}</span>
-                      <button
-                        type="button"
-                        onClick={() => removeFromOrder(id)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          padding: 0,
-                          cursor: "pointer",
-                          color: "#e25252",
-                          fontSize: 16,
-                          fontWeight: "bold",
-                          lineHeight: 1,
-                        }}
-                        title="Remove item"
-                      >
-                        &times;
-                      </button>
-                    </div>
+                    <span style={{ fontSize: "13px", color: "#888888" }}>
+                      No items added
+                    </span>
                   </td>
                 </tr>
-              ))}
-              {items.map((item) => {
-                const isDiscountable = isItemDiscountable ? isItemDiscountable(item) : true;
-                return (
-                  <tr key={item.id}>
-                    <td
-                      className="px-3 py-2 border-0 border-bottom text-start text-truncate"
-                      style={{ color: "#333", fontWeight: 500 }}
-                    >
-                      <div className="d-flex align-items-center gap-1">
-                        <span className="text-truncate">{getFullProductName(item.product)}</span>
-                        {!isDiscountable && (
-                          <span
-                            className="badge bg-secondary-subtle text-secondary fw-normal flex-shrink-0"
-                            style={{ fontSize: "9px" }}
-                            title="Non-discountable product"
+              ) : (
+                items.map((item) => {
+                  const isDiscountable = isItemDiscountable ? isItemDiscountable(item) : true;
+                  return (
+                    <tr key={item.id}>
+                      <td
+                        className="px-3 py-2 border-0 border-bottom text-start text-truncate"
+                        style={{ color: "#333", fontWeight: 500 }}
+                      >
+                        <div className="d-flex align-items-center gap-1">
+                          <span className="text-truncate">{getFullProductName(item.product)}</span>
+                          {!isDiscountable && (
+                            <span
+                              className="badge bg-secondary-subtle text-secondary fw-normal flex-shrink-0"
+                              style={{ fontSize: "9px" }}
+                              title="Non-discountable product"
+                            >
+                              Non-discountable
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td
+                        className="px-2 py-2 border-0 border-bottom text-center"
+                        style={{ color: "#333" }}
+                      >
+                        {item.qty}
+                      </td>
+                      <td
+                        className="px-2 py-2 border-0 border-bottom text-end"
+                        style={{ color: "#333" }}
+                      >
+                        {parseFloat(item.selling_price).toFixed(2)}
+                      </td>
+                      <td
+                        className="px-3 py-2 border-0 border-bottom text-end"
+                        style={{ color: "#333" }}
+                      >
+                        <div className="d-flex align-items-center justify-content-end gap-2">
+                          <span>{(item.qty * item.selling_price).toFixed(2)}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeFromOrder(item.id)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              padding: 0,
+                              cursor: "pointer",
+                              color: "#e25252",
+                              fontSize: 16,
+                              fontWeight: "bold",
+                              lineHeight: 1,
+                            }}
+                            title="Remove item"
                           >
-                            Non-discountable
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td
-                      className="px-2 py-2 border-0 border-bottom text-center"
-                      style={{ color: "#333" }}
-                    >
-                      {item.qty}
-                    </td>
-                    <td
-                      className="px-2 py-2 border-0 border-bottom text-end"
-                      style={{ color: "#333" }}
-                    >
-                      {parseFloat(item.selling_price).toFixed(2)}
-                    </td>
-                    <td
-                      className="px-3 py-2 border-0 border-bottom text-end"
-                      style={{ color: "#333" }}
-                    >
-                      <div className="d-flex align-items-center justify-content-end gap-2">
-                        <span>{(item.qty * item.selling_price).toFixed(2)}</span>
-                        <button
-                          type="button"
-                          onClick={() => removeFromOrder(item.id)}
-                          style={{
-                            background: "none",
-                            border: "none",
-                            padding: 0,
-                            cursor: "pointer",
-                            color: "#e25252",
-                            fontSize: 16,
-                            fontWeight: "bold",
-                            lineHeight: 1,
-                          }}
-                          title="Remove item"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
+                            &times;
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      <DiscountControl
-        discountType={discountType}
-        setDiscountType={setDiscountType}
-        discountPercentage={discountPercentage}
-        setDiscountPercentage={setDiscountPercentage}
-        discountIdNumber={discountIdNumber}
-        setDiscountIdNumber={setDiscountIdNumber}
-        className="mb-2"
-        disabled={!hasDiscountableItems}
-      />
+      {!isOrderEmpty && (
+        <DiscountControl
+          discountType={discountType}
+          setDiscountType={setDiscountType}
+          discountPercentage={discountPercentage}
+          setDiscountPercentage={setDiscountPercentage}
+          discountIdNumber={discountIdNumber}
+          setDiscountIdNumber={setDiscountIdNumber}
+          className="mb-2"
+          disabled={!hasDiscountableItems}
+        />
+      )}
 
       <PaymentMethodSelect
         paymentMethod={paymentMethod}
         setPaymentMethod={setPaymentMethod}
         onSelectPaymentMethod={handleSelectPaymentMethod}
         error={paymentError}
+        disabled={isOrderEmpty}
         className="mb-2"
         title="Payment Method"
       />

@@ -76,13 +76,29 @@ class OrderStatusNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $text = $this->getNotificationText();
+        $customerName = $notifiable->first_name ?? $notifiable->name ?? 'Valued Customer';
+        $statusFormatted = ucwords(str_replace('_', ' ', $this->order->order_status ?? 'Updated'));
 
         return (new MailMessage)
-            ->subject($text['title'] . ' - ' . $this->order->order_number)
-            ->greeting('Hello ' . $notifiable->name . '!')
+            ->subject($text['title'] . ' - #' . $this->order->order_number)
+            ->greeting("Hello {$customerName}!")
             ->line($text['message'])
+            ->line(new \Illuminate\Support\HtmlString('
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #2aabe2; border-radius: 8px;">
+    <tr>
+        <td style="padding: 14px 18px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                    <td style="font-size: 13px; color: #0284c7; font-weight: 600; text-transform: uppercase;">Order #' . e($this->order->order_number) . '</td>
+                    <td align="right"><span style="display: inline-block; background-color: #2aabe2; color: #ffffff; font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">' . e($statusFormatted) . '</span></td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+'))
             ->action('View Order Details', url('/orders/' . $this->order->id))
-            ->line('Thank you for choosing PharmaDali!');
+            ->salutation("Warm regards,\nThe PharmaDali Team");
     }
 
     /**

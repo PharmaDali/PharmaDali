@@ -29,16 +29,23 @@ class CustomerForgotPasswordOtpNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $name = $notifiable->first_name ?? 'Customer';
+        $name = $notifiable->first_name ?? 'Valued Customer';
 
         return (new MailMessage)
-            ->subject('Password Reset OTP - Pharmadali')
+            ->subject('Password Reset OTP - PharmaDali')
             ->greeting("Hello {$name},")
-            ->line('You recently requested to reset your password for your Pharmadali customer account.')
-            ->line("Your One-Time Password (OTP) is:")
-            ->line("# {$this->otp}")
-            ->line('This code is valid for 5 minutes. Please do not share this code with anyone.')
-            ->line('If you did not request a password reset, please ignore this email or contact support.');
+            ->line('You recently requested to reset the password for your PharmaDali account.')
+            ->line('Your One-Time Password (OTP) is:')
+            ->line(new \Illuminate\Support\HtmlString('
+<div style="margin: 24px 0; text-align: center;">
+    <div style="display: inline-block; background-color: #f0f9ff; border: 2px dashed #2aabe2; border-radius: 12px; padding: 14px 28px; text-align: center;">
+        <span style="font-family: \'Courier New\', Courier, monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0284c7; display: block;">' . e($this->otp) . '</span>
+    </div>
+    <div style="margin-top: 8px; font-size: 12px; color: #64748b; font-weight: 500;">Valid for 5 minutes • Keep this code confidential</div>
+</div>
+'))
+            ->line('If you did not request a password reset, please ignore this email or contact customer support.')
+            ->salutation("Warm regards,\nThe PharmaDali Team");
     }
 
     /**

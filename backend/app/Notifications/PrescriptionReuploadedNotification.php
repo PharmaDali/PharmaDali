@@ -42,12 +42,29 @@ class PrescriptionReuploadedNotification extends Notification implements ShouldQ
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $customerUser = $this->order->customer?->user;
+        $customerName = $customerUser ? trim(($customerUser->first_name ?? '') . ' ' . ($customerUser->last_name ?? '')) : 'Customer';
+        if (empty($customerName)) {
+            $customerName = 'Customer';
+        }
+
         return (new MailMessage)
-            ->subject('New Prescription Uploaded - ' . $this->order->order_number)
+            ->subject('New Prescription Uploaded - #' . $this->order->order_number)
             ->greeting('Hello Pharmacist!')
-            ->line('The customer has uploaded a new prescription for order #' . $this->order->order_number . '.')
-            ->action('View Order', url('/pharmacist/orders/' . $this->order->id))
-            ->line('Please review the new prescription to proceed with the order.');
+            ->line('A customer has re-uploaded a medical prescription for order #' . $this->order->order_number . '.')
+            ->line(new \Illuminate\Support\HtmlString('
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #2aabe2; border-radius: 8px;">
+    <tr>
+        <td style="padding: 16px 20px;">
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #0284c7; margin-bottom: 4px;">Prescription Verification Pending</div>
+            <div style="font-size: 14px; color: #1e293b;">Customer <strong>' . e($customerName) . '</strong> submitted a revised prescription for order <strong>#' . e($this->order->order_number) . '</strong>.</div>
+        </td>
+    </tr>
+</table>
+'))
+            ->action('Review Prescription in Dashboard', url('/pharmacist/orders/' . $this->order->id))
+            ->line('Please inspect and verify the prescription image to proceed with fulfillment.')
+            ->salutation("Warm regards,\nThe PharmaDali Team");
     }
 
     /**

@@ -40,19 +40,46 @@ class NewOrderPharmacistNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $customerUser = $this->order->customer?->user;
-        $customerName = $customerUser ? trim(($customerUser->first_name ?? '') . ' ' . ($customerUser->last_name ?? '')) : 'Guest';
+        $customerName = $customerUser ? trim(($customerUser->first_name ?? '') . ' ' . ($customerUser->last_name ?? '')) : 'Customer';
         if (empty($customerName)) {
-            $customerName = 'Guest';
+            $customerName = 'Customer';
         }
 
         return (new MailMessage)
-            ->subject('New Order Received - ' . $this->order->order_number)
+            ->subject('New Order Received - #' . $this->order->order_number)
             ->greeting('Hello Pharmacist!')
-            ->line('A new order #' . $this->order->order_number . ' has been received at your pharmacy.')
-            ->line('Customer: ' . $customerName)
-            ->line('Total Amount: ' . number_format($this->order->total_amount, 2))
+            ->line('A new customer order has been placed and is waiting for your review and fulfillment.')
+            ->line(new \Illuminate\Support\HtmlString('
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+    <tr>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                    <td style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Order Number</td>
+                    <td align="right" style="font-family: \'Courier New\', Courier, monospace; font-size: 15px; font-weight: 700; color: #0284c7;">#' . e($this->order->order_number) . '</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 16px 20px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                    <td style="font-size: 14px; color: #475569; padding-bottom: 8px;">Customer</td>
+                    <td align="right" style="font-size: 14px; font-weight: 600; color: #1e293b; padding-bottom: 8px;">' . e($customerName) . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 15px; font-weight: 700; color: #0f172a; padding-top: 8px; border-top: 1px dashed #cbd5e1;">Order Total</td>
+                    <td align="right" style="font-size: 18px; font-weight: 800; color: #2aabe2; padding-top: 8px; border-top: 1px dashed #cbd5e1;">₱' . number_format((float) $this->order->total_amount, 2) . '</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+'))
             ->action('View and Process Order', url('/pharmacist/orders/' . $this->order->id))
-            ->line('Please review and process the order as soon as possible.');
+            ->line('Please review and process this order promptly.')
+            ->salutation("Warm regards,\nThe PharmaDali Team");
     }
 
     /**
