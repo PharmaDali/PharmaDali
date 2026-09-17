@@ -40,7 +40,7 @@ class LoginService
 
         $user->tokens()->delete();
 
-        $token = $user->createToken('API Token', $this->tokenAbilitiesForRole($user->role))->plainTextToken;
+        $token = $user->createToken('API Token', $this->tokenAbilitiesForRole($user->role), now()->addDays(30))->plainTextToken;
 
         return response()->json([
             'token'      => $token,

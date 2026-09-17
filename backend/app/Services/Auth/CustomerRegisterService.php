@@ -30,7 +30,7 @@ class CustomerRegisterService
 
         $user->load('customer');
 
-        $token = $user->createToken('API Token', ['customer'])->plainTextToken;
+        $token = $user->createToken('API Token', ['customer'], now()->addDays(30))->plainTextToken;
 
         return response()->json([
             'message'     => 'Customer registered successfully',
