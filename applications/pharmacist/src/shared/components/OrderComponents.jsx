@@ -8,6 +8,8 @@ const statusColors = {
   reviewing: { bg: '#F3E8FF', border: '#C084FC', text: '#6B21A8' },
   preparing: { bg: '#D1ECF1', border: '#48AAD9', text: '#0C5460' },
   approved: { bg: '#D4EDDA', border: '#60B17E', text: '#60B17E' },
+  stand_by: { bg: '#F1F5F9', border: '#94A3B8', text: '#334155' },
+  awaiting_payment: { bg: '#E9E9E9', border: '#888888', text: '#333333' },
   ready_for_pickup: { bg: '#D4EDDA', border: '#60B17E', text: '#14532D' },
   rejected: { bg: '#FEE2E2', border: '#EF4444', text: '#991B1B' },
   cancelled: { bg: '#F3F4F6', border: '#9CA3AF', text: '#4B5563' },
@@ -15,13 +17,33 @@ const statusColors = {
   overdue: { bg: '#FFF4E5', border: 'rgba(255, 178, 89, 0.70)', text: '#D35400' },
 };
 
+const STATUS_LABELS = {
+  pending: 'Pending',
+  reviewing: 'Reviewing',
+  preparing: 'Preparing',
+  approved: 'Approved',
+  stand_by: 'Stand By',
+  awaiting_payment: 'Awaiting Payment',
+  ready_for_pickup: 'Ready for Pickup',
+  rejected: 'Rejected',
+  cancelled: 'Cancelled',
+  completed: 'Completed',
+  overdue: 'Overdue',
+};
+
 export function StatusBadge({ status }) {
   const normalizedStatus = String(status || 'pending').toLowerCase().replace(/\s+/g, '_');
   const color = statusColors[normalizedStatus] || statusColors.pending;
+  const label = STATUS_LABELS[normalizedStatus] || (
+    String(status || 'Pending')
+      .split('_')
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ')
+  );
 
   return (
     <View className="px-3 py-1 overflow-hidden" style={{ borderRadius: 8, backgroundColor: color.bg, borderWidth: 1, borderColor: color.border }}>
-      <Text className="text-xs" style={{ color: color.text, fontFamily: 'Poppins-SemiBold' }}>{status || 'Pending'}</Text>
+      <Text className="text-xs" style={{ color: color.text, fontFamily: 'Poppins-SemiBold' }}>{label}</Text>
     </View>
   );
 }
