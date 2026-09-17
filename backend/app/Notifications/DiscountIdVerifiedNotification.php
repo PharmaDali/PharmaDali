@@ -63,13 +63,20 @@ class DiscountIdVerifiedNotification extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $text = $this->getNotificationText();
+        $customerName = $notifiable->first_name ?? $notifiable->name ?? 'Valued Customer';
+        $orderNumber = $this->order->order_number ?? $this->order->id;
+
+        $badgeHtml = $this->isApproved
+            ? '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #10b981; border-radius: 8px;"><tr><td style="padding: 14px 18px;"><div style="font-size: 13px; font-weight: 700; color: #166534;">✓ Discount ID Verified & Approved</div><div style="font-size: 13px; color: #374151; margin-top: 2px;">Your discount entitlement has been applied to order #' . e($orderNumber) . '.</div></td></tr></table>'
+            : '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #ef4444; border-radius: 8px;"><tr><td style="padding: 14px 18px;"><div style="font-size: 13px; font-weight: 700; color: #991b1b;">✕ Discount ID Rejected</div><div style="font-size: 13px; color: #7f1d1d; margin-top: 2px;">Please present your physical discount ID upon pickup to claim your discount.</div></td></tr></table>';
 
         return (new MailMessage)
-            ->subject($text['title'] . ' - ' . $this->order->order_number)
-            ->greeting('Hello ' . $notifiable->name . '!')
+            ->subject($text['title'] . ' - #' . $orderNumber)
+            ->greeting("Hello {$customerName}!")
             ->line($text['message'])
+            ->line(new \Illuminate\Support\HtmlString($badgeHtml))
             ->action('View Order Details', url('/orders/' . $this->order->id))
-            ->line('Thank you for choosing PharmaDali!');
+            ->salutation("Warm regards,\nThe PharmaDali Team");
     }
 
     /**

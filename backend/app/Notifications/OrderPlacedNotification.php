@@ -39,14 +39,44 @@ class OrderPlacedNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $customerName = $notifiable->first_name ?? $notifiable->name ?? 'Valued Customer';
+        $paymentMethod = ucwords(str_replace('_', ' ', $this->order->payment_method ?? 'Cash'));
+
         return (new MailMessage)
-            ->subject('Order Confirmation - ' . $this->order->order_number)
-            ->greeting('Hello ' . $notifiable->name . '!')
-            ->line('Thank you for your order! We have received your order #' . $this->order->order_number . '.')
-            ->line('Total Amount: ' . number_format($this->order->total_amount, 2))
-            ->line('Payment Method: ' . ucfirst($this->order->payment_method))
-            ->action('Track Your Order', url('/orders/' . $this->order->id))
-            ->line('We will notify you once your order is ready for pickup.');
+            ->subject('Order Confirmation - #' . $this->order->order_number)
+            ->greeting("Hello {$customerName}!")
+            ->line('Thank you for choosing PharmaDali. We have received your order and our pharmacy team is currently processing it.')
+            ->line(new \Illuminate\Support\HtmlString('
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+    <tr>
+        <td style="padding: 14px 20px; border-bottom: 1px solid #e2e8f0;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                    <td style="font-size: 12px; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Order Number</td>
+                    <td align="right" style="font-family: \'Courier New\', Courier, monospace; font-size: 15px; font-weight: 700; color: #0284c7;">#' . e($this->order->order_number) . '</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <td style="padding: 16px 20px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                    <td style="font-size: 14px; color: #475569; padding-bottom: 8px;">Payment Method</td>
+                    <td align="right" style="font-size: 14px; font-weight: 600; color: #1e293b; padding-bottom: 8px;">' . e($paymentMethod) . '</td>
+                </tr>
+                <tr>
+                    <td style="font-size: 15px; font-weight: 700; color: #0f172a; padding-top: 8px; border-top: 1px dashed #cbd5e1;">Total Amount</td>
+                    <td align="right" style="font-size: 18px; font-weight: 800; color: #2aabe2; padding-top: 8px; border-top: 1px dashed #cbd5e1;">₱' . number_format((float) $this->order->total_amount, 2) . '</td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+'))
+            ->action('Track Order Status', url('/orders/' . $this->order->id))
+            ->line('We will notify you as soon as your items are verified and ready for pickup.')
+            ->salutation("Warm regards,\nThe PharmaDali Team");
     }
 
     /**

@@ -63,13 +63,20 @@ class PaymentReceiptVerifiedNotification extends Notification implements ShouldQ
     public function toMail(object $notifiable): MailMessage
     {
         $text = $this->getNotificationText();
+        $customerName = $notifiable->first_name ?? $notifiable->name ?? 'Valued Customer';
+        $orderNumber = $this->order->order_number ?? $this->order->id;
+
+        $badgeHtml = $this->isApproved
+            ? '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #10b981; border-radius: 8px;"><tr><td style="padding: 14px 18px;"><div style="font-size: 13px; font-weight: 700; color: #166534;">✓ Payment Receipt Approved</div><div style="font-size: 13px; color: #374151; margin-top: 2px;">Your online payment for order #' . e($orderNumber) . ' has been validated and confirmed.</div></td></tr></table>'
+            : '<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #fef2f2; border: 1px solid #fecaca; border-left: 4px solid #ef4444; border-radius: 8px;"><tr><td style="padding: 14px 18px;"><div style="font-size: 13px; font-weight: 700; color: #991b1b;">✕ Payment Receipt Not Accepted</div><div style="font-size: 13px; color: #7f1d1d; margin-top: 2px;">Please settle payment directly at the pharmacy checkout upon order pickup.</div></td></tr></table>';
 
         return (new MailMessage)
-            ->subject($text['title'] . ' - ' . $this->order->order_number)
-            ->greeting('Hello ' . $notifiable->name . '!')
+            ->subject($text['title'] . ' - #' . $orderNumber)
+            ->greeting("Hello {$customerName}!")
             ->line($text['message'])
+            ->line(new \Illuminate\Support\HtmlString($badgeHtml))
             ->action('View Order Details', url('/orders/' . $this->order->id))
-            ->line('Thank you for choosing PharmaDali!');
+            ->salutation("Warm regards,\nThe PharmaDali Team");
     }
 
     /**

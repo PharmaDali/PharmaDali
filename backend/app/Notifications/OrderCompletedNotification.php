@@ -39,13 +39,25 @@ class OrderCompletedNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $customerName = $notifiable->first_name ?? $notifiable->name ?? 'Valued Customer';
+
         return (new MailMessage)
-            ->subject('Order Completed - ' . $this->order->order_number)
-            ->greeting('Hello ' . $notifiable->name . '!')
+            ->subject('Order Completed - #' . $this->order->order_number)
+            ->greeting("Hello {$customerName}!")
             ->line('Great news! Your order #' . $this->order->order_number . ' has been marked as completed.')
-            ->line('We hope you are satisfied with our service.')
+            ->line(new \Illuminate\Support\HtmlString('
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 4px solid #10b981; border-radius: 8px;">
+    <tr>
+        <td style="padding: 16px 20px;">
+            <div style="font-size: 14px; font-weight: 700; color: #166534; margin-bottom: 4px;">✓ Order Successfully Completed</div>
+            <div style="font-size: 13px; color: #374151;">Order #' . e($this->order->order_number) . ' has been picked up. Thank you for trusting PharmaDali with your healthcare needs!</div>
+        </td>
+    </tr>
+</table>
+'))
+            ->line('We hope you are completely satisfied with our service. You can access your order details and receipts anytime.')
             ->action('View Order Details', url('/orders/' . $this->order->id))
-            ->line('Thank you for choosing PharmaDali!');
+            ->salutation("Warm regards,\nThe PharmaDali Team");
     }
 
     /**

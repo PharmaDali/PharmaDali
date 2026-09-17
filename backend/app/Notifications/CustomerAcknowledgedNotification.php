@@ -67,11 +67,21 @@ class CustomerAcknowledgedNotification extends Notification implements ShouldQue
         $message = $this->getNotificationMessage();
 
         return (new MailMessage)
-            ->subject("{$title} - {$this->order->order_number}")
+            ->subject("{$title} - #{$this->order->order_number}")
             ->greeting('Hello Pharmacist!')
             ->line($message)
-            ->action('View Order', url('/pharmacist/orders/' . $this->order->id))
-            ->line('You may now proceed with processing this order.');
+            ->line(new \Illuminate\Support\HtmlString('
+<table cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #f0f9ff; border: 1px solid #bae6fd; border-left: 4px solid #2aabe2; border-radius: 8px;">
+    <tr>
+        <td style="padding: 16px 20px;">
+            <div style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #0284c7; margin-bottom: 4px;">Customer Action Recorded</div>
+            <div style="font-size: 14px; color: #1e293b;">Order <strong>#' . e($this->order->order_number) . '</strong> has been updated following customer acknowledgment. You may now continue processing.</div>
+        </td>
+    </tr>
+</table>
+'))
+            ->action('View Order in Dashboard', url('/pharmacist/orders/' . $this->order->id))
+            ->salutation("Warm regards,\nThe PharmaDali Team");
     }
 
     /**
