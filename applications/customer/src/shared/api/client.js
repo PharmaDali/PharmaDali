@@ -1,4 +1,29 @@
 import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
+
+let isRedirectingToLogin = false;
+
+const clearCustomerStorage = async () => {
+  try {
+    await SecureStore.deleteItemAsync('customer_token');
+  } catch {}
+};
+
+const handleUnauthorized = async () => {
+  await clearCustomerStorage();
+  if (!isRedirectingToLogin) {
+    isRedirectingToLogin = true;
+    try {
+      router.replace('/');
+    } catch (err) {
+      console.warn('[Customer API] Navigation to login failed:', err);
+    } finally {
+      setTimeout(() => {
+        isRedirectingToLogin = false;
+      }, 1500);
+    }
+  }
+};
 
 class ApiError extends Error {
   constructor(message, status, data) {
@@ -106,6 +131,9 @@ export async function apiRequest(path, options = {}) {
     }
 
     if (!response.ok) {
+      if (response.status === 401 && authToken && !path.includes('/login') && !path.includes('/register')) {
+        await handleUnauthorized();
+      }
       throw new ApiError(getErrorMessage(data, 'Request failed.'), response.status, data);
     }
 

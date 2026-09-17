@@ -37,7 +37,7 @@ class PharmacistLoginService
 
         $user->tokens()->delete();
 
-        $token = $user->createToken('API Token', ['pharmacist'])->plainTextToken;
+        $token = $user->createToken('API Token', ['pharmacist'], now()->addDays(14))->plainTextToken;
 
         return response()->json([
             'token'      => $token,

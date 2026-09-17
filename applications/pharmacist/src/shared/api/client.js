@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { router } from 'expo-router';
 
 class ApiError extends Error {
   constructor(message, status, data) {
@@ -78,6 +79,36 @@ const getStoredPharmacyId = async () => {
   }
 };
 
+let isRedirectingToLogin = false;
+
+const clearAuthStorage = async () => {
+  if (Platform.OS === 'web') {
+    try {
+      localStorage.removeItem('pharmacist_token');
+    } catch {}
+  } else {
+    try {
+      await SecureStore.deleteItemAsync('pharmacist_token');
+    } catch {}
+  }
+};
+
+const handleUnauthorized = async () => {
+  await clearAuthStorage();
+  if (!isRedirectingToLogin) {
+    isRedirectingToLogin = true;
+    try {
+      router.replace('/auth/PharmacistLogin');
+    } catch (err) {
+      console.warn('[Pharmacist API] Navigation to login failed:', err);
+    } finally {
+      setTimeout(() => {
+        isRedirectingToLogin = false;
+      }, 1500);
+    }
+  }
+};
+
 export async function apiRequest(path, options = {}) {
   const baseUrl = getBaseUrl();
 
@@ -119,6 +150,9 @@ export async function apiRequest(path, options = {}) {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
+    if (response.status === 401 && authToken && !path.includes('/login')) {
+      await handleUnauthorized();
+    }
     throw new ApiError(getErrorMessage(data, 'Request failed.'), response.status, data);
   }
 

@@ -21,6 +21,7 @@ import {
   sendCustomerChangePasswordOtp,
   verifyCustomerChangePasswordOtp,
   resetCustomerPassword,
+  logoutCustomer,
 } from '@shared/services/authService';
 
 const ChangePassword = () => {
@@ -385,7 +386,7 @@ const ChangePassword = () => {
             </Text>
 
             <Text className="text-sm text-center leading-6 mb-6" style={styles.successSubtext}>
-              Your password has been updated. You can continue using your account.
+              Your password has been updated. Please log in again with your new credentials to continue.
             </Text>
 
             {/* Organized Security Note Box */}
@@ -421,8 +422,14 @@ const ChangePassword = () => {
               </Text>
             </View>
 
-            <TouchableOpacity className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center mt-6" onPress={() => router.replace('/tabs/Home')}>
-              <Text className="text-base" style={styles.primaryButtonText}>Back to Home</Text>
+            <TouchableOpacity
+              className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center mt-6"
+              onPress={async () => {
+                await logoutCustomer();
+                router.replace('/');
+              }}
+            >
+              <Text className="text-base" style={styles.primaryButtonText}>Re-login</Text>
             </TouchableOpacity>
           </View>
         )}
