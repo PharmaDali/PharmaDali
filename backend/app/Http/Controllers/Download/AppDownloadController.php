@@ -16,6 +16,14 @@ class AppDownloadController extends Controller
     }
 
     /**
+     * Download the Customer Mobile Application APK.
+     */
+    public function downloadCustomerApp(): BinaryFileResponse
+    {
+        return $this->serveApk('pharmadali-customer.apk', 'PharmaDali-Customer.apk');
+    }
+
+    /**
      * Helper to resolve and stream the APK file with proper Android MIME headers.
      */
     private function serveApk(string $filename, string $downloadName): BinaryFileResponse
