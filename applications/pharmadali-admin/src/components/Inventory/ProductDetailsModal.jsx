@@ -39,6 +39,15 @@ export function ProductDetailsModal({
   const fileInputRef = React.useRef(null);
   const today = new Date().toISOString().split("T")[0];
 
+  const activeBatchesCount = React.useMemo(() => {
+    return (batches || []).filter((b) => {
+      const currentStock = isModalEditing && batchEditStocks?.[b.id] !== undefined
+        ? Number(batchEditStocks[b.id])
+        : Number(b.stock);
+      return (currentStock || 0) > 0;
+    }).length;
+  }, [batches, isModalEditing, batchEditStocks]);
+
   const getBatchStatusBadgeClass = (status) => {
     switch (status?.toLowerCase()) {
       case "expired":
@@ -404,11 +413,11 @@ export function ProductDetailsModal({
                   className="badge rounded-pill px-2.5 py-1 fw-semibold"
                   style={{ backgroundColor: "#e8f0fe", color: "#48aad9", fontSize: "11px" }}
                 >
-                  {batches.length} {batches.length === 1 ? "Batch" : "Batches"}
+                  {activeBatchesCount} {activeBatchesCount === 1 ? "Batch" : "Batches"}
                 </span>
               </div>
               <span className="inventory-batch-total text-muted small">
-                Total In Stock: <strong style={{ color: "#48aad9", fontSize: "13.5px" }}>{batches.reduce((s, b) => s + (b.stock ?? 0), 0)}</strong> units
+                Total In Stock: <strong style={{ color: "#48aad9", fontSize: "13.5px" }}>{(batches || []).reduce((s, b) => s + (isModalEditing && batchEditStocks?.[b.id] !== undefined ? (Number(batchEditStocks[b.id]) || 0) : (Number(b.stock) || 0)), 0)}</strong> units
               </span>
             </div>
 
