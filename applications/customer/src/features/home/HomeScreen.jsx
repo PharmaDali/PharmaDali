@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, Act
 import { colors } from '@src/shared/theme/colorPalette';
 import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import StoreIcon from '@assets/icons/store_icon.svg';
 import HeroImage from '@assets/images/hero-image.svg';
 import ArrowRightIcon from '@assets/icons/arrow-right.svg';
@@ -19,6 +19,7 @@ import ToastMessage from '@shared/components/ToastMessage';
 import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { toTitleCase } from '@shared/utils/stringUtils';
+import { getCustomerConversations } from '@shared/services/chatService';
 
 export default function HomeScreen() {
   const route = useRouter();
@@ -39,7 +40,37 @@ export default function HomeScreen() {
   } = useHomeTab(selectedPharmacy);
   const { toast, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
-  const [hasUnreadMessage, setHasUnreadMessage] = useState(true);
+  const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      getCustomerConversations()
+        .then((result) => {
+          if (!isMounted) return;
+          const validConversations = (Array.isArray(result) ? result : []).filter((c) => {
+            const orderStatus = String(c?.order?.status || '').toLowerCase();
+            const convStatus = String(c?.status || '').toLowerCase();
+            return (
+              c.latest_message !== null &&
+              orderStatus !== 'completed' &&
+              orderStatus !== 'cancelled' &&
+              orderStatus !== 'rejected' &&
+              convStatus !== 'closed'
+            );
+          });
+          const hasUnread = validConversations.some((c) => (Number(c?.unread_count) || 0) > 0);
+          setHasUnreadMessage(hasUnread);
+        })
+        .catch(() => {
+          if (isMounted) setHasUnreadMessage(false);
+        });
+
+      return () => {
+        isMounted = false;
+      };
+    }, [])
+  );
 
   const pharmacyStatusLabel = selectedPharmacy?.isOpen
     ? (selectedPharmacy?.formattedClosingHour ? `Open til ${selectedPharmacy.formattedClosingHour}` : 'Open now')
