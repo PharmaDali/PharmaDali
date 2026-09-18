@@ -68,7 +68,8 @@ const UploadPrescriptionScreen = () => {
   const [uploadError, setUploadError] = useState('')
   const [uploadSuccess, setUploadSuccess] = useState(Boolean(draft?.prescriptionPrepared))
   const uploadTimerRef = useRef(null)
-  const canProceed = uploadSuccess
+  const isPharmacyOpen = draft?.isPharmacyOpen !== false
+  const canProceed = uploadSuccess && isPharmacyOpen
 
   useEffect(() => {
     return () => {
@@ -213,6 +214,19 @@ const UploadPrescriptionScreen = () => {
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {!isPharmacyOpen && (
+          <View className="mx-4 mt-4 bg-[#FFEAEA] border border-[#FFCCCC] rounded-xl p-3 flex-row items-center">
+            <View className="flex-1">
+              <Text className="text-xs text-[#B42318]" style={styles.fontSemiBold}>
+                Pharmacy is Currently Closed
+              </Text>
+              <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
+                {draft?.closedPharmacyName || draft?.pharmacyLabel || 'This pharmacy'} is currently closed. You cannot proceed with this order right now.
+              </Text>
+            </View>
+          </View>
+        )}
+
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-4 p-4">
           <Text className="text-sm" style={styles.fontBold}>Prescription Required for:</Text>
           {prescriptionItems.length === 0 && (

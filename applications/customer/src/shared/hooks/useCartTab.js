@@ -65,7 +65,7 @@ export function useCartTab() {
     }
   }, []);
 
-  const viewState = useMemo(() => buildCartViewState(cartItems), [cartItems]);
+  const viewState = useMemo(() => buildCartViewState(cartItems, selectedPharmacy), [cartItems, selectedPharmacy]);
 
   const toggleAll = useCallback(() => {
     setCartItems((prev) => toggleAllCartItems(prev, !viewState.allSelected));

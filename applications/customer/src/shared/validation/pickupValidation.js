@@ -10,6 +10,14 @@ export function isSameCalendarDay(a, b) {
 
 // Build dynamic minimum time: opening time, or "now" when user selects today.
 export function buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes) {
+  if (!Number.isFinite(openingMinutes) || !Number.isFinite(closingMinutes) || openingMinutes >= closingMinutes) {
+    return {
+      closingDateTime: new Date(0),
+      minimumDateTime: new Date(0),
+      hasWindowToday: false,
+    }
+  }
+
   const openingDateTime = buildDateAtMinutes(selectedDate, openingMinutes)
   const closingDateTime = buildDateAtMinutes(selectedDate, closingMinutes)
   openingDateTime.setSeconds(0, 0)

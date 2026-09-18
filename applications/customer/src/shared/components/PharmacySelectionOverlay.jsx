@@ -5,6 +5,7 @@ import { colors } from '@shared/theme/colorPalette';
 import RedStoreIcon from '@assets/icons/red_store_icon.svg';
 import { getPharmacyDataInSelectionPhase } from '@shared/services/selectionPhaseService';
 import LocationIcon from '@assets/icons/red_location_icon.svg';
+import { getManilaMinutes } from '@src/utils/pickupScheduleUtils';
 
 const fallbackPharmacies = [];
 
@@ -62,7 +63,7 @@ function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
     return false;
   }
 
-  const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+  const currentMinutes = getManilaMinutes(now);
 
   if (openingMinutes === closingMinutes) {
     return true;
@@ -147,19 +148,30 @@ export default function PharmacySelectionOverlay({ visible, onSelect }) {
         const mapped = normalized.map((item) => {
           const formattedOpeningHour = formatTimeToAmPm(item.opening_hour);
           const formattedClosingHour = formatTimeToAmPm(item.closing_hour);
+          const isOperating = item.is_active !== false && item.is_active !== 0 && item.is_active !== '0';
+          const isOpen = isOperating && isPharmacyOpenNow(item.opening_hour, item.closing_hour);
 
           return {
+            id: item.id ?? item.pharmacy_id,
+            pharmacy_id: item.id ?? item.pharmacy_id,
+            name: item.pharmacy_name,
+            pharmacy_name: item.pharmacy_name,
+            address: item.location,
+            location: item.location,
+            opening_hour: item.opening_hour,
+            closing_hour: item.closing_hour,
+            openingHour: item.opening_hour,
+            closingHour: item.closing_hour,
             formattedOpeningHour,
             formattedClosingHour,
-            id: item.id ?? item.pharmacy_id,
-            name: item.pharmacy_name,
-            address: item.location,
             hours:
               formattedOpeningHour && formattedClosingHour
                 ? `${formattedOpeningHour} - ${formattedClosingHour}`
                 : 'Store hours unavailable',
-            isOpen: isPharmacyOpenNow(item.opening_hour, item.closing_hour),
-            isOperating: typeof item.is_active === 'boolean' ? item.is_active : true,
+            isOpen,
+            is_active: isOperating,
+            isActive: isOperating,
+            isOperating,
           };
         });
 
