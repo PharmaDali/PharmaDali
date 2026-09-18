@@ -4,6 +4,13 @@
     "name": "PharmaDali for Pharmacists",
     "slug": "pharmadali-pharmacist",
     "version": "1.0.0",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/1ad22870-7bcf-4456-a816-86c9f5b8d186",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
     "orientation": "portrait",
     "icon": "./assets/app_icon.png",
     "userInterfaceStyle": "light",
