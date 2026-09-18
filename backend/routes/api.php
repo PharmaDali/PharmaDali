@@ -44,6 +44,8 @@ Route::post('admin/login', [AuthController::class, 'adminLogin']);
 // App Downloads (Direct APK download)
 Route::get('download/pharmacist-app', [AppDownloadController::class, 'downloadPharmacistApp']);
 Route::get('downloads/pharmacist-app', [AppDownloadController::class, 'downloadPharmacistApp']);
+Route::get('download/customer-app', [AppDownloadController::class, 'downloadCustomerApp']);
+Route::get('downloads/customer-app', [AppDownloadController::class, 'downloadCustomerApp']);
 
 // Customer Forgot Password routes (Email OTP stored in Redis)
 Route::post('customer/forgot-password/send-otp', [CustomerForgotPasswordController::class, 'sendOtp']);
