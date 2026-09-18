@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
@@ -14,10 +14,47 @@ import { syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 export default function LoginScreen() {
   const router = useRouter();
   const passwordToggleIcon = useConfirmPasswordToggle();
-  const [email, setEmail] = React.useState('');
-  const [password, setPassword] = React.useState('');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkExistingSession() {
+      try {
+        const raw = await SecureStore.getItemAsync('customer_token');
+        if (raw) {
+          let tokenStr = null;
+          try {
+            const parsed = JSON.parse(raw);
+            tokenStr = typeof parsed === 'string' ? parsed : (parsed?.token || null);
+          } catch {
+            tokenStr = raw;
+          }
+
+          if (tokenStr) {
+            router.replace('/tabs/Home');
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('[Customer Auth] Session check notice:', err);
+      } finally {
+        if (isMounted) {
+          setIsCheckingSession(false);
+        }
+      }
+    }
+
+    checkExistingSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
 
   const handleLogin = async () => {
     const validationMessage = validateCustomerLogin({ email, password });
@@ -42,6 +79,14 @@ export default function LoginScreen() {
       setIsSubmitting(false);
     }
   };
+
+  if (isCheckingSession) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' }}>
+        <ActivityIndicator size="large" color="#48AAD9" />
+      </View>
+    );
+  }
 
   return (
     <AnimatedSplashLayout>
