@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\PharmacistChangePasswordController;
 use App\Http\Controllers\Customer\CustomerCartController;
 use App\Http\Controllers\Customer\CustomerProfileController;
 use App\Http\Controllers\Customer\CustomerRecommendationController;
+use App\Http\Controllers\Download\AppDownloadController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Discount\DiscountController;
 use App\Http\Controllers\Inventory\CategoryController;
@@ -39,6 +40,10 @@ Route::post('customer/register', [AuthController::class, 'customerRegister'])->m
 Route::post('login', [AuthController::class, 'login']);
 Route::post('pharmacist/login', [AuthController::class, 'pharmacistLogin']);
 Route::post('admin/login', [AuthController::class, 'adminLogin']);
+
+// App Downloads (Direct APK download)
+Route::get('download/pharmacist-app', [AppDownloadController::class, 'downloadPharmacistApp']);
+Route::get('downloads/pharmacist-app', [AppDownloadController::class, 'downloadPharmacistApp']);
 
 // Customer Forgot Password routes (Email OTP stored in Redis)
 Route::post('customer/forgot-password/send-otp', [CustomerForgotPasswordController::class, 'sendOtp']);
