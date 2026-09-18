@@ -13,7 +13,6 @@ import { useAppUpdates } from '@shared/hooks/useAppUpdates';
 export default function UpdateNoticeModal({
   visible: controlledVisible,
   onRestart: controlledRestart,
-  onDismiss: controlledDismiss,
   isRestarting: controlledIsRestarting,
 }) {
   const autoUpdates = useAppUpdates();
@@ -25,7 +24,6 @@ export default function UpdateNoticeModal({
       ? controlledIsRestarting
       : autoUpdates.isRestarting;
   const handleRestart = controlledRestart || autoUpdates.reloadApp;
-  const handleDismiss = controlledDismiss || autoUpdates.dismissModal;
 
   if (!isVisible) return null;
 
@@ -35,7 +33,7 @@ export default function UpdateNoticeModal({
       transparent
       animationType="fade"
       statusBarTranslucent
-      onRequestClose={handleDismiss}
+      onRequestClose={() => {}}
     >
       <View style={styles.backdrop}>
         <View style={styles.card}>
@@ -88,16 +86,6 @@ export default function UpdateNoticeModal({
             ) : (
               <Text style={styles.primaryButtonText}>Restart Now</Text>
             )}
-          </TouchableOpacity>
-
-          {/* Secondary Action Button */}
-          <TouchableOpacity
-            style={styles.secondaryButton}
-            onPress={handleDismiss}
-            disabled={isRestarting}
-            activeOpacity={0.65}
-          >
-            <Text style={styles.secondaryButtonText}>Later</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -175,7 +163,6 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -189,18 +176,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Poppins-Bold',
     color: '#FFFFFF',
-    includeFontPadding: false,
-  },
-  secondaryButton: {
-    width: '100%',
-    paddingVertical: 9,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryButtonText: {
-    fontSize: 13,
-    fontFamily: 'Poppins-Medium',
-    color: '#94A3B8',
     includeFontPadding: false,
   },
 });
