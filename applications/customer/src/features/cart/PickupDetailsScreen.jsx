@@ -890,18 +890,6 @@ const PickupDetailsScreen = () => {
             qrStyle={{ width: 240, height: 240 }}
           />
         )}
-
-        {isPharmacyClosed && (
-          <View className="flex-row items-start bg-[#FFF7ED] rounded-xl mx-4 mt-3 p-3 border border-[#FCD34D]">
-            <RedInfoIcon width={14} height={14} />
-            <View className="flex-1 ml-2">
-              <Text className="text-xs" style={styles.closedWarningTitle}>Pharmacy is currently closed</Text>
-              <Text className="text-[10px] mt-0.5" style={styles.closedWarningBody}>
-                Orders can only be placed during operating hours{effectiveHoursLabel ? ` (${effectiveHoursLabel})` : ''}. Please come back during open hours.
-              </Text>
-            </View>
-          </View>
-        )}
       </ScrollView>
 
       <View className="flex-row justify-center gap-4 px-6 py-3 bg-white border-t border-gray-100">
