@@ -1,12 +1,58 @@
-import React from 'react';
-import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import CircularLogo from '@assets/circular_logo.svg';
 import { colors } from '@src/shared/theme/colorPalette';
 import AnimatedSplashLayout from '@src/shared/components/AnimatedSplashLayout';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function checkExistingSession() {
+      try {
+        const raw = await SecureStore.getItemAsync('pharmacist_token');
+        if (raw) {
+          let tokenStr = null;
+          try {
+            const parsed = JSON.parse(raw);
+            tokenStr = typeof parsed === 'string' ? parsed : (parsed?.token || null);
+          } catch {
+            tokenStr = raw;
+          }
+
+          if (tokenStr) {
+            router.replace('/tabs/Home');
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn('[Pharmacist Auth] Session check notice:', err);
+      } finally {
+        if (isMounted) {
+          setIsCheckingSession(false);
+        }
+      }
+    }
+
+    checkExistingSession();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [router]);
+
+  if (isCheckingSession) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' }}>
+        <ActivityIndicator size="large" color="#48AAD9" />
+      </View>
+    );
+  }
 
   return (
     <AnimatedSplashLayout>

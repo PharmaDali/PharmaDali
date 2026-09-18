@@ -67,10 +67,20 @@ const ReviewOrderScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const [showTermsModal, setShowTermsModal] = useState(false)
-  const { items: orderItems, pharmacyLabel, pharmacyLocationLabel, total: checkoutTotal } = getCheckoutDraft()
+  const {
+    items: orderItems,
+    pharmacyLabel,
+    pharmacyLocationLabel,
+    total: checkoutTotal,
+    isPharmacyOpen: draftPharmacyOpen,
+    closedPharmacyName,
+    pharmacyHoursLabel,
+  } = getCheckoutDraft()
+  const isPharmacyOpen = draftPharmacyOpen !== false
   const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const effectiveTotal = checkoutTotal > 0 ? checkoutTotal : total
   const hasPrescription = orderItems.some((item) => item.prescriptionRequired)
+  const canProceed = orderItems.length > 0 && isPharmacyOpen
 
   return (
     <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
@@ -92,6 +102,20 @@ const ReviewOrderScreen = () => {
             ) : null}
           </View>
         </View>
+
+        {!isPharmacyOpen && (
+          <View className="mx-4 mb-3 bg-[#FFEAEA] border border-[#FFCCCC] rounded-xl p-3 flex-row items-center">
+            <RedInfoIcon width={18} height={18} />
+            <View className="flex-1 ml-2.5">
+              <Text className="text-xs text-[#B42318]" style={styles.fontSemiBold}>
+                Pharmacy is Currently Closed
+              </Text>
+              <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
+                {closedPharmacyName || pharmacyLabel || 'This pharmacy'} is currently closed{pharmacyHoursLabel ? ` (${pharmacyHoursLabel})` : ''}. You cannot proceed with this order right now.
+              </Text>
+            </View>
+          </View>
+        )}
 
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 p-4">
           <Text className="text-sm" style={styles.fontBold}>Order Items</Text>
@@ -147,15 +171,16 @@ const ReviewOrderScreen = () => {
           <Text className="text-sm" style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          className={`flex-1 rounded-xl py-2.5 items-center ${orderItems.length === 0 ? 'bg-gray-300' : 'bg-[#48AAD9]'}`}
-          onPress={() =>
+          className={`flex-1 rounded-xl py-2.5 items-center ${!canProceed ? 'bg-gray-300' : 'bg-[#48AAD9]'}`}
+          onPress={() => {
+            if (!canProceed) return;
             router.push(
               hasPrescription
                 ? '/tabs/cart/UploadPrescription'
                 : '/tabs/cart/PickupDetails',
-            )
-          }
-          disabled={orderItems.length === 0}
+            );
+          }}
+          disabled={!canProceed}
         >
           <Text className="text-sm text-white" style={styles.nextText}>Next</Text>
         </TouchableOpacity>

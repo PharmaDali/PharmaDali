@@ -83,8 +83,71 @@ export function buildDynamicPickupDates(count = 7) {
   });
 }
 
+// Returns the current minute of day (0-1439) in Asia/Manila timezone
+export function getManilaMinutes(now = new Date()) {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Asia/Manila',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(now);
+    let hour = 0;
+    let minute = 0;
+    for (const part of parts) {
+      if (part.type === 'hour') {
+        hour = parseInt(part.value, 10);
+        if (hour === 24) hour = 0;
+      } else if (part.type === 'minute') {
+        minute = parseInt(part.value, 10);
+      }
+    }
+    return (hour * 60) + minute;
+  } catch {
+    return (now.getHours() * 60) + now.getMinutes();
+  }
+}
+
+// Checks whether the pharmacy is open right now based on operating hours in Asia/Manila time
+export function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
+  const openingMinutes = parseAmPmToMinutes(openingHour);
+  const closingMinutes = parseAmPmToMinutes(closingHour);
+
+  if (openingMinutes === null || closingMinutes === null) {
+    return false;
+  }
+
+  const currentMinutes = getManilaMinutes(now);
+
+  if (openingMinutes === closingMinutes) {
+    return true;
+  }
+
+  if (openingMinutes < closingMinutes) {
+    return currentMinutes >= openingMinutes && currentMinutes < closingMinutes;
+  }
+
+  return currentMinutes >= openingMinutes || currentMinutes < closingMinutes;
+}
+
 // Resolves opening/closing minutes from selected pharmacy metadata, with a safe fallback window.
 export function parsePharmacyOperatingMinutes(selectedPharmacy) {
+  if (!selectedPharmacy) {
+    return {
+      openingMinutes: null,
+      closingMinutes: null,
+    };
+  }
+
+  const isActive = selectedPharmacy.isActive ?? selectedPharmacy.is_active ?? selectedPharmacy.isOperating;
+  if (isActive === false || isActive === 0 || isActive === '0') {
+    return {
+      openingMinutes: null,
+      closingMinutes: null,
+    };
+  }
+
   const openTime = selectedPharmacy?.formattedOpeningHour || selectedPharmacy?.opening_hour || selectedPharmacy?.openingHour;
   const closeTime = selectedPharmacy?.formattedClosingHour || selectedPharmacy?.closing_hour || selectedPharmacy?.closingHour;
 
@@ -119,9 +182,8 @@ export function parsePharmacyOperatingMinutes(selectedPharmacy) {
     }
   }
 
-  // Safe default: 12:00 AM to 11:59 PM (0 to 1439 mins) if pharmacy is active but hours unparsed
   return {
-    openingMinutes: 0,
-    closingMinutes: 1439,
+    openingMinutes: null,
+    closingMinutes: null,
   };
 }

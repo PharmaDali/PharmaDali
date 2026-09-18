@@ -152,7 +152,7 @@ export default function CartScreen() {
   const allSelected = viewState.allSelected;
   const total = viewState.total;
   const hasPrescription = viewState.hasPrescription;
-  const isPharmacyOpen = viewState.isPharmacyOpen !== false;
+  const isPharmacyOpen = Boolean(viewState.isPharmacyOpen);
   const closedPharmacyName = viewState.closedPharmacyName || '';
   const pharmacyHoursLabel = viewState.pharmacyHoursLabel || '';
   const canProceed = viewState.selectedCount > 0 && isPharmacyOpen;
@@ -170,6 +170,9 @@ export default function CartScreen() {
       pharmacyLabel,
       pharmacyLocationLabel,
       total,
+      isPharmacyOpen,
+      closedPharmacyName,
+      pharmacyHoursLabel,
     });
 
     router.push('/tabs/cart/ReviewOrder');

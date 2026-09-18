@@ -10,6 +10,9 @@ let checkoutDraft = {
   discountType: null,
   discountIdNumber: '',
   gcashReceiptImage: null,
+  isPharmacyOpen: true,
+  closedPharmacyName: '',
+  pharmacyHoursLabel: '',
 };
 
 export function setCheckoutDraft(payload) {
@@ -25,6 +28,9 @@ export function setCheckoutDraft(payload) {
     discountType: payload?.discountType || null,
     discountIdNumber: payload?.discountIdNumber || '',
     gcashReceiptImage: payload?.gcashReceiptImage || null,
+    isPharmacyOpen: payload?.isPharmacyOpen !== false,
+    closedPharmacyName: payload?.closedPharmacyName || '',
+    pharmacyHoursLabel: payload?.pharmacyHoursLabel || '',
   };
 }
 
@@ -45,6 +51,9 @@ export function clearCheckoutDraft() {
     discountType: null,
     discountIdNumber: '',
     gcashReceiptImage: null,
+    isPharmacyOpen: true,
+    closedPharmacyName: '',
+    pharmacyHoursLabel: '',
   };
 }
 

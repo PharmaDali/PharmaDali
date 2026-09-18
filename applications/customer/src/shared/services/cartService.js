@@ -1,4 +1,5 @@
 import { apiRequest } from '@shared/api/client';
+import { getManilaMinutes } from '@src/utils/pickupScheduleUtils';
 
 function toPositiveInteger(value, fallback = 1) {
   const parsed = Number(value);
@@ -252,7 +253,7 @@ export function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
     return false;
   }
 
-  const currentMinutes = (now.getHours() * 60) + now.getMinutes();
+  const currentMinutes = getManilaMinutes(now);
 
   if (openingMinutes === closingMinutes) {
     return true;
@@ -265,34 +266,59 @@ export function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
   return currentMinutes >= openingMinutes || currentMinutes < closingMinutes;
 }
 
-export function buildCartViewState(items) {
+export function buildCartViewState(items, selectedPharmacyFallback = null) {
   const availableItems = items.filter((item) => item.canCheckout);
   const selectedItems = items.filter((item) => item.selected);
   const total = selectedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const hasPrescription = items.some((item) => item.prescriptionRequired && item.selected);
   const allSelected = availableItems.length > 0 && availableItems.every((item) => item.selected);
 
-  const targetPharmacy = items.find((item) => item.selected || item.pharmacy?.id)?.pharmacy || items[0]?.pharmacy;
+  const itemPharmacy = items.find((item) => (item.selected && item.pharmacy?.id) || item.pharmacy?.id)?.pharmacy || items[0]?.pharmacy;
+  const targetPharmacy = itemPharmacy || (selectedPharmacyFallback ? {
+    id: selectedPharmacyFallback.id ?? selectedPharmacyFallback.pharmacy_id,
+    pharmacyName: selectedPharmacyFallback.name || selectedPharmacyFallback.pharmacy_name || 'Selected pharmacy',
+    location: selectedPharmacyFallback.address || selectedPharmacyFallback.location || '',
+    openingHour: selectedPharmacyFallback.opening_hour || selectedPharmacyFallback.openingHour || selectedPharmacyFallback.formattedOpeningHour,
+    closingHour: selectedPharmacyFallback.closing_hour || selectedPharmacyFallback.closingHour || selectedPharmacyFallback.formattedClosingHour,
+    isActive: selectedPharmacyFallback.isActive ?? selectedPharmacyFallback.is_active ?? selectedPharmacyFallback.isOperating,
+    isOpen: selectedPharmacyFallback.isOpen,
+    hours: selectedPharmacyFallback.hours,
+  } : null);
+
   let isPharmacyOpen = true;
   let closedPharmacyName = '';
   let pharmacyHoursLabel = '';
 
   if (targetPharmacy) {
-    if (targetPharmacy.isActive === false) {
+    const rawIsActive = targetPharmacy.isActive ?? targetPharmacy.is_active ?? targetPharmacy.isOperating;
+    const isInactive = rawIsActive === false || rawIsActive === 0 || rawIsActive === '0';
+
+    if (isInactive) {
       isPharmacyOpen = false;
-      closedPharmacyName = targetPharmacy.pharmacyName;
+      closedPharmacyName = targetPharmacy.pharmacyName || selectedPharmacyFallback?.name || selectedPharmacyFallback?.pharmacy_name || 'Pharmacy';
       pharmacyHoursLabel = 'Temporarily Closed';
+    } else if (targetPharmacy.isOpen === false && !targetPharmacy.openingHour) {
+      isPharmacyOpen = false;
+      closedPharmacyName = targetPharmacy.pharmacyName || selectedPharmacyFallback?.name || selectedPharmacyFallback?.pharmacy_name || 'Pharmacy';
+      pharmacyHoursLabel = targetPharmacy.hours || selectedPharmacyFallback?.hours || 'Closed';
     } else if (targetPharmacy.openingHour && targetPharmacy.closingHour) {
       const open = isPharmacyOpenNow(targetPharmacy.openingHour, targetPharmacy.closingHour);
       if (!open) {
         isPharmacyOpen = false;
-        closedPharmacyName = targetPharmacy.pharmacyName;
+        closedPharmacyName = targetPharmacy.pharmacyName || selectedPharmacyFallback?.name || selectedPharmacyFallback?.pharmacy_name || 'Pharmacy';
         const openTime = formatTimeToAmPm(targetPharmacy.openingHour);
         const closeTime = formatTimeToAmPm(targetPharmacy.closingHour);
         pharmacyHoursLabel = openTime && closeTime ? `${openTime} – ${closeTime}` : 'Closed';
-        pharmacyHoursLabel = openTime && closeTime ? `${openTime} – ${closeTime}` : '';
       }
+    } else if (selectedPharmacyFallback?.isOpen === false) {
+      isPharmacyOpen = false;
+      closedPharmacyName = targetPharmacy.pharmacyName || selectedPharmacyFallback?.name || selectedPharmacyFallback?.pharmacy_name || 'Pharmacy';
+      pharmacyHoursLabel = selectedPharmacyFallback?.hours || 'Closed';
     }
+  } else if (selectedPharmacyFallback?.isOpen === false) {
+    isPharmacyOpen = false;
+    closedPharmacyName = selectedPharmacyFallback?.name || selectedPharmacyFallback?.pharmacy_name || 'Pharmacy';
+    pharmacyHoursLabel = selectedPharmacyFallback?.hours || 'Closed';
   }
 
   const pharmacyNames = Array.from(

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
 
 class PharmacyProductsImportSeeder extends Seeder
 {
@@ -40,18 +41,16 @@ class PharmacyProductsImportSeeder extends Seeder
         }
 
         DB::transaction(function () use ($data, $pharmacyId, $pharmacyData) {
-            // 1. Verify or create Pharmacy record
-            $existingPharmacy = DB::table('pharmacies')->where('id', $pharmacyId)->first();
-            if (!$existingPharmacy && $pharmacyData) {
-                $this->command->warn("Pharmacy ID {$pharmacyId} does not exist in target database. Creating it...");
-                DB::table('pharmacies')->insert([
-                    'id'            => $pharmacyId,
-                    'pharmacy_name' => $pharmacyData['pharmacy_name'] ?? "Pharmacy {$pharmacyId}",
-                    'address'       => $pharmacyData['address'] ?? 'Default Address',
-                    'contact_number'=> $pharmacyData['contact_number'] ?? '00000000000',
-                    'created_at'    => now(),
-                    'updated_at'    => now(),
-                ]);
+            // 1. Sync & Seed Pharmacy record
+            if ($pharmacyData) {
+                $pharmacyColumns = Schema::getColumnListing('pharmacies');
+                $pharmacyRecord = array_intersect_key($pharmacyData, array_flip($pharmacyColumns));
+                $pharmacyName = $pharmacyRecord['pharmacy_name'] ?? "Pharmacy {$pharmacyId}";
+                $this->command?->info("Syncing pharmacy details for {$pharmacyName} (ID: {$pharmacyId})...");
+                DB::table('pharmacies')->updateOrInsert(
+                    ['id' => $pharmacyId],
+                    $pharmacyRecord
+                );
             }
 
             // 2. Map & Ensure Categories
