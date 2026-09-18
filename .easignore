@@ -1,7 +1,18 @@
 # Exclude backend and admin portal to prevent Windows symlink traversal during EAS builds
+# Exclude backend, admin portals, and docs to prevent Windows symlink traversal and bloat during EAS builds
 backend/
 backend/public/storage
 backend/storage/app/public
 applications/pharmadali-admin/
+applications/super-admin/
+docs/
 node_modules/
 .git/
+
+# Exclude Android and iOS local build caches
+**/.gradle/
+**/.cxx/
+**/build/
+**/local.properties
+*.apk
+*.aab

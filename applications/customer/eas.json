@@ -11,14 +11,13 @@
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.pharmadali.com/api"
       }
     },
     "production": {
+      "channel": "production",
       "autoIncrement": true
     }
   },

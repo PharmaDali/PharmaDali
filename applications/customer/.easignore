@@ -5,6 +5,20 @@ dist/
 web-build/
 *.tsbuildinfo
 
-# Native build artifacts
-/ios
-/android
+# Android native build caches and artifacts
+.gradle/
+.cxx/
+build/
+local.properties
+android/.gradle/
+android/.cxx/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/local.properties
+*.apk
+*.aab
+
+# iOS native build artifacts
+ios/build/
+ios/Pods/
