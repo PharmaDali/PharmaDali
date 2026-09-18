@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from 'react-native'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@src/shared/theme/colorPalette'
@@ -11,6 +11,7 @@ import RedInfoIcon from '@assets/icons/red_info_icon.svg'
 import ProductImage from '@shared/components/ProductImage'
 import TermsAndConditionsModal from '@shared/components/TermsAndConditionsModal'
 import { getCheckoutDraft } from '@shared/services/checkoutDraft'
+import { formatPharmacyHoursLabel } from '@src/utils/pickupScheduleUtils'
 
 function truncateText(value, maxLength = 48) {
   const text = String(value || '').trim();
@@ -69,6 +70,7 @@ const ReviewOrderScreen = () => {
   const [showTermsModal, setShowTermsModal] = useState(false)
   const {
     items: orderItems,
+    selectedPharmacy: draftPharmacy,
     pharmacyLabel,
     pharmacyLocationLabel,
     total: checkoutTotal,
@@ -81,6 +83,17 @@ const ReviewOrderScreen = () => {
   const effectiveTotal = checkoutTotal > 0 ? checkoutTotal : total
   const hasPrescription = orderItems.some((item) => item.prescriptionRequired)
   const canProceed = orderItems.length > 0 && isPharmacyOpen
+
+  const effectiveHoursLabel = useMemo(() => {
+    if (pharmacyHoursLabel && !pharmacyHoursLabel.toLowerCase().includes('unavail') && pharmacyHoursLabel.toLowerCase() !== 'closed') {
+      return pharmacyHoursLabel;
+    }
+    const target =
+      draftPharmacy ||
+      orderItems.find((i) => i?.pharmacy?.opening_hour || i?.pharmacy?.openingHour)?.pharmacy ||
+      orderItems[0]?.pharmacy;
+    return formatPharmacyHoursLabel(target) || '';
+  }, [pharmacyHoursLabel, draftPharmacy, orderItems]);
 
   return (
     <View className="flex-1 bg-[#F1F4FF]" style={{ paddingBottom: insets.bottom }}>
@@ -111,7 +124,7 @@ const ReviewOrderScreen = () => {
                 Pharmacy is Currently Closed
               </Text>
               <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
-                {closedPharmacyName || pharmacyLabel || 'This pharmacy'} is currently closed{pharmacyHoursLabel ? ` (${pharmacyHoursLabel})` : ''}. You cannot proceed with this order right now.
+                {closedPharmacyName || pharmacyLabel || 'This pharmacy'} is currently closed{effectiveHoursLabel ? ` (Store hours: ${effectiveHoursLabel})` : ''}. You cannot proceed with this order right now.
               </Text>
             </View>
           </View>

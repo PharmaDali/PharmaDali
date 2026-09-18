@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -12,6 +12,7 @@ import { useCartTab } from '@shared/hooks/useCartTab';
 import { setCheckoutDraft } from '@shared/services/checkoutDraft';
 import ProductImage from '@shared/components/ProductImage';
 import ClearCartOverlay from '@shared/components/ClearCartOverlay';
+import { formatPharmacyHoursLabel } from '@src/utils/pickupScheduleUtils';
 
 import DeleteIcon from '@assets/icons/delete.svg';
 
@@ -147,6 +148,7 @@ export default function CartScreen() {
     viewState,
     pharmacyLabel,
     pharmacyLocationLabel,
+    selectedPharmacy,
   } = useCartTab();
 
   const allSelected = viewState.allSelected;
@@ -158,6 +160,14 @@ export default function CartScreen() {
   const canProceed = viewState.selectedCount > 0 && isPharmacyOpen;
   const selectedItems = cartItems.filter((item) => item.selected);
 
+  const displayHoursLabel = useMemo(() => {
+    if (pharmacyHoursLabel && !pharmacyHoursLabel.toLowerCase().includes('unavail') && pharmacyHoursLabel.toLowerCase() !== 'closed') {
+      return pharmacyHoursLabel;
+    }
+    const itemWithPharmacy = cartItems.find((i) => i?.pharmacy?.opening_hour || i?.pharmacy?.openingHour)?.pharmacy || cartItems[0]?.pharmacy;
+    return formatPharmacyHoursLabel(itemWithPharmacy) || formatPharmacyHoursLabel(selectedPharmacy) || '';
+  }, [pharmacyHoursLabel, cartItems, selectedPharmacy]);
+
   const [showClearModal, setShowClearModal] = useState(false);
 
   const handleProceed = () => {
@@ -167,12 +177,13 @@ export default function CartScreen() {
 
     setCheckoutDraft({
       items: selectedItems,
+      selectedPharmacy: selectedPharmacy || selectedItems[0]?.pharmacy || null,
       pharmacyLabel,
       pharmacyLocationLabel,
       total,
       isPharmacyOpen,
       closedPharmacyName,
-      pharmacyHoursLabel,
+      pharmacyHoursLabel: displayHoursLabel || pharmacyHoursLabel,
     });
 
     router.push('/tabs/cart/ReviewOrder');
@@ -224,7 +235,7 @@ export default function CartScreen() {
               Pharmacy is Currently Closed
             </Text>
             <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
-              {closedPharmacyName || 'Selected pharmacy'} is closed right now{pharmacyHoursLabel ? ` (${pharmacyHoursLabel})` : ''}. Orders cannot be processed until store opening.
+              {closedPharmacyName || 'Selected pharmacy'} is closed right now{displayHoursLabel ? ` (Store hours: ${displayHoursLabel})` : ''}. Orders cannot be processed until store opening.
             </Text>
           </View>
         </View>

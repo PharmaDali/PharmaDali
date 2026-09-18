@@ -125,6 +125,7 @@ export default function PickupTimePickerModal({
   minimumDateTime = new Date(Date.now() + 30 * 60 * 1000),
   closingDateTime = new Date(),
   pharmacyName = 'Selected Pharmacy',
+  hoursLabel = '',
 }) {
   const [tempSelectedTime, setTempSelectedTime] = useState(null)
 
@@ -262,7 +263,7 @@ export default function PickupTimePickerModal({
                   Select Pickup Time
                 </Text>
                 <Text className="text-[11px] text-slate-400" style={styles.fontMedium}>
-                  Open: {formatMinutesToAmPm(openingMinutes)} – {formatMinutesToAmPm(closingMinutes)}
+                  Open: {hoursLabel || `${formatMinutesToAmPm(openingMinutes)} – ${formatMinutesToAmPm(closingMinutes)}`}
                 </Text>
               </View>
             </View>
