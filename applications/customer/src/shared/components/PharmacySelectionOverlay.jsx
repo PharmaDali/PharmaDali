@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@shared/theme/colorPalette';
 import RedStoreIcon from '@assets/icons/red_store_icon.svg';
@@ -205,8 +205,10 @@ export default function PharmacySelectionOverlay({ visible, onSelect }) {
     return fallbackPharmacies;
   }, [remotePharmacies]);
 
+  if (!visible) return null;
+
   return (
-    <Modal visible={visible} transparent animationType="slide" statusBarTranslucent>
+    <View style={styles.overlayContainer}>
       <View style={styles.backdrop}>
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 24) + 12 }]}>
           <Text style={styles.title}>Select a Pharmacy</Text>
@@ -228,7 +230,7 @@ export default function PharmacySelectionOverlay({ visible, onSelect }) {
           </ScrollView>
         </View>
       </View>
-    </Modal>
+    </View>
   );
 }
 
@@ -284,6 +286,11 @@ const styles = StyleSheet.create({
     color: '#D32F2F',
     textAlign: 'center',
     marginBottom: 12,
+  },
+  overlayContainer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1000,
+    elevation: 10,
   },
   backdrop: {
     flex: 1,
