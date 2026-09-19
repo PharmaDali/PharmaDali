@@ -1,4 +1,20 @@
+html {
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--pd-font-family);
-  overflow-x: hidden;
+  overflow-x: clip;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent iOS Safari / iOS Chrome auto-zoom on input focus without breaking Android scroll */
+@media screen and (max-width: 767.98px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
 }

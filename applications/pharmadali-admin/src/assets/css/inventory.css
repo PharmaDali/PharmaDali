@@ -1454,7 +1454,7 @@ select.inventory-modal-input {
   border-radius: 10px;
   background-color: #ffffff;
   overflow: hidden;
-  margin-bottom: 0.85rem;
+  margin-bottom: 1rem;
 }
 
 .inventory-batch-table {
@@ -1462,25 +1462,57 @@ select.inventory-modal-input {
   margin-bottom: 0;
   border-collapse: separate;
   border-spacing: 0;
-  table-layout: fixed;
+  table-layout: auto;
+  min-width: 540px;
+}
+
+/* Mobile Batch Cards */
+.inventory-batch-mobile-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+
+.inventory-batch-mobile-card {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.inventory-batch-mobile-card:hover {
+  border-color: #cbd5e1;
+}
+
+.inventory-batch-mobile-card .form-control {
+  border-color: #cbd5e1;
+  border-radius: 6px;
+}
+
+.inventory-batch-mobile-card .form-control:focus {
+  border-color: #48aad9;
+  box-shadow: 0 0 0 2px rgba(72, 170, 217, 0.2);
 }
 
 .inventory-batch-table thead th {
   background-color: #f8fafc !important;
   color: #64748b;
   font-weight: 600;
-  font-size: 11px;
+  font-size: 11.5px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: 8px 10px;
+  padding: 10px 14px;
   border-bottom: 1px solid #e2e8f0;
   white-space: nowrap;
 }
 
 .inventory-batch-table tbody td {
-  padding: 8px 10px;
+  padding: 10px 14px;
   border-bottom: 1px solid #f1f5f9;
-  font-size: 12px;
+  font-size: 12.5px;
   color: #334155;
   vertical-align: middle;
 }
@@ -1500,9 +1532,10 @@ select.inventory-modal-input {
 }
 
 .inventory-batch-stock-input {
-  max-width: 65px !important;
-  font-size: 11.5px !important;
-  padding: 3px 5px !important;
+  max-width: 70px !important;
+  font-size: 12px !important;
+  padding: 4px 6px !important;
+  height: 30px !important;
   border-radius: 6px !important;
   border: 1px solid #cbd5e1 !important;
   background-color: #ffffff !important;
@@ -1515,17 +1548,53 @@ select.inventory-modal-input {
 
 .inventory-batch-date-input {
   font-size: 11.5px !important;
-  padding: 3px 28px 3px 7px !important;
+  padding: 3px 26px 3px 8px !important;
   border-radius: 5px !important;
   border: 1px solid #cbd5e1 !important;
-  min-width: 115px !important;
+  min-width: 120px !important;
   max-width: 145px !important;
+  height: 30px !important;
   background-color: #ffffff !important;
 }
 
 .inventory-batch-date-input:focus {
   border-color: #48aad9 !important;
   box-shadow: 0 0 0 2px rgba(72, 170, 217, 0.2) !important;
+}
+
+.inventory-batch-supplier-input {
+  font-size: 11.5px !important;
+  padding: 3px 8px !important;
+  height: 30px !important;
+  max-width: 160px !important;
+  border-radius: 5px !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.inventory-batch-supplier-input:focus {
+  border-color: #48aad9 !important;
+  box-shadow: 0 0 0 2px rgba(72, 170, 217, 0.2) !important;
+}
+
+.inventory-batch-delete-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background-color: #fff1f0;
+  color: #ff4d4f;
+  border: 1px solid #ffa39e;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.inventory-batch-delete-btn:hover {
+  background-color: #ff4d4f;
+  color: #ffffff;
+  border-color: #ff4d4f;
 }
 
 .inventory-batch-save-btn {
@@ -1551,16 +1620,16 @@ select.inventory-modal-input {
 }
 
 .inventory-batch-add-area {
-  margin-top: 0.5rem;
+  margin-top: 0.85rem;
 }
 
 .inventory-batch-add-trigger {
   background: transparent;
   border: 1.5px dashed #cfe8f8;
-  border-radius: 6px;
+  border-radius: 8px;
   color: #48aad9;
-  padding: 0.55rem 1rem;
-  font-size: 0.82rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.84rem;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
@@ -1575,9 +1644,9 @@ select.inventory-modal-input {
 .inventory-batch-add-form {
   background: #f8fbff;
   border: 1px solid #d6eaf9;
-  border-radius: 8px;
-  padding: 1rem;
-  margin-top: 0.5rem;
+  border-radius: 10px;
+  padding: 1.15rem 1.25rem;
+  margin-top: 0.75rem;
 }
 
 .inventory-batch-add-title {
@@ -1928,7 +1997,7 @@ input[type="month"]::-webkit-calendar-picker-indicator {
   }
 
   /* Batch Table Responsive */
-  .inventory-batch-table {
+  .inventory-batch-table-container .table-responsive {
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch;
     border-radius: 6px !important;
@@ -1936,17 +2005,17 @@ input[type="month"]::-webkit-calendar-picker-indicator {
     scrollbar-color: var(--pd-primary, #2aabe2) #f0f4f8;
   }
 
-  .inventory-batch-table::-webkit-scrollbar {
+  .inventory-batch-table-container .table-responsive::-webkit-scrollbar {
     height: 5px !important;
     width: 5px !important;
   }
 
-  .inventory-batch-table::-webkit-scrollbar-track {
+  .inventory-batch-table-container .table-responsive::-webkit-scrollbar-track {
     background: #f0f4f8 !important;
     border-radius: 999px !important;
   }
 
-  .inventory-batch-table::-webkit-scrollbar-thumb {
+  .inventory-batch-table-container .table-responsive::-webkit-scrollbar-thumb {
     background: var(--pd-primary, #2aabe2) !important;
     border-radius: 999px !important;
   }

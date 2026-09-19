@@ -52,6 +52,11 @@ export const updateProductBatch = async (batchId, data) => {
   return response.data;
 };
 
+export const deleteProductBatch = async (batchId) => {
+  const response = await apiRequest.delete(`/pharmacy/inventory/batches/${batchId}`);
+  return response.data;
+};
+
 export const updateInventoryProduct = async (productId, data) => {
   const response = await apiRequest.put(`/products/${productId}`, data);
   return response.data;
