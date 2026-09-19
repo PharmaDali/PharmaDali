@@ -26,6 +26,8 @@ class PharmacyRequest extends FormRequest
             'location'       => 'required|string|max:255',
             'contact_number' => 'required|string|max:20',
             'email'          => 'nullable|email|max:255',
+            'opening_hour'   => 'required|date_format:H:i,H:i:s',
+            'closing_hour'   => 'required|date_format:H:i,H:i:s|after:opening_hour',
             'is_active'      => 'boolean',
         ];
 
@@ -37,5 +39,19 @@ class PharmacyRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    /**
+     * Get the error messages for the defined validation rules.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'opening_hour.required' => 'The opening time is required.',
+            'closing_hour.required' => 'The closing time is required.',
+            'closing_hour.after'    => 'The closing time must be later than the opening time.',
+        ];
     }
 }

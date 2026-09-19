@@ -18,27 +18,27 @@ class PharmacyOperatingHoursChecker
         $orderCarbon = $orderDate ? Carbon::parse($orderDate)->setTimezone('Asia/Manila') : $nowPht;
         $isSameCalendarDay = $orderCarbon->format('Y-m-d') === $nowPht->format('Y-m-d');
 
-        $isOpenNow = true;
-        $openingStr = '12:00 AM';
-        $closingStr = '11:59 PM';
+        if (!$pharmacy?->opening_hour || !$pharmacy?->closing_hour) {
+            $reason = "The pharmacy operating hours are not configured. Orders and exchanges cannot be processed at this time.";
+            return false;
+        }
 
-        if ($pharmacy?->opening_hour && $pharmacy?->closing_hour) {
-            $openingStr = Carbon::parse($pharmacy->opening_hour)->format('g:i A');
-            $closingStr = Carbon::parse($pharmacy->closing_hour)->format('g:i A');
+        $openingStr = Carbon::parse($pharmacy->opening_hour)->format('g:i A');
+        $closingStr = Carbon::parse($pharmacy->closing_hour)->format('g:i A');
 
-            $currentMinutes = ($nowPht->hour * 60) + $nowPht->minute;
-            $openingMinutes = $this->timeToMinutes($pharmacy->opening_hour);
-            $closingMinutes = $this->timeToMinutes($pharmacy->closing_hour);
+        $currentMinutes = ($nowPht->hour * 60) + $nowPht->minute;
+        $openingMinutes = $this->timeToMinutes($pharmacy->opening_hour);
+        $closingMinutes = $this->timeToMinutes($pharmacy->closing_hour);
 
-            if ($closingMinutes === 0) {
-                $closingMinutes = 1440;
-            }
+        if ($closingMinutes === 0) {
+            $closingMinutes = 1440;
+        }
 
-            if ($openingMinutes < $closingMinutes) {
-                $isOpenNow = $currentMinutes >= $openingMinutes && $currentMinutes <= $closingMinutes;
-            } else if ($openingMinutes > $closingMinutes) {
-                $isOpenNow = $currentMinutes >= $openingMinutes || $currentMinutes <= $closingMinutes;
-            }
+        $isOpenNow = false;
+        if ($openingMinutes < $closingMinutes) {
+            $isOpenNow = $currentMinutes >= $openingMinutes && $currentMinutes <= $closingMinutes;
+        } else if ($openingMinutes > $closingMinutes) {
+            $isOpenNow = $currentMinutes >= $openingMinutes || $currentMinutes <= $closingMinutes;
         }
 
         if ($windowDays === 1) {

@@ -22,9 +22,13 @@ class PharmacyController extends Controller
     /**
     * Display a listing of the resource.
     */
-    public function index()
+    public function index(Request $request)
     {
-        $pharmacies = Cache::remember('pharmacies_all', 3600, function () {
+        if ($request->boolean('refresh') || $request->header('Cache-Control') === 'no-cache' || $request->has('t')) {
+            Cache::forget('pharmacies_all');
+        }
+
+        $pharmacies = Cache::remember('pharmacies_all', 60, function () {
             return Pharmacy::with(['admins', 'pharmacists.pharmacist'])->get();
         });
 
@@ -45,6 +49,8 @@ class PharmacyController extends Controller
                 'contact_number' => $validated['contact_number'],
                 'email'          => $validated['email'] ?? null,
                 'is_active'      => $validated['is_active'] ?? true,
+                'opening_hour'   => $validated['opening_hour'],
+                'closing_hour'   => $validated['closing_hour'],
             ]);
 
             if (!empty($validated['admin_email'])) {
@@ -81,9 +87,13 @@ class PharmacyController extends Controller
     /**
     * Display the specified resource.
     */
-    public function show(string $id)
+    public function show(Request $request, string $id)
     {
-        $pharmacy = Cache::remember("pharmacy_{$id}", 3600, function () use ($id) {
+        if ($request->boolean('refresh') || $request->header('Cache-Control') === 'no-cache' || $request->has('t')) {
+            Cache::forget("pharmacy_{$id}");
+        }
+
+        $pharmacy = Cache::remember("pharmacy_{$id}", 60, function () use ($id) {
             return Pharmacy::findOrFail($id);
         });
 
@@ -100,6 +110,7 @@ class PharmacyController extends Controller
 
         Cache::forget('pharmacies_all');
         Cache::forget("pharmacy_{$id}");
+        Cache::forget("pharmacy_{$id}_settings");
 
         return response()->json([
             'message' => 'Pharmacy updated',

@@ -45,6 +45,8 @@ class PharmacySettingsController extends Controller
 
         $pharmacyId = $request->user()->pharmacy_id;
         Cache::forget("pharmacy_{$pharmacyId}_settings");
+        Cache::forget("pharmacy_{$pharmacyId}");
+        Cache::forget('pharmacies_all');
 
         return response()->json([
             'status'  => 'success',
