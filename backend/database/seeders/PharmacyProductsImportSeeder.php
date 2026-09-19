@@ -14,33 +14,37 @@ class PharmacyProductsImportSeeder extends Seeder
      */
     public function run(): void
     {
-        $filePath = database_path('seeders/data/pharmacy_1_products.json');
+        $files = File::glob(database_path('seeders/data/pharmacy_*_products.json'));
 
-        if (!File::exists($filePath)) {
-            $this->command?->error("Export file not found at: {$filePath}");
-            $this->command?->line("Please run: php artisan pharmacy:export-products 1 on your local environment first and place the file here.");
+        if (empty($files)) {
+            $this->command?->error("No export files found at: " . database_path('seeders/data/'));
+            $this->command?->line("Please run: php artisan pharmacy:export-products {id} first.");
             return;
         }
 
-        $json = File::get($filePath);
-        $data = json_decode($json, true);
+        // Sort files to ensure deterministic order (pharmacy_1, pharmacy_2, etc.)
+        sort($files);
 
-        if (!$data || empty($data['products'])) {
-            $this->command?->error("The export file is empty or invalid JSON.");
-            return;
-        }
-
-        $pharmacyData = $data['pharmacy'] ?? null;
-        $pharmacyId   = $pharmacyData['id'] ?? 1;
-        $driver       = DB::getDriverName();
-
-        $this->command?->info("Starting import for Pharmacy ID {$pharmacyId} (" . ($pharmacyData['pharmacy_name'] ?? 'Pharmacy') . ")...");
-
+        $driver = DB::getDriverName();
         if ($driver !== 'sqlite') {
             DB::statement('SET FOREIGN_KEY_CHECKS=0;');
         }
 
-        DB::transaction(function () use ($data, $pharmacyId, $pharmacyData) {
+        foreach ($files as $filePath) {
+            $json = File::get($filePath);
+            $data = json_decode($json, true);
+
+            if (!$data || empty($data['products'])) {
+                $this->command?->warn("File {$filePath} is empty or invalid JSON. Skipping.");
+                continue;
+            }
+
+            $pharmacyData = $data['pharmacy'] ?? null;
+            $pharmacyId   = $pharmacyData['id'] ?? 1;
+
+            $this->command?->info("Starting import for Pharmacy ID {$pharmacyId} (" . ($pharmacyData['pharmacy_name'] ?? 'Pharmacy') . ")...");
+
+            DB::transaction(function () use ($data, $pharmacyId, $pharmacyData) {
             // 1. Sync & Seed Pharmacy record
             if ($pharmacyData) {
                 $pharmacyColumns = Schema::getColumnListing('pharmacies');
@@ -63,9 +67,9 @@ class PharmacyProductsImportSeeder extends Seeder
                     ->first();
 
                 if ($existingCat) {
-                    $categoryMap[$cat['id']] = $existingCat->id;
+                    $targetCatId = $existingCat->id;
                 } else {
-                    $newCatId = DB::table('categories')->insertGetId([
+                    $targetCatId = DB::table('categories')->insertGetId([
                         'category_name'          => $cat['category_name'],
                         'description'            => $cat['description'] ?? "Description for {$cat['category_name']}",
                         'is_enabled'             => $cat['is_enabled'] ?? 1,
@@ -76,8 +80,14 @@ class PharmacyProductsImportSeeder extends Seeder
                         'created_at'             => now(),
                         'updated_at'             => now(),
                     ]);
-                    $categoryMap[$cat['id']] = $newCatId;
                 }
+
+                $categoryMap[$cat['id']] = $targetCatId;
+
+                DB::table('pharmacy_categories')->updateOrInsert(
+                    ['pharmacy_id' => $pharmacyId, 'category_id' => $targetCatId],
+                    ['is_enabled' => true, 'updated_at' => now(), 'created_at' => now()]
+                );
             }
 
             // 3. Upsert Base Products
@@ -136,7 +146,24 @@ class PharmacyProductsImportSeeder extends Seeder
                 );
             }
 
-            // 5. Upsert Product Batches
+            // 5. Clean up any stale products for this pharmacy that were removed in the master export
+            $exportedProductIds = array_column($productsToInsert, 'id');
+            if (!empty($exportedProductIds)) {
+                $stalePpIds = DB::table('pharmacy_products')
+                    ->where('pharmacy_id', $pharmacyId)
+                    ->whereNotIn('product_id', $exportedProductIds)
+                    ->pluck('id');
+
+                if ($stalePpIds->isNotEmpty()) {
+                    DB::table('product_batches')->whereIn('pharmacy_product_id', $stalePpIds)->delete();
+                    DB::table('inventory_logs')->whereIn('pharmacy_product_id', $stalePpIds)->delete();
+                    DB::table('pharmacy_products')->whereIn('id', $stalePpIds)->delete();
+                    DB::table('products')->where('pharmacy_id', $pharmacyId)->whereNotIn('id', $exportedProductIds)->delete();
+                    $this->command?->info("Removed " . $stalePpIds->count() . " stale dummy products for Pharmacy ID {$pharmacyId}.");
+                }
+            }
+
+            // 6. Upsert Product Batches
             if (!empty($data['batches'])) {
                 $batchColumns = [
                     'id', 'pharmacy_product_id', 'batch_number', 'supplier_name',
@@ -163,7 +190,20 @@ class PharmacyProductsImportSeeder extends Seeder
             }
         });
 
-        // 6. Reset AUTO_INCREMENT and restore FOREIGN_KEY_CHECKS outside the transaction
+            $this->command?->newLine();
+            $this->command?->info("Import completed successfully for Pharmacy ID {$pharmacyId}!");
+            $this->command?->table(
+                ['Entity', 'Imported Count'],
+                [
+                    ['Categories Synced', count($data['categories'] ?? [])],
+                    ['Base Products', count($data['products'] ?? [])],
+                    ['Pharmacy Products', count($data['pharmacy_products'] ?? [])],
+                    ['Product Batches', count($data['batches'] ?? [])],
+                ]
+            );
+        }
+
+        // Reset AUTO_INCREMENT and restore FOREIGN_KEY_CHECKS outside the loop
         if ($driver !== 'sqlite') {
             $maxProdId = DB::table('products')->max('id') ?? 1;
             $maxPpId   = DB::table('pharmacy_products')->max('id') ?? 1;
@@ -175,17 +215,5 @@ class PharmacyProductsImportSeeder extends Seeder
 
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
-
-        $this->command->newLine();
-        $this->command->info("Import completed successfully!");
-        $this->command->table(
-            ['Entity', 'Imported Count'],
-            [
-                ['Categories Synced', count($data['categories'] ?? [])],
-                ['Base Products', count($data['products'] ?? [])],
-                ['Pharmacy Products', count($data['pharmacy_products'] ?? [])],
-                ['Product Batches', count($data['batches'] ?? [])],
-            ]
-        );
     }
 }
