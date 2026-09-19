@@ -35,6 +35,8 @@ export function ProductDetailsModal({
   setStockOutForm,
   inputErrors = {},
   isPharmacist = false,
+  categoryOptions = CATEGORY_FILTERS,
+  productUpdating = false,
 }) {
   const isMedicine = selectedItem?.product_type === "medicine";
   const fileInputRef = React.useRef(null);
@@ -113,11 +115,14 @@ export function ProductDetailsModal({
             {isModalEditing && (
               <button
                 type="button"
-                className="btn inventory-modal-btn inventory-modal-btn-primary"
+                className="btn inventory-modal-btn inventory-modal-btn-primary d-flex align-items-center justify-content-center gap-2"
                 onClick={handleRequestSave}
-                disabled={Object.keys(inputErrors).length > 0}
+                disabled={productUpdating}
               >
-                Save Changes
+                {productUpdating && (
+                  <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+                )}
+                {productUpdating ? "Saving..." : "Save Changes"}
               </button>
             )}
           </div>
@@ -251,7 +256,7 @@ export function ProductDetailsModal({
                       id="edit-product-category-medicine"
                       value={modalDraft.category || ""}
                       onChange={(val) => handleDraftChange("category", val)}
-                      options={CATEGORY_FILTERS.filter((category) => category !== "All")}
+                      options={(categoryOptions && categoryOptions.length > 0 ? categoryOptions : CATEGORY_FILTERS).filter((category) => category !== "All")}
                       placeholder="Select Category"
                       disabled={!isModalEditing}
                       selectClassName={`form-select inventory-modal-input ${inputErrors.category ? 'is-invalid' : ''}`}
@@ -308,7 +313,7 @@ export function ProductDetailsModal({
                       id="edit-product-category-nonmedicine"
                       value={modalDraft.category || ""}
                       onChange={(val) => handleDraftChange("category", val)}
-                      options={CATEGORY_FILTERS.filter((category) => category !== "All" && category !== "Generic" && category !== "Branded" && category !== "Unclassified")}
+                      options={(categoryOptions && categoryOptions.length > 0 ? categoryOptions : CATEGORY_FILTERS).filter((category) => category !== "All" && category !== "Generic" && category !== "Branded" && category !== "Unclassified")}
                       placeholder="Select Category"
                       disabled={!isModalEditing}
                       selectClassName={`form-select inventory-modal-input ${inputErrors.category ? 'is-invalid' : ''}`}

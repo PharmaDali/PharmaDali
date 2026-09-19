@@ -33,7 +33,11 @@ export const fetchInventoryLogs = async (filters = {}) => {
 };
 
 export const createInventoryProduct = async (productData) => {
-  const response = await apiRequest.post("/products", productData);
+  const headers = {};
+  if (productData?.idempotency_key) {
+    headers["X-Idempotency-Key"] = productData.idempotency_key;
+  }
+  const response = await apiRequest.post("/products", productData, { headers });
   return response.data;
 };
 
