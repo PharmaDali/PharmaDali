@@ -3,9 +3,6 @@
   z-index: 1001;
   min-width: 0;
   min-height: var(--pd-navbar-height);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transform: translateZ(0);
 }
 
 .navbar-logo {
