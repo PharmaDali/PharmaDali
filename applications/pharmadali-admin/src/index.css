@@ -1,13 +1,17 @@
 html {
-  overflow-x: clip;
   -webkit-text-size-adjust: 100%;
 }
 
 body {
   font-family: var(--pd-font-family);
-  overflow-x: clip;
-  overflow-y: auto;
+  min-height: 100vh;
+  margin: 0;
   -webkit-overflow-scrolling: touch;
+}
+
+#root {
+  min-height: 100vh;
+  overflow-x: clip;
 }
 
 /* Prevent iOS Safari / iOS Chrome auto-zoom on input focus without breaking Android scroll */
