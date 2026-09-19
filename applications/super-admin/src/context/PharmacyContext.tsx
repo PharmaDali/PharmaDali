@@ -9,6 +9,8 @@ export interface Pharmacy {
   contact: string
   email?: string
   status: string
+  opening_hour?: string
+  closing_hour?: string
   lat?: number
   lng?: number
   pharmacists?: string[]
@@ -20,6 +22,8 @@ export interface AddPharmacyInput {
   contact: string
   email?: string
   status: string
+  opening_hour: string
+  closing_hour: string
   admin_first_name?: string
   admin_last_name?: string
   admin_email?: string
@@ -60,6 +64,8 @@ export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         contact: p.contact_number,
         email: p.email || '',
         status: p.is_active ? 'Active' : 'Inactive',
+        opening_hour: p.opening_hour ? p.opening_hour.substring(0, 5) : '',
+        closing_hour: p.closing_hour ? p.closing_hour.substring(0, 5) : '',
         lat: undefined,
         lng: undefined,
         pharmacists: p.pharmacists 
@@ -84,6 +90,8 @@ export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         contact_number: newPharmacyData.contact,
         email: newPharmacyData.email,
         is_active: newPharmacyData.status === 'Active',
+        opening_hour: newPharmacyData.opening_hour,
+        closing_hour: newPharmacyData.closing_hour,
         admin_first_name: newPharmacyData.admin_first_name,
         admin_last_name: newPharmacyData.admin_last_name,
         admin_email: newPharmacyData.admin_email,
@@ -105,6 +113,8 @@ export const PharmacyProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         contact_number: updated.contact,
         email: updated.email,
         is_active: updated.status === 'Active',
+        opening_hour: updated.opening_hour || '',
+        closing_hour: updated.closing_hour || '',
       })
       
       await fetchPharmacies()
