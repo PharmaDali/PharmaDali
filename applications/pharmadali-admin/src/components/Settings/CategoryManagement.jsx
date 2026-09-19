@@ -20,13 +20,6 @@ export const CategoryManagement = ({ onBack, onNavigate }) => {
 
   useEffect(() => {
     fetchCategories();
-    // Lock both body and html scroll to ensure only the table scrolls
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
-    };
   }, []);
 
   const fetchCategories = async () => {

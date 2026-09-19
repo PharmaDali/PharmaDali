@@ -89,7 +89,9 @@ export function InventoryTable({
                         </div>
                       )}
                       <div>
-                        <p className="inventory-item-name mb-0">{item.name}</p>
+                        <p className="inventory-item-name mb-0">
+                          {item.name}{item.strength ? ` ${item.strength}` : ''}
+                        </p>
                         <p className="inventory-item-meta mb-0">{item.brand}</p>
                       </div>
                     </div>
