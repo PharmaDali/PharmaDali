@@ -96,6 +96,7 @@ export function useInventory() {
 
   // Add Product Modal States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddSubmitting, setIsAddSubmitting] = useState(false);
   const [addProductType, setAddProductType] = useState("medicine");
   const [addForm, setAddForm] = useState({
     genericName: "",
@@ -193,7 +194,15 @@ export function useInventory() {
     [inventoryItems]
   );
 
-  const categoryOptions = useMemo(() => CATEGORY_FILTERS, []);
+  const categoryOptions = useMemo(() => {
+    const set = new Set(CATEGORY_FILTERS);
+    inventoryItems.forEach((item) => {
+      if (item.category && typeof item.category === "string") {
+        set.add(item.category.trim());
+      }
+    });
+    return Array.from(set);
+  }, [inventoryItems]);
   const filteredItems = decoratedItems;
 
   // Pagination Math
@@ -694,6 +703,12 @@ export function useInventory() {
       ...prev,
       [field]: value,
     }));
+    setInputErrors((prev) => {
+      if (!prev || !prev[field]) return prev;
+      const copy = { ...prev };
+      delete copy[field];
+      return copy;
+    });
   };
 
   // Stock out deduction handler
@@ -765,10 +780,12 @@ export function useInventory() {
     try {
       const isMedicine = selectedItem.product_type === "medicine";
       
+      const categoryName = (modalDraft.category ? String(modalDraft.category).trim() : "") || selectedItem.category || "Unclassified";
+
       const payload = {
         product_type: selectedItem.product_type,
-        product_name: modalDraft.name.trim() || selectedItem.name,
-        generic_name: isMedicine ? (modalDraft.name.trim() || selectedItem.name) : null,
+        product_name: modalDraft.name?.trim() || selectedItem.name,
+        generic_name: isMedicine ? (modalDraft.name?.trim() || selectedItem.name) : null,
         brand_name: isMedicine ? (modalDraft.brand?.trim() || selectedItem.brand) : null,
         form: isMedicine ? (modalDraft.form !== undefined ? (modalDraft.form?.trim() || null) : (selectedItem.raw_form || null)) : null,
         strength: isMedicine ? (modalDraft.dosage?.trim() || selectedItem.strength) : null,
@@ -778,7 +795,7 @@ export function useInventory() {
         is_discountable: modalDraft.isDiscountable !== undefined ? modalDraft.isDiscountable : Boolean(selectedItem.is_discountable),
         is_available: modalDraft.isAvailable !== undefined ? modalDraft.isAvailable : Boolean(selectedItem.is_available),
         is_prescribed: isMedicine ? Boolean(modalDraft.needsPrescription) : false,
-        category_name: modalDraft.category.trim() || selectedItem.category,
+        category_name: categoryName,
       };
 
       await updateInventoryProduct(selectedItem.product_id, payload);
@@ -870,39 +887,23 @@ export function useInventory() {
 
   // Add Product form submissions
   const handleAddProductSubmit = async (e) => {
-    e.preventDefault();
+    e?.preventDefault?.();
+    if (isAddSubmitting) return;
+
+    setInputErrors({});
     const isMedicine = addProductType === "medicine";
 
-    const payload = {
-      product_type: addProductType,
-      generic_name: isMedicine ? addForm.genericName : null,
-      brand_name: isMedicine ? addForm.brandName : null,
-      product_name: isMedicine ? addForm.genericName : addForm.productName,
-      form: isMedicine ? (addForm.form?.trim() || null) : null,
-      strength: isMedicine ? addForm.dosage : null,
-      size: addForm.size || null,
-      description: addForm.description || null,
-      stock: addForm.quantity ? parseInt(addForm.quantity, 10) : 0,
-      unit_cost: addForm.unitCost ? parseFloat(addForm.unitCost) : 0.0,
-      selling_price: addForm.sellingPrice ? parseFloat(addForm.sellingPrice) : 0.0,
-      is_discountable: addForm.discountable === "True",
-      is_available: addForm.isAvailable !== "Unavailable",
-      expiry_date: addForm.expiryDate || null,
-      is_prescribed: isMedicine ? addForm.needsPrescription === "True" : false,
-      category_name: addForm.categoryName || null,
-    };
-
     let errors = {};
-    if (isMedicine && !addForm.genericName) {
+    if (isMedicine && !addForm.genericName?.trim()) {
       errors.genericName = "Generic Name is required for medicine.";
     }
-    if (!isMedicine && !addForm.productName) {
+    if (!isMedicine && !addForm.productName?.trim()) {
       errors.productName = "Product Name is required.";
     }
     if (
       !addForm.categoryName ||
       addForm.categoryName === "All" ||
-      addForm.categoryName === "category"
+      addForm.categoryName.toLowerCase() === "category"
     ) {
       errors.categoryName = "Please select a valid Category.";
     }
@@ -911,6 +912,33 @@ export function useInventory() {
       setInputErrors(errors);
       return;
     }
+
+    setIsAddSubmitting(true);
+
+    const idempotencyKey = typeof crypto !== "undefined" && crypto.randomUUID
+      ? crypto.randomUUID()
+      : `idem_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+
+    const payload = {
+      product_type: addProductType,
+      generic_name: isMedicine ? addForm.genericName.trim() : null,
+      brand_name: isMedicine ? (addForm.brandName?.trim() || null) : null,
+      product_name: isMedicine ? addForm.genericName.trim() : addForm.productName.trim(),
+      form: isMedicine ? (addForm.form?.trim() || null) : null,
+      strength: isMedicine ? (addForm.dosage?.trim() || null) : null,
+      size: addForm.size?.trim() || null,
+      description: addForm.description?.trim() || null,
+      stock: addForm.quantity ? parseInt(addForm.quantity, 10) : 0,
+      unit_cost: addForm.unitCost ? parseFloat(addForm.unitCost) : 0.0,
+      selling_price: addForm.sellingPrice ? parseFloat(addForm.sellingPrice) : 0.0,
+      is_discountable: addForm.discountable === "True",
+      is_available: addForm.isAvailable !== "Unavailable",
+      expiry_date: addForm.expiryDate || null,
+      is_prescribed: isMedicine ? addForm.needsPrescription === "True" : false,
+      category_name: addForm.categoryName.trim(),
+      batch_number: addForm.batchNumber?.trim() || null,
+      idempotency_key: idempotencyKey,
+    };
 
     try {
       await createInventoryProduct(payload);
@@ -933,13 +961,14 @@ export function useInventory() {
         needsPrescription: "False",
         isAvailable: "Available",
       });
+      setInputErrors({});
       setIsAddModalOpen(false);
       setSuccessModal({
         isOpen: true,
         title: "Product Added",
         message: "The new product was successfully added to inventory."
       });
-      loadData();
+      await loadData();
     } catch (err) {
       console.error("Failed to create product:", err);
       const isTimeout =
@@ -970,6 +999,8 @@ export function useInventory() {
           message: err.response?.data?.message || "Failed to create product. Please check your inputs."
         });
       }
+    } finally {
+      setIsAddSubmitting(false);
     }
   };
 
@@ -1044,6 +1075,8 @@ export function useInventory() {
       handleConfirmSave,
       handleCancelSave,
       handleRequestDeleteBatch,
+      setInputErrors,
+      categoryOptions,
     },
     batchDeleteModal: {
       isOpen: showBatchDeleteModal,
@@ -1066,13 +1099,22 @@ export function useInventory() {
     },
     addProductModal: {
       isOpen: isAddModalOpen,
-      onClose: () => setIsAddModalOpen(false),
-      setIsAddModalOpen,
+      onClose: () => {
+        setIsAddModalOpen(false);
+        setInputErrors({});
+      },
+      setIsAddModalOpen: (open) => {
+        if (open) setInputErrors({});
+        setIsAddModalOpen(open);
+      },
       addProductType,
       setAddProductType,
       addForm,
       setAddForm,
       handleAddProductSubmit,
+      isAddSubmitting,
+      setInputErrors,
+      categoryOptions,
     },
     feedbackModals: {
       successModal,
@@ -1151,6 +1193,7 @@ export function useInventory() {
     handleStockOutSubmit,
     isAddModalOpen,
     setIsAddModalOpen,
+    isAddSubmitting,
     addProductType,
     setAddProductType,
     addForm,

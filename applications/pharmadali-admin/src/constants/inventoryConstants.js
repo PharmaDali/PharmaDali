@@ -13,6 +13,8 @@ export const CATEGORY_FILTERS = [
   "Injectables/Vials",
   "Cosmetics",
   "Cream/Ointment",
+  "Sanitary",
+  "Others",
   "Unclassified",
 ];
 

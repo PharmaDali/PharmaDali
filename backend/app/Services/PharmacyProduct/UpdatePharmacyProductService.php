@@ -6,6 +6,7 @@ use App\Repositories\ProductRepository;
 use App\Repositories\PharmacyProductRepository;
 use App\Models\Products;
 use App\Models\Category;
+use App\Models\PharmacyCategory;
 
 class UpdatePharmacyProductService
 {
@@ -25,13 +26,6 @@ class UpdatePharmacyProductService
         if (isset($productFields['is_prescribed'])) {
             $productFields['is_prescribed'] = filter_var($productFields['is_prescribed'], FILTER_VALIDATE_BOOLEAN);
         }
-        
-        file_put_contents(storage_path('logs/debug_update.txt'), json_encode([
-            'validated' => $validated,
-            'productFields' => $productFields,
-            'productId' => $productId,
-            'pharmacyId' => $pharmacyId
-        ]) . PHP_EOL, FILE_APPEND);
 
         $this->productRepository->update($product, $productFields);
 
@@ -56,10 +50,20 @@ class UpdatePharmacyProductService
 
                 // Handle category update
                 if (!empty($validated['category_name'])) {
-                    $category = Category::firstOrCreate([
-                        'category_name' => $validated['category_name']
-                    ]);
+                    $trimmedCategory = trim($validated['category_name']);
+                    $category = Category::whereRaw('LOWER(TRIM(category_name)) = ?', [strtolower($trimmedCategory)])->first();
+                    if (!$category) {
+                        $category = Category::create([
+                            'category_name' => $trimmedCategory,
+                            'is_enabled'    => true,
+                        ]);
+                    }
                     $bpFields['category_id'] = $category->id;
+
+                    PharmacyCategory::firstOrCreate(
+                        ['pharmacy_id' => $pharmacyId, 'category_id' => $category->id],
+                        ['is_enabled' => true]
+                    );
                 }
 
                 if (!empty($bpFields)) {

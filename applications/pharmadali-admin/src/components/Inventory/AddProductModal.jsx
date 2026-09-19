@@ -13,7 +13,50 @@ export function AddProductModal({
   setAddProductType,
   handleAddProductSubmit,
   inputErrors = {},
+  isAddSubmitting = false,
+  setInputErrors = () => {},
+  categoryOptions = CATEGORY_FILTERS,
 }) {
+  const handleFieldChange = (field, value) => {
+    setAddForm((prev) => ({ ...prev, [field]: value }));
+    if (inputErrors && inputErrors[field] && typeof setInputErrors === "function") {
+      setInputErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[field];
+        return copy;
+      });
+    }
+  };
+
+  const handleTypeChange = (newType) => {
+    setAddProductType(newType);
+    if (typeof setInputErrors === "function") {
+      setInputErrors((prev) => {
+        const copy = { ...prev };
+        delete copy.categoryName;
+        delete copy.genericName;
+        delete copy.productName;
+        return copy;
+      });
+    }
+    if (
+      newType === "non_medicine" &&
+      (addForm.categoryName === "Generic" || addForm.categoryName === "Branded")
+    ) {
+      setAddForm((prev) => ({ ...prev, categoryName: "" }));
+    }
+  };
+
+  const medicineCategoryOptions = React.useMemo(() => {
+    const list = Array.isArray(categoryOptions) && categoryOptions.length > 0 ? categoryOptions : CATEGORY_FILTERS;
+    return list.filter((cat) => cat !== "All");
+  }, [categoryOptions]);
+
+  const nonMedicineCategoryOptions = React.useMemo(() => {
+    const list = Array.isArray(categoryOptions) && categoryOptions.length > 0 ? categoryOptions : CATEGORY_FILTERS;
+    return list.filter((cat) => cat !== "All" && cat !== "Generic" && cat !== "Branded" && cat !== "Unclassified");
+  }, [categoryOptions]);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -32,7 +75,8 @@ export function AddProductModal({
               name="product_type"
               value="medicine"
               checked={addProductType === "medicine"}
-              onChange={() => setAddProductType("medicine")}
+              onChange={() => handleTypeChange("medicine")}
+              disabled={isAddSubmitting}
             />
             Medicine
           </label>
@@ -42,7 +86,8 @@ export function AddProductModal({
               name="product_type"
               value="non_medicine"
               checked={addProductType === "non_medicine"}
-              onChange={() => setAddProductType("non_medicine")}
+              onChange={() => handleTypeChange("non_medicine")}
+              disabled={isAddSubmitting}
             />
             Non-medicine
           </label>
@@ -58,13 +103,18 @@ export function AddProductModal({
                   <label className="add-product-label">Generic Name</label>
                   <input
                     type="text"
-                    className={`add-product-input ${inputErrors.genericName ? 'is-invalid' : ''}`}
+                    className={`add-product-input ${inputErrors.genericName ? "is-invalid" : ""}`}
                     placeholder="Generic Name"
                     value={addForm.genericName}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, genericName: e.target.value }))}
+                    onChange={(e) => handleFieldChange("genericName", e.target.value)}
+                    disabled={isAddSubmitting}
                     required
                   />
-                  {inputErrors.genericName && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.genericName}</span>}
+                  {inputErrors.genericName && (
+                    <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>
+                      {inputErrors.genericName}
+                    </span>
+                  )}
                 </div>
                 <div className="add-product-field">
                   <label className="add-product-label">Brand Name</label>
@@ -73,7 +123,8 @@ export function AddProductModal({
                     className="add-product-input"
                     placeholder="Brand Name"
                     value={addForm.brandName}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, brandName: e.target.value }))}
+                    onChange={(e) => handleFieldChange("brandName", e.target.value)}
+                    disabled={isAddSubmitting}
                   />
                 </div>
                 <div className="add-product-field">
@@ -81,12 +132,17 @@ export function AddProductModal({
                   <SelectDropdown
                     id="add-product-category-medicine"
                     value={addForm.categoryName}
-                    onChange={(val) => setAddForm(prev => ({ ...prev, categoryName: val }))}
-                    options={CATEGORY_FILTERS.filter(cat => cat !== "All")}
+                    onChange={(val) => handleFieldChange("categoryName", val)}
+                    options={medicineCategoryOptions}
                     placeholder="Select Category"
-                    selectClassName={`add-product-select ${inputErrors.categoryName ? 'is-invalid' : ''}`}
+                    disabled={isAddSubmitting}
+                    selectClassName={`add-product-select ${inputErrors.categoryName ? "is-invalid" : ""}`}
                   />
-                  {inputErrors.categoryName && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.categoryName}</span>}
+                  {inputErrors.categoryName && (
+                    <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>
+                      {inputErrors.categoryName}
+                    </span>
+                  )}
                 </div>
                 <div className="add-product-field">
                   <label className="add-product-label">Form</label>
@@ -95,7 +151,8 @@ export function AddProductModal({
                     className="add-product-input"
                     placeholder="e.g. Capsule, Syrup"
                     value={addForm.form}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, form: e.target.value }))}
+                    onChange={(e) => handleFieldChange("form", e.target.value)}
+                    disabled={isAddSubmitting}
                   />
                 </div>
                 <div className="add-product-field">
@@ -105,7 +162,8 @@ export function AddProductModal({
                     className="add-product-input"
                     placeholder="Dosage"
                     value={addForm.dosage}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, dosage: e.target.value }))}
+                    onChange={(e) => handleFieldChange("dosage", e.target.value)}
+                    disabled={isAddSubmitting}
                   />
                 </div>
                 <div className="add-product-field">
@@ -115,7 +173,8 @@ export function AddProductModal({
                     className="add-product-input"
                     placeholder="Size"
                     value={addForm.size}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, size: e.target.value }))}
+                    onChange={(e) => handleFieldChange("size", e.target.value)}
+                    disabled={isAddSubmitting}
                   />
                 </div>
               </>
@@ -125,25 +184,35 @@ export function AddProductModal({
                   <label className="add-product-label">Product Name</label>
                   <input
                     type="text"
-                    className={`add-product-input ${inputErrors.productName ? 'is-invalid' : ''}`}
+                    className={`add-product-input ${inputErrors.productName ? "is-invalid" : ""}`}
                     placeholder="Product Name"
                     value={addForm.productName}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, productName: e.target.value }))}
+                    onChange={(e) => handleFieldChange("productName", e.target.value)}
+                    disabled={isAddSubmitting}
                     required
                   />
-                  {inputErrors.productName && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.productName}</span>}
+                  {inputErrors.productName && (
+                    <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>
+                      {inputErrors.productName}
+                    </span>
+                  )}
                 </div>
                 <div className="add-product-field">
                   <label className="add-product-label">Category</label>
                   <SelectDropdown
                     id="add-product-category-nonmedicine"
                     value={addForm.categoryName}
-                    onChange={(val) => setAddForm(prev => ({ ...prev, categoryName: val }))}
-                    options={CATEGORY_FILTERS.filter(cat => cat !== "All" && cat !== "Generic" && cat !== "Branded" && cat !== "Unclassified")}
+                    onChange={(val) => handleFieldChange("categoryName", val)}
+                    options={nonMedicineCategoryOptions}
                     placeholder="Select Category"
-                    selectClassName={`add-product-select ${inputErrors.categoryName ? 'is-invalid' : ''}`}
+                    disabled={isAddSubmitting}
+                    selectClassName={`add-product-select ${inputErrors.categoryName ? "is-invalid" : ""}`}
                   />
-                  {inputErrors.categoryName && <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>{inputErrors.categoryName}</span>}
+                  {inputErrors.categoryName && (
+                    <span style={{ color: "#dc3545", fontSize: "12px", marginTop: "4px", display: "block" }}>
+                      {inputErrors.categoryName}
+                    </span>
+                  )}
                 </div>
                 <div className="add-product-field">
                   <label className="add-product-label">Size</label>
@@ -152,7 +221,8 @@ export function AddProductModal({
                     className="add-product-input"
                     placeholder="Size"
                     value={addForm.size}
-                    onChange={(e) => setAddForm(prev => ({ ...prev, size: e.target.value }))}
+                    onChange={(e) => handleFieldChange("size", e.target.value)}
+                    disabled={isAddSubmitting}
                   />
                 </div>
               </>
@@ -165,7 +235,8 @@ export function AddProductModal({
                 className="add-product-input"
                 placeholder="Batch Number"
                 value={addForm.batchNumber}
-                onChange={(e) => setAddForm(prev => ({ ...prev, batchNumber: e.target.value }))}
+                onChange={(e) => handleFieldChange("batchNumber", e.target.value)}
+                disabled={isAddSubmitting}
               />
             </div>
             <div className="add-product-field">
@@ -173,7 +244,8 @@ export function AddProductModal({
               <FormattedDateInput
                 className={`add-product-input ${!addForm.expiryDate ? "is-empty" : ""}`}
                 value={addForm.expiryDate}
-                onChange={(val) => setAddForm(prev => ({ ...prev, expiryDate: val }))}
+                onChange={(val) => handleFieldChange("expiryDate", val)}
+                disabled={isAddSubmitting}
               />
             </div>
             {addProductType === "medicine" && (
@@ -182,11 +254,12 @@ export function AddProductModal({
                 <SelectDropdown
                   selectClassName="add-product-select"
                   value={addForm.needsPrescription}
-                  onChange={(val) => setAddForm(prev => ({ ...prev, needsPrescription: val }))}
+                  onChange={(val) => handleFieldChange("needsPrescription", val)}
                   options={[
                     { label: "False", value: "False" },
                     { label: "True", value: "True" },
                   ]}
+                  disabled={isAddSubmitting}
                 />
               </div>
             )}
@@ -204,7 +277,8 @@ export function AddProductModal({
                 className="add-product-input"
                 placeholder="Quantity"
                 value={addForm.quantity}
-                onChange={(e) => setAddForm(prev => ({ ...prev, quantity: e.target.value }))}
+                onChange={(e) => handleFieldChange("quantity", e.target.value)}
+                disabled={isAddSubmitting}
               />
             </div>
             <div className="add-product-field">
@@ -215,7 +289,8 @@ export function AddProductModal({
                 className="add-product-input"
                 placeholder="Unit Cost"
                 value={addForm.unitCost}
-                onChange={(e) => setAddForm(prev => ({ ...prev, unitCost: e.target.value }))}
+                onChange={(e) => handleFieldChange("unitCost", e.target.value)}
+                disabled={isAddSubmitting}
               />
             </div>
             <div className="add-product-field">
@@ -223,11 +298,12 @@ export function AddProductModal({
               <SelectDropdown
                 selectClassName="add-product-select"
                 value={addForm.discountable}
-                onChange={(val) => setAddForm(prev => ({ ...prev, discountable: val }))}
+                onChange={(val) => handleFieldChange("discountable", val)}
                 options={[
                   { label: "False", value: "False" },
                   { label: "True", value: "True" },
                 ]}
+                disabled={isAddSubmitting}
               />
             </div>
             <div className="add-product-field">
@@ -235,11 +311,12 @@ export function AddProductModal({
               <SelectDropdown
                 selectClassName="add-product-select"
                 value={addForm.isAvailable || "Available"}
-                onChange={(val) => setAddForm(prev => ({ ...prev, isAvailable: val }))}
+                onChange={(val) => handleFieldChange("isAvailable", val)}
                 options={[
                   { label: "Available", value: "Available" },
                   { label: "Unavailable", value: "Unavailable" },
                 ]}
+                disabled={isAddSubmitting}
               />
             </div>
             <div className="add-product-field">
@@ -250,7 +327,8 @@ export function AddProductModal({
                 className="add-product-input"
                 placeholder="Selling Price"
                 value={addForm.sellingPrice}
-                onChange={(e) => setAddForm(prev => ({ ...prev, sellingPrice: e.target.value }))}
+                onChange={(e) => handleFieldChange("sellingPrice", e.target.value)}
+                disabled={isAddSubmitting}
               />
             </div>
           </div>
@@ -267,7 +345,8 @@ export function AddProductModal({
                 className="add-product-input"
                 placeholder="Barcode"
                 value={addForm.barcode}
-                onChange={(e) => setAddForm(prev => ({ ...prev, barcode: e.target.value }))}
+                onChange={(e) => handleFieldChange("barcode", e.target.value)}
+                disabled={isAddSubmitting}
               />
             </div>
             <div className="add-product-field add-product-full-width">
@@ -276,7 +355,8 @@ export function AddProductModal({
                 className="add-product-textarea"
                 placeholder="Description here..."
                 value={addForm.description}
-                onChange={(e) => setAddForm(prev => ({ ...prev, description: e.target.value }))}
+                onChange={(e) => handleFieldChange("description", e.target.value)}
+                disabled={isAddSubmitting}
               />
             </div>
           </div>
@@ -288,15 +368,19 @@ export function AddProductModal({
             type="button"
             className="add-product-btn-cancel"
             onClick={onClose}
+            disabled={isAddSubmitting}
           >
             Cancel
           </button>
-          <button 
-            type="submit" 
-            className="add-product-btn-add"
-            disabled={Object.keys(inputErrors).length > 0}
+          <button
+            type="submit"
+            className="add-product-btn-add d-flex align-items-center justify-content-center gap-2"
+            disabled={isAddSubmitting}
           >
-            Add
+            {isAddSubmitting && (
+              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true" />
+            )}
+            {isAddSubmitting ? "Adding..." : "Add"}
           </button>
         </div>
       </form>
