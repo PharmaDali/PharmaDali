@@ -233,6 +233,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pharmacy/inventory/products/{pharmacyProductId}/batches', [ProductBatchController::class, 'index']);
         Route::post('pharmacy/inventory/products/{pharmacyProductId}/batches', [ProductBatchController::class, 'store']);
         Route::patch('pharmacy/inventory/batches/{batchId}', [ProductBatchController::class, 'update']);
+        Route::delete('pharmacy/inventory/batches/{batchId}', [ProductBatchController::class, 'destroy']);
         Route::post('pharmacy/inventory/products/{pharmacyProductId}/stock-out', [ProductBatchController::class, 'stockOut']);
     });
 

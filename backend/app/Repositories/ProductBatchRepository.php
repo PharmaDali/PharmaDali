@@ -85,6 +85,16 @@ class ProductBatchRepository
     }
 
     /**
+     * Delete a batch and synchronize parent product stock.
+     */
+    public function deleteBatch(ProductBatch $batch): void
+    {
+        $pharmacyProductId = $batch->pharmacy_product_id;
+        $batch->delete();
+        $this->syncPharmacyProductStock($pharmacyProductId);
+    }
+
+    /**
      * Recalculate and update pharmacy_products.stock as the SUM of all batch stocks.
      * Also updates pharmacy_products.expiry_date to the nearest upcoming batch expiry.
      */
