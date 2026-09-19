@@ -379,31 +379,17 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+
+/* iOS Specific Fixes to Stop Auto-Zoom */
+@supports (-webkit-touch-callout: none) {
+  .login-input,
+  .form-control.login-input,
+  input[type="email"],
+  input[type="password"] {
+    font-size: 16px !important;
+  }
+
   .login-page {
-    animation: none;
-    background: #ffffff;
-  }
-
-  .login-brand-block {
-    transform: scale(0.92);
-    animation: none;
-    opacity: 1;
-  }
-
-  .login-logo-white {
-    opacity: 0;
-    animation: none;
-  }
-
-  .login-logo-blue {
-    opacity: 1;
-    animation: none;
-  }
-
-  .login-form-panel {
-    opacity: 1;
-    transform: translateY(0);
-    animation: none;
+    touch-action: manipulation;
   }
 }
