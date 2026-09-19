@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Pharmacy;
+use Illuminate\Support\Facades\Cache;
 
 class PharmacySettingsRepository
 {
@@ -23,6 +24,9 @@ class PharmacySettingsRepository
         $pharmacy->fill($data);
         $pharmacy->save();
 
+        Cache::forget('pharmacies_all');
+        Cache::forget("pharmacy_{$pharmacy->id}");
+
         return $pharmacy->fresh();
     }
 
@@ -33,6 +37,9 @@ class PharmacySettingsRepository
     {
         $pharmacy->logo_path = $path;
         $pharmacy->save();
+
+        Cache::forget('pharmacies_all');
+        Cache::forget("pharmacy_{$pharmacy->id}");
 
         return $pharmacy->fresh();
     }

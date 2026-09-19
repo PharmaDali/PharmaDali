@@ -34,6 +34,10 @@ export function parseAmPmToMinutes(timeValue) {
 
 // Formats minutes from midnight into a display string like "6:15 PM".
 export function formatMinutesToAmPm(totalMinutes) {
+  if (totalMinutes === null || totalMinutes === undefined || !Number.isFinite(totalMinutes)) {
+    return '';
+  }
+
   const hours24 = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const period = hours24 >= 12 ? 'PM' : 'AM';
@@ -165,7 +169,11 @@ export function parsePharmacyOperatingMinutes(selectedPharmacy) {
     };
   }
 
-  if (typeof selectedPharmacy?.hours === 'string' && selectedPharmacy.hours.includes('-')) {
+  if (
+    typeof selectedPharmacy?.hours === 'string' &&
+    selectedPharmacy.hours.includes('-') &&
+    !selectedPharmacy.hours.toLowerCase().includes('unavail')
+  ) {
     const [openLabel, closeLabel] = selectedPharmacy.hours.split('-').map((value) => value.trim());
     let openingMinutes = parseAmPmToMinutes(openLabel);
     let closingMinutes = parseAmPmToMinutes(closeLabel);
@@ -187,3 +195,61 @@ export function parsePharmacyOperatingMinutes(selectedPharmacy) {
     closingMinutes: null,
   };
 }
+
+// Formats the pharmacy's operating store hours into a clean label e.g. "9:00 AM – 9:00 PM".
+export function formatPharmacyHoursLabel(pharmacy) {
+  if (!pharmacy) return '';
+
+  const hoursStr = typeof pharmacy.hours === 'string' ? pharmacy.hours.trim() : '';
+  if (hoursStr && hoursStr.includes('-') && !hoursStr.toLowerCase().includes('unavail')) {
+    const [start, end] = hoursStr.split('-').map((s) => s.trim());
+    if (start && end) {
+      const openM = parseAmPmToMinutes(start);
+      const closeM = parseAmPmToMinutes(end);
+      if (openM !== null && closeM !== null) {
+        return `${formatMinutesToAmPm(openM)} – ${formatMinutesToAmPm(closeM)}`;
+      }
+      return `${start} – ${end}`;
+    }
+  }
+
+  const openTime =
+    pharmacy.formattedOpeningHour ||
+    pharmacy.opening_hour ||
+    pharmacy.openingHour;
+  const closeTime =
+    pharmacy.formattedClosingHour ||
+    pharmacy.closing_hour ||
+    pharmacy.closingHour;
+
+  if (openTime && closeTime) {
+    const openMinutes = parseAmPmToMinutes(openTime);
+    const closeMinutes = parseAmPmToMinutes(closeTime);
+    if (openMinutes !== null && closeMinutes !== null) {
+      const formattedOpen = formatMinutesToAmPm(openMinutes);
+      const formattedClose = formatMinutesToAmPm(closeMinutes);
+      if (formattedOpen && formattedClose) {
+        return `${formattedOpen} – ${formattedClose}`;
+      }
+    }
+  }
+
+  const { openingMinutes, closingMinutes } = parsePharmacyOperatingMinutes(pharmacy);
+  if (Number.isFinite(openingMinutes) && Number.isFinite(closingMinutes)) {
+    const formattedOpen = formatMinutesToAmPm(openingMinutes);
+    const formattedClose = formatMinutesToAmPm(closingMinutes);
+    if (formattedOpen && formattedClose) {
+      return `${formattedOpen} – ${formattedClose}`;
+    }
+  }
+
+  return '';
+}
+
+// Formats a time string into 12-hour AM/PM format (e.g. "9:00 AM").
+export function formatTimeToAmPm(timeValue) {
+  const minutes = parseAmPmToMinutes(timeValue);
+  if (minutes === null) return null;
+  return formatMinutesToAmPm(minutes);
+}
+

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getPharmacyCategories, getProducts, getHeroRecommendations } from '@shared/services/productService';
+import { getPharmacyById } from '@shared/services/selectionPhaseService';
+import { formatTimeToAmPm, isPharmacyOpenNow } from '@src/utils/pickupScheduleUtils';
 
 function normalizeApiList(payload) {
   if (Array.isArray(payload)) {
@@ -24,7 +26,7 @@ export function formatProductPrice(value) {
 
 const HOME_PREVIEW_LIMIT = 24;
 
-export function useHomeTab(selectedPharmacy) {
+export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
   const selectedPharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
 
   const [loading, setLoading] = useState(!selectedPharmacy);
@@ -60,11 +62,46 @@ export function useHomeTab(selectedPharmacy) {
     }
 
     try {
-      const [categoriesPayload, productsPayload, recommendationsPayload] = await Promise.all([
+      const [categoriesPayload, productsPayload, recommendationsPayload, pharmacyPayload] = await Promise.all([
         getPharmacyCategories(selectedPharmacyId, isRefresh),
         getProducts(selectedPharmacyId, null, { perPage: HOME_PREVIEW_LIMIT }),
         getHeroRecommendations(selectedPharmacyId, { page: 1, perPage: 10 }).catch(() => null),
+        typeof setSelectedPharmacy === 'function' ? getPharmacyById(selectedPharmacyId).catch(() => null) : Promise.resolve(null),
       ]);
+
+      if (pharmacyPayload && typeof setSelectedPharmacy === 'function') {
+        const pData = pharmacyPayload?.data ?? pharmacyPayload;
+        if (pData && (pData.id || pData.pharmacy_id)) {
+          const rawOpening = pData.opening_hour || pData.openingHour;
+          const rawClosing = pData.closing_hour || pData.closingHour;
+          const formattedOpeningHour = formatTimeToAmPm(rawOpening);
+          const formattedClosingHour = formatTimeToAmPm(rawClosing);
+          const isOperating = pData.is_active !== false && pData.is_active !== 0 && pData.is_active !== '0';
+          const isOpen = isOperating && isPharmacyOpenNow(rawOpening, rawClosing);
+
+          setSelectedPharmacy((prev) => ({
+            ...prev,
+            ...pData,
+            name: pData.pharmacy_name || prev?.name,
+            pharmacy_name: pData.pharmacy_name || prev?.pharmacy_name,
+            address: pData.location || prev?.address,
+            location: pData.location || prev?.location,
+            opening_hour: rawOpening,
+            closing_hour: rawClosing,
+            openingHour: rawOpening,
+            closingHour: rawClosing,
+            formattedOpeningHour,
+            formattedClosingHour,
+            hours: formattedOpeningHour && formattedClosingHour
+              ? `${formattedOpeningHour} - ${formattedClosingHour}`
+              : (prev?.hours || 'Store hours unavailable'),
+            isOpen,
+            is_active: isOperating,
+            isActive: isOperating,
+            isOperating,
+          }));
+        }
+      }
 
       setCategories(normalizeApiList(categoriesPayload));
       setPharmacyProducts(normalizeApiList(productsPayload));

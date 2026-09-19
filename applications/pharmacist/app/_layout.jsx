@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { View } from "react-native";
+import UpdateNoticeModal from "@shared/components/UpdateNoticeModal";
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -25,6 +26,8 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <Stack screenOptions={{ headerShown: false }} />
+      <UpdateNoticeModal />
     </SafeAreaProvider>
   );
 }
+

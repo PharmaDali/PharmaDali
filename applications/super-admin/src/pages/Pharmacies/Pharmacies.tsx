@@ -6,6 +6,18 @@ type Props = {
   compact?: boolean
 }
 
+const formatDisplayTime = (timeStr?: string) => {
+  if (!timeStr) return ''
+  const parts = timeStr.split(':')
+  if (parts.length < 2) return timeStr
+  let h = parseInt(parts[0], 10)
+  const m = parts[1]
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  h = h % 12
+  if (h === 0) h = 12
+  return `${h}:${m} ${ampm}`
+}
+
 const PharmacyList: React.FC<Props> = ({ compact }) => {
   const { pharmacies, fetchPharmacies, addPharmacy, updatePharmacy, deletePharmacy } = usePharmacies()
 
@@ -16,6 +28,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
   const [selectedPharmacy, setSelectedPharmacy] = useState<Pharmacy | null>(null)
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [addError, setAddError] = useState('')
+  const [editError, setEditError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -23,6 +36,8 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     email: '',
     location: '',
     status: 'Active',
+    openingHour: '08:00',
+    closingHour: '17:00',
     adminFirstName: '',
     adminLastName: '',
     adminEmail: '',
@@ -40,6 +55,8 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
     email: '',
     location: '',
     status: 'Active',
+    openingHour: '08:00',
+    closingHour: '17:00',
   })
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -49,6 +66,7 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
 
   const handleOpenEdit = (p: Pharmacy) => {
     setEditingPharmacy(p)
+    setEditError('')
     setEditFormData({
       name: p.name || '',
       owner: p.owner || '',
@@ -56,6 +74,8 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       email: p.email || '',
       location: p.location || '',
       status: p.status || 'Active',
+      openingHour: p.opening_hour || '08:00',
+      closingHour: p.closing_hour || '17:00',
     })
   }
 
@@ -67,6 +87,19 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
   const handleUpdatePharmacy = (e: React.FormEvent) => {
     e.preventDefault()
     if (!editingPharmacy || !editFormData.name.trim()) return
+    if (!editFormData.openingHour) {
+      setEditError('Opening time is required.')
+      return
+    }
+    if (!editFormData.closingHour) {
+      setEditError('Closing time is required.')
+      return
+    }
+    if (editFormData.closingHour <= editFormData.openingHour) {
+      setEditError('Closing time must be later than opening time.')
+      return
+    }
+    setEditError('')
     setIsConfirmModalOpen(true)
   }
 
@@ -81,15 +114,22 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       email: editFormData.email,
       location: editFormData.location,
       status: editFormData.status,
+      opening_hour: editFormData.openingHour,
+      closing_hour: editFormData.closingHour,
     }
 
-    await updatePharmacy(updated)
-    if (selectedPharmacy?.id === editingPharmacy.id) {
-      setSelectedPharmacy(updated)
+    try {
+      await updatePharmacy(updated)
+      if (selectedPharmacy?.id === editingPharmacy.id) {
+        setSelectedPharmacy(updated)
+      }
+      setIsConfirmModalOpen(false)
+      setEditingPharmacy(null)
+      setIsSuccessModalOpen(true)
+    } catch (err: any) {
+      setIsConfirmModalOpen(false)
+      setEditError(err.response?.data?.message || err.message || 'Failed to update pharmacy.')
     }
-    setIsConfirmModalOpen(false)
-    setEditingPharmacy(null)
-    setIsSuccessModalOpen(true)
   }
 
   const handleConfirmDelete = () => {
@@ -115,6 +155,18 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       setAddError('Pharmacy contact number is required.')
       return
     }
+    if (!formData.openingHour) {
+      setAddError('Opening time is required.')
+      return
+    }
+    if (!formData.closingHour) {
+      setAddError('Closing time is required.')
+      return
+    }
+    if (formData.closingHour <= formData.openingHour) {
+      setAddError('Closing time must be later than opening time.')
+      return
+    }
     if (!formData.adminFirstName.trim()) {
       setAddError('Manager first name is required.')
       return
@@ -133,6 +185,8 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
         email: formData.email,
         location: formData.location,
         status: formData.status || 'Active',
+        opening_hour: formData.openingHour,
+        closing_hour: formData.closingHour,
         admin_first_name: formData.adminFirstName,
         admin_last_name: formData.adminLastName,
         admin_email: formData.adminEmail,
@@ -144,6 +198,8 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
         email: '',
         location: '',
         status: 'Active',
+        openingHour: '08:00',
+        closingHour: '17:00',
         adminFirstName: '',
         adminLastName: '',
         adminEmail: '',
@@ -352,6 +408,12 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
                 <p><span className="text-gray-300">Pharmacy:</span> {selectedPharmacy.name}</p>
                 <p><span className="text-gray-300">Manager:</span> {selectedPharmacy.owner}</p>
                 <p><span className="text-gray-300">Contact Number:</span> {selectedPharmacy.contact}</p>
+                <p>
+                  <span className="text-gray-300">Operating Hours:</span>{' '}
+                  {selectedPharmacy.opening_hour && selectedPharmacy.closing_hour
+                    ? `${formatDisplayTime(selectedPharmacy.opening_hour)} - ${formatDisplayTime(selectedPharmacy.closing_hour)}`
+                    : <span className="text-amber-400">Unavailable</span>}
+                </p>
               </div>
             </div>
 
@@ -441,6 +503,35 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
               />
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
+                  Opening Time *
+                </label>
+                <Input
+                  type="time"
+                  name="openingHour"
+                  value={formData.openingHour}
+                  onChange={handleInputChange}
+                  className="[color-scheme:dark]"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
+                  Closing Time *
+                </label>
+                <Input
+                  type="time"
+                  name="closingHour"
+                  value={formData.closingHour}
+                  onChange={handleInputChange}
+                  className="[color-scheme:dark]"
+                  required
+                />
+              </div>
+            </div>
+
             <Select
               name="status"
               value={formData.status}
@@ -521,11 +612,20 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
       {/* Edit Pharmacy Modal */}
       <Modal
         isOpen={Boolean(editingPharmacy)}
-        onClose={() => setEditingPharmacy(null)}
+        onClose={() => {
+          setEditingPharmacy(null)
+          setEditError('')
+        }}
         maxWidth="max-w-[500px]"
         animate={true}
       >
-        <h2 className="text-white text-2xl font-bold text-center mb-8">Edit Pharmacy Information</h2>
+        <h2 className="text-white text-2xl font-bold text-center mb-6">Edit Pharmacy Information</h2>
+
+        {editError && (
+          <div className="mb-4 p-3 bg-red-500/15 border border-red-500/30 rounded-[8px] text-red-400 text-xs">
+            {editError}
+          </div>
+        )}
 
         <form onSubmit={handleUpdatePharmacy} className="space-y-4">
           <Input
@@ -560,6 +660,35 @@ const PharmacyList: React.FC<Props> = ({ compact }) => {
               onChange={handleEditInputChange}
               placeholder="Email"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
+                Opening Time *
+              </label>
+              <Input
+                type="time"
+                name="openingHour"
+                value={editFormData.openingHour}
+                onChange={handleEditInputChange}
+                className="[color-scheme:dark]"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-[#48aad9] mb-1.5">
+                Closing Time *
+              </label>
+              <Input
+                type="time"
+                name="closingHour"
+                value={editFormData.closingHour}
+                onChange={handleEditInputChange}
+                className="[color-scheme:dark]"
+                required
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

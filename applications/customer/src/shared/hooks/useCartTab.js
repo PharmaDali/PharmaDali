@@ -120,5 +120,6 @@ export function useCartTab() {
     viewState,
     pharmacyLabel,
     pharmacyLocationLabel,
+    selectedPharmacy,
   };
 }

@@ -27,6 +27,7 @@ import {
 import {
   formatMinutesToAmPm,
   parsePharmacyOperatingMinutes,
+  formatPharmacyHoursLabel,
 } from '@src/utils/pickupScheduleUtils'
 
 const PickupDetailsScreen = () => {
@@ -65,10 +66,61 @@ const PickupDetailsScreen = () => {
   const [submitError, setSubmitError] = useState('')
   const [showConfirmModal, setShowConfirmModal] = useState(false)
 
-  const operatingMinutes = useMemo(() => parsePharmacyOperatingMinutes(selectedPharmacy), [selectedPharmacy])
+  const targetPharmacy = useMemo(() => {
+    const candidate = selectedPharmacy || draft?.selectedPharmacy
+    if (
+      candidate &&
+      (candidate.formattedOpeningHour ||
+        candidate.opening_hour ||
+        candidate.openingHour ||
+        (typeof candidate.hours === 'string' && !candidate.hours.toLowerCase().includes('unavail')))
+    ) {
+      return candidate
+    }
+    const itemWithPharmacy = items.find(
+      (item) =>
+        item?.pharmacy?.openingHour ||
+        item?.pharmacy?.opening_hour ||
+        item?.pharmacy?.formattedOpeningHour
+    )
+    if (itemWithPharmacy?.pharmacy) {
+      return {
+        ...itemWithPharmacy.pharmacy,
+        name: itemWithPharmacy.pharmacy.pharmacyName || itemWithPharmacy.pharmacy.pharmacy_name,
+        opening_hour: itemWithPharmacy.pharmacy.openingHour || itemWithPharmacy.pharmacy.opening_hour,
+        closing_hour: itemWithPharmacy.pharmacy.closingHour || itemWithPharmacy.pharmacy.closing_hour,
+      }
+    }
+    if (items[0]?.pharmacy) {
+      return {
+        ...items[0].pharmacy,
+        name: items[0].pharmacy.pharmacyName || items[0].pharmacy.pharmacy_name,
+        opening_hour: items[0].pharmacy.openingHour || items[0].pharmacy.opening_hour,
+        closing_hour: items[0].pharmacy.closingHour || items[0].pharmacy.closing_hour,
+      }
+    }
+    return candidate || selectedPharmacy
+  }, [selectedPharmacy, draft?.selectedPharmacy, items])
+
+  const operatingMinutes = useMemo(() => parsePharmacyOperatingMinutes(targetPharmacy), [targetPharmacy])
   const openingMinutes = operatingMinutes.openingMinutes
   const closingMinutes = operatingMinutes.closingMinutes
   const hasValidOperatingWindow = Number.isFinite(openingMinutes) && Number.isFinite(closingMinutes) && openingMinutes <= closingMinutes
+
+  const effectiveHoursLabel = useMemo(() => {
+    const formatted =
+      formatPharmacyHoursLabel(targetPharmacy) ||
+      formatPharmacyHoursLabel(selectedPharmacy) ||
+      draft?.pharmacyHoursLabel ||
+      ''
+    if (formatted && !formatted.toLowerCase().includes('unavail') && formatted.toLowerCase() !== 'closed') {
+      return formatted
+    }
+    if (Number.isFinite(openingMinutes) && Number.isFinite(closingMinutes) && openingMinutes < closingMinutes) {
+      return `${formatMinutesToAmPm(openingMinutes)} – ${formatMinutesToAmPm(closingMinutes)}`
+    }
+    return ''
+  }, [targetPharmacy, selectedPharmacy, draft?.pharmacyHoursLabel, openingMinutes, closingMinutes])
 
   const hasDiscountableItems = useMemo(() => {
     if (!items || items.length === 0) return false
@@ -88,12 +140,12 @@ const PickupDetailsScreen = () => {
   )
 
   const isPharmacyExplicitlyClosed = useMemo(() => {
-    if (selectedPharmacy?.isOpen === false) return true
-    const activeVal = selectedPharmacy?.isOperating ?? selectedPharmacy?.isActive ?? selectedPharmacy?.is_active
+    if (targetPharmacy?.isOpen === false) return true
+    const activeVal = targetPharmacy?.isOperating ?? targetPharmacy?.isActive ?? targetPharmacy?.is_active
     if (activeVal === false || activeVal === 0 || activeVal === '0') return true
     if (draft?.isPharmacyOpen === false) return true
     return false
-  }, [selectedPharmacy, draft?.isPharmacyOpen])
+  }, [targetPharmacy, draft?.isPharmacyOpen])
 
   const isPharmacyClosed = useMemo(() => {
     if (isPharmacyExplicitlyClosed) return true
@@ -444,7 +496,7 @@ const PickupDetailsScreen = () => {
             <RedLocationIcon width={24} height={24} />
             <View className="ml-2.5 flex-1 justify-center">
               <Text className="text-xs" style={styles.fontSemiBold}>
-                Pickup at {selectedPharmacy?.name || pharmacyLabel || 'Selected pharmacy'}
+                Pickup at {targetPharmacy?.name || targetPharmacy?.pharmacyName || selectedPharmacy?.name || pharmacyLabel || 'Selected pharmacy'}
               </Text>
               {displayLocation ? (
                 <Text className="text-[10px] text-gray-500 mt-0.5" style={styles.fontMedium}>
@@ -463,7 +515,7 @@ const PickupDetailsScreen = () => {
                 Pharmacy is Currently Closed
               </Text>
               <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
-                {selectedPharmacy?.name || pharmacyLabel || 'This pharmacy'} is currently closed. Orders cannot be placed at this time.
+                {targetPharmacy?.name || targetPharmacy?.pharmacyName || selectedPharmacy?.name || pharmacyLabel || 'This pharmacy'} is currently closed{effectiveHoursLabel ? ` (Store hours: ${effectiveHoursLabel})` : ''}. Orders cannot be placed at this time.
               </Text>
             </View>
           </View>
@@ -483,30 +535,22 @@ const PickupDetailsScreen = () => {
               <Text className="text-xs" style={styles.fontSemiBold}>
                 {isPharmacyClosed ? 'Pharmacy is Closed' : selectedTimeLabel}
               </Text>
-              {!isPharmacyClosed && (
-                <Text className="text-[10px]" style={styles.primarySemiBold}>Choose</Text>
-              )}
-            </View>
-            <Text className="text-[10px] text-gray-500 mt-1" style={styles.fontMedium}>
-              {isPharmacyClosed
-                ? 'This pharmacy is closed and not accepting pickup orders at this time.'
-                : hasValidOperatingWindow && hasWindowToday
-                  ? `Available between ${formatTime12Hour(minimumDateTime)} and ${formatMinutesToAmPm(closingMinutes)}`
-                  : 'No pickup slots available today.'}
-            </Text>
-            {!isPharmacyClosed && (
-              <Text className="text-[10px] text-gray-400 mt-0.5" style={styles.fontMedium}>
-                {selectedTime ? 'Tap to change time' : 'Tap to pick a time'}
+              <Text className="text-xs text-[#48AAD9]" style={styles.fontSemiBold}>
+                {isPharmacyClosed ? '' : 'Change'}
               </Text>
-            )}
+            </View>
           </TouchableOpacity>
 
-          {!!selectedTime && (
-            <View className="mt-2 rounded-lg bg-[#EEF7FD] border border-[#D4EAF8] px-3 py-2">
-              <Text className="text-[10px]" style={styles.fontMedium}>
-                Pickup schedule: <Text style={styles.fontSemiBold}>Today, {selectedTimeLabel}</Text>
-              </Text>
-            </View>
+          {isPharmacyClosed && (
+            <Text className="text-[10px] text-gray-400 mt-1" style={styles.fontMedium}>
+              Pickup scheduling is unavailable while pharmacy is closed
+            </Text>
+          )}
+
+          {!isPharmacyClosed && !hasWindowToday && (
+            <Text className="text-[10px] text-gray-400 mt-1" style={styles.fontMedium}>
+              No pickup window available today
+            </Text>
           )}
 
           {!!submitError && (
@@ -541,7 +585,8 @@ const PickupDetailsScreen = () => {
             closingMinutes={closingMinutes}
             minimumDateTime={minimumDateTime}
             closingDateTime={closingDateTime}
-            pharmacyName={selectedPharmacy?.name || pharmacyLabel || 'Pharmacy'}
+            pharmacyName={targetPharmacy?.name || targetPharmacy?.pharmacyName || selectedPharmacy?.name || pharmacyLabel || 'Pharmacy'}
+            hoursLabel={effectiveHoursLabel}
           />
 
           <Text className="text-sm mt-4 mb-2" style={styles.fontSemiBold}>Customer Notes (Optional)</Text>
@@ -844,18 +889,6 @@ const PickupDetailsScreen = () => {
             wrapperStyle={{ marginHorizontal: 16 }}
             qrStyle={{ width: 240, height: 240 }}
           />
-        )}
-
-        {isPharmacyClosed && (
-          <View className="flex-row items-start bg-[#FFF7ED] rounded-xl mx-4 mt-3 p-3 border border-[#FCD34D]">
-            <RedInfoIcon width={14} height={14} />
-            <View className="flex-1 ml-2">
-              <Text className="text-xs" style={styles.closedWarningTitle}>Pharmacy is currently closed</Text>
-              <Text className="text-[10px] mt-0.5" style={styles.closedWarningBody}>
-                Orders can only be placed during operating hours ({formatMinutesToAmPm(openingMinutes)} – {formatMinutesToAmPm(closingMinutes)}). Please come back during open hours.
-              </Text>
-            </View>
-          </View>
         )}
       </ScrollView>
 

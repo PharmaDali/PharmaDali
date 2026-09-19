@@ -10,10 +10,12 @@ class ApiError extends Error {
   }
 }
 
+const PROD_API_URL = 'https://api.pharmadali.com/api';
+
 const getBaseUrl = () => {
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
   if (envUrl && envUrl.trim()) return envUrl.trim().replace(/\/+$/, '');
-  return 'http://localhost:3000/api';
+  return PROD_API_URL;
 };
 
 const getErrorMessage = (data, fallback) => {

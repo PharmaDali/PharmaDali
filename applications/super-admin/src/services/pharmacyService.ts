@@ -6,6 +6,8 @@ export interface PharmacyPayload {
   contact_number: string;
   email?: string;
   is_active: boolean;
+  opening_hour: string;
+  closing_hour: string;
   admin_first_name?: string;
   admin_last_name?: string;
   admin_email?: string;

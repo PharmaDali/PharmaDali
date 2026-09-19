@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
@@ -8,6 +8,7 @@ import LogoHeader from '@src/shared/components/LogoHeader'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import ProductImage from '@shared/components/ProductImage'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
+import { formatPharmacyHoursLabel } from '@src/utils/pickupScheduleUtils'
 
 const MAX_PRESCRIPTION_SIZE_BYTES = 5 * 1024 * 1024
 
@@ -70,6 +71,18 @@ const UploadPrescriptionScreen = () => {
   const uploadTimerRef = useRef(null)
   const isPharmacyOpen = draft?.isPharmacyOpen !== false
   const canProceed = uploadSuccess && isPharmacyOpen
+
+  const effectiveHoursLabel = useMemo(() => {
+    const raw = draft?.pharmacyHoursLabel || ''
+    if (raw && !raw.toLowerCase().includes('unavail') && raw.toLowerCase() !== 'closed') {
+      return raw
+    }
+    const target =
+      draft?.selectedPharmacy ||
+      draft?.items?.find((i) => i?.pharmacy?.opening_hour || i?.pharmacy?.openingHour)?.pharmacy ||
+      draft?.items?.[0]?.pharmacy
+    return formatPharmacyHoursLabel(target) || ''
+  }, [draft?.pharmacyHoursLabel, draft?.selectedPharmacy, draft?.items])
 
   useEffect(() => {
     return () => {
@@ -221,7 +234,7 @@ const UploadPrescriptionScreen = () => {
                 Pharmacy is Currently Closed
               </Text>
               <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
-                {draft?.closedPharmacyName || draft?.pharmacyLabel || 'This pharmacy'} is currently closed. You cannot proceed with this order right now.
+                {draft?.closedPharmacyName || draft?.pharmacyLabel || 'This pharmacy'} is currently closed{effectiveHoursLabel ? ` (Store hours: ${effectiveHoursLabel})` : ''}. You cannot proceed with this order right now.
               </Text>
             </View>
           </View>

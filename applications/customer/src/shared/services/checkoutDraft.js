@@ -1,5 +1,6 @@
 let checkoutDraft = {
   items: [],
+  selectedPharmacy: null,
   pharmacyLabel: '',
   pharmacyLocationLabel: '',
   total: 0,
@@ -18,6 +19,7 @@ let checkoutDraft = {
 export function setCheckoutDraft(payload) {
   checkoutDraft = {
     items: Array.isArray(payload?.items) ? payload.items : [],
+    selectedPharmacy: payload?.selectedPharmacy || payload?.targetPharmacy || checkoutDraft.selectedPharmacy || null,
     pharmacyLabel: payload?.pharmacyLabel || '',
     pharmacyLocationLabel: payload?.pharmacyLocationLabel || '',
     total: Number(payload?.total ?? 0),
@@ -41,6 +43,7 @@ export function getCheckoutDraft() {
 export function clearCheckoutDraft() {
   checkoutDraft = {
     items: [],
+    selectedPharmacy: null,
     pharmacyLabel: '',
     pharmacyLocationLabel: '',
     total: 0,
@@ -56,4 +59,5 @@ export function clearCheckoutDraft() {
     pharmacyHoursLabel: '',
   };
 }
+
 

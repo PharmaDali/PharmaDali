@@ -33,7 +33,15 @@ class ApiError extends Error {
   }
 }
 
-const getBaseUrl = () => (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/+$/, '');
+const PROD_API_URL = 'https://api.pharmadali.com/api';
+
+const getBaseUrl = () => {
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+  return PROD_API_URL;
+};
 
 const getErrorMessage = (data, fallback) => {
   if (data?.errors) {
