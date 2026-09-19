@@ -90,6 +90,29 @@ class ProductBatchController extends Controller
     }
 
     /**
+     * Delete an existing batch from a pharmacy product.
+     * DELETE /pharmacy/inventory/batches/{batchId}
+     */
+    public function destroy(Request $request, int $batchId)
+    {
+        $this->authorizePermission(null, 'Unauthorized Access');
+
+        $batch = ProductBatch::findOrFail($batchId);
+
+        $pharmacyProduct = PharmacyProduct::where('pharmacy_id', $request->user()->pharmacy_id)
+            ->findOrFail($batch->pharmacy_product_id);
+
+        $this->batchService->deleteBatch($pharmacyProduct, $batch);
+        $pharmacyProduct->refresh();
+
+        return response()->json([
+            'status'          => 'success',
+            'message'         => 'Batch deleted successfully',
+            'remaining_stock' => $pharmacyProduct->stock,
+        ]);
+    }
+
+    /**
      * Perform a FEFO stock-out deduction across batches.
      * POST /pharmacy/inventory/products/{pharmacyProductId}/stock-out
      */

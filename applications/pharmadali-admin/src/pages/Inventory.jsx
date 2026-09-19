@@ -8,6 +8,7 @@ import InventorySideCards from "../components/Inventory/InventorySideCards";
 import ProductDetailsModal from "../components/Inventory/ProductDetailsModal";
 import StockOutModal from "../components/Inventory/StockOutModal";
 import AddProductModal from "../components/Inventory/AddProductModal";
+import BatchDeleteModal from "../components/Inventory/BatchDeleteModal";
 import Modal from "../shared/components/Modal";
 import infoIcon from "../assets/icons/modal-icons/info.svg";
 import successfulIcon from "../assets/icons/modal-icons/successful-task.svg";
@@ -25,6 +26,7 @@ export function Inventory() {
     sideCards,
     table,
     detailsModal,
+    batchDeleteModal,
     stockOutModal,
     addProductModal,
     feedbackModals,
@@ -89,6 +91,10 @@ export function Inventory() {
       <AddProductModal
         {...addProductModal}
         inputErrors={feedbackModals.inputErrors}
+      />
+
+      <BatchDeleteModal
+        {...batchDeleteModal}
       />
 
       {/* Save Confirmation Modal */}

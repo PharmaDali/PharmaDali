@@ -74,6 +74,29 @@ class ProductBatchService
     }
 
     /**
+     * Delete an existing batch and sync parent product stock.
+     */
+    public function deleteBatch(PharmacyProduct $pharmacyProduct, ProductBatch $batch): void
+    {
+        $oldStock = (int) $batch->stock;
+        $batchId = $batch->id;
+        $batchNumber = $batch->batch_number;
+
+        if ($oldStock > 0) {
+            $this->logService->logAdjustment(
+                pharmacyId:        $pharmacyProduct->pharmacy_id,
+                pharmacyProductId: $pharmacyProduct->id,
+                batchId:           $batchId,
+                oldStock:          $oldStock,
+                newStock:          0,
+                reason:            'Batch deletion' . ($batchNumber ? ': #' . $batchNumber : '')
+            );
+        }
+
+        $this->batchRepository->deleteBatch($batch);
+    }
+
+    /**
      * Perform a FEFO stock-out across batches.
      *
      * @return array{

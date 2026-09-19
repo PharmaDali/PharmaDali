@@ -9,6 +9,7 @@ import {
   fetchProductBatches,
   addProductBatch,
   updateProductBatch,
+  deleteProductBatch,
   stockOutProduct,
   uploadProductImage,
 } from "../services/inventoryService";
@@ -65,6 +66,11 @@ export function useInventory() {
     expiry_date: "",
     manufactured_date: "",
   });
+
+  // Batch Deletion States
+  const [batchToDelete, setBatchToDelete] = useState(null);
+  const [isDeletingBatch, setIsDeletingBatch] = useState(false);
+  const [showBatchDeleteModal, setShowBatchDeleteModal] = useState(false);
 
   // Success Modal State
   const [successModal, setSuccessModal] = useState({
@@ -594,6 +600,94 @@ export function useInventory() {
     setShowAddBatch(false);
   };
 
+  // Batch deletion handlers
+  const handleRequestDeleteBatch = (batch) => {
+    setBatchToDelete(batch);
+    setShowBatchDeleteModal(true);
+  };
+
+  const handleCancelDeleteBatch = () => {
+    setShowBatchDeleteModal(false);
+    setBatchToDelete(null);
+  };
+
+  const handleConfirmDeleteBatch = async () => {
+    if (!batchToDelete) return;
+    setIsDeletingBatch(true);
+    try {
+      if (batchToDelete.isDraft || String(batchToDelete.id).startsWith("draft-")) {
+        setBatches((prev) => prev.filter((b) => b.id !== batchToDelete.id));
+        setBatchEditStocks((prev) => {
+          const next = { ...prev };
+          delete next[batchToDelete.id];
+          return next;
+        });
+        setBatchEditDates((prev) => {
+          const next = { ...prev };
+          delete next[batchToDelete.id];
+          return next;
+        });
+        setBatchEditSuppliers((prev) => {
+          const next = { ...prev };
+          delete next[batchToDelete.id];
+          return next;
+        });
+        setShowBatchDeleteModal(false);
+        setBatchToDelete(null);
+        return;
+      }
+
+      const response = await deleteProductBatch(batchToDelete.id);
+
+      setBatches((prev) => prev.filter((b) => b.id !== batchToDelete.id));
+      setBatchEditStocks((prev) => {
+        const next = { ...prev };
+        delete next[batchToDelete.id];
+        return next;
+      });
+      setBatchEditDates((prev) => {
+        const next = { ...prev };
+        delete next[batchToDelete.id];
+        return next;
+      });
+      setBatchEditSuppliers((prev) => {
+        const next = { ...prev };
+        delete next[batchToDelete.id];
+        return next;
+      });
+
+      const newStock = response?.remaining_stock;
+      if (newStock !== undefined) {
+        setSelectedItem((prev) => prev ? { ...prev, quantity: newStock } : prev);
+        setModalDraft((prev) => prev ? { ...prev, quantity: newStock } : prev);
+        setInventoryItems((prev) =>
+          prev.map((item) =>
+            item.id === selectedItem?.id ? { ...item, quantity: newStock } : item
+          )
+        );
+      }
+
+      loadData();
+
+      setShowBatchDeleteModal(false);
+      setBatchToDelete(null);
+      setSuccessModal({
+        isOpen: true,
+        title: "Batch Deleted",
+        message: response?.message || `Batch #${batchToDelete.batch_number || batchToDelete.id} was successfully deleted.`,
+      });
+    } catch (err) {
+      console.error("Failed to delete batch:", err);
+      setErrorModal({
+        isOpen: true,
+        title: "Delete Failed",
+        message: err?.response?.data?.message || err.message || "Failed to delete batch.",
+      });
+    } finally {
+      setIsDeletingBatch(false);
+    }
+  };
+
   // Draft edits
   const handleDraftChange = (field, value) => {
     setModalDraft((prev) => ({
@@ -949,6 +1043,15 @@ export function useInventory() {
       handleRequestSave,
       handleConfirmSave,
       handleCancelSave,
+      handleRequestDeleteBatch,
+    },
+    batchDeleteModal: {
+      isOpen: showBatchDeleteModal,
+      batch: batchToDelete,
+      productName: selectedItem?.name,
+      onClose: handleCancelDeleteBatch,
+      onConfirm: handleConfirmDeleteBatch,
+      isDeleting: isDeletingBatch,
     },
     stockOutModal: {
       isOpen: showStockOutModal,
@@ -981,6 +1084,12 @@ export function useInventory() {
     },
 
     // Legacy flat keys for backward compatibility
+    batchToDelete,
+    isDeletingBatch,
+    showBatchDeleteModal,
+    handleRequestDeleteBatch,
+    handleCancelDeleteBatch,
+    handleConfirmDeleteBatch,
     query,
     setQuery,
     categoryFilter,
