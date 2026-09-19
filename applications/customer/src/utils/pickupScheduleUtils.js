@@ -246,3 +246,10 @@ export function formatPharmacyHoursLabel(pharmacy) {
   return '';
 }
 
+// Formats a time string into 12-hour AM/PM format (e.g. "9:00 AM").
+export function formatTimeToAmPm(timeValue) {
+  const minutes = parseAmPmToMinutes(timeValue);
+  if (minutes === null) return null;
+  return formatMinutesToAmPm(minutes);
+}
+

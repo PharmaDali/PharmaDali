@@ -37,7 +37,7 @@ export default function HomeScreen() {
     isFetchingMoreRecs,
     loadMoreRecommendations,
     normalizeSelectedPharmacy,
-  } = useHomeTab(selectedPharmacy);
+  } = useHomeTab(selectedPharmacy, setSelectedPharmacy);
   const { toast, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [hasUnreadMessage, setHasUnreadMessage] = useState(false);

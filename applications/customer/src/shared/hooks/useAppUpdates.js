@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { AppState } from 'react-native';
 import * as Updates from 'expo-updates';
+import * as SecureStore from 'expo-secure-store';
 
 export function useAppUpdates() {
   const [modalVisible, setModalVisible] = useState(false);
@@ -77,6 +78,10 @@ export function useAppUpdates() {
   const reloadApp = useCallback(async () => {
     setIsRestarting(true);
     try {
+      try {
+        await SecureStore.deleteItemAsync('customer_selected_pharmacy_id');
+      } catch (_) {}
+
       if (!__DEV__ && Updates.isEnabled) {
         await Updates.reloadAsync();
       } else {
