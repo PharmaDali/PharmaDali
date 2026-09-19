@@ -33,6 +33,7 @@ class CreatePharmacyProductRequest extends FormRequest
             'category_id'  => 'nullable|integer|exists:categories,id',
             'category_name'=> 'nullable|string|max:255',
             'stock'        => 'nullable|integer|min:0',
+            'unit_cost'    => 'nullable|numeric|min:0',
             'selling_price'=> 'nullable|numeric|min:0',
             'is_discountable' => 'nullable|boolean',
             'expiry_date'  => 'nullable|date',
@@ -40,6 +41,7 @@ class CreatePharmacyProductRequest extends FormRequest
             'batch_number' => 'nullable|string|max:100',
             'supplier_name' => 'nullable|string|max:255',
             'manufactured_date' => 'nullable|date',
+            'idempotency_key' => 'nullable|string|max:128',
         ];
     }
 }

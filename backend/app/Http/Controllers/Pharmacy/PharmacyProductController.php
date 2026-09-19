@@ -55,8 +55,12 @@ class PharmacyProductController extends Controller
 
         $user = $request->user();
         $pharmacyId = $user ? $user->pharmacy_id : null;
+        $validated = $request->validated();
+        if (empty($validated['idempotency_key'])) {
+            $validated['idempotency_key'] = $request->header('X-Idempotency-Key');
+        }
 
-        $product = $this->storeService->handle($request->validated(), $pharmacyId);
+        $product = $this->storeService->handle($validated, $pharmacyId);
 
         return response()->json([
             'status'  => 'success',
