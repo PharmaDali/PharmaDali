@@ -1,61 +1,50 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
+function getGreeting(hour) {
+  if (hour < 12) return { text: "Good Morning", icon: "fa-sun", color: "#FFD700" };
+  if (hour < 18) return { text: "Good Afternoon", icon: "fa-cloud-sun", color: "#FFA500" };
+  return { text: "Good Evening", icon: "fa-moon", color: "#6B7280" };
+}
+
 function NavBar({ onToggleSidebar, sidebarOpen }) {
-  const [time, setTime] = useState("");
-  const [date, setDate] = useState("");
-  const [shortDate, setShortDate] = useState("");
-  const [greeting, setGreeting] = useState("Good Morning");
-  const [iconClass, setIconClass] = useState("fa-sun");
-  const [iconColor, setIconColor] = useState("#FFD700");
+  const now = new Date();
+  // Greeting + date change at most once per hour — keep as React state (rare re-renders)
+  const [greeting, setGreeting] = useState(() => getGreeting(now.getHours()));
+  const [date] = useState(() =>
+    now.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })
+  );
+  const [shortDate] = useState(() =>
+    now.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })
+  );
+
+  // Time (updates every second) — written directly to DOM via ref.
+  // This BYPASSES React's render cycle entirely so the sticky navbar never
+  // triggers a React re-render during scroll, preventing compositor freezes.
+  const timeRef = useRef(null);
 
   useEffect(() => {
-    function updateDateTime() {
-      const now = new Date();
-      setTime(now.toLocaleTimeString("en-US", { hour12: false }));
-      setDate(
-        now.toLocaleDateString("en-US", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        })
-      );
-      setShortDate(
-        now.toLocaleDateString("en-US", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-        })
-      );
+    // Write initial time immediately
+    if (timeRef.current) {
+      timeRef.current.textContent = new Date().toLocaleTimeString("en-US", { hour12: false });
     }
 
-    function updateGreeting() {
-      const hour = new Date().getHours();
-      if (hour < 12) {
-        setGreeting("Good Morning");
-        setIconClass("fa-sun");
-        setIconColor("#FFD700");
-      } else if (hour < 18) {
-        setGreeting("Good Afternoon");
-        setIconClass("fa-cloud-sun");
-        setIconColor("#FFA500");
-      } else {
-        setGreeting("Good Evening");
-        setIconClass("fa-moon");
-        setIconColor("#6B7280");
+    const tick = () => {
+      const n = new Date();
+      // Update time via DOM ref — zero React re-renders
+      if (timeRef.current) {
+        timeRef.current.textContent = n.toLocaleTimeString("en-US", { hour12: false });
       }
-    }
-
-    updateDateTime();
-    updateGreeting();
-
-    const timeInterval = setInterval(updateDateTime, 1000);
-    const greetingInterval = setInterval(updateGreeting, 60000);
-
-    return () => {
-      clearInterval(timeInterval);
-      clearInterval(greetingInterval);
+      // Update greeting via state only when the hour changes
+      const newGreeting = getGreeting(n.getHours());
+      setGreeting((prev) => {
+        if (prev.text === newGreeting.text) return prev; // no re-render if unchanged
+        return newGreeting;
+      });
     };
+
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -82,15 +71,16 @@ function NavBar({ onToggleSidebar, sidebarOpen }) {
       <div className="d-flex flex-column align-items-end ms-auto navbar-meta-wrap">
         <div className="d-flex align-items-center gap-2 fw-medium navbar-greeting-wrap">
           <i
-            className={`fa-solid ${iconClass} navbar-greeting-icon`}
-            style={{ color: iconColor }}
+            className={`fa-solid ${greeting.icon} navbar-greeting-icon`}
+            style={{ color: greeting.color }}
           />
-          <span className="navbar-greeting-text">{greeting}</span>
+          <span className="navbar-greeting-text">{greeting.text}</span>
         </div>
         <div className="small text-muted d-flex flex-column flex-sm-row align-items-end align-items-sm-center gap-0 gap-sm-2 navbar-datetime" style={{ fontSize: '0.8rem' }}>
           <span className="d-none d-sm-inline">{date}</span>
           <span className="d-inline d-sm-none">{shortDate}</span>
-          <span>{time}</span>
+          {/* timeRef: updated every second directly in the DOM — no React re-render */}
+          <span ref={timeRef} />
         </div>
       </div>
     </div>
@@ -98,4 +88,3 @@ function NavBar({ onToggleSidebar, sidebarOpen }) {
 }
 
 export default NavBar;
-
