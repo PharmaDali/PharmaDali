@@ -12,10 +12,10 @@ return [
             'secret' => env('REVERB_APP_SECRET', 'pharmadali-app-secret'),
             'app_id' => env('REVERB_APP_ID', 'pharmadali-app-id'),
             'options' => [
-                'host' => env('REVERB_HOST', '127.0.0.1'),
-                'port' => env('REVERB_PORT', 8080),
-                'scheme' => env('REVERB_SCHEME', 'http'),
-                'useTLS' => env('REVERB_SCHEME', 'http') === 'https',
+                'host' => env('REVERB_INTERNAL_HOST', env('REVERB_HOST', '127.0.0.1')),
+                'port' => (int) env('REVERB_INTERNAL_PORT', env('REVERB_PORT', 8080)),
+                'scheme' => env('REVERB_INTERNAL_SCHEME', env('REVERB_SCHEME', 'http')),
+                'useTLS' => env('REVERB_INTERNAL_SCHEME', env('REVERB_SCHEME', 'http')) === 'https',
             ],
         ],
 

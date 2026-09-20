@@ -137,10 +137,14 @@ class UpdateOrderStatusByPharmacistService
             }
 
             // Notify customer about status change
-            if ($action === 'reject') {
-                $order->customer->user->notify(new OrderRejectedNotification($order));
-            } else {
-                $order->customer->user->notify(new OrderStatusNotification($order));
+            try {
+                if ($action === 'reject') {
+                    $order->customer?->user?->notify(new OrderRejectedNotification($order));
+                } else {
+                    $order->customer?->user?->notify(new OrderStatusNotification($order));
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Failed to dispatch order status notification: ' . $e->getMessage());
             }
 
             $systemMessage = match ($action) {
@@ -151,21 +155,21 @@ class UpdateOrderStatusByPharmacistService
                 default       => 'Order rejected',
             };
 
-            $msg = $this->conversationService->appendSystemMessage($order, $systemMessage, [
-                'action' => $action,
-                'status' => $order->status,
-                'reason' => $reason,
-            ]);
+            try {
+                $msg = $this->conversationService->appendSystemMessage($order, $systemMessage, [
+                    'action' => $action,
+                    'status' => $order->status,
+                    'reason' => $reason,
+                ]);
 
-            if ($action === 'reject') {
-                try {
-                    $msg->conversation()->update([
+                if ($action === 'reject' && $msg) {
+                    $msg->conversation()?->update([
                         'status'    => 'closed',
                         'closed_at' => now(),
                     ]);
-                } catch (\Throwable $e) {
-                    Log::error('Failed to close conversation on pharmacist reject: ' . $e->getMessage());
                 }
+            } catch (\Throwable $e) {
+                Log::warning('Failed to append system message to conversation: ' . $e->getMessage());
             }
 
             $successMessage = match ($action) {
@@ -229,15 +233,23 @@ class UpdateOrderStatusByPharmacistService
 
         $order = $order->fresh();
 
-        if ($section === 'discount') {
-            $order->customer->user->notify(new DiscountIdVerifiedNotification($order, false));
-        } elseif ($section === 'receipt') {
-            $order->customer->user->notify(new PaymentReceiptVerifiedNotification($order, false));
-        } else {
-            $order->customer->user->notify(new OrderStatusNotification($order));
+        try {
+            if ($section === 'discount') {
+                $order->customer?->user?->notify(new DiscountIdVerifiedNotification($order, false));
+            } elseif ($section === 'receipt') {
+                $order->customer?->user?->notify(new PaymentReceiptVerifiedNotification($order, false));
+            } else {
+                $order->customer?->user?->notify(new OrderStatusNotification($order));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed to dispatch section rejection notification: ' . $e->getMessage());
         }
         
-        $this->conversationService->appendSystemMessage($order, $systemMsg);
+        try {
+            $this->conversationService->appendSystemMessage($order, $systemMsg);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to append system message for section rejection: ' . $e->getMessage());
+        }
 
         return response()->json([
             'status'  => 'success',
@@ -276,7 +288,11 @@ class UpdateOrderStatusByPharmacistService
                     }
                 }
 
-                $order->customer->user->notify(new DiscountIdVerifiedNotification($order, true));
+                try {
+                    $order->customer?->user?->notify(new DiscountIdVerifiedNotification($order, true));
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to dispatch discount approval notification: ' . $e->getMessage());
+                }
                 break;
 
             case 'receipt':
@@ -285,14 +301,22 @@ class UpdateOrderStatusByPharmacistService
                 ]);
                 $systemMsg = 'Online payment receipt approved by pharmacist.';
                 $order = $order->fresh();
-                $order->customer->user->notify(new PaymentReceiptVerifiedNotification($order, true));
+                try {
+                    $order->customer?->user?->notify(new PaymentReceiptVerifiedNotification($order, true));
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to dispatch payment receipt approval notification: ' . $e->getMessage());
+                }
                 break;
 
             default:
                 return response()->json(['status' => 'error', 'message' => 'Invalid approval section.'], 422);
         }
 
-        $this->conversationService->appendSystemMessage($order, $systemMsg);
+        try {
+            $this->conversationService->appendSystemMessage($order, $systemMsg);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to append system message for section approval: ' . $e->getMessage());
+        }
 
         return response()->json([
             'status'  => 'success',
