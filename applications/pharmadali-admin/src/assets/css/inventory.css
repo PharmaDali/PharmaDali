@@ -1720,6 +1720,16 @@ input[type="month"]::-webkit-calendar-picker-indicator {
   z-index: 2;
 }
 
+/* Product Details Modal - Image Section Layout */
+.inventory-details-modal .pd-modal__body {
+  padding-top: 12px;
+}
+
+.inventory-product-image-section {
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
 /* Product Image Upload Styling in Inventory Modal */
 .inventory-image-container {
   width: 96px;
@@ -1792,6 +1802,21 @@ input[type="month"]::-webkit-calendar-picker-indicator {
 
 .inventory-image-container.is-editable:hover .inventory-image-overlay {
   opacity: 1;
+}
+
+.inventory-delete-product-btn {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  min-height: 32px;
+  transition: all 0.2s ease;
+  line-height: 1.2;
+}
+
+.inventory-delete-product-btn:hover {
+  background-color: #dc3545;
+  color: #ffffff;
 }
 
 /* --- Mobile Responsive Rules --- */
@@ -2063,5 +2088,11 @@ input[type="month"]::-webkit-calendar-picker-indicator {
     text-align: center !important;
     padding: 0.4rem 0.5rem !important;
     font-size: 0.78rem !important;
+  }
+
+  .inventory-delete-product-btn {
+    padding: 5px 8px !important;
+    font-size: 13px !important;
+    min-height: 32px !important;
   }
 }

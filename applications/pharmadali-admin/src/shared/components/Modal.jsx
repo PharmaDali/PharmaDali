@@ -19,6 +19,7 @@ function Modal({
   closeOnOverlay = true,
   closeOnEscape = true,
   showCloseButton = true,
+  headerActions = null,
   className = "",
 }) {
   useEffect(() => {
@@ -67,19 +68,22 @@ function Modal({
         aria-label={title || "Modal"}
         onClick={(event) => event.stopPropagation()}
       >
-        {(title || showCloseButton) && (
+        {(title || showCloseButton || headerActions) && (
           <div className="pd-modal__header">
             {title && <h2 className="pd-modal__title">{title}</h2>}
-            {showCloseButton && (
-              <button
-                type="button"
-                className="pd-modal__close"
-                onClick={onClose}
-                aria-label="Close modal"
-              >
-                <i className="fa-solid fa-xmark" />
-              </button>
-            )}
+            <div className="pd-modal__header-actions d-flex align-items-center gap-2">
+              {headerActions}
+              {showCloseButton && (
+                <button
+                  type="button"
+                  className="pd-modal__close"
+                  onClick={onClose}
+                  aria-label="Close modal"
+                >
+                  <i className="fa-solid fa-xmark" />
+                </button>
+              )}
+            </div>
           </div>
         )}
 

@@ -37,6 +37,8 @@ export function ProductDetailsModal({
   isPharmacist = false,
   categoryOptions = CATEGORY_FILTERS,
   productUpdating = false,
+  handleRequestDeleteProduct,
+  isDeletingProduct = false,
 }) {
   const isMedicine = selectedItem?.product_type === "medicine";
   const fileInputRef = React.useRef(null);
@@ -132,8 +134,23 @@ export function ProductDetailsModal({
       {selectedItem && modalDraft && (
         <div className="inventory-modal-body-content">
           {/* Product Image Section */}
-          <div className="inventory-modal-section">
-            <h6 className="inventory-modal-section-title mb-2">Product Image</h6>
+          <div className="inventory-modal-section inventory-product-image-section mt-0 pt-0">
+            <div className="d-flex align-items-center justify-content-between mb-2">
+              <h6 className="inventory-modal-section-title mb-0">Product Image</h6>
+              {isModalEditing && !isPharmacist && (
+                <button
+                  type="button"
+                  className="btn btn-outline-danger btn-sm inventory-delete-product-btn d-flex align-items-center gap-1"
+                  onClick={() => handleRequestDeleteProduct?.(selectedItem)}
+                  disabled={isDeletingProduct}
+                  title="Delete Product"
+                  aria-label="Delete Product"
+                >
+                  <i className="fa-solid fa-trash-can" />
+                  <span>Delete Product</span>
+                </button>
+              )}
+            </div>
             <div className="d-flex align-items-center gap-3">
               <div
                 className={`inventory-image-container ${isModalEditing && !isPharmacist ? "is-editable" : ""}`}
