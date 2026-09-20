@@ -9,7 +9,7 @@ import Pagination from "../shared/components/Pagination";
 import Breadcrumb from "../shared/components/Breadcrumb";
 import CustomDatePicker from "../shared/components/CustomDatePicker";
 
-const ACTION_FILTERS = ["All", "Stock In", "Stock Out", "Adjustment", "Waste"];
+const ACTION_FILTERS = ["All", "Stock In", "Stock Out", "Adjustment", "Waste", "Product Deleted"];
 
 function InventoryLogs() {
   const navigate = useNavigate();
@@ -140,7 +140,7 @@ function InventoryLogs() {
                       <td>{log.batchNumber ?? "—"}</td>
                       <td>
                         <span className={isPositive ? "inventory-qty-in" : "inventory-qty-out"}>
-                          {isPositive ? `+ ${log.quantity}` : `− ${log.quantity}`}
+                          {log.quantity === 0 ? "0" : isPositive ? `+ ${log.quantity}` : `− ${log.quantity}`}
                         </span>
                       </td>
                       <td>{log.dateTime}</td>
@@ -186,7 +186,9 @@ function InventoryLogs() {
         >
           <div className="inventory-modal-body-content">
             <p className="inventory-modal-subtitle">
-              {(selectedLog.action === "Stock In" || selectedLog.action === "Adjustment")
+              {selectedLog.action === "Product Deleted"
+                ? "Audit trail record for permanently deleted product and its batch inventory."
+                : (selectedLog.action === "Stock In" || selectedLog.action === "Adjustment")
                 ? "Transaction record for incoming/added stock."
                 : "Transaction record for outgoing/reduced stock."}
             </p>

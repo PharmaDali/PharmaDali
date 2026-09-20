@@ -623,6 +623,12 @@
   color: #f97316;
 }
 
+.inventory-log-action-product-deleted {
+  background: transparent;
+  color: #dc2626;
+  font-weight: 700;
+}
+
 .inventory-empty-state {
   min-height: 190px;
   display: flex;
