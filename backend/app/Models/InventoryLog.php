@@ -15,10 +15,13 @@ class InventoryLog extends Model
     protected $fillable = [
         'pharmacy_id',
         'pharmacy_product_id',
+        'product_name',
         'product_batch_id',
         'user_id',
         'transaction_type',
         'quantity',
+        'unit_cost',
+        'selling_price',
         'reason',
     ];
 

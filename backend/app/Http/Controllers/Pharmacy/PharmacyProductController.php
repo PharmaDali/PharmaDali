@@ -199,12 +199,13 @@ class PharmacyProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
         $product = $this->productRepository->find((int) $id);
         Gate::authorize('delete', $product);
 
-        $this->destroyService->handle((int) $id);
+        $pharmacyId = $request->user()?->pharmacy_id;
+        $this->destroyService->handle((int) $id, $pharmacyId);
 
         return response()->json([
             'status' => 'success',

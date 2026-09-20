@@ -6,6 +6,7 @@ import {
   fetchPriorityRestocks,
   createInventoryProduct,
   updateInventoryProduct,
+  deleteInventoryProduct,
   fetchProductBatches,
   addProductBatch,
   updateProductBatch,
@@ -71,6 +72,11 @@ export function useInventory() {
   const [batchToDelete, setBatchToDelete] = useState(null);
   const [isDeletingBatch, setIsDeletingBatch] = useState(false);
   const [showBatchDeleteModal, setShowBatchDeleteModal] = useState(false);
+
+  // Product Deletion States
+  const [productToDelete, setProductToDelete] = useState(null);
+  const [isDeletingProduct, setIsDeletingProduct] = useState(false);
+  const [showProductDeleteModal, setShowProductDeleteModal] = useState(false);
 
   // Success Modal State
   const [successModal, setSuccessModal] = useState({
@@ -697,6 +703,55 @@ export function useInventory() {
     }
   };
 
+  // Product deletion handlers
+  const handleRequestDeleteProduct = (product = null) => {
+    const target = product || selectedItem;
+    if (!target) return;
+    setProductToDelete(target);
+    setShowProductDeleteModal(true);
+  };
+
+  const handleCancelDeleteProduct = () => {
+    setShowProductDeleteModal(false);
+    setProductToDelete(null);
+  };
+
+  const handleConfirmDeleteProduct = async () => {
+    const target = productToDelete || selectedItem;
+    if (!target) return;
+    setIsDeletingProduct(true);
+    try {
+      const productId = target.product_id || target.id;
+      await deleteInventoryProduct(productId);
+
+      // Optimistically remove from list
+      setInventoryItems((prev) =>
+        prev.filter((item) => item.id !== target.id && item.product_id !== target.product_id)
+      );
+
+      setShowProductDeleteModal(false);
+      setProductToDelete(null);
+      handleModalClose();
+
+      await loadData();
+
+      setSuccessModal({
+        isOpen: true,
+        title: "Product Deleted",
+        message: `${target.name || "Product"} and all associated batch stocks have been successfully deleted.`,
+      });
+    } catch (err) {
+      console.error("Failed to delete product:", err);
+      setErrorModal({
+        isOpen: true,
+        title: "Delete Failed",
+        message: err?.response?.data?.message || err.message || "Failed to delete product. Please try again.",
+      });
+    } finally {
+      setIsDeletingProduct(false);
+    }
+  };
+
   // Draft edits
   const handleDraftChange = (field, value) => {
     setModalDraft((prev) => ({
@@ -1075,8 +1130,17 @@ export function useInventory() {
       handleConfirmSave,
       handleCancelSave,
       handleRequestDeleteBatch,
+      handleRequestDeleteProduct,
+      isDeletingProduct,
       setInputErrors,
       categoryOptions,
+    },
+    productDeleteModal: {
+      isOpen: showProductDeleteModal,
+      product: productToDelete || selectedItem,
+      onClose: handleCancelDeleteProduct,
+      onConfirm: handleConfirmDeleteProduct,
+      isDeleting: isDeletingProduct,
     },
     batchDeleteModal: {
       isOpen: showBatchDeleteModal,
@@ -1132,6 +1196,12 @@ export function useInventory() {
     handleRequestDeleteBatch,
     handleCancelDeleteBatch,
     handleConfirmDeleteBatch,
+    productToDelete,
+    isDeletingProduct,
+    showProductDeleteModal,
+    handleRequestDeleteProduct,
+    handleCancelDeleteProduct,
+    handleConfirmDeleteProduct,
     query,
     setQuery,
     categoryFilter,

@@ -59,6 +59,12 @@
   font-weight: 700;
 }
 
+.pd-modal__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .pd-modal__close {
   border: none;
   background: transparent;

@@ -3,10 +3,10 @@ import { ITEMS_PER_PAGE } from "../../constants/inventoryConstants";
 import { TableSkeleton } from "../../shared/components/loading";
 import Pagination from "../../shared/components/Pagination";
 
-const isValidStrength = (strength) => {
-  if (!strength) return false;
-  const clean = strength.trim().toLowerCase();
-  return !["n/a", "na", "n.a", "n.a.", "n / a", "none", "-"].includes(clean);
+const isValidValue = (val) => {
+  if (!val) return false;
+  const clean = String(val).trim().toLowerCase();
+  return !["n/a", "na", "n.a", "n.a.", "n / a", "none", "-", "null", "undefined"].includes(clean);
 };
 
 export function InventoryTable({
@@ -96,7 +96,13 @@ export function InventoryTable({
                       )}
                       <div>
                         <p className="inventory-item-name mb-0">
-                          {item.name}{isValidStrength(item.strength) ? ` ${item.strength}` : ''}
+                          {[
+                            item.name,
+                            isValidValue(item.strength) ? item.strength.trim() : null,
+                            isValidValue(item.size) ? item.size.trim() : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
                         </p>
                         <p className="inventory-item-meta mb-0">{item.brand}</p>
                       </div>

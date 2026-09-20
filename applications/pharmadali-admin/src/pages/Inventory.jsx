@@ -9,6 +9,7 @@ import ProductDetailsModal from "../components/Inventory/ProductDetailsModal";
 import StockOutModal from "../components/Inventory/StockOutModal";
 import AddProductModal from "../components/Inventory/AddProductModal";
 import BatchDeleteModal from "../components/Inventory/BatchDeleteModal";
+import ProductDeleteModal from "../components/Inventory/ProductDeleteModal";
 import Modal from "../shared/components/Modal";
 import infoIcon from "../assets/icons/modal-icons/info.svg";
 import successfulIcon from "../assets/icons/modal-icons/successful-task.svg";
@@ -27,6 +28,7 @@ export function Inventory() {
     table,
     detailsModal,
     batchDeleteModal,
+    productDeleteModal,
     stockOutModal,
     addProductModal,
     feedbackModals,
@@ -95,6 +97,10 @@ export function Inventory() {
 
       <BatchDeleteModal
         {...batchDeleteModal}
+      />
+
+      <ProductDeleteModal
+        {...productDeleteModal}
       />
 
       {/* Save Confirmation Modal */}

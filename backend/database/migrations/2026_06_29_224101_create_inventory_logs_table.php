@@ -11,11 +11,14 @@ return new class extends Migration
         Schema::create('inventory_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pharmacy_id')->constrained('pharmacies')->onDelete('cascade');
-            $table->foreignId('pharmacy_product_id')->constrained('pharmacy_products')->onDelete('cascade');
+            $table->foreignId('pharmacy_product_id')->nullable()->constrained('pharmacy_products')->onDelete('set null');
+            $table->string('product_name')->nullable();
             $table->foreignId('product_batch_id')->nullable()->constrained('product_batches')->onDelete('set null');
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->enum('transaction_type', ['stock_in', 'stock_out', 'adjustment', 'waste']);
+            $table->string('transaction_type', 50);
             $table->integer('quantity');
+            $table->decimal('unit_cost', 10, 2)->nullable();
+            $table->decimal('selling_price', 10, 2)->nullable();
             $table->string('reason')->nullable();
             $table->timestamps();
 

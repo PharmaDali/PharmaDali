@@ -66,6 +66,11 @@ export const updateInventoryProduct = async (productId, data) => {
   return response.data;
 };
 
+export const deleteInventoryProduct = async (productId) => {
+  const response = await apiRequest.delete(`/products/${productId}`);
+  return response.data;
+};
+
 export const stockOutProduct = async (pharmacyProductId, data) => {
   const response = await apiRequest.post(`/pharmacy/inventory/products/${pharmacyProductId}/stock-out`, data);
   return response;
