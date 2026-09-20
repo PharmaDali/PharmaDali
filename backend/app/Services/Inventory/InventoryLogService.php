@@ -2,8 +2,10 @@
 
 namespace App\Services\Inventory;
 
+use App\Enums\TransactionType;
 use App\Events\InventoryUpdated;
 use App\Models\InventoryLog;
+use App\Models\PharmacyProduct;
 use Illuminate\Support\Facades\Auth;
 
 class InventoryLogService
@@ -18,12 +20,17 @@ class InventoryLogService
         int $quantity,
         string $reason
     ): void {
+        $snapshot = $this->resolveProductSnapshot($pharmacyProductId);
+
         InventoryLog::create([
             'pharmacy_id'          => $pharmacyId,
             'pharmacy_product_id'  => $pharmacyProductId,
+            'product_name'         => $snapshot['product_name'],
+            'unit_cost'            => $snapshot['unit_cost'],
+            'selling_price'        => $snapshot['selling_price'],
             'product_batch_id'     => $batchId,
             'user_id'              => Auth::id(),
-            'transaction_type'     => 'stock_in',
+            'transaction_type'     => TransactionType::STOCK_IN,
             'quantity'             => $quantity,
             'reason'               => $reason,
         ]);
@@ -41,12 +48,17 @@ class InventoryLogService
         int $quantity,
         string $reason
     ): void {
+        $snapshot = $this->resolveProductSnapshot($pharmacyProductId);
+
         InventoryLog::create([
             'pharmacy_id'          => $pharmacyId,
             'pharmacy_product_id'  => $pharmacyProductId,
+            'product_name'         => $snapshot['product_name'],
+            'unit_cost'            => $snapshot['unit_cost'],
+            'selling_price'        => $snapshot['selling_price'],
             'product_batch_id'     => $batchId,
             'user_id'              => Auth::id(),
-            'transaction_type'     => 'stock_out',
+            'transaction_type'     => TransactionType::STOCK_OUT,
             'quantity'             => $quantity,
             'reason'               => $reason,
         ]);
@@ -73,11 +85,15 @@ class InventoryLogService
             return;
         }
 
-        $type = ($newStock < $oldStock) ? 'waste' : 'adjustment';
+        $type = ($newStock < $oldStock) ? TransactionType::WASTE : TransactionType::ADJUSTMENT;
+        $snapshot = $this->resolveProductSnapshot($pharmacyProductId);
 
         InventoryLog::create([
             'pharmacy_id'          => $pharmacyId,
             'pharmacy_product_id'  => $pharmacyProductId,
+            'product_name'         => $snapshot['product_name'],
+            'unit_cost'            => $snapshot['unit_cost'],
+            'selling_price'        => $snapshot['selling_price'],
             'product_batch_id'     => $batchId,
             'user_id'              => Auth::id(),
             'transaction_type'     => $type,
@@ -86,5 +102,60 @@ class InventoryLogService
         ]);
 
         InventoryUpdated::dispatch($pharmacyId);
+    }
+
+    /**
+     * Record an audit trail entry when a product is deleted from inventory.
+     */
+    public function logProductDeleted(
+        int $pharmacyId,
+        ?int $pharmacyProductId,
+        string $productName,
+        int $quantity,
+        ?float $unitCost = null,
+        ?float $sellingPrice = null,
+        ?string $reason = null
+    ): void {
+        InventoryLog::create([
+            'pharmacy_id'          => $pharmacyId,
+            'pharmacy_product_id'  => $pharmacyProductId,
+            'product_name'         => $productName,
+            'unit_cost'            => $unitCost,
+            'selling_price'        => $sellingPrice,
+            'user_id'              => Auth::id(),
+            'transaction_type'     => TransactionType::PRODUCT_DELETED,
+            'quantity'             => $quantity,
+            'reason'               => $reason ?? 'Product permanently deleted from inventory',
+        ]);
+
+        InventoryUpdated::dispatch($pharmacyId);
+    }
+
+    private function resolveProductSnapshot(int $pharmacyProductId): array
+    {
+        try {
+            $pp = PharmacyProduct::with('product')->find($pharmacyProductId);
+            if ($pp) {
+                $p = $pp->product;
+                $nameParts = array_filter([
+                    $p?->product_name,
+                    ($p?->strength && !in_array(strtolower(trim($p->strength)), ['n/a', 'na', 'n.a', 'n.a.'])) ? trim($p->strength) : null,
+                    ($p?->size && !in_array(strtolower(trim($p->size)), ['n/a', 'na', 'n.a', 'n.a.'])) ? trim($p->size) : null,
+                ]);
+
+                return [
+                    'product_name'  => implode(' ', $nameParts),
+                    'unit_cost'     => $pp->unit_cost ? (float) $pp->unit_cost : null,
+                    'selling_price' => $pp->selling_price ? (float) $pp->selling_price : null,
+                ];
+            }
+        } catch (\Throwable $e) {
+        }
+
+        return [
+            'product_name'  => null,
+            'unit_cost'     => null,
+            'selling_price' => null,
+        ];
     }
 }
