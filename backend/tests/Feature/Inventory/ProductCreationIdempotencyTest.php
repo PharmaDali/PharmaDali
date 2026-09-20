@@ -260,5 +260,26 @@ class ProductCreationIdempotencyTest extends TestCase
         $this->assertDatabaseMissing('products', ['id' => $productId]);
         $this->assertDatabaseMissing('pharmacy_products', ['id' => $pharmacyProduct->id]);
         $this->assertDatabaseMissing('product_batches', ['pharmacy_product_id' => $pharmacyProduct->id]);
+
+        // Verify inventory logs retain audit trail of the deleted product and previous stock in
+        $this->assertDatabaseHas('inventory_logs', [
+            'pharmacy_id'      => $this->pharmacy->id,
+            'transaction_type' => 'product_deleted',
+            'product_name'     => 'Mefenamic Acid 500mg',
+            'quantity'         => 60,
+        ]);
+
+        // Verify pre-existing logs were NOT cascade deleted
+        $this->assertDatabaseHas('inventory_logs', [
+            'pharmacy_id'      => $this->pharmacy->id,
+            'transaction_type' => 'stock_in',
+            'quantity'         => 60,
+        ]);
+
+        // Verify GetInventoryLogsService returns the audit trail with correct action and productName
+        $logsService = app(\App\Services\Inventory\GetInventoryLogsService::class);
+        $logs = $logsService->handle(['search' => 'Mefenamic']);
+        $this->assertTrue($logs->contains('action', 'Product Deleted'));
+        $this->assertTrue($logs->contains('productName', 'Mefenamic Acid 500mg'));
     }
 }
