@@ -50,7 +50,7 @@ class GetInventoryLogsService
                     : 'System',
                 'reason'       => $log->reason,
                 'sellingPrice' => $log->pharmacyProduct?->selling_price ? (float) $log->pharmacyProduct->selling_price : null,
-                'unitCost'     => null,
+                'unitCost'     => $log->pharmacyProduct?->unit_cost ? (float) $log->pharmacyProduct->unit_cost : null,
                 'barcode'      => null,
             ];
         });

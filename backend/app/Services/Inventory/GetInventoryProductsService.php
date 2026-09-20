@@ -55,7 +55,9 @@ class GetInventoryProductsService
             $query->whereHas('product', function ($q) use ($search) {
                 $q->where(DB::raw('LOWER(product_name)'), 'like', $search)
                   ->orWhere(DB::raw('LOWER(brand_name)'), 'like', $search)
-                  ->orWhere(DB::raw('LOWER(generic_name)'), 'like', $search);
+                  ->orWhere(DB::raw('LOWER(generic_name)'), 'like', $search)
+                  ->orWhere(DB::raw('LOWER(size)'), 'like', $search)
+                  ->orWhere(DB::raw('LOWER(strength)'), 'like', $search);
             });
         }
 

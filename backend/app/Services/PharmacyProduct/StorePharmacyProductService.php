@@ -8,6 +8,7 @@ use App\Repositories\ProductBatchRepository;
 use App\Models\Products;
 use App\Models\Category;
 use App\Models\PharmacyCategory;
+use App\Services\Inventory\InventoryLogService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
 
@@ -17,6 +18,7 @@ class StorePharmacyProductService
         private readonly ProductRepository $productRepository,
         private readonly PharmacyProductRepository $pharmacyProductRepository,
         private readonly ProductBatchRepository $batchRepository,
+        private readonly InventoryLogService $logService,
     ) {}
 
     public function handle(array $validated, ?int $pharmacyId): Products
@@ -127,17 +129,36 @@ class StorePharmacyProductService
                         'is_available'   => filter_var($validated['is_available'] ?? true, FILTER_VALIDATE_BOOLEAN),
                     ]);
 
+                    $pharmacyProduct = $this->pharmacyProductRepository->findByPharmacyAndProduct($pharmacyId, $product->id);
+                    $batch = null;
+
                     // Create an initial product batch if stock or expiry info was provided
                     if ($stock > 0 || $expiryDate || !empty($validated['batch_number'])) {
-                        $pharmacyProduct = $this->pharmacyProductRepository->findByPharmacyAndProduct($pharmacyId, $product->id);
                         if ($pharmacyProduct) {
-                            $this->batchRepository->createBatch($pharmacyProduct->id, [
+                            $batch = $this->batchRepository->createBatch($pharmacyProduct->id, [
                                 'batch_number'      => $validated['batch_number'] ?? null,
                                 'supplier_name'     => $validated['supplier_name'] ?? null,
                                 'stock'             => $stock,
                                 'expiry_date'       => $expiryDate,
                                 'manufactured_date' => $validated['manufactured_date'] ?? null,
                             ]);
+                        }
+                    }
+
+                    // Record initial inventory log entry for newly added product
+                    if ($pharmacyProduct) {
+                        try {
+                            $this->logService->logStockIn(
+                                pharmacyId: $pharmacyId,
+                                pharmacyProductId: $pharmacyProduct->id,
+                                batchId: $batch ? $batch->id : null,
+                                quantity: (int) $stock,
+                                reason: $stock > 0
+                                    ? ('Initial stock on product creation' . (!empty($validated['batch_number']) ? ': #' . $validated['batch_number'] : ''))
+                                    : 'Product added to inventory'
+                            );
+                        } catch (\Throwable $e) {
+                            // Non-fatal if logging fails
                         }
                     }
 

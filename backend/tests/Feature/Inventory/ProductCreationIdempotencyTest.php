@@ -183,4 +183,82 @@ class ProductCreationIdempotencyTest extends TestCase
         $this->assertNotNull($newCategory);
         $this->assertEquals($newCategory->id, $pharmacyProduct->category_id);
     }
+
+    public function test_product_creation_records_inventory_log_stock_in(): void
+    {
+        Sanctum::actingAs($this->adminUser, ['pharmacy_admin']);
+
+        $payload = [
+            'product_type'   => 'medicine',
+            'product_name'   => 'Loperamide',
+            'generic_name'   => 'Loperamide',
+            'brand_name'     => 'Imodium',
+            'form'           => 'Capsule',
+            'strength'       => '2mg',
+            'category_name'  => 'Generic',
+            'selling_price'  => 15.00,
+            'unit_cost'      => 8.00,
+            'stock'          => 100,
+            'batch_number'   => 'BATCH-LOP-01',
+        ];
+
+        $response = $this->postJson('/api/products', $payload);
+        $response->assertStatus(201);
+
+        $productId = $response->json('data.id');
+        $pharmacyProduct = PharmacyProduct::where('pharmacy_id', $this->pharmacy->id)
+            ->where('product_id', $productId)
+            ->first();
+
+        $this->assertNotNull($pharmacyProduct);
+
+        // Verify inventory log entry was created
+        $this->assertDatabaseHas('inventory_logs', [
+            'pharmacy_id'         => $this->pharmacy->id,
+            'pharmacy_product_id' => $pharmacyProduct->id,
+            'transaction_type'    => 'stock_in',
+            'quantity'            => 100,
+        ]);
+    }
+
+    public function test_product_deletion_deletes_associated_batch_stocks_and_pharmacy_product(): void
+    {
+        Sanctum::actingAs($this->adminUser, ['pharmacy_admin']);
+
+        // Create product with batch stocks
+        $payload = [
+            'product_type'   => 'medicine',
+            'product_name'   => 'Mefenamic Acid',
+            'generic_name'   => 'Mefenamic Acid',
+            'brand_name'     => 'Ponstan',
+            'form'           => 'Capsule',
+            'strength'       => '500mg',
+            'category_name'  => 'Generic',
+            'selling_price'  => 25.00,
+            'unit_cost'      => 12.00,
+            'stock'          => 60,
+            'batch_number'   => 'BATCH-MEF-99',
+            'expiry_date'    => '2027-12-31',
+        ];
+
+        $createRes = $this->postJson('/api/products', $payload);
+        $createRes->assertStatus(201);
+
+        $productId = $createRes->json('data.id');
+        $pharmacyProduct = PharmacyProduct::where('pharmacy_id', $this->pharmacy->id)
+            ->where('product_id', $productId)
+            ->first();
+
+        $this->assertNotNull($pharmacyProduct);
+        $this->assertEquals(1, $pharmacyProduct->batches()->count());
+
+        // Execute DELETE /api/products/{id}
+        $deleteRes = $this->deleteJson("/api/products/{$productId}");
+        $deleteRes->assertStatus(200);
+
+        // Verify product, pharmacy product, and product batches are deleted
+        $this->assertDatabaseMissing('products', ['id' => $productId]);
+        $this->assertDatabaseMissing('pharmacy_products', ['id' => $pharmacyProduct->id]);
+        $this->assertDatabaseMissing('product_batches', ['pharmacy_product_id' => $pharmacyProduct->id]);
+    }
 }
