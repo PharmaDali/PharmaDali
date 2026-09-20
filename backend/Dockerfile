@@ -94,6 +94,9 @@ FROM nginx:1.27-alpine AS web
 COPY public/ /var/www/public/
 COPY --from=node-builder /app/public/build /var/www/public/build
 
+# Ensure public/storage symlink exists inside the web container pointing to the mounted storage volume
+RUN ln -s /var/www/storage/app/public /var/www/public/storage
+
 COPY docker/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
