@@ -42,10 +42,10 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       submittedAgo: formatDateToMMDDYYYY(order?.created_at) || 'Recently',
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
-      discountIdImagePath: order.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null,
+      discountIdImagePath: order.discount_id_image_path ? `${baseUrl}/storage/${String(order.discount_id_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null,
       discountType: order.discount_type,
       discountRemarks: order.discount_remarks,
-      paymentReceiptImagePath: order.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null,
+      paymentReceiptImagePath: order.payment_receipt_image_path ? `${baseUrl}/storage/${String(order.payment_receipt_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null,
       paymentStatus: order.payment_status,
       paymentMethod: order.payment_method,
       note: order?.note || null,
@@ -53,8 +53,11 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
         const product = item?.pharmacy_product?.product;
         const categoryName = item?.pharmacy_product?.category?.category_name || '';
         const prescription = item?.order_item_prescription;
-        const prescriptionRequired = Boolean(product?.is_prescribed);
         const hasPrescriptionImage = Boolean(prescription?.prescription_image_path);
+        const prescriptionRequired = Boolean(product?.is_prescribed) || hasPrescriptionImage;
+        const cleanRxPath = hasPrescriptionImage
+          ? String(prescription.prescription_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')
+          : null;
         const baseName = item?.product_name
           || product?.product_name
           || product?.brand_name
@@ -73,7 +76,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
           sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
           size: product?.size || product?.strength || '-',
           prescriptionRequired,
-          prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,
+          prescriptionImage: cleanRxPath ? { uri: `${baseUrl}/storage/${cleanRxPath}` } : null,
         };
       }),
     };

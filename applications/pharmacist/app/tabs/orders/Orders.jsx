@@ -53,8 +53,8 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       discountType: order?.discount_type || null,
       discountIdNumber: order?.discount_id_number || null,
       discountRemarks: order?.discount_remarks || null,
-      discountIdImagePath: order?.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null,
-      paymentReceiptImagePath: order?.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null,
+      discountIdImagePath: order?.discount_id_image_path ? `${baseUrl}/storage/${String(order.discount_id_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null,
+      paymentReceiptImagePath: order?.payment_receipt_image_path ? `${baseUrl}/storage/${String(order.payment_receipt_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null,
       paymentMethod: order?.payment_method || null,
       paymentStatus: order?.payment_status || null,
       note: order?.note || null,
@@ -74,8 +74,11 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
         const strengthForm = [product?.strength, product?.form, product?.size].filter(Boolean).join(' ');
         const description = strengthForm ? `${baseName} (${strengthForm})` : baseName;
         
-        const prescriptionRequired = Boolean(product?.is_prescribed);
         const hasPrescriptionImage = Boolean(prescription?.prescription_image_path);
+        const prescriptionRequired = Boolean(product?.is_prescribed) || hasPrescriptionImage;
+        const cleanRxPath = hasPrescriptionImage
+          ? String(prescription.prescription_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')
+          : null;
 
         const apiStatus = String(order?.status || '').toLowerCase();
         let itemDisplayStatus = 'For Review';
@@ -94,7 +97,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
           sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
           size: product?.size || product?.strength || '-',
           prescriptionRequired,
-          prescriptionImage: hasPrescriptionImage ? { uri: `${baseUrl}/storage/${prescription.prescription_image_path}` } : null,
+          prescriptionImage: cleanRxPath ? { uri: `${baseUrl}/storage/${cleanRxPath}` } : null,
           prescriptionStatus: prescription?.status || null,
           isReuploaded: Boolean(prescription?.is_reuploaded),
           status: itemDisplayStatus,
