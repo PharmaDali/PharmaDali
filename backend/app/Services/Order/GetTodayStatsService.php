@@ -7,13 +7,23 @@ use Illuminate\Support\Facades\Auth;
 
 class GetTodayStatsService
 {
-    public function handle(): array
+    public function handle(?int $pharmacyId = null): array
     {
         $user = Auth::user();
-        $query = Order::whereDate('created_at', today())
+        $targetPharmacyId = $pharmacyId ?? $user?->pharmacy_id;
+
+        $query = Order::where(function ($q) {
+                $q->whereDate('completed_at', today())
+                  ->orWhere(function ($sub) {
+                      $sub->whereNull('completed_at')
+                          ->whereDate('created_at', today());
+                  });
+            })
             ->where('payment_status', 'paid');
 
-        // Auto-scoped by BelongsToTenant for pharmacy admins/pharmacists
+        if ($targetPharmacyId) {
+            $query->where('pharmacy_id', $targetPharmacyId);
+        }
 
         $totalOrders = (clone $query)->count();
         

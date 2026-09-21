@@ -66,10 +66,57 @@ class GetQuickInsights
 
         $growthStr = ($growth > 0 ? '+' : '') . $growth . '%';
 
-        // 4. Profit Today (using OrderService today sales)
-        $todayStats = $this->orderService->getTodayStats();
-        $salesToday = (float) ($todayStats['total_sales'] ?? 0);
-        $estProfitToday = $salesToday * 0.30;
+        // 4. Profit Today & Margin (Dynamic based on today's completed orders and unit costs)
+        $todayStart = Carbon::today()->startOfDay();
+        $todayEnd   = Carbon::today()->endOfDay();
+
+        $todayOrders = Order::where('pharmacy_id', $pharmacyId)
+            ->where(function ($q) use ($todayStart, $todayEnd) {
+                $q->whereBetween('completed_at', [$todayStart, $todayEnd])
+                  ->orWhere(function ($sub) use ($todayStart, $todayEnd) {
+                      $sub->whereNull('completed_at')
+                          ->whereBetween('created_at', [$todayStart, $todayEnd]);
+                  });
+            })
+            ->whereIn('status', ['completed', 'picked_up'])
+            ->where('payment_status', 'paid')
+            ->with(['items.pharmacyProduct'])
+            ->get();
+
+        $salesToday = (float) $todayOrders->sum('total_amount');
+        $cogsToday = 0.0;
+        $costedItemsCount = 0;
+
+        foreach ($todayOrders as $order) {
+            foreach ($order->items as $item) {
+                $unitCost = (float) ($item->pharmacyProduct?->unit_cost ?? 0.0);
+                $qty = (int) $item->quantity;
+
+                if ($unitCost > 0) {
+                    $cogsToday += ($qty * $unitCost);
+                    $costedItemsCount++;
+                }
+            }
+        }
+
+        if ($salesToday <= 0) {
+            $profitMain  = 'PHP 0.00';
+            $marginRight = '0%';
+            $marginSub   = 'margin';
+        } elseif ($costedItemsCount === 0) {
+            // When sales occur but no unit costs have been encoded yet
+            $profitMain  = 'Pending Cost';
+            $marginRight = '--';
+            $marginSub   = 'no cost data';
+        } else {
+            $profitToday = max(0.0, $salesToday - $cogsToday);
+            $marginPct   = round(($profitToday / $salesToday) * 100, 1);
+            $marginStr   = (fmod($marginPct, 1) === 0.0 ? number_format($marginPct, 0) : number_format($marginPct, 1)) . '%';
+
+            $profitMain  = 'PHP ' . number_format($profitToday, 2);
+            $marginRight = $marginStr;
+            $marginSub   = 'margin';
+        }
 
         return [
             [
@@ -92,9 +139,9 @@ class GetQuickInsights
             ],
             [
                 'category' => 'Profit Today',
-                'main'     => 'PHP ' . number_format($estProfitToday, 2),
-                'right'    => '30%',
-                'rightSub' => 'margin',
+                'main'     => $profitMain,
+                'right'    => $marginRight,
+                'rightSub' => $marginSub,
             ],
         ];
     }
