@@ -111,7 +111,24 @@ export function InventoryTable({
                   <td>{item.category}</td>
                   <td className="text-center">{item.quantity}</td>
                   <td className="text-center">{item.expiryLabel}</td>
-                  <td className="text-center">{item.sellingPrice.toFixed(2)}</td>
+                  <td className="text-center">
+                    <div className="d-inline-flex flex-column align-items-center">
+                      <span className="fw-semibold">₱{Number(item.sellingPrice || 0).toFixed(2)}</span>
+                      {Number(item.unitCost || 0) > 0 ? (
+                        <span className="text-muted" style={{ fontSize: "11px" }}>
+                          Cost: ₱{Number(item.unitCost).toFixed(2)}
+                        </span>
+                      ) : (
+                        <span
+                          className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle"
+                          style={{ fontSize: "10px", fontWeight: "600", padding: "1px 5px", marginTop: "2px" }}
+                          title="No supplier unit cost entered yet"
+                        >
+                          No cost data
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="text-center">
                     <span
                       className={`inventory-status-chip inventory-status-${item.status

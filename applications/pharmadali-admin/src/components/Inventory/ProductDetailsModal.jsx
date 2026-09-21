@@ -385,16 +385,33 @@ export function ProductDetailsModal({
                 />
               </div>
               <div>
-                <p className="inventory-modal-label">Unit Cost</p>
+                <div className="d-flex align-items-center justify-content-between mb-1">
+                  <p className="inventory-modal-label mb-0">Unit Cost</p>
+                  {(!modalDraft.unitCost || Number(modalDraft.unitCost) <= 0) && (
+                    <span
+                      className="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle"
+                      style={{ fontSize: "10px", padding: "1px 6px" }}
+                    >
+                      No cost data
+                    </span>
+                  )}
+                </div>
                 <input
                   type="number"
                   className="form-control inventory-modal-input"
                   value={modalDraft.unitCost ?? ""}
                   onChange={(event) => handleDraftChange("unitCost", event.target.value)}
+                  placeholder="0.00"
                   step="0.01"
                   min="0"
                   disabled={!isModalEditing}
                 />
+                {isModalEditing && (!modalDraft.unitCost || Number(modalDraft.unitCost) <= 0) && (
+                  <div className="text-warning-emphasis small mt-1" style={{ fontSize: "11px" }}>
+                    <i className="fa-solid fa-circle-info me-1" />
+                    Enter supplier unit cost to enable real-time profit & margin tracking.
+                  </div>
+                )}
               </div>
               <div>
                 <p className="inventory-modal-label">Selling Price</p>
