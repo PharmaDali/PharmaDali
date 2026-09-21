@@ -81,9 +81,9 @@ class OrderService
         return (new CountTotalOrderService())->handle();
     }
 
-    public function getTodayStats(): array
+    public function getTodayStats(?int $pharmacyId = null): array
     {
-        return (new GetTodayStatsService())->handle();
+        return (new GetTodayStatsService())->handle($pharmacyId);
     }
 
     public function refund(?User $user, Order $order): JsonResponse

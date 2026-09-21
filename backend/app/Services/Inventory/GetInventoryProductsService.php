@@ -19,7 +19,7 @@ class GetInventoryProductsService
 
     public function handle(array $filters = [], ?Pharmacy $pharmacy = null): Collection
     {
-        $this->lowStockThreshold = $pharmacy?->low_stock_threshold ?? 50;
+        $this->lowStockThreshold = $pharmacy?->low_stock_threshold ?? 10;
         $this->expiryDaysThreshold = $pharmacy?->expiry_days_threshold ?? 30;
         $this->today = Carbon::today();
         $this->restockMap = [];

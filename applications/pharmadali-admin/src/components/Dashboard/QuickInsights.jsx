@@ -5,7 +5,7 @@ const EMPTY_QUICK_INSIGHTS = [
   { category: "Top Selling", main: "No data", right: "0", rightSub: "units sold" },
   { category: "Top Category", main: "No data", right: "--", rightSub: "of total sales" },
   { category: "Sales Growth", main: "0%", right: "0%", rightSub: "vs last period" },
-  { category: "Profit Today", main: "PHP 0.00", right: "30%", rightSub: "margin" },
+  { category: "Profit Today", main: "PHP 0.00", right: "0%", rightSub: "margin" },
 ];
 
 function InsightRows({ items, rowClassName, rightClassName }) {

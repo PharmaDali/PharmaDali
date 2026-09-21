@@ -20,7 +20,7 @@ class GetStatCards
     public function handle(int $pharmacyId): array
     {
         // Reuse existing OrderService getTodayStats()
-        $todayStats  = $this->orderService->getTodayStats();
+        $todayStats  = $this->orderService->getTodayStats($pharmacyId);
         $salesToday  = (float) ($todayStats['total_sales'] ?? 0);
         $ordersToday = (int) ($todayStats['total_orders'] ?? 0);
 

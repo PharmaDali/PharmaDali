@@ -19,6 +19,7 @@ class PharmacySeeder extends Seeder
                 'contact_number' => '09987654321',
                 'opening_hour' => '09:00:00',
                 'closing_hour' => '21:00:00',
+                'low_stock_threshold' => 10,
                 'is_active' => true,
             ]
         );
