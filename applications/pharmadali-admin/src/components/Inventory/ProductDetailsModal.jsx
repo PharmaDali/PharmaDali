@@ -53,17 +53,25 @@ export function ProductDetailsModal({
     }).length;
   }, [batches, isModalEditing, batchEditStocks]);
 
+  const formatBatchStatusLabel = (status) => {
+    const raw = String(status || "").trim().toLowerCase();
+    if (raw === "normal" || raw === "draft") return "Healthy";
+    if (raw === "expiring soon" || raw === "expiring_soon") return "Expiring soon";
+    if (raw === "expired") return "Expired";
+    return status || "Healthy";
+  };
+
   const getBatchStatusBadgeClass = (status) => {
-    switch (status?.toLowerCase()) {
-      case "expired":
-        return "bg-danger-subtle text-danger border border-danger-subtle";
-      case "expiring soon":
-      case "expiring_soon":
-        return "bg-warning-subtle text-warning-emphasis border border-warning-subtle";
-      case "normal":
-      default:
-        return "bg-success-subtle text-success border border-success-subtle";
-    }
+    const cleanStatus = (status ?? "Healthy").toLowerCase().replace(/\s+/g, "-");
+    const statusMap = {
+      "expired": "inventory-status-expired",
+      "expiring-soon": "inventory-status-expiring-soon",
+      "expiring_soon": "inventory-status-expiring-soon",
+      "healthy": "inventory-status-healthy",
+      "normal": "inventory-status-healthy",
+      "draft": "inventory-status-healthy",
+    };
+    return `inventory-status-chip ${statusMap[cleanStatus] || "inventory-status-healthy"}`;
   };
 
   const formatMonthYear = (dateStr) => {
@@ -570,13 +578,8 @@ export function ProductDetailsModal({
                                 )}
                               </td>
                               <td className="text-center">
-                                <span
-                                  className={`badge rounded-pill text-uppercase px-2 py-1 ${getBatchStatusBadgeClass(
-                                    batch.status
-                                  )}`}
-                                  style={{ fontSize: "10.5px" }}
-                                >
-                                  {batch.status ?? "Normal"}
+                                <span className={getBatchStatusBadgeClass(batch.status)}>
+                                  {formatBatchStatusLabel(batch.status)}
                                 </span>
                               </td>
                               {isModalEditing && !isPharmacist && (
@@ -627,13 +630,8 @@ export function ProductDetailsModal({
                                   Draft
                                 </span>
                               )}
-                              <span
-                                className={`badge rounded-pill text-uppercase px-2 py-0.5 ${getBatchStatusBadgeClass(
-                                  batch.status
-                                )}`}
-                                style={{ fontSize: "10px" }}
-                              >
-                                {batch.status ?? "Normal"}
+                              <span className={getBatchStatusBadgeClass(batch.status)}>
+                                {formatBatchStatusLabel(batch.status)}
                               </span>
                             </div>
 
