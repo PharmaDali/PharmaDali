@@ -12,3 +12,9 @@ EAS_OTA_UPDATE_TUTORIAL.md
 # Client data exports
 backend/database/seeders/data/
 
+# Backups and database dumps
+*.sql
+*.dump
+*.tar.gz
+backups/
+
