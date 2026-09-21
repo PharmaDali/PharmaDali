@@ -25,6 +25,7 @@ export function useInventory() {
 
   // Search and Filter States
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [priceFilter, setPriceFilter] = useState("All");
   const [stockFilter, setStockFilter] = useState("All");
@@ -147,7 +148,7 @@ export function useInventory() {
     setTableLoading(true);
     try {
       const products = await fetchInventoryProducts({
-        search: query,
+        search: debouncedQuery,
         category: categoryFilter,
         price_range: priceFilter,
         stock_range: stockFilter,
@@ -159,12 +160,19 @@ export function useInventory() {
     } finally {
       setTableLoading(false);
     }
-  }, [query, categoryFilter, priceFilter, stockFilter, statusFilter]);
+  }, [debouncedQuery, categoryFilter, priceFilter, stockFilter, statusFilter]);
 
   // Initial mount: load metrics & restocks once
   useEffect(() => {
     loadMetricsAndRestocks();
   }, [loadMetricsAndRestocks]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [query]);
 
   // Filter & Search effect: ONLY re-fetches product table data when search/filters change
   useEffect(() => {
