@@ -42,7 +42,7 @@ class DashboardRepository
             ->get();
     }
 
-    public function getFallbackLowStockProducts(int $pharmacyId, int $threshold = 50, int $limit = 5)
+    public function getFallbackLowStockProducts(int $pharmacyId, int $threshold = 10, int $limit = 5)
     {
         return PharmacyProduct::with('product')
             ->where('pharmacy_id', $pharmacyId)

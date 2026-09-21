@@ -44,8 +44,9 @@ class GetInventoryHealth
 
         // Fallback to DashboardRepository if restock predictor returns empty
         if (empty($lowStockItems)) {
+            $threshold = \App\Models\Pharmacy::where('id', $pharmacyId)->value('low_stock_threshold') ?? 10;
             $lowStockItems = $this->dashboardRepository
-                ->getFallbackLowStockProducts($pharmacyId, 50, 5)
+                ->getFallbackLowStockProducts($pharmacyId, $threshold, 5)
                 ->map(function ($bp) {
                     $name  = $bp->product->product_name ?? 'Unknown Product';
                     $stock = $bp->stock;

@@ -15,7 +15,7 @@ export const Operations = ({ onNavigate }) => {
   const [successMessage, setSuccessMessage] = useState("");
 
   const [formData, setFormData] = useState({
-    low_stock_threshold: 50,
+    low_stock_threshold: 10,
     shortage_days_threshold: 7,
     expiry_days_threshold: 30,
     enable_vat_exemption_discount: false,
@@ -36,7 +36,7 @@ export const Operations = ({ onNavigate }) => {
       const discountSettings = res.data?.discount_settings || {};
 
       const loadedData = {
-        low_stock_threshold: thresholds.low_stock ?? 50,
+        low_stock_threshold: thresholds.low_stock ?? 10,
         shortage_days_threshold: thresholds.shortage_days ?? 7,
         expiry_days_threshold: thresholds.expiry_days ?? 30,
         enable_vat_exemption_discount: Boolean(discountSettings.enable_vat_exemption_discount),
