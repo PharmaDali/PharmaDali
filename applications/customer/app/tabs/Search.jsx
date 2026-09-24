@@ -111,6 +111,7 @@ export default function SearchTab() {
           isAvailable={isAvailable}
           isOutOfStock={isOutOfStock}
           stock={item.stock}
+          style={{ width: '100%' }}
         />
       </View>
     );
