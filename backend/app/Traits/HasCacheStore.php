@@ -20,6 +20,10 @@ trait HasCacheStore
             $store->has('ping');
             return $store;
         } catch (\Throwable $e) {
+            $cachePath = storage_path('framework/cache/data');
+            if (!is_dir($cachePath)) {
+                @mkdir($cachePath, 0775, true);
+            }
             return Cache::store();
         }
     }
