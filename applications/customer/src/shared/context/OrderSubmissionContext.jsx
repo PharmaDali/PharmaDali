@@ -41,7 +41,7 @@ export function OrderSubmissionProvider({ children }) {
     // Calculate total summary
     const totalItems = products.reduce((sum, p) => sum + (Number(p.quantity) || 0), 0);
     const totalPrice = products.reduce((sum, p) => sum + ((Number(p.price) || 0) * (Number(p.quantity) || 0)), 0);
-    const orderSummary = `${totalItems} Items - ₱${totalPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    const orderSummary = `${totalItems} Items - PHP ${totalPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
 
     return {
       id: localId,

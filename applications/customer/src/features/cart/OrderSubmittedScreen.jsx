@@ -127,7 +127,7 @@ const OrderSubmittedScreen = () => {
 
                 <View className="flex-row justify-between items-center bg-[#E8F4FA] px-3 py-3 mt-2">
                   <Text className="text-xs text-black" style={styles.fontBold}>Total</Text>
-                  <Text className="text-xs text-[#48AAD9]" style={styles.fontBold}>₱ {Number(summary.total).toFixed(2)}</Text>
+                  <Text className="text-xs text-[#48AAD9]" style={styles.fontBold}>PHP {Number(summary.total).toFixed(2)}</Text>
                 </View>
               </View>
             </View>

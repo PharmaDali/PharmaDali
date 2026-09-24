@@ -8,8 +8,8 @@ import {
   Image,
   ActivityIndicator,
   Alert,
-  SafeAreaView,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import GcashIcon from '@assets/icons/gcash_icon.svg'
@@ -168,7 +168,7 @@ export default function PayOrderScreen() {
                   {product.is_prescribed ? (
                     <Text className="text-[10px] text-red-500 mt-0.5" style={styles.fontSemiBold}>Rx Prescription Required</Text>
                   ) : null}
-                  <Text className="text-xs mt-1" style={styles.textColorBold}>₱{Number(item.unit_price_snapshot).toFixed(2)}</Text>
+                  <Text className="text-xs mt-1" style={styles.textColorBold}>PHP {Number(item.unit_price_snapshot).toFixed(2)}</Text>
                 </View>
                 <View className="items-end">
                   <Text className="text-[11px] text-gray-700" style={styles.fontMedium}>{item.quantity}x</Text>
