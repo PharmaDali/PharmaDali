@@ -259,13 +259,15 @@
 }
 
 @media (min-width: 992px) {
-  /* Prevent whole page from scrolling on desktop */
+  /* Allow whole page to scroll on desktop if content is tall */
   body:has(.dashboard-page) {
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   
   .dashboard-page {
     height: calc(100vh - var(--pd-navbar-height) - 60px);
+    min-height: 700px;
     display: flex;
     flex-direction: column;
   }
