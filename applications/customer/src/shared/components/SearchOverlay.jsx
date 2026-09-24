@@ -87,6 +87,7 @@ export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCar
           isAvailable={isAvailable}
           isOutOfStock={isOutOfStock}
           stock={item.stock}
+          style={{ width: '100%' }}
         />
       </View>
     );

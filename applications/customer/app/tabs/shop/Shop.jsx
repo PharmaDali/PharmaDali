@@ -192,7 +192,7 @@ const Shop = () => {
         isOutOfStock={Boolean(item?.is_out_of_stock) || (item?.stock !== undefined && Number(item?.stock) <= 0)}
         stock={item?.stock}
         onAddToCart={handleAddToCart}
-        style={{ width: 160 }}
+        style={{ width: '100%' }}
       />
     </View>
   ), [selectedPharmacyId, handleAddToCart])
@@ -318,7 +318,7 @@ const Shop = () => {
         renderItem={renderProductItem}
         numColumns={2}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ backgroundColor: 'white' }}
+        contentContainerStyle={{ backgroundColor: 'white', paddingBottom: Math.max(insets.bottom, 16) + 80 }}
         ListHeaderComponent={ListHeader}
         ListFooterComponent={ListFooter}
         ListEmptyComponent={ListEmpty}
@@ -343,7 +343,7 @@ function CategoryCard({ icon, label, onPress }) {
 
 function ProductSkeletonCard() {
   return (
-    <View className="rounded-2xl border border-gray-200 p-3 bg-white" style={{ width: 160 }}>
+    <View className="w-full rounded-2xl border border-gray-200 p-3 bg-white">
       <View className="h-24 rounded-xl bg-gray-200" />
       <View className="h-3 mt-3 rounded bg-gray-200" />
       <View className="h-3 mt-2 w-3/4 rounded bg-gray-200" />
