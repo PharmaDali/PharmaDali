@@ -147,7 +147,7 @@ const ReviewOrderScreen = () => {
           <View className="flex-row justify-between items-center">
             <Text className="text-sm" style={styles.fontBold}>Order Summary</Text>
             <Text className="text-sm" style={styles.priceText}>
-              ₱ {effectiveTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+              PHP {effectiveTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
             </Text>
           </View>
         </View>

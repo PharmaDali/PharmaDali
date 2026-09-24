@@ -38,10 +38,10 @@ function normalizeApiList(payload) {
 function formatPrice(value) {
   const amount = Number(value ?? 0)
   if (Number.isNaN(amount)) {
-    return 'P0.00'
+    return 'PHP 0.00'
   }
 
-  return `P${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  return `PHP ${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 const Shop = () => {

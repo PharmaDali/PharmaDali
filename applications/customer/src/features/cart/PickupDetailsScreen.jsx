@@ -865,7 +865,7 @@ const PickupDetailsScreen = () => {
                 Total items: <Text style={styles.fontBold}>{totalItems}</Text>
               </Text>
               <Text className="text-xs" style={styles.fontMedium}>
-                Estimated Total: <Text style={styles.fontBold}>₱{effectiveTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</Text>
+                Estimated Total: <Text style={styles.fontBold}>PHP {effectiveTotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</Text>
               </Text>
             </View>
           </View>

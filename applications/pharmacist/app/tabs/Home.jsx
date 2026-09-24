@@ -206,7 +206,7 @@ const RecentOrdersFeed = ({ orders, onNavigate }) => (
 
             <View className="flex-row items-center justify-between mt-1 pt-2 border-t border-slate-50">
               <Text className="text-slate-500 text-[11px]" style={{ fontFamily: 'Poppins-Regular' }}>
-                {itemCount} {itemCount === 1 ? 'item' : 'items'} • ₱{total}
+                {itemCount} {itemCount === 1 ? 'item' : 'items'} • PHP {total}
               </Text>
               <View className="flex-row items-center">
                 <Text className="text-sky-600 text-xs mr-1" style={{ fontFamily: 'Poppins-SemiBold' }}>
@@ -277,6 +277,7 @@ const Home = () => {
     <ScrollView
       className="flex-1 bg-slate-50"
       showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 60 }}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
