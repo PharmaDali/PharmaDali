@@ -1,7 +1,8 @@
 .login-page {
   position: relative;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: #96d2ee;
   animation: loginBgShift 2.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
@@ -212,7 +213,7 @@
   }
 
   100% {
-    transform: translate3d(-30vw, -50%, 0) scale(1);
+    transform: translateX(calc(-50% - 26vw)) translateY(-50%) scale(1);
   }
 }
 
@@ -255,8 +256,9 @@
 @media (max-width: 1024px) {
   .login-page {
     position: relative;
-    height: 100vh;
-    overflow: hidden;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
     background: #96d2ee;
     animation: mobileLoginBgShift 5.5s ease forwards;
   }
@@ -287,7 +289,7 @@
 
   .login-form-panel {
     position: absolute;
-    top: max(34vh, 220px);
+    top: max(25vh, 180px);
     left: 50%;
     right: auto;
     transform: translateX(-50%) translateY(32px);
@@ -316,7 +318,7 @@
   .form-control.login-input {
     height: 46px !important;
     border-radius: 14px !important;
-    padding: 0 1.25rem !important;
+    padding: 0 1.25rem;
     background-color: #f8fafc !important;
     font-size: 0.95rem;
     border: 1.5px solid #e2e8f0 !important;
@@ -389,7 +391,7 @@
     transform: translate(-50%, -50%) scale(1.05);
   }
   100% {
-    top: 22%;
+    top: 15%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.95);
   }
