@@ -9,7 +9,7 @@
 
 .login-brand-block {
   position: absolute;
-  top: 46%;
+  top: max(46%, 200px);
   left: 50%;
   display: flex;
   flex-direction: column;
@@ -58,7 +58,7 @@
 
 .login-form-panel {
   position: absolute;
-  top: 50%;
+  top: max(50%, 280px);
   right: clamp(6vw, 12vw, 15vw);
   width: min(34vw, 420px);
   min-width: 340px;
