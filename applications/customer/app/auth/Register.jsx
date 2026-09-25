@@ -21,7 +21,7 @@ const Register = () => {
   const [address, setAddress] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState(new Date());
+  const [dateOfBirth, setDateOfBirth] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -30,6 +30,7 @@ const Register = () => {
   const { toast, showSuccess } = useToast();
 
   const formatDate = (date) => {
+    if (!date) return '';
     return date.toLocaleDateString();
   };
 
@@ -156,15 +157,23 @@ const Register = () => {
                   mode="outlined"
                   theme={theme}
                   value={formatDate(dateOfBirth)}
+                  placeholder="e.g. 01/15/1990"
                   editable={false}
-                  right={<TextInput.Icon icon="calendar" />}
+                  pointerEvents="none"
+                  right={
+                    <TextInput.Icon
+                      icon="calendar"
+                      onPress={() => !isSubmitting && setShowDatePicker(true)}
+                    />
+                  }
                 />
               </Pressable>
               {showDatePicker && (
                 <DateTimePicker
-                  value={dateOfBirth}
+                  value={dateOfBirth ?? (() => { const d = new Date(); d.setFullYear(d.getFullYear() - 18); return d; })()}
                   mode="date"
                   display="default"
+                  minimumDate={new Date(1900, 0, 1)}
                   maximumDate={new Date()}
                   onChange={(event, selectedDate) => {
                     setShowDatePicker(false);
