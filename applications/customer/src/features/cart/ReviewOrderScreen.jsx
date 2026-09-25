@@ -8,6 +8,7 @@ import LogoHeader from '@src/shared/components/LogoHeader'
 import RedLocationIcon from '@assets/icons/red_location_icon.svg'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import RedInfoIcon from '@assets/icons/red_info_icon.svg'
+import BlueInfoIcon from '@assets/icons/blue_info_icon.svg'
 import ProductImage from '@shared/components/ProductImage'
 import TermsAndConditionsModal from '@shared/components/TermsAndConditionsModal'
 import { getCheckoutDraft } from '@shared/services/checkoutDraft'
@@ -75,14 +76,16 @@ const ReviewOrderScreen = () => {
     pharmacyLocationLabel,
     total: checkoutTotal,
     isPharmacyOpen: draftPharmacyOpen,
+    isPharmacyActive: draftPharmacyActive,
     closedPharmacyName,
     pharmacyHoursLabel,
   } = getCheckoutDraft()
   const isPharmacyOpen = draftPharmacyOpen !== false
+  const isPharmacyActive = draftPharmacyActive !== false
   const total = orderItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const effectiveTotal = checkoutTotal > 0 ? checkoutTotal : total
   const hasPrescription = orderItems.some((item) => item.prescriptionRequired)
-  const canProceed = orderItems.length > 0 && isPharmacyOpen
+  const canProceed = orderItems.length > 0 && isPharmacyActive
 
   const effectiveHoursLabel = useMemo(() => {
     if (pharmacyHoursLabel && !pharmacyHoursLabel.toLowerCase().includes('unavail') && pharmacyHoursLabel.toLowerCase() !== 'closed') {
@@ -116,15 +119,29 @@ const ReviewOrderScreen = () => {
           </View>
         </View>
 
-        {!isPharmacyOpen && (
+        {!isPharmacyActive && (
           <View className="mx-4 mb-3 bg-[#FFEAEA] border border-[#FFCCCC] rounded-xl p-3 flex-row items-center">
             <RedInfoIcon width={18} height={18} />
             <View className="flex-1 ml-2.5">
               <Text className="text-xs text-[#B42318]" style={styles.fontSemiBold}>
-                Pharmacy is Currently Closed
+                Pharmacy Temporarily Inactive
               </Text>
               <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
-                {closedPharmacyName || pharmacyLabel || 'This pharmacy'} is currently closed{effectiveHoursLabel ? ` (Store hours: ${effectiveHoursLabel})` : ''}. You cannot proceed with this order right now.
+                {closedPharmacyName || pharmacyLabel || 'This pharmacy'} is temporarily inactive and not accepting orders.
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {isPharmacyActive && !isPharmacyOpen && (
+          <View className="mx-4 mb-3 bg-[#EFF8FF] border border-[#B2DDFF] rounded-xl p-3 flex-row items-start">
+            <BlueInfoIcon width={18} height={18} style={{ marginTop: 2 }} />
+            <View className="flex-1 ml-2.5">
+              <Text className="text-xs" style={[styles.fontSemiBold, { color: '#444444' }]}>
+                Store is currently closed
+              </Text>
+              <Text className="text-[11px] mt-0.5 leading-4" style={[styles.fontMedium, { color: '#444444' }]}>
+                Pickup will be scheduled for tomorrow during store hours{effectiveHoursLabel ? ` (${effectiveHoursLabel})` : ''}.
               </Text>
             </View>
           </View>

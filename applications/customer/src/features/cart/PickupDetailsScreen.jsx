@@ -43,11 +43,18 @@ const PickupDetailsScreen = () => {
     ? total
     : items.reduce((sum, item) => sum + (Number(item?.price || 0) * (Number(item?.quantity) || 0)), 0)
 
-  // Always use today's date
-  const selectedDate = useMemo(() => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    return today
+  // Support pickup for Today or Tomorrow
+  const today = useMemo(() => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }, [])
+
+  const tomorrow = useMemo(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 1)
+    d.setHours(0, 0, 0, 0)
+    return d
   }, [])
 
   const [showTimePicker, setShowTimePicker] = useState(false)
@@ -134,9 +141,9 @@ const PickupDetailsScreen = () => {
     })
   }, [items])
 
-  const { minimumDateTime, closingDateTime, hasWindowToday } = useMemo(
-    () => buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes),
-    [selectedDate, openingMinutes, closingMinutes],
+  const todayBounds = useMemo(
+    () => buildEffectivePickupBounds(today, openingMinutes, closingMinutes),
+    [today, openingMinutes, closingMinutes],
   )
 
   const isPharmacyExplicitlyClosed = useMemo(() => {
@@ -147,11 +154,30 @@ const PickupDetailsScreen = () => {
     return false
   }, [targetPharmacy, draft?.isPharmacyOpen])
 
-  const isPharmacyClosed = useMemo(() => {
-    if (isPharmacyExplicitlyClosed) return true
-    if (!hasValidOperatingWindow) return true
-    return !hasWindowToday
-  }, [isPharmacyExplicitlyClosed, hasValidOperatingWindow, hasWindowToday])
+  const isTodayAvailable = todayBounds.hasWindowToday && !isPharmacyExplicitlyClosed && hasValidOperatingWindow
+
+  const [pickupDay, setPickupDay] = useState(isTodayAvailable ? 'today' : 'tomorrow')
+
+  useEffect(() => {
+    if (!isTodayAvailable && pickupDay === 'today') {
+      setPickupDay('tomorrow')
+      setSelectedTime(null)
+    }
+  }, [isTodayAvailable, pickupDay])
+
+  const selectedDate = pickupDay === 'today' ? today : tomorrow
+
+  const { minimumDateTime, closingDateTime, hasWindowToday } = useMemo(
+    () => buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes),
+    [selectedDate, openingMinutes, closingMinutes],
+  )
+
+  const isPharmacyInactive = useMemo(() => {
+    const activeVal = targetPharmacy?.isOperating ?? targetPharmacy?.isActive ?? targetPharmacy?.is_active
+    return activeVal === false || activeVal === 0 || activeVal === '0'
+  }, [targetPharmacy])
+
+  const isPickupBlocked = isPharmacyInactive || !hasValidOperatingWindow
 
   const formatTime12Hour = (date) => {
     if (!date || !(date instanceof Date)) return ''
@@ -163,9 +189,19 @@ const PickupDetailsScreen = () => {
     })
   }
 
+  const formatDayDateLabel = (date) => {
+    if (!date) return ''
+    return date.toLocaleDateString('en-US', {
+      timeZone: 'Asia/Manila',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+  }
+
   const selectedTimeLabel = selectedTime
-    ? formatTime12Hour(selectedTime)
-    : 'Select pickup time'
+    ? `${pickupDay === 'tomorrow' ? 'Tomorrow' : 'Today'} (${formatDayDateLabel(selectedDate)}) at ${formatTime12Hour(selectedTime)}`
+    : `Select pickup time for ${pickupDay === 'tomorrow' ? 'tomorrow' : 'today'}`
 
   const confirmPickupValidationError = useMemo(() => {
     if (items.length === 0) {
@@ -205,7 +241,9 @@ const PickupDetailsScreen = () => {
 
   const isConfirmPickupDisabled =
     submitting ||
-    isPharmacyClosed ||
+    isPickupBlocked ||
+    !hasWindowToday ||
+    !selectedTime ||
     Boolean(confirmPickupValidationError) ||
     Boolean(submitError) ||
     isOnlinePaymentReceiptMissing
@@ -394,8 +432,8 @@ const PickupDetailsScreen = () => {
   }
 
   const handleConfirmPickup = () => {
-    if (isPharmacyClosed) {
-      setSubmitError('The pharmacy is currently closed. Orders cannot be placed at this time.')
+    if (isPickupBlocked) {
+      setSubmitError('This pharmacy is currently unable to accept orders.')
       return
     }
 
@@ -420,9 +458,9 @@ const PickupDetailsScreen = () => {
   }
 
   const actuallySubmitOrder = () => {
-    if (isPharmacyClosed) {
+    if (isPickupBlocked) {
       setShowConfirmModal(false)
-      setSubmitError('The pharmacy is currently closed. Orders cannot be placed at this time.')
+      setSubmitError('This pharmacy is currently unable to accept orders.')
       return
     }
 
@@ -507,25 +545,108 @@ const PickupDetailsScreen = () => {
           </View>
         </View>
 
-        {isPharmacyClosed && (
+        {isPharmacyInactive && (
           <View className="mx-4 mt-3 bg-[#FFEAEA] border border-[#FFCCCC] rounded-xl p-3 flex-row items-center">
             <RedInfoIcon width={20} height={20} />
             <View className="flex-1 ml-2.5">
               <Text className="text-xs text-[#B42318]" style={styles.fontSemiBold}>
-                Pharmacy is Currently Closed
+                Pharmacy Temporarily Inactive
               </Text>
               <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
-                {targetPharmacy?.name || targetPharmacy?.pharmacyName || selectedPharmacy?.name || pharmacyLabel || 'This pharmacy'} is currently closed{effectiveHoursLabel ? ` (Store hours: ${effectiveHoursLabel})` : ''}. Orders cannot be placed at this time.
+                {targetPharmacy?.name || targetPharmacy?.pharmacyName || selectedPharmacy?.name || pharmacyLabel || 'This pharmacy'} is temporarily inactive and not accepting orders.
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {!isPharmacyInactive && !isTodayAvailable && (
+          <View className="mx-4 mt-3 bg-[#EFF8FF] border border-[#B2DDFF] rounded-xl p-3 flex-row items-start">
+            <BlueInfoIcon width={20} height={20} style={{ marginTop: 2 }} />
+            <View className="flex-1 ml-2.5">
+              <Text className="text-xs" style={[styles.fontSemiBold, { color: '#444444' }]}>
+                Store is closed for today
+              </Text>
+              <Text className="text-[11px] mt-0.5 leading-4" style={[styles.fontMedium, { color: '#444444' }]}>
+                Please select your preferred pickup time for tomorrow{effectiveHoursLabel ? ` (${effectiveHoursLabel})` : ''}.
               </Text>
             </View>
           </View>
         )}
 
         <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-4">
-          <Text className="text-sm mb-2" style={styles.fontSemiBold}>Pickup Time</Text>
+          <Text className="text-sm mb-2" style={styles.fontSemiBold}>Pickup Schedule</Text>
+
+          {/* Day Selector (Today / Tomorrow) */}
+          <View className="flex-row gap-2 mb-3">
+            <TouchableOpacity
+              onPress={() => {
+                if (isTodayAvailable) {
+                  setPickupDay('today')
+                  setSelectedTime(null)
+                  setSubmitError('')
+                }
+              }}
+              disabled={!isTodayAvailable}
+              className="flex-1 py-2.5 px-3 rounded-xl border items-center justify-center"
+              style={{
+                backgroundColor: pickupDay === 'today'
+                  ? '#48AAD9'
+                  : isTodayAvailable
+                  ? '#94A3B8'
+                  : '#CBD5E1',
+                borderColor: pickupDay === 'today'
+                  ? '#48AAD9'
+                  : isTodayAvailable
+                  ? '#94A3B8'
+                  : '#CBD5E1',
+              }}
+            >
+              <Text
+                className="text-xs text-center"
+                style={{
+                  fontFamily: 'Poppins-SemiBold',
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  includeFontPadding: false,
+                }}
+              >
+                Today {isTodayAvailable ? `(${formatDayDateLabel(today)})` : '(Closed)'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setPickupDay('tomorrow')
+                setSelectedTime(null)
+                setSubmitError('')
+              }}
+              className="flex-1 py-2.5 px-3 rounded-xl border items-center justify-center"
+              style={{
+                backgroundColor: pickupDay === 'tomorrow'
+                  ? '#48AAD9'
+                  : '#94A3B8',
+                borderColor: pickupDay === 'tomorrow'
+                  ? '#48AAD9'
+                  : '#94A3B8',
+              }}
+            >
+              <Text
+                className="text-xs text-center"
+                style={{
+                  fontFamily: 'Poppins-SemiBold',
+                  color: '#FFFFFF',
+                  textAlign: 'center',
+                  includeFontPadding: false,
+                }}
+              >
+                Tomorrow ({formatDayDateLabel(tomorrow)})
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <TouchableOpacity
-            className={`rounded-xl border px-3 py-3 ${!isPharmacyClosed && hasValidOperatingWindow && hasWindowToday ? 'border-[#48AAD9] bg-[#F8FCFF]' : 'border-gray-300 bg-gray-100'}`}
-            disabled={isPharmacyClosed || !hasValidOperatingWindow || !hasWindowToday}
+            className={`rounded-xl border px-3 py-3 ${!isPickupBlocked && hasValidOperatingWindow && hasWindowToday ? 'border-[#48AAD9] bg-[#F8FCFF]' : 'border-gray-300 bg-gray-100'}`}
+            disabled={isPickupBlocked || !hasValidOperatingWindow || !hasWindowToday}
             onPress={() => {
               setSubmitError('')
               setShowTimePicker(true)
@@ -533,23 +654,23 @@ const PickupDetailsScreen = () => {
           >
             <View className="flex-row items-center justify-between">
               <Text className="text-xs" style={styles.fontSemiBold}>
-                {isPharmacyClosed ? 'Pharmacy is Closed' : selectedTimeLabel}
+                {isPickupBlocked ? 'Pickup Unavailable' : selectedTimeLabel}
               </Text>
               <Text className="text-xs text-[#48AAD9]" style={styles.fontSemiBold}>
-                {isPharmacyClosed ? '' : 'Change'}
+                {isPickupBlocked ? '' : 'Change'}
               </Text>
             </View>
           </TouchableOpacity>
 
-          {isPharmacyClosed && (
+          {isPickupBlocked && (
             <Text className="text-[10px] text-gray-400 mt-1" style={styles.fontMedium}>
-              Pickup scheduling is unavailable while pharmacy is closed
+              Pickup scheduling is unavailable while pharmacy is inactive.
             </Text>
           )}
 
-          {!isPharmacyClosed && !hasWindowToday && (
+          {!isPickupBlocked && !hasWindowToday && (
             <Text className="text-[10px] text-gray-400 mt-1" style={styles.fontMedium}>
-              No pickup window available today
+              No pickup window available for this date.
             </Text>
           )}
 

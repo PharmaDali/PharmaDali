@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import * as ImagePicker from 'expo-image-picker'
@@ -7,16 +7,12 @@ import { colors } from '@src/shared/theme/colorPalette'
 import LogoHeader from '@src/shared/components/LogoHeader'
 import StepIndicator from '@src/shared/components/StepIndicator'
 import ProductImage from '@shared/components/ProductImage'
+import RedInfoIcon from '@assets/icons/red_info_icon.svg'
+import BlueInfoIcon from '@assets/icons/blue_info_icon.svg'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
 import { formatPharmacyHoursLabel } from '@src/utils/pickupScheduleUtils'
 
 const MAX_PRESCRIPTION_SIZE_BYTES = 5 * 1024 * 1024
-
-function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
-}
 
 function truncateText(value, maxLength = 48) {
   const text = String(value || '').trim();
@@ -58,19 +54,19 @@ function PrescriptionItemRow({ item }) {
 const UploadPrescriptionScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const scrollViewRef = useRef(null)
   const draft = getCheckoutDraft()
   const { items } = draft
   const prescriptionItems = items.filter((item) => item.prescriptionRequired)
   const [imageUri, setImageUri] = useState(draft?.prescriptionImage?.uri || null)
   const [imageAsset, setImageAsset] = useState(draft?.prescriptionImage || null)
   const [confirmed, setConfirmed] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadError, setUploadError] = useState('')
-  const [uploadSuccess, setUploadSuccess] = useState(Boolean(draft?.prescriptionPrepared))
-  const uploadTimerRef = useRef(null)
+  const [nextDisabled, setNextDisabled] = useState(false)
+  const [cardLayoutY, setCardLayoutY] = useState(0)
+  const [checkboxLayoutY, setCheckboxLayoutY] = useState(0)
   const isPharmacyOpen = draft?.isPharmacyOpen !== false
-  const canProceed = uploadSuccess && isPharmacyOpen
+  const isPharmacyActive = draft?.isPharmacyActive !== false
 
   const effectiveHoursLabel = useMemo(() => {
     const raw = draft?.pharmacyHoursLabel || ''
@@ -84,67 +80,57 @@ const UploadPrescriptionScreen = () => {
     return formatPharmacyHoursLabel(target) || ''
   }, [draft?.pharmacyHoursLabel, draft?.selectedPharmacy, draft?.items])
 
-  useEffect(() => {
-    return () => {
-      if (uploadTimerRef.current) {
-        clearInterval(uploadTimerRef.current)
-      }
-    }
-  }, [])
+  const handleSelectImage = (asset) => {
+    if (!asset?.uri) return
 
-  const startUploadProgress = () => {
-    if (uploadTimerRef.current) {
-      clearInterval(uploadTimerRef.current)
+    if (Number(asset?.fileSize || 0) > MAX_PRESCRIPTION_SIZE_BYTES) {
+      setUploadError('Image is too large. Maximum allowed size is 5 MB.')
+      setNextDisabled(true)
+      return
     }
 
-    setUploadProgress(0)
+    setUploadError('')
+    setNextDisabled(false)
+    setImageUri(asset.uri)
+    setImageAsset(asset)
+    setConfirmed(false)
 
-    uploadTimerRef.current = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 90) {
-          return prev
-        }
-
-        return Math.min(90, prev + 6)
-      })
-    }, 120)
-  }
-
-  const stopUploadProgress = (isSuccess) => {
-    if (uploadTimerRef.current) {
-      clearInterval(uploadTimerRef.current)
-      uploadTimerRef.current = null
-    }
-
-    setUploadProgress(isSuccess ? 100 : 0)
+    const currentDraft = getCheckoutDraft()
+    setCheckoutDraft({
+      ...currentDraft,
+      prescriptionImage: {
+        uri: asset.uri,
+        fileName: asset.fileName || `prescription-${Date.now()}.jpg`,
+        mimeType: asset.mimeType || 'image/jpeg',
+      },
+      prescriptionPrepared: true,
+    })
   }
 
   const pickFromGallery = async () => {
     setUploadError('')
-    setUploadSuccess(false)
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       quality: 0.8,
     })
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri)
-      setImageAsset(result.assets[0])
-      setUploadSuccess(false)
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      handleSelectImage(result.assets[0])
     }
   }
 
   const takePhoto = async () => {
     setUploadError('')
-    setUploadSuccess(false)
     const { status } = await ImagePicker.requestCameraPermissionsAsync()
-    if (status !== 'granted') return
+    if (status !== 'granted') {
+      setUploadError('Permission to access camera is required.')
+      setNextDisabled(true)
+      return
+    }
     const result = await ImagePicker.launchCameraAsync({
       quality: 0.8,
     })
-    if (!result.canceled) {
-      setImageUri(result.assets[0].uri)
-      setImageAsset(result.assets[0])
-      setUploadSuccess(false)
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      handleSelectImage(result.assets[0])
     }
   }
 
@@ -153,8 +139,7 @@ const UploadPrescriptionScreen = () => {
     setImageAsset(null)
     setConfirmed(false)
     setUploadError('')
-    setUploadSuccess(false)
-    setUploadProgress(0)
+    setNextDisabled(false)
 
     const currentDraft = getCheckoutDraft()
     setCheckoutDraft({
@@ -164,58 +149,39 @@ const UploadPrescriptionScreen = () => {
     })
   }
 
-  const handleUpload = async () => {
-    if (!imageAsset) {
-      setUploadError('Please select an image first.')
+  const handleToggleConfirm = () => {
+    const nextVal = !confirmed
+    setConfirmed(nextVal)
+    if (nextVal) {
+      setUploadError('')
+      setNextDisabled(false)
+    }
+  }
+
+  const handleNext = () => {
+    if (!isPharmacyActive) {
+      setUploadError('This pharmacy is temporarily inactive.')
+      setNextDisabled(true)
+      return
+    }
+
+    if (!imageUri) {
+      setUploadError('Please upload your prescription first.')
+      setNextDisabled(true)
+      scrollViewRef.current?.scrollTo({ y: Math.max(0, cardLayoutY - 60), animated: true })
       return
     }
 
     if (!confirmed) {
-      setUploadError('Please confirm prescription validity before uploading.')
+      setUploadError('Please confirm the validity of your prescription.')
+      setNextDisabled(true)
+      scrollViewRef.current?.scrollTo({ y: Math.max(0, cardLayoutY + checkboxLayoutY - 80), animated: true })
       return
     }
 
-    if (Number(imageAsset?.fileSize || 0) > MAX_PRESCRIPTION_SIZE_BYTES) {
-      setUploadError('Image is too large. Maximum allowed size is 5 MB.')
-      return
-    }
-
-    if (prescriptionItems.length === 0) {
-      setUploadError('No prescription-required items found.')
-      return
-    }
-
-    setUploading(true)
     setUploadError('')
-    setUploadSuccess(false)
-    startUploadProgress()
-
-    try {
-      await sleep(800)
-
-      const currentDraft = getCheckoutDraft()
-
-      setCheckoutDraft({
-        ...currentDraft,
-        prescriptionImage: {
-          uri: imageAsset.uri,
-          fileName: imageAsset.fileName || `prescription-${Date.now()}.jpg`,
-          mimeType: imageAsset.mimeType || 'image/jpeg',
-        },
-        prescriptionPrepared: true,
-      })
-
-      stopUploadProgress(true)
-      await sleep(250)
-
-      setUploadSuccess(true)
-    } catch (error) {
-      setUploadError(error instanceof Error ? error.message : 'Failed to prepare prescription image.')
-      setUploadSuccess(false)
-      stopUploadProgress(false)
-    } finally {
-      setUploading(false)
-    }
+    setNextDisabled(false)
+    router.push('/tabs/cart/PickupDetails')
   }
 
   return (
@@ -226,15 +192,30 @@ const UploadPrescriptionScreen = () => {
         <StepIndicator currentStep={1} />
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {!isPharmacyOpen && (
+      <ScrollView ref={scrollViewRef} className="flex-1" showsVerticalScrollIndicator={false}>
+        {!isPharmacyActive && (
           <View className="mx-4 mt-4 bg-[#FFEAEA] border border-[#FFCCCC] rounded-xl p-3 flex-row items-center">
-            <View className="flex-1">
+            <RedInfoIcon width={18} height={18} />
+            <View className="flex-1 ml-2.5">
               <Text className="text-xs text-[#B42318]" style={styles.fontSemiBold}>
-                Pharmacy is Currently Closed
+                Pharmacy Temporarily Inactive
               </Text>
               <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
-                {draft?.closedPharmacyName || draft?.pharmacyLabel || 'This pharmacy'} is currently closed{effectiveHoursLabel ? ` (Store hours: ${effectiveHoursLabel})` : ''}. You cannot proceed with this order right now.
+                {draft?.closedPharmacyName || draft?.pharmacyLabel || 'This pharmacy'} is temporarily inactive and not accepting orders.
+              </Text>
+            </View>
+          </View>
+        )}
+
+        {isPharmacyActive && !isPharmacyOpen && (
+          <View className="mx-4 mt-4 bg-[#EFF8FF] border border-[#B2DDFF] rounded-xl p-3 flex-row items-start">
+            <BlueInfoIcon width={18} height={18} style={{ marginTop: 2 }} />
+            <View className="flex-1 ml-2.5">
+              <Text className="text-xs" style={[styles.fontSemiBold, { color: '#444444' }]}>
+                Store is currently closed
+              </Text>
+              <Text className="text-[11px] mt-0.5 leading-4" style={[styles.fontMedium, { color: '#444444' }]}>
+                You can upload your prescription now. Pickup will be scheduled for tomorrow{effectiveHoursLabel ? ` (${effectiveHoursLabel})` : ''}.
               </Text>
             </View>
           </View>
@@ -252,7 +233,7 @@ const UploadPrescriptionScreen = () => {
           ))}
         </View>
 
-        <View className="mx-4 mt-5 mb-5">
+        <View className="mx-4 mt-5 mb-5" onLayout={(e) => setCardLayoutY(e.nativeEvent.layout.y)}>
           <Text className="text-sm mb-3" style={styles.fontBold}>Upload Prescription</Text>
 
           <View className="flex-row gap-3">
@@ -282,57 +263,35 @@ const UploadPrescriptionScreen = () => {
                     <Text className="text-white text-xs">✕</Text>
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  className={`rounded-lg px-6 py-1.5 mt-3 ${uploading ? 'bg-gray-200 border border-gray-300' : 'border border-[#48AAD9]'}`}
-                  onPress={handleUpload}
-                  disabled={uploading}
-                >
-                  <Text className="text-xs" style={uploading ? styles.fontMediumGray : styles.primarySemiBold}>
-                    {uploading ? 'Uploading...' : 'Upload'}
-                  </Text>
-                </TouchableOpacity>
-
-                {uploading && (
-                  <View className="w-full mt-3">
-                    <View className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
-                      <View
-                        className="h-full bg-[#48AAD9]"
-                        style={{ width: `${uploadProgress}%` }}
-                      />
-                    </View>
-                    <Text className="text-[11px] text-gray-500 mt-1 text-right" style={styles.fontMedium}>
-                      {Math.round(uploadProgress)}%
-                    </Text>
-                  </View>
-                )}
               </View>
 
-              <TouchableOpacity
-                className="flex-row items-center mt-4"
-                onPress={() => setConfirmed(!confirmed)}
-              >
-                <View
-                  className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${
-                    confirmed ? 'bg-[#48AAD9] border-[#48AAD9]' : 'border-gray-300 bg-white'
-                  }`}
+              <View onLayout={(e) => setCheckboxLayoutY(e.nativeEvent.layout.y)}>
+                <TouchableOpacity
+                  className="flex-row items-center mt-4"
+                  onPress={handleToggleConfirm}
                 >
-                  {confirmed && <Text className="text-white text-[10px]">✓</Text>}
-                </View>
-                <Text className="flex-1 text-[10px]" style={styles.fontMediumGray}>
-                  I confirm that this prescription is valid and issued by a licensed physician.
-                </Text>
-              </TouchableOpacity>
+                  <View
+                    className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${
+                      confirmed ? 'bg-[#48AAD9] border-[#48AAD9]' : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    {confirmed && <Text className="text-white text-[10px]">✓</Text>}
+                  </View>
+                  <Text className="flex-1 text-[10px]" style={styles.fontMediumGray}>
+                    I confirm that this prescription is valid and issued by a licensed physician.
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
           {!!uploadError && (
-            <Text className="text-xs mt-3 text-[#B42318]" style={styles.fontMedium}>{uploadError}</Text>
-          )}
-
-          {uploadSuccess && (
-            <Text className="text-xs mt-3 text-green-700" style={styles.fontMedium}>
-              Prescription prepared. It will be uploaded after Confirm Pickup.
-            </Text>
+            <View className="mt-3 bg-[#FFEAEA] border border-[#FFCCCC] rounded-xl p-3 flex-row items-center">
+              <RedInfoIcon width={16} height={16} />
+              <Text className="text-xs text-[#B42318] ml-2 flex-1" style={styles.fontMedium}>
+                {uploadError}
+              </Text>
+            </View>
           )}
         </View>
       </ScrollView>
@@ -344,17 +303,14 @@ const UploadPrescriptionScreen = () => {
         >
           <Text className="text-sm" style={styles.primarySemiBold}>Go back</Text>
         </TouchableOpacity>
-        <TouchableOpacity className={`flex-1 rounded-xl py-2.5 items-center ${canProceed ? 'bg-[#48AAD9]' : 'bg-gray-300'}`}
-          onPress={() => {
-            if (!canProceed) {
-              return
-            }
-
-            router.push('/tabs/cart/PickupDetails')
-          }}
-          disabled={!canProceed}
+        <TouchableOpacity
+          className={`flex-1 rounded-xl py-2.5 items-center ${nextDisabled ? 'bg-gray-300' : 'bg-[#48AAD9]'}`}
+          onPress={handleNext}
+          disabled={nextDisabled}
         >
-          <Text className={`text-sm ${canProceed ? 'text-white' : 'text-gray-500'}`} style={styles.fontSemiBold}>Next</Text>
+          <Text className={`text-sm ${nextDisabled ? 'text-gray-500' : 'text-white'}`} style={styles.fontSemiBold}>
+            Next
+          </Text>
         </TouchableOpacity>
       </View>
     </View>

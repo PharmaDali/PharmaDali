@@ -5,7 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { colors } from '@shared/theme/colorPalette';
 import RxIcon from '@assets/icons/rx_icon.svg';
-import InfoIcon from '@assets/icons/red_info_icon.svg';
+import RedInfoIcon from '@assets/icons/red_info_icon.svg';
+import BlueInfoIcon from '@assets/icons/blue_info_icon.svg';
+import InfoIcon from '@assets/icons/blue_info_icon.svg';
 import LocationIcon from '@assets/icons/red_location_icon.svg';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
 import { useCartTab } from '@shared/hooks/useCartTab';
@@ -155,9 +157,10 @@ export default function CartScreen() {
   const total = viewState.total;
   const hasPrescription = viewState.hasPrescription;
   const isPharmacyOpen = Boolean(viewState.isPharmacyOpen);
+  const isPharmacyActive = viewState.isPharmacyActive !== false;
   const closedPharmacyName = viewState.closedPharmacyName || '';
   const pharmacyHoursLabel = viewState.pharmacyHoursLabel || '';
-  const canProceed = viewState.selectedCount > 0 && isPharmacyOpen;
+  const canProceed = viewState.selectedCount > 0 && isPharmacyActive;
   const selectedItems = cartItems.filter((item) => item.selected);
 
   const displayHoursLabel = useMemo(() => {
@@ -171,7 +174,7 @@ export default function CartScreen() {
   const [showClearModal, setShowClearModal] = useState(false);
 
   const handleProceed = () => {
-    if (!selectedItems.length || !isPharmacyOpen) {
+    if (!selectedItems.length || !isPharmacyActive) {
       return;
     }
 
@@ -182,6 +185,7 @@ export default function CartScreen() {
       pharmacyLocationLabel,
       total,
       isPharmacyOpen,
+      isPharmacyActive,
       closedPharmacyName,
       pharmacyHoursLabel: displayHoursLabel || pharmacyHoursLabel,
     });
@@ -227,15 +231,29 @@ export default function CartScreen() {
         </View>
       </View>
 
-      {!loading && !errorMessage && !isPharmacyOpen && (
+      {!loading && !errorMessage && !isPharmacyActive && (
         <View className="mx-4 mt-3 bg-[#FFEAEA] border border-[#FFCCCC] rounded-xl p-3 flex-row items-center">
-          <InfoIcon width={18} height={18} />
+          <RedInfoIcon width={18} height={18} />
           <View className="flex-1 ml-2.5">
             <Text className="text-xs text-[#B42318]" style={styles.fontSemiBold}>
-              Pharmacy is Currently Closed
+              Pharmacy Temporarily Inactive
             </Text>
             <Text className="text-[11px] text-[#7A271A] mt-0.5" style={styles.fontMedium}>
-              {closedPharmacyName || 'Selected pharmacy'} is closed right now{displayHoursLabel ? ` (Store hours: ${displayHoursLabel})` : ''}. Orders cannot be processed until store opening.
+              {closedPharmacyName || 'Selected pharmacy'} is temporarily not accepting orders.
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {!loading && !errorMessage && isPharmacyActive && !isPharmacyOpen && (
+        <View className="mx-4 mt-3 bg-[#EFF8FF] border border-[#B2DDFF] rounded-xl p-3 flex-row items-start">
+          <BlueInfoIcon width={18} height={18} style={{ marginTop: 2 }} />
+          <View className="flex-1 ml-2.5">
+            <Text className="text-xs" style={[styles.fontSemiBold, { color: '#444444' }]}>
+              Store is currently closed
+            </Text>
+            <Text className="text-[11px] mt-0.5 leading-4" style={[styles.fontMedium, { color: '#444444' }]}>
+              You can still order now and schedule pickup for tomorrow{displayHoursLabel ? ` (${displayHoursLabel})` : ''}.
             </Text>
           </View>
         </View>
@@ -312,7 +330,7 @@ export default function CartScreen() {
 
         {hasPrescription && (
           <View className="flex-row items-center mx-4 mt-1 mb-2 gap-1">
-            <InfoIcon width={15} height={15} />
+            <BlueInfoIcon width={15} height={15} />
             <Text className="text-[10px] text-gray-500" style={styles.fontMedium}>
               Prescription required for some items.
             </Text>
@@ -324,7 +342,7 @@ export default function CartScreen() {
       <View className="bg-white border-t border-gray-200">
         {!loading && !errorMessage && cartItems.length > 0 && (
           <View className="flex-row items-center bg-[#F9F9F9] px-4 py-1.5 border-b border-gray-100">
-            <InfoIcon width={12} height={12} />
+            <BlueInfoIcon width={12} height={12} />
             <Text className="text-[10px] text-gray-500 ml-1.5" style={styles.fontMedium}>
               Cart is grouped by your pharmacy selections.
             </Text>
@@ -347,7 +365,9 @@ export default function CartScreen() {
               onPress={handleProceed}
               disabled={!canProceed}
             >
-              <Text className="text-sm text-white" style={styles.fontSemiBold}>Proceed</Text>
+              <Text className="text-sm text-white" style={styles.fontSemiBold}>
+                {!isPharmacyOpen ? 'Order for Tomorrow' : 'Proceed'}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
