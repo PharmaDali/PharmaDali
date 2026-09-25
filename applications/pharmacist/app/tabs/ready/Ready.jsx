@@ -3,7 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { colors } from '@shared/theme/colorPalette';
 import { Tabs, ReadyOrderCard } from '@components/pharmacist-orders-and-ready-components';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
-import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
+import { formatDateToMMDDYYYY, formatShortDateTime12h } from '@shared/utils/dateUtils';
 import { getPharmacyOrders } from '@shared/services/orderToPharmacistService';
 
 import { useFocusEffect } from 'expo-router';
@@ -36,10 +36,14 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       orderNumber: order.order_number || String(order.id),
       customerName: `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim() || 'Customer',
       customerAvatar: MaleIcon,
-      pickupTime: (order?.completed_at || order?.picked_up_at || order?.scheduled_pickup_at) 
-        ? (formatDateToMMDDYYYY(order?.completed_at || order?.picked_up_at || order?.scheduled_pickup_at) || 'Waiting...') 
+      pickupSchedule: (order?.scheduled_pickup_at || order?.completed_at || order?.picked_up_at) 
+        ? (formatShortDateTime12h(order?.scheduled_pickup_at || order?.completed_at || order?.picked_up_at) || 'Waiting...') 
         : 'Waiting...',
-      submittedAgo: formatDateToMMDDYYYY(order?.created_at) || 'Recently',
+      pickupTime: (order?.scheduled_pickup_at || order?.completed_at || order?.picked_up_at) 
+        ? (formatShortDateTime12h(order?.scheduled_pickup_at || order?.completed_at || order?.picked_up_at) || 'Waiting...') 
+        : 'Waiting...',
+      placedAt: formatShortDateTime12h(order?.placed_at || order?.created_at) || 'Recently',
+      submittedAgo: formatShortDateTime12h(order?.placed_at || order?.created_at) || 'Recently',
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
       discountIdImagePath: order.discount_id_image_path ? `${baseUrl}/storage/${String(order.discount_id_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null,
