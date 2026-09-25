@@ -32,9 +32,7 @@ class PharmacistWelcomeNotification extends Notification
         $idIcon         = $baseUrl . '/images/icons/id_badge.png';
         $keyIcon        = $baseUrl . '/images/icons/key.png';
 
-        // Android intent:// URL — forces the button to open in Chrome instead of
-        // Gmail's sandboxed in-app WebView, which silently fails to save large APKs.
-        // S.browser_fallback_url is used when Chrome is not installed.
+        // Opens in Chrome instead of Gmail's in-app browser.
         $intentUrl = 'intent://'
             . parse_url($downloadUrl, PHP_URL_HOST)
             . parse_url($downloadUrl, PHP_URL_PATH)
@@ -48,7 +46,7 @@ class PharmacistWelcomeNotification extends Notification
             ->line('Welcome to PharmaDali! Your licensed pharmacist account has been successfully created.')
             ->line('Below are your initial login credentials for the Pharmacist Mobile App:')
 
-            // ── Credentials card ─────────────────────────────────────────────────
+            // Credentials card
             ->line(new HtmlString('
 <table cellpadding="0" cellspacing="0" border="0" width="100%"
        style="margin: 16px 0; background-color: #f0f9ff;
@@ -56,7 +54,6 @@ class PharmacistWelcomeNotification extends Notification
               border-radius: 8px;">
     <tr>
         <td style="padding: 14px 16px;">
-
             <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;
                         text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
                 <img src="' . $idIcon . '" width="13" height="13"
@@ -68,7 +65,6 @@ class PharmacistWelcomeNotification extends Notification
                         margin-bottom: 12px; word-break: break-all;">
                 ' . e($this->employeeNumber) . '
             </div>
-
             <div style="font-size: 11px; color: #64748b; margin-bottom: 4px;
                         text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
                 <img src="' . $keyIcon . '" width="13" height="13"
@@ -80,25 +76,21 @@ class PharmacistWelcomeNotification extends Notification
                         word-break: break-all;">
                 ' . e($this->temporaryPassword) . '
             </div>
-
         </td>
     </tr>
 </table>
 '))
 
-            // ── Download card ─────────────────────────────────────────────────────
+            // Download card
             ->line(new HtmlString('
 <table cellpadding="0" cellspacing="0" border="0" width="100%"
        style="margin: 20px 0; background-color: #ffffff;
-              border: 1px solid #e2e8f0; border-radius: 10px;
-              overflow: hidden;">
+              border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
 
-    <!-- Card header — single column so it wraps cleanly on narrow screens -->
     <tr>
         <td style="background: linear-gradient(135deg, #2aabe2 0%, #0284c7 100%);
                    padding: 12px 16px;">
-            <div style="font-size: 14px; font-weight: 700; color: #ffffff;
-                        line-height: 1.4;">
+            <div style="font-size: 14px; font-weight: 700; color: #ffffff; line-height: 1.4;">
                 <img src="' . $smartphoneIcon . '" width="16" height="16"
                      style="vertical-align: -2px; margin-right: 6px;" alt="" />
                 Pharmacist Mobile App (Android)
@@ -110,17 +102,14 @@ class PharmacistWelcomeNotification extends Notification
         </td>
     </tr>
 
-    <!-- Card body -->
     <tr>
         <td style="padding: 16px;">
-
-            <p style="margin: 0 0 14px 0; font-size: 13px; color: #334155;
-                      line-height: 1.55;">
+            <p style="margin: 0 0 14px 0; font-size: 13px; color: #334155; line-height: 1.55;">
                 Fulfill customer orders, verify prescriptions, and communicate
                 with patients directly from your Android device.
             </p>
 
-            <!-- Full-width download button — works on any screen width -->
+            <!-- Full-width button so it fits any screen size -->
             <table cellpadding="0" cellspacing="0" border="0" width="100%"
                    style="margin: 0 0 16px 0;">
                 <tr>
@@ -140,29 +129,24 @@ class PharmacistWelcomeNotification extends Notification
                 </tr>
             </table>
 
-            <!-- Installation guide -->
             <div style="background-color: #f8fafc; border: 1px solid #e2e8f0;
                         border-radius: 6px; padding: 12px 14px;">
                 <div style="font-size: 11px; font-weight: 700; color: #475569;
-                            margin-bottom: 8px; text-transform: uppercase;
-                            letter-spacing: 0.5px;">
+                            margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
                     Quick Installation Guide
                 </div>
                 <ol style="margin: 0; padding-left: 16px; font-size: 13px;
                            color: #64748b; line-height: 1.7;">
                     <li>Tap <strong>Download Pharmacist App</strong> above.</li>
                     <li>If warned <em>&ldquo;File might be harmful&rdquo;</em>, tap <strong>Download anyway</strong>.</li>
-                    <li>Open the APK from your Downloads folder or notification and tap <strong>Install</strong>.</li>
+                    <li>Open the APK from your Downloads folder and tap <strong>Install</strong>.</li>
                     <li>Sign in with your Employee Number and Temporary Password.</li>
                 </ol>
-                <p style="margin: 10px 0 0 0; font-size: 12px; color: #94a3b8;
-                          line-height: 1.5;">
-                    <strong>Download not finishing?</strong> Tap the &#8942; menu
-                    in Gmail and choose <em>Open in Chrome</em>, then tap the
-                    button again.
+                <p style="margin: 10px 0 0 0; font-size: 12px; color: #94a3b8; line-height: 1.5;">
+                    <strong>Download not finishing?</strong> Tap &#8942; in Gmail
+                    and choose <em>Open in Chrome</em>, then tap the button again.
                 </p>
             </div>
-
         </td>
     </tr>
 </table>
