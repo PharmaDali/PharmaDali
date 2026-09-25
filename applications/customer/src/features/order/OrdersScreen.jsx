@@ -5,12 +5,14 @@ import { colors } from '@src/shared/theme/colorPalette'
 import ActiveOrdersScreen from './ActiveOrdersScreen'
 import CompletedOrdersScreen from './CompletedOrdersScreen'
 import { useCustomerOrders } from './useCustomerOrders'
+import { useOrderSubmission } from '@shared/context/OrderSubmissionContext'
 import SkeletonOrders from '@shared/components/SkeletonOrders'
 
 export default function OrdersScreen() {
   const { tab } = useLocalSearchParams()
   const [activeTab, setActiveTab] = useState(tab === 'completed' ? 'completed' : 'active')
   const [refreshing, setRefreshing] = useState(false)
+  const { optimisticOrders } = useOrderSubmission()
   const {
     loading,
     errorMessage,
@@ -31,6 +33,9 @@ export default function OrdersScreen() {
     setRefreshing(false)
   }, [reloadOrders])
 
+  const hasAnyOrders = activeOrders.length > 0 || completedOrders.length > 0 || (optimisticOrders && optimisticOrders.length > 0)
+  const showSkeleton = loading && !hasAnyOrders
+
   return (
     <View style={styles.container}>
       <View className="items-center">
@@ -50,11 +55,11 @@ export default function OrdersScreen() {
         </View>
       </View>
 
-      {loading && (
+      {showSkeleton && (
         <SkeletonOrders />
       )}
 
-      {!loading && !!errorMessage && (
+      {!showSkeleton && !!errorMessage && !hasAnyOrders && (
         <View className="mx-4 mt-4 bg-[#FFF1F1] border border-[#FFD7D7] rounded-xl p-3">
           <Text className="text-xs text-[#B42318]" style={styles.helperText}>{errorMessage}</Text>
           <TouchableOpacity onPress={reloadOrders} className="mt-2 self-start px-3 py-1.5 bg-[#48AAD9] rounded-lg">
@@ -63,7 +68,7 @@ export default function OrdersScreen() {
         </View>
       )}
 
-      {!loading && !errorMessage && (
+      {!showSkeleton && (hasAnyOrders || !errorMessage) && (
         activeTab === 'active'
           ? <ActiveOrdersScreen orders={activeOrders} onOrderCancelled={reloadOrders} refreshing={refreshing} onRefresh={onRefresh} />
           : <CompletedOrdersScreen orders={completedOrders} refreshing={refreshing} onRefresh={onRefresh} />
