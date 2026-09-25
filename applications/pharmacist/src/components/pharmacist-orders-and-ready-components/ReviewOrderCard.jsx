@@ -321,7 +321,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                     <View className="w-5 h-5 rounded-md items-center justify-center mr-3" style={{ backgroundColor: rememberDiscount ? '#48AAD9' : '#FFFFFF', borderColor: '#48AAD9', borderWidth: 1.5 }}>
                       {rememberDiscount && (
                         <Svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                          <Path d="M5 13l4 4L19 7" stroke="white" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"/>
+                          <Path d="M5 13l4 4L19 7" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
                         </Svg>
                       )}
                     </View>

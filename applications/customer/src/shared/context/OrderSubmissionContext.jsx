@@ -14,6 +14,7 @@ export function useOrderSubmission() {
 
 export function OrderSubmissionProvider({ children }) {
   const [optimisticOrders, setOptimisticOrders] = useState([]);
+  const [lastSubmittedOrder, setLastSubmittedOrder] = useState(null);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
 
   const buildMockOrderForActiveOrders = (localId, payload) => {
@@ -71,7 +72,10 @@ export function OrderSubmissionProvider({ children }) {
   const processSubmission = async (localId, payload) => {
     try {
       // Attempt API submission
-      await submitCheckoutOrder(payload);
+      const result = await submitCheckoutOrder(payload);
+      if (result?.order) {
+        setLastSubmittedOrder(result.order);
+      }
       
       // On success, remove from optimistic orders list
       setOptimisticOrders(prev => prev.filter(o => o.id !== localId));
@@ -108,6 +112,7 @@ export function OrderSubmissionProvider({ children }) {
   return (
     <OrderSubmissionContext.Provider value={{ 
       optimisticOrders, 
+      lastSubmittedOrder,
       submitOptimisticOrder, 
       retrySubmission,
       removeOptimisticOrder

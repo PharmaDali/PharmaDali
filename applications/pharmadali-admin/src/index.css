@@ -26,3 +26,10 @@ body {
     font-size: 16px !important;
   }
 }
+
+/* Rounded Checkmark Icon for all Checkboxes across Admin */
+input[type="checkbox"]:not([role="switch"]):checked,
+.form-check-input:not([role="switch"]):checked {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 13l4 4L19 7'/%3E%3C/svg%3E") !important;
+}
+

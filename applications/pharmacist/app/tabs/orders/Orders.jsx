@@ -8,7 +8,7 @@ import StatusFeedbackModal from '@shared/components/StatusFeedbackModal';
 import ApproveOrderOverlay from '@shared/components/ApproveOrderOverlay';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { getPharmacyOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
-import { formatDateToMMDDYYYY } from '@shared/utils/dateUtils';
+import { formatDateToMMDDYYYY, formatShortDateTime12h } from '@shared/utils/dateUtils';
 import { colors } from '@shared/theme/colorPalette';
 
 const orderTabs = ['For Review', 'Preparing', 'Issues'];
@@ -42,10 +42,14 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       orderNumber: order.order_number || String(order.id),
       customerName: `${customer?.first_name || ''} ${customer?.last_name || ''}`.trim() || 'Customer',
       customerAvatar: MaleIcon,
-      pickupTime: (order?.scheduled_pickup_at || order?.placed_at || order?.created_at)
-        ? (formatDateToMMDDYYYY(order?.scheduled_pickup_at || order?.placed_at || order?.created_at) || 'Waiting...')
+      pickupSchedule: (order?.scheduled_pickup_at || order?.placed_at || order?.created_at)
+        ? (formatShortDateTime12h(order?.scheduled_pickup_at || order?.placed_at || order?.created_at) || 'Waiting...')
         : 'Waiting...',
-      submittedAgo: formatDateToMMDDYYYY(order?.created_at) || 'Recently',
+      pickupTime: (order?.scheduled_pickup_at || order?.placed_at || order?.created_at)
+        ? (formatShortDateTime12h(order?.scheduled_pickup_at || order?.placed_at || order?.created_at) || 'Waiting...')
+        : 'Waiting...',
+      placedAt: formatShortDateTime12h(order?.placed_at || order?.created_at) || 'Recently',
+      submittedAgo: formatShortDateTime12h(order?.placed_at || order?.created_at) || 'Recently',
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
       apiStatus: String(order?.status || '').toLowerCase(),

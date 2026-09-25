@@ -44,10 +44,10 @@ export default function OrderCard({ order, statusBadge, children }) {
         </View>
 
         <Text className="text-xs mt-2" style={{ fontFamily: 'Poppins-Medium', color: colors.textColor }}>
-          Pickup: {order.pickupTime}
+          Pickup Schedule: {order.pickupSchedule || order.pickupTime || 'Waiting...'}
         </Text>
         <Text className="text-xs text-gray-400 mt-1" style={{ fontFamily: 'Poppins-Medium' }}>
-          Submitted {order.submittedAgo}
+          Placed at: {order.placedAt || order.submittedAgo || 'Recently'}
         </Text>
 
         {Boolean(customerNote) && (

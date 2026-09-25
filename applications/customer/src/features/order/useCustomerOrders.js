@@ -2,49 +2,74 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFocusEffect } from 'expo-router'
 import { fetchCustomerOrders } from '@shared/services/orderService'
 import { mapApiOrderToViewModel, splitOrdersByTab } from './orderMappers'
+import { useOrderSubmission } from '@shared/context/OrderSubmissionContext'
+
+// In-memory module cache for instant display across navigations
+let cachedOrdersData = null;
 
 export function useCustomerOrders() {
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { optimisticOrders, lastSubmittedOrder } = useOrderSubmission()
+  const [orders, setOrders] = useState(() => cachedOrdersData || [])
+  const [loading, setLoading] = useState(() => !cachedOrdersData && (!optimisticOrders || optimisticOrders.length === 0))
   const [errorMessage, setErrorMessage] = useState('')
 
-  const loadOrders = useCallback(async () => {
-    setLoading(true)
+  const loadOrders = useCallback(async (isSilent = false) => {
+    // Only show full loading skeleton if there are no cached or optimistic orders
+    if (!isSilent && !cachedOrdersData && (!optimisticOrders || optimisticOrders.length === 0)) {
+      setLoading(true)
+    }
     setErrorMessage('')
 
     try {
       const apiOrders = await fetchCustomerOrders()
-      setOrders(apiOrders.map(mapApiOrderToViewModel))
+      const mapped = apiOrders.map(mapApiOrderToViewModel)
+      cachedOrdersData = mapped
+      setOrders(mapped)
     } catch (error) {
-      setOrders([])
+      if (!cachedOrdersData) {
+        setOrders([])
+      }
       setErrorMessage(error instanceof Error ? error.message : 'Unable to load your orders.')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [optimisticOrders])
+
+  // When an order is placed and finishes background submission, merge it instantly
+  useEffect(() => {
+    if (lastSubmittedOrder?.id) {
+      const mappedNewOrder = mapApiOrderToViewModel(lastSubmittedOrder)
+      setOrders((prev) => {
+        const filtered = prev.filter((o) => o.id !== mappedNewOrder.id)
+        const updated = [mappedNewOrder, ...filtered]
+        cachedOrdersData = updated
+        return updated
+      })
+      loadOrders(true)
+    }
+  }, [lastSubmittedOrder])
 
   useFocusEffect(
     useCallback(() => {
-      loadOrders()
-      
+      const hasExisting = Boolean(cachedOrdersData && cachedOrdersData.length > 0) || (optimisticOrders && optimisticOrders.length > 0)
+      loadOrders(hasExisting)
+
       const intervalId = setInterval(() => {
-        // Silent reload without showing loading state
-        fetchCustomerOrders()
-          .then(apiOrders => setOrders(apiOrders.map(mapApiOrderToViewModel)))
-          .catch(console.error)
-      }, 10000) // 10 seconds
+        loadOrders(true)
+      }, 10000)
 
       return () => clearInterval(intervalId)
-    }, [loadOrders])
+    }, [loadOrders, optimisticOrders])
   )
 
   const grouped = useMemo(() => splitOrdersByTab(orders), [orders])
 
   return {
-    loading,
+    loading: loading && !cachedOrdersData && (!optimisticOrders || optimisticOrders.length === 0),
     errorMessage,
     activeOrders: grouped.active,
     completedOrders: grouped.completed,
-    reloadOrders: loadOrders,
+    reloadOrders: () => loadOrders(false),
   }
 }
+

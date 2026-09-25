@@ -2,7 +2,8 @@
 
 .agents
 
-.env
+.env*
+!.env.example
 
 # Deployment and server setup files
 VPS_PURCHASE_AND_SETUP_GUIDE.md

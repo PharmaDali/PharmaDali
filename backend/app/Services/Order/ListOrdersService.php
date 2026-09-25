@@ -56,6 +56,10 @@ class ListOrdersService
             }
 
             $query->where('customer_id', $user->customer->id);
+
+            if (!request()->has('page') && !request()->has('per_page')) {
+                $query->limit(50);
+            }
         } elseif (in_array($user->role, ['pharmacy_admin', 'pharmacist'], true)) {
             if ($user->role === 'pharmacist' && request('scope_my_sales')) {
                 $query->where('verified_by', $user->id);

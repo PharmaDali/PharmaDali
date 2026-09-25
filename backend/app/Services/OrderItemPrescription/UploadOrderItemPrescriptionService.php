@@ -52,7 +52,15 @@ class UploadOrderItemPrescriptionService
 
         $storedPath = $image->store('prescriptions/order-items', 'public');
 
-        $record = DB::transaction(function () use ($orderItemId, $storedPath, $orderItem) {
+        $existingPrescription = OrderItemPrescription::query()
+            ->where('order_item_id', $orderItemId)
+            ->first();
+
+        $currentOrderStatus = $orderItem->order?->status;
+        $isReupload = ($currentOrderStatus === OrderStatus::STAND_BY || $currentOrderStatus?->value === 'stand_by')
+            || ($existingPrescription && $existingPrescription->status === 'rejected');
+
+        $record = DB::transaction(function () use ($orderItemId, $storedPath, $orderItem, $isReupload) {
             $prescription = OrderItemPrescription::query()->updateOrCreate(
                 ['order_item_id' => $orderItemId],
                 [
@@ -65,7 +73,7 @@ class UploadOrderItemPrescriptionService
             );
 
             $order = $orderItem->order;
-            if ($order && in_array($order->status, [OrderStatus::STAND_BY, OrderStatus::PENDING])) {
+            if ($isReupload && $order && in_array($order->status, [OrderStatus::STAND_BY, OrderStatus::PENDING])) {
                 $order->update([
                     'status' => OrderStatus::REVIEWING,
                     'cancellation_reason' => null,
@@ -76,7 +84,7 @@ class UploadOrderItemPrescriptionService
         });
 
         $order = $orderItem->order?->fresh();
-        if ($order) {
+        if ($order && $isReupload) {
             try {
                 app(ConversationService::class)->appendSystemMessage(
                     $order,
