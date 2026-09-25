@@ -14,6 +14,7 @@ import { useCartTab } from '@shared/hooks/useCartTab';
 import { setCheckoutDraft } from '@shared/services/checkoutDraft';
 import ProductImage from '@shared/components/ProductImage';
 import ClearCartOverlay from '@shared/components/ClearCartOverlay';
+import RoundedCheckIcon from '@shared/components/RoundedCheckIcon';
 import { formatPharmacyHoursLabel } from '@src/utils/pickupScheduleUtils';
 
 import DeleteIcon from '@assets/icons/delete.svg';
@@ -26,7 +27,7 @@ function Checkbox({ checked, onPress }) {
           checked ? 'bg-[#48AAD9] border-[#48AAD9]' : 'border-gray-300 bg-white'
         }`}
       >
-        {checked && <MaterialCommunityIcons name="check" size={12} color="#FFFFFF" />}
+        {checked && <RoundedCheckIcon size={12} color="#FFFFFF" strokeWidth={3.5} />}
       </View>
     </TouchableOpacity>
   );

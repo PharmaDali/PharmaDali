@@ -9,6 +9,7 @@ import StepIndicator from '@src/shared/components/StepIndicator'
 import ProductImage from '@shared/components/ProductImage'
 import RedInfoIcon from '@assets/icons/red_info_icon.svg'
 import BlueInfoIcon from '@assets/icons/blue_info_icon.svg'
+import RoundedCheckIcon from '@shared/components/RoundedCheckIcon'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
 import { formatPharmacyHoursLabel } from '@src/utils/pickupScheduleUtils'
 
@@ -275,7 +276,7 @@ const UploadPrescriptionScreen = () => {
                       confirmed ? 'bg-[#48AAD9] border-[#48AAD9]' : 'border-gray-300 bg-white'
                     }`}
                   >
-                    {confirmed && <Text className="text-white text-[10px]">✓</Text>}
+                    {confirmed && <RoundedCheckIcon size={12} color="#FFFFFF" strokeWidth={3.5} />}
                   </View>
                   <Text className="flex-1 text-[10px]" style={styles.fontMediumGray}>
                     I confirm that this prescription is valid and issued by a licensed physician.
