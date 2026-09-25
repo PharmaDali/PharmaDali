@@ -39,9 +39,9 @@ class PlaceOrderService
 
         $pharmacy = Pharmacy::find($activeCart->pharmacy_id);
         $hoursReason = null;
-        if (!$pharmacy || !$pharmacy->is_active || !$this->operatingHoursChecker->isOrderEligibleWithinHours($pharmacy, new Order(['created_at' => now()]), 1, $hoursReason)) {
-            return $this->errorResponse('The pharmacy is currently closed. Orders cannot be placed at this time.', 422);
-            return $this->errorResponse($hoursReason ?: 'The pharmacy is currently closed. Orders cannot be placed at this time.', 422);
+        $scheduledPickupAt = $payload['scheduled_pickup_at'] ?? null;
+        if (!$this->operatingHoursChecker->isScheduledPickupEligible($pharmacy, $scheduledPickupAt, $hoursReason)) {
+            return $this->errorResponse($hoursReason ?: 'The selected pickup schedule is invalid or outside store operating hours.', 422);
         }
 
         $selectedCartItemIds = $this->normalizeSelectedCartItemIds($payload);

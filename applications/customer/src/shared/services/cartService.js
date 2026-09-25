@@ -370,6 +370,11 @@ export function buildCartViewState(items, selectedPharmacyFallback = null) {
     pharmacyNames,
     pharmacyLocations,
     isPharmacyOpen,
+    isPharmacyActive: activeSource
+      ? (activeSource.isActive ?? activeSource.is_active ?? activeSource.isOperating) !== false &&
+        (activeSource.isActive ?? activeSource.is_active ?? activeSource.isOperating) !== 0 &&
+        (activeSource.isActive ?? activeSource.is_active ?? activeSource.isOperating) !== '0'
+      : true,
     closedPharmacyName,
     pharmacyHoursLabel,
   };
