@@ -49,13 +49,25 @@ class ImportInventoryCsv extends Command
         $this->info($dryRun ? "MODE: [DRY-RUN] (No changes will be saved)" : "MODE: [LIVE IMPORT]");
         $this->info("========================================================================");
 
-        $filePath = $this->option('file') ?: base_path('../Inventory_Items.csv');
-        if (!File::exists($filePath)) {
-            $filePath = 'c:/Dev/PharmaDali/Inventory_Items.csv';
+        $filePath = $this->option('file');
+        if (!$filePath || !File::exists($filePath)) {
+            $candidates = [
+                database_path('seeders/data/Inventory_Items.csv'),
+                base_path('Inventory_Items.csv'),
+                base_path('../Inventory_Items.csv'),
+                '/var/www/pharmadali/Inventory_Items.csv',
+                'c:/Dev/PharmaDali/Inventory_Items.csv',
+            ];
+            foreach ($candidates as $candidate) {
+                if (File::exists($candidate)) {
+                    $filePath = $candidate;
+                    break;
+                }
+            }
         }
 
-        if (!File::exists($filePath)) {
-            $this->error("CSV file not found at: {$filePath}");
+        if (!$filePath || !File::exists($filePath)) {
+            $this->error("CSV file not found. Checked: " . ($this->option('file') ?: implode(', ', $candidates)));
             return Command::FAILURE;
         }
 
