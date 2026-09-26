@@ -50,7 +50,11 @@ class ImportInventoryCsv extends Command
         $this->info("========================================================================");
 
         $filePath = $this->option('file');
-        if (!$filePath || !File::exists($filePath)) {
+        $isStdin = in_array($filePath, ['php://stdin', '-'], true);
+
+        if ($isStdin) {
+            $filePath = 'php://stdin';
+        } elseif (!$filePath || !File::exists($filePath)) {
             $candidates = [
                 database_path('seeders/data/Inventory_Items.csv'),
                 base_path('Inventory_Items.csv'),
@@ -64,25 +68,28 @@ class ImportInventoryCsv extends Command
                     break;
                 }
             }
-        }
 
-        if (!$filePath || !File::exists($filePath)) {
-            $this->error("CSV file not found. Checked: " . ($this->option('file') ?: implode(', ', $candidates)));
-            return Command::FAILURE;
+            if (!$filePath || !File::exists($filePath)) {
+                $this->error("CSV file not found. Checked: " . ($this->option('file') ?: implode(', ', $candidates)));
+                $this->line("Tip: You can pass a path with --file= or pipe stdin with --file=-");
+                return Command::FAILURE;
+            }
         }
 
         $this->info("Reading CSV: {$filePath}");
 
         $handle = fopen($filePath, 'r');
         if (!$handle) {
-            $this->error("Could not open CSV file.");
+            $this->error("Could not open CSV file / stream.");
             return Command::FAILURE;
         }
 
-        // Strip UTF-8 BOM if present
-        $bom = fread($handle, 3);
-        if ($bom !== "\xEF\xBB\xBF") {
-            rewind($handle);
+        // Strip UTF-8 BOM if present on seekable streams
+        if (!$isStdin) {
+            $bom = fread($handle, 3);
+            if ($bom !== "\xEF\xBB\xBF") {
+                rewind($handle);
+            }
         }
 
         $header = fgetcsv($handle);
