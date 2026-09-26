@@ -98,6 +98,24 @@ class CategorySeeder extends Seeder
                 'hero_title'             => 'First Aid & Medical Supplies',
                 'hero_subtitle_template' => 'Since you bought {product_name}, keep your home prepared with these essential medical supplies',
             ],
+            'CREAM/OINTMENT'   => [
+                'background_color'       => '#B059D0',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Personal Care & Hygiene Essentials',
+                'hero_subtitle_template' => 'Complement your purchase of {product_name} with these daily personal care and grooming items',
+            ],
+            'Sanitary'         => [
+                'background_color'       => '#E83E8C',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Feminine & Sanitary Care Essentials',
+                'hero_subtitle_template' => 'Recommended products for you in Sanitary',
+            ],
+            'Others'           => [
+                'background_color'       => '#6C757D',
+                'font_color'             => '#FFFFFF',
+                'hero_title'             => 'Daily Essentials & General Products',
+                'hero_subtitle_template' => 'Recommended products for you in Others',
+            ],
         ];
 
         foreach ($categories as $name => $data) {
