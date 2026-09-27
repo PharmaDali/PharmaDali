@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Image, Modal, ActivityIndicator, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@src/shared/theme/colorPalette';
@@ -87,12 +87,47 @@ const ProductView = () => {
     setIsQuantityModalOpen(true);
   };
 
+  const maxStock = (productData?.stock !== undefined && productData?.stock !== null && Number(productData.stock) > 0)
+    ? Number(productData.stock)
+    : 999;
+
+  const handleQuantityChange = (text) => {
+    const cleaned = text.replace(/[^0-9]/g, '');
+    if (cleaned === '') {
+      setQuantity('');
+      return;
+    }
+    const num = parseInt(cleaned, 10);
+    setQuantity(num > maxStock ? maxStock : num);
+  };
+
+  const handleQuantityBlur = () => {
+    if (!quantity || Number(quantity) < 1) {
+      setQuantity(1);
+    }
+  };
+
+  const handleIncrement = () => {
+    setQuantity((q) => {
+      const current = Number(q) || 0;
+      return Math.min(maxStock, current + 1);
+    });
+  };
+
+  const handleDecrement = () => {
+    setQuantity((q) => {
+      const current = Number(q) || 1;
+      return Math.max(1, current - 1);
+    });
+  };
+
   const handleConfirmAddToCart = () => {
     setIsQuantityModalOpen(false);
+    const finalQuantity = Math.max(1, Number(quantity) || 1);
     addPharmacyProductToCart({
       pharmacyId,
       pharmacyProductId,
-      quantity,
+      quantity: finalQuantity,
       validationMessages: {
         missingProduct: 'Please add this item from the Shop list.',
         missingPharmacy: 'Please select a pharmacy first.',
@@ -246,14 +281,22 @@ const ProductView = () => {
         animationType="fade"
         onRequestClose={() => setIsQuantityModalOpen(false)}
       >
-        <TouchableOpacity
-          className="flex-1 bg-black/50 justify-center items-center px-5"
-          activeOpacity={1}
-          onPress={() => setIsQuantityModalOpen(false)}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
         >
-          <TouchableOpacity
+          {/* Backdrop dismiss press */}
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setIsQuantityModalOpen(false)}
+          >
+            <View style={StyleSheet.absoluteFill} className="bg-black/50" />
+          </Pressable>
+
+          {/* Dialog Card - plain View so TextInput can be focused without touch responder blocking */}
+          <View
             className="bg-white rounded-[20px] p-5 w-full max-w-[320px] shadow-lg elevation-5"
-            activeOpacity={1}
+            style={{ zIndex: 10 }}
           >
             <Text
               className="text-base text-center mb-4"
@@ -290,7 +333,7 @@ const ProductView = () => {
             {/* Quantity selector adjustment controls */}
             <View className="flex-row justify-center items-center mb-5">
               <TouchableOpacity
-                onPress={() => setQuantity(q => Math.max(1, q - 1))}
+                onPress={handleDecrement}
                 className="w-[38px] h-[38px] rounded-[10px] border-2 border-[#48AAD9] justify-center items-center bg-white"
               >
                 <Text
@@ -300,14 +343,18 @@ const ProductView = () => {
                   −
                 </Text>
               </TouchableOpacity>
-              <Text
-                className="mx-[18px] text-base text-[#444444]"
-                style={{ fontFamily: 'Poppins-Bold' }}
-              >
-                {quantity}
-              </Text>
+              <TextInput
+                value={String(quantity)}
+                onChangeText={handleQuantityChange}
+                onBlur={handleQuantityBlur}
+                keyboardType="number-pad"
+                returnKeyType="done"
+                selectTextOnFocus
+                textAlign="center"
+                style={styles.quantityInput}
+              />
               <TouchableOpacity
-                onPress={() => setQuantity(q => q + 1)}
+                onPress={handleIncrement}
                 className="w-[38px] h-[38px] rounded-[10px] border-2 border-[#48AAD9] justify-center items-center bg-white"
               >
                 <Text
@@ -344,8 +391,8 @@ const ProductView = () => {
                 </Text>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -375,6 +422,26 @@ const styles = StyleSheet.create({
   fontMedium: {
     fontFamily: 'Poppins-Medium',
   },
-
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  quantityInput: {
+    width: 60,
+    height: 38,
+    marginHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    backgroundColor: '#F9FAFB',
+    textAlign: 'center',
+    fontSize: 16,
+    fontFamily: 'Poppins-Bold',
+    color: '#444444',
+    paddingVertical: 0,
+    paddingHorizontal: 4,
+  },
 });
 

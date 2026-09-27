@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { colors } from '@shared/theme/colorPalette';
 import AddToCartIcon from '@assets/icons/add_to_cart_icon.svg';
@@ -62,14 +62,47 @@ const ProductCard = ({
     setIsQuantityModalOpen(true);
   };
 
+  const maxStock = (stock !== undefined && stock !== null && Number(stock) > 0) ? Number(stock) : 999;
+
+  const handleQuantityChange = (text) => {
+    const cleaned = text.replace(/[^0-9]/g, '');
+    if (cleaned === '') {
+      setQuantity('');
+      return;
+    }
+    const num = parseInt(cleaned, 10);
+    setQuantity(num > maxStock ? maxStock : num);
+  };
+
+  const handleQuantityBlur = () => {
+    if (!quantity || Number(quantity) < 1) {
+      setQuantity(1);
+    }
+  };
+
+  const handleIncrement = () => {
+    setQuantity((q) => {
+      const current = Number(q) || 0;
+      return Math.min(maxStock, current + 1);
+    });
+  };
+
+  const handleDecrement = () => {
+    setQuantity((q) => {
+      const current = Number(q) || 1;
+      return Math.max(1, current - 1);
+    });
+  };
+
   const handleConfirmAddToCart = () => {
     setIsQuantityModalOpen(false);
+    const finalQuantity = Math.max(1, Number(quantity) || 1);
     if (typeof onAddToCart === 'function') {
       const promise = onAddToCart({
         productId,
         pharmacyProductId,
         pharmacyId,
-        quantity,
+        quantity: finalQuantity,
       });
 
       if (promise && typeof promise.then === 'function') {
@@ -92,47 +125,49 @@ const ProductCard = ({
   };
 
   return (
-    <TouchableOpacity style={[{ width: 150 }, style]} onPress={handlePress}>
-      <View className="rounded-xl bg-gray-50 p-3 border border-gray-200">
-        <ProductImage
-          source={img}
-          product={product}
-          categoryName={categoryName}
-          isAvailable={isAvailable}
-          isOutOfStock={isOutOfStockComputed}
-          stock={stock}
-          width={120}
-          height={120}
-          containerStyle={{ borderRadius: 8, alignSelf: 'center' }}
-        />
-        <Text
-          className="text-xs text-gray-600 mt-2"
-          numberOfLines={1}
-          ellipsizeMode="tail"
-          style={{ fontFamily: 'Poppins-Medium' }}
-        >
-          {category}
-        </Text>
-        {Boolean(isPrescribed) && (
-          <View className="flex-row items-center mt-1">
-            <RxIcon width={12} height={12} />
-            <Text className="text-[10px] ml-1" style={styles.rxText}>Prescription Required</Text>
-          </View>
-        )}
-        <Text className="text-sm mt-2" style={{ fontFamily: 'Poppins-Medium' }} numberOfLines={2}>{description}</Text>
-
-        <View className="flex-row items-center justify-between mt-2">
-          <Text className="text-md" style={styles.priceBold}>{price}</Text>
-          <TouchableOpacity
-            onPress={handleAddToCartPress}
-            hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
-            disabled={!canAddToCart}
-            style={!canAddToCart ? styles.addToCartDisabled : null}
+    <>
+      <TouchableOpacity style={[{ width: 150 }, style]} onPress={handlePress}>
+        <View className="rounded-xl bg-gray-50 p-3 border border-gray-200">
+          <ProductImage
+            source={img}
+            product={product}
+            categoryName={categoryName}
+            isAvailable={isAvailable}
+            isOutOfStock={isOutOfStockComputed}
+            stock={stock}
+            width={120}
+            height={120}
+            containerStyle={{ borderRadius: 8, alignSelf: 'center' }}
+          />
+          <Text
+            className="text-xs text-gray-600 mt-2"
+            numberOfLines={1}
+            ellipsizeMode="tail"
+            style={{ fontFamily: 'Poppins-Medium' }}
           >
-            <AddToCartIcon width={28} height={28} />
-          </TouchableOpacity>
+            {category}
+          </Text>
+          {Boolean(isPrescribed) && (
+            <View className="flex-row items-center mt-1">
+              <RxIcon width={12} height={12} />
+              <Text className="text-[10px] ml-1" style={styles.rxText}>Prescription Required</Text>
+            </View>
+          )}
+          <Text className="text-sm mt-2" style={{ fontFamily: 'Poppins-Medium' }} numberOfLines={2}>{description}</Text>
+
+          <View className="flex-row items-center justify-between mt-2">
+            <Text className="text-md" style={styles.priceBold}>{price}</Text>
+            <TouchableOpacity
+              onPress={handleAddToCartPress}
+              hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
+              disabled={!canAddToCart}
+              style={!canAddToCart ? styles.addToCartDisabled : null}
+            >
+              <AddToCartIcon width={28} height={28} />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Quantity Selection Modal Overlay */}
       <Modal
@@ -141,14 +176,22 @@ const ProductCard = ({
         animationType="fade"
         onRequestClose={() => setIsQuantityModalOpen(false)}
       >
-        <TouchableOpacity
-          className="flex-1 bg-black/50 justify-center items-center px-5"
-          activeOpacity={1}
-          onPress={() => setIsQuantityModalOpen(false)}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
         >
-          <TouchableOpacity
+          {/* Backdrop dismiss press */}
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setIsQuantityModalOpen(false)}
+          >
+            <View style={StyleSheet.absoluteFill} className="bg-black/50" />
+          </Pressable>
+
+          {/* Dialog Card - plain View so TextInput can be focused without touch responder blocking */}
+          <View
             className="bg-white rounded-[20px] p-5 w-full max-w-[320px] shadow-lg elevation-5"
-            activeOpacity={1}
+            style={{ zIndex: 10 }}
           >
             <Text
               className="text-base text-center mb-4"
@@ -187,7 +230,7 @@ const ProductCard = ({
             {/* Quantity selector adjustment controls */}
             <View className="flex-row justify-center items-center mb-5">
               <TouchableOpacity
-                onPress={() => setQuantity(q => Math.max(1, q - 1))}
+                onPress={handleDecrement}
                 className="w-[38px] h-[38px] rounded-[10px] border-2 border-[#48AAD9] justify-center items-center bg-white"
               >
                 <Text
@@ -197,14 +240,18 @@ const ProductCard = ({
                   −
                 </Text>
               </TouchableOpacity>
-              <Text
-                className="mx-[18px] text-base text-[#444444]"
-                style={{ fontFamily: 'Poppins-Bold' }}
-              >
-                {quantity}
-              </Text>
+              <TextInput
+                value={String(quantity)}
+                onChangeText={handleQuantityChange}
+                onBlur={handleQuantityBlur}
+                keyboardType="number-pad"
+                returnKeyType="done"
+                selectTextOnFocus
+                textAlign="center"
+                style={styles.quantityInput}
+              />
               <TouchableOpacity
-                onPress={() => setQuantity(q => q + 1)}
+                onPress={handleIncrement}
                 className="w-[38px] h-[38px] rounded-[10px] border-2 border-[#48AAD9] justify-center items-center bg-white"
               >
                 <Text
@@ -241,10 +288,10 @@ const ProductCard = ({
                 </Text>
               </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
-    </TouchableOpacity>
+    </>
   );
 };
 
@@ -270,6 +317,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  quantityInput: {
+    width: 60,
+    height: 38,
+    marginHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 10,
+    backgroundColor: '#F9FAFB',
+    textAlign: 'center',
+    fontSize: 16,
+    fontFamily: 'Poppins-Bold',
+    color: '#444444',
+    paddingVertical: 0,
+    paddingHorizontal: 4,
+  },
 });
 

@@ -86,8 +86,12 @@ const Categories = () => {
   const loadInitialProducts = useCallback(async (refresh = false) => {
     if (!selectedPharmacyId) return
 
-    if (refresh) setIsRefreshing(true)
-    else setIsLoading(true)
+    if (refresh) {
+      setIsRefreshing(true)
+    } else {
+      setIsLoading(true)
+      setProducts([])
+    }
 
     try {
       const payload = await getProducts(selectedPharmacyId, selectedCategoryId, {
@@ -186,86 +190,84 @@ const Categories = () => {
     </View>
   )
 
-  const ListHeader = () => (
-    <View style={{ zIndex: 100 }}>
-      <Text className="text-2xl px-5 pt-5 pb-2" style={styles.titleBold}>
-        {selectedCategoryLabel === 'All' ? 'All Products' : selectedCategoryLabel}
-      </Text>
+  const hasPriceFilter = (filters?.priceMin !== undefined && filters?.priceMin > 0) || (filters?.priceMax !== undefined && filters?.priceMax < 5000)
+  const priceLabel = `₱${filters?.priceMin ?? 0} - ₱${filters?.priceMax !== undefined && filters?.priceMax < 5000 ? filters.priceMax : '5k+'}`
 
-      <View className="flex-row items-center px-5 pb-4 pt-2" style={{ zIndex: 110 }}>
-        <TouchableOpacity
-          className="w-[42px] h-[42px] rounded-xl bg-white items-center justify-center shadow-lg"
-          onPress={() => setFilterVisible(true)}
-        >
-          <FilterIcon width={22} height={22} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          className="w-[42px] h-[42px] rounded-xl bg-white items-center justify-center ml-2.5 shadow-lg"
-          onPress={() => setSortVisible(true)}
-        >
-          <SortIcon width={22} height={22} />
-        </TouchableOpacity>
+  const hasActiveFilters = Boolean(
+    filters?.availability ||
+    filters?.prescriptionType ||
+    hasPriceFilter ||
+    (filters?.brands && filters?.brands?.length > 0)
+  )
 
-        <View className="flex-1 ml-3" style={{ zIndex: 120 }}>
+  const handleRemoveSort = useCallback(() => {
+    setSelectedSort(null)
+  }, [])
+
+  const handleRemoveAvailability = useCallback(() => {
+    setFilters((prev) => {
+      const next = { ...prev }
+      delete next.availability
+      return next
+    })
+  }, [])
+
+  const handleRemovePrescription = useCallback(() => {
+    setFilters((prev) => {
+      const next = { ...prev }
+      delete next.prescriptionType
+      return next
+    })
+  }, [])
+
+  const handleRemovePrice = useCallback(() => {
+    setFilters((prev) => {
+      const next = { ...prev }
+      delete next.priceMin
+      delete next.priceMax
+      return next
+    })
+  }, [])
+
+  const handleRemoveBrands = useCallback(() => {
+    setFilters((prev) => {
+      const next = { ...prev }
+      delete next.brands
+      return next
+    })
+  }, [])
+
+  const handleClearAllFilters = useCallback(() => {
+    setFilters({})
+    setSelectedSort(null)
+  }, [])
+
+  const currentTitle = selectedSort
+    ? selectedSort
+    : (selectedCategoryLabel === 'All' ? 'All Products' : selectedCategoryLabel)
+
+  const ListEmpty = () => {
+    if (isLoading) return null
+    return (
+      <View className="py-16 items-center justify-center px-6">
+        <Text className="text-base text-gray-500 text-center" style={styles.fontMedium}>
+          No products found matching the selected criteria.
+        </Text>
+        {(hasActiveFilters || selectedSort) && (
           <TouchableOpacity
-            className="flex-row items-center justify-center bg-white rounded-xl h-[42px] px-4 shadow-lg border border-gray-100"
-            onPress={() => setDropdownOpen(!dropdownOpen)}
+            onPress={handleClearAllFilters}
+            className="mt-3 px-4 py-2 bg-[#48AAD9] rounded-xl"
+            activeOpacity={0.8}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
-            <Text className="text-[14px] text-center" style={[styles.fontMedium, { color: '#48AAD9' }]} numberOfLines={1}>
-              {selectedCategoryLabel === 'All' ? 'All Categories' : selectedCategoryLabel}
+            <Text className="text-white text-xs" style={styles.fontMedium}>
+              Clear Filters & Sort
             </Text>
           </TouchableOpacity>
-
-          <Modal visible={dropdownOpen} transparent animationType="fade" onRequestClose={() => setDropdownOpen(false)}>
-            <Pressable className="flex-1 bg-black/30 justify-center items-center px-6" onPress={() => setDropdownOpen(false)}>
-              <Pressable className="bg-white rounded-2xl p-4 w-full max-h-[60%]" onPress={(e) => e.stopPropagation()}>
-                <Text className="text-base mb-3 px-1" style={[styles.titleBold, { color: '#48AAD9' }]}>Select Category</Text>
-                <ScrollView showsVerticalScrollIndicator={true} style={{ maxHeight: 320 }}>
-                  <TouchableOpacity
-                    className={`px-3.5 py-3 rounded-xl mb-1 ${selectedCategoryId === null ? 'bg-[#E8F4FA]' : ''}`}
-                    onPress={() => {
-                      setSelectedCategoryId(null)
-                      setSelectedCategoryLabel('All')
-                      setDropdownOpen(false)
-                    }}
-                  >
-                    <Text style={selectedCategoryId === null ? styles.dropdownActive : styles.dropdownInactive}>All Categories</Text>
-                  </TouchableOpacity>
-                  {!isLoading && selectedPharmacyId && categories.length === 0 && (
-                    <Text className="px-1 py-2 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
-                      No categories found for this pharmacy.
-                    </Text>
-                  )}
-                  {categories.map((cat) => {
-                    const label = toTitleCase(cat?.category_name)
-                    const isActive = String(cat.id) === String(selectedCategoryId)
-                    return (
-                      <TouchableOpacity
-                        key={cat.id}
-                        className={`px-3.5 py-3 rounded-xl mb-1 ${isActive ? 'bg-[#E8F4FA]' : ''}`}
-                        onPress={() => {
-                          setSelectedCategoryId(cat.id)
-                          setSelectedCategoryLabel(label)
-                          setDropdownOpen(false)
-                        }}
-                      >
-                        <Text style={isActive ? styles.dropdownActive : styles.dropdownInactive}>
-                          {label}
-                        </Text>
-                      </TouchableOpacity>
-                    )
-                  })}
-                </ScrollView>
-              </Pressable>
-            </Pressable>
-          </Modal>
-        </View>
+        )}
       </View>
-      {isLoading && (
-        <SkeletonCategoryGrid count={6} />
-      )}
-    </View>
-  )
+    )
+  }
 
   const ListFooter = () => {
     if (!isFetchingMore) return <View className="h-10" />
@@ -277,36 +279,220 @@ const Categories = () => {
   }
 
   return (
-    <View className="flex-1 bg-[#F1F4FF]">
+    <View className="flex-1 bg-white">
       <ToastMessage
         visible={toast.visible}
         message={toast.message}
         type={toast.type}
         topOffset={insets.top + 8}
       />
-      
-      <FlatList
-        data={products}
-        keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
-        renderItem={renderProductItem}
-        numColumns={2}
-        ListHeaderComponent={ListHeader}
-        ListHeaderComponentStyle={{ zIndex: 9999, elevation: 9999, overflow: 'visible' }}
-        ListFooterComponent={ListFooter}
-        onEndReached={loadMoreProducts}
-        onEndReachedThreshold={0.5}
-        columnWrapperStyle={{ paddingHorizontal: 16 }}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={() => loadInitialProducts(true)}
-            colors={['#48AAD9']}
-            tintColor="#48AAD9"
-          />
-        }
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ backgroundColor: 'white', flexGrow: 1 }}
-      />
+
+      {/* Screen Header & Filter/Sort Controls */}
+      <View className="bg-white">
+        <Text className="text-2xl px-5 pt-5 pb-2" style={styles.titleBold}>
+          {currentTitle}
+        </Text>
+
+        <View className="flex-row items-center px-5 pb-3 pt-1">
+          <TouchableOpacity
+            className={`w-[42px] h-[42px] rounded-xl items-center justify-center shadow-lg ${hasActiveFilters ? 'bg-[#E8F4FA] border border-[#48AAD9]' : 'bg-white'}`}
+            onPress={() => setFilterVisible(true)}
+            activeOpacity={0.7}
+          >
+            <FilterIcon width={22} height={22} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            className={`w-[42px] h-[42px] rounded-xl items-center justify-center ml-2.5 shadow-lg ${selectedSort ? 'bg-[#E8F4FA] border border-[#48AAD9]' : 'bg-white'}`}
+            onPress={() => setSortVisible(true)}
+            activeOpacity={0.7}
+          >
+            <SortIcon width={22} height={22} />
+          </TouchableOpacity>
+
+          <View className="flex-1 ml-3">
+            <TouchableOpacity
+              className="flex-row items-center justify-center bg-white rounded-xl h-[42px] px-4 shadow-lg border border-gray-100"
+              onPress={() => setDropdownOpen(!dropdownOpen)}
+              activeOpacity={0.7}
+            >
+              <Text className="text-[14px] text-center" style={[styles.fontMedium, { color: '#48AAD9' }]} numberOfLines={1}>
+                {selectedCategoryLabel === 'All' ? 'All Categories' : selectedCategoryLabel}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Active filter and sort chips */}
+        {(hasActiveFilters || selectedSort) && (
+          <View className="flex-row flex-wrap items-center px-5 pb-3 gap-1.5">
+            {Boolean(selectedSort) && (
+              <TouchableOpacity
+                onPress={handleRemoveSort}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="flex-row items-center bg-[#E8F4FA] border border-[#48AAD9] rounded-full pl-3 pr-2 py-1"
+              >
+                <Text className="text-xs text-[#48AAD9] mr-1.5" style={styles.fontMedium}>
+                  {selectedSort}
+                </Text>
+                <View className="w-4 h-4 rounded-full bg-[#48AAD9]/20 items-center justify-center">
+                  <Text className="text-[10px] text-[#48AAD9] font-bold leading-none">✕</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {Boolean(filters?.availability) && (
+              <TouchableOpacity
+                onPress={handleRemoveAvailability}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="flex-row items-center bg-[#E8F4FA] border border-[#48AAD9] rounded-full pl-3 pr-2 py-1"
+              >
+                <Text className="text-xs text-[#48AAD9] mr-1.5" style={styles.fontMedium}>
+                  {filters.availability}
+                </Text>
+                <View className="w-4 h-4 rounded-full bg-[#48AAD9]/20 items-center justify-center">
+                  <Text className="text-[10px] text-[#48AAD9] font-bold leading-none">✕</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {Boolean(filters?.prescriptionType) && (
+              <TouchableOpacity
+                onPress={handleRemovePrescription}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="flex-row items-center bg-[#E8F4FA] border border-[#48AAD9] rounded-full pl-3 pr-2 py-1"
+              >
+                <Text className="text-xs text-[#48AAD9] mr-1.5" style={styles.fontMedium}>
+                  {filters.prescriptionType}
+                </Text>
+                <View className="w-4 h-4 rounded-full bg-[#48AAD9]/20 items-center justify-center">
+                  <Text className="text-[10px] text-[#48AAD9] font-bold leading-none">✕</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {hasPriceFilter && (
+              <TouchableOpacity
+                onPress={handleRemovePrice}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="flex-row items-center bg-[#E8F4FA] border border-[#48AAD9] rounded-full pl-3 pr-2 py-1"
+              >
+                <Text className="text-xs text-[#48AAD9] mr-1.5" style={styles.fontMedium}>
+                  {priceLabel}
+                </Text>
+                <View className="w-4 h-4 rounded-full bg-[#48AAD9]/20 items-center justify-center">
+                  <Text className="text-[10px] text-[#48AAD9] font-bold leading-none">✕</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {Boolean(filters?.brands?.length) && (
+              <TouchableOpacity
+                onPress={handleRemoveBrands}
+                activeOpacity={0.7}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="flex-row items-center bg-[#E8F4FA] border border-[#48AAD9] rounded-full pl-3 pr-2 py-1"
+              >
+                <Text className="text-xs text-[#48AAD9] mr-1.5" style={styles.fontMedium}>
+                  {filters.brands.join(', ')}
+                </Text>
+                <View className="w-4 h-4 rounded-full bg-[#48AAD9]/20 items-center justify-center">
+                  <Text className="text-[10px] text-[#48AAD9] font-bold leading-none">✕</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              onPress={handleClearAllFilters}
+              activeOpacity={0.7}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              className="px-2 py-1 justify-center"
+            >
+              <Text className="text-xs text-gray-500 underline" style={styles.fontMedium}>
+                Clear all
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      {/* Category Dropdown Modal */}
+      <Modal visible={dropdownOpen} transparent animationType="fade" onRequestClose={() => setDropdownOpen(false)}>
+        <Pressable className="flex-1 bg-black/30 justify-center items-center px-6" onPress={() => setDropdownOpen(false)}>
+          <Pressable className="bg-white rounded-2xl p-4 w-full max-h-[60%]" onPress={(e) => e.stopPropagation()}>
+            <Text className="text-base mb-3 px-1" style={[styles.titleBold, { color: '#48AAD9' }]}>Select Category</Text>
+            <ScrollView showsVerticalScrollIndicator={true} style={{ maxHeight: 320 }}>
+              <TouchableOpacity
+                className={`px-3.5 py-3 rounded-xl mb-1 ${selectedCategoryId === null ? 'bg-[#E8F4FA]' : ''}`}
+                onPress={() => {
+                  setSelectedCategoryId(null)
+                  setSelectedCategoryLabel('All')
+                  setDropdownOpen(false)
+                }}
+              >
+                <Text style={selectedCategoryId === null ? styles.dropdownActive : styles.dropdownInactive}>All Categories</Text>
+              </TouchableOpacity>
+              {!isLoading && selectedPharmacyId && categories.length === 0 && (
+                <Text className="px-1 py-2 text-center" style={{ fontFamily: 'Poppins-Medium', color: '#6B7280' }}>
+                  No categories found for this pharmacy.
+                </Text>
+              )}
+              {categories.map((cat) => {
+                const label = toTitleCase(cat?.category_name)
+                const isActive = String(cat.id) === String(selectedCategoryId)
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    className={`px-3.5 py-3 rounded-xl mb-1 ${isActive ? 'bg-[#E8F4FA]' : ''}`}
+                    onPress={() => {
+                      setSelectedCategoryId(cat.id)
+                      setSelectedCategoryLabel(label)
+                      setDropdownOpen(false)
+                    }}
+                  >
+                    <Text style={isActive ? styles.dropdownActive : styles.dropdownInactive}>
+                      {label}
+                    </Text>
+                  </TouchableOpacity>
+                )
+              })}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Product List or Skeleton */}
+      {isLoading && products.length === 0 ? (
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
+          <SkeletonCategoryGrid count={6} />
+        </ScrollView>
+      ) : (
+        <FlatList
+          data={products}
+          keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
+          renderItem={renderProductItem}
+          numColumns={2}
+          ListEmptyComponent={ListEmpty}
+          ListFooterComponent={ListFooter}
+          onEndReached={loadMoreProducts}
+          onEndReachedThreshold={0.5}
+          columnWrapperStyle={{ paddingHorizontal: 16 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={() => loadInitialProducts(true)}
+              colors={['#48AAD9']}
+              tintColor="#48AAD9"
+            />
+          }
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ backgroundColor: 'white', flexGrow: 1 }}
+        />
+      )}
 
       <SortOverlay
         visible={sortVisible}

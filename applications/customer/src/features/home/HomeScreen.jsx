@@ -20,6 +20,7 @@ import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { toTitleCase } from '@shared/utils/stringUtils';
 import { getCustomerConversations } from '@shared/services/chatService';
+import { formatBranchName } from '@shared/utils/notificationUtils';
 
 export default function HomeScreen() {
   const route = useRouter();
@@ -40,6 +41,7 @@ export default function HomeScreen() {
   } = useHomeTab(selectedPharmacy, setSelectedPharmacy);
   const { toast, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [isPharmacyModalVisible, setIsPharmacyModalVisible] = useState(false);
   const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
 
   useFocusEffect(
@@ -80,7 +82,13 @@ export default function HomeScreen() {
   const handlePharmacySelect = (pharmacy) => {
     setSelectedPharmacy(normalizeSelectedPharmacy(pharmacy));
     setSelectionPhase(false);
+    setIsPharmacyModalVisible(false);
   };
+
+  const cleanSelectedBranch =
+    formatBranchName(selectedPharmacy?.name, selectedPharmacy?.address || selectedPharmacy?.location) ||
+    selectedPharmacy?.name ||
+    'Selected pharmacy';
 
   const handleAddToCart = useCallback(({ pharmacyProductId, quantity = 1 }) => {
     const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id;
@@ -122,29 +130,39 @@ export default function HomeScreen() {
 
   const renderHeader = () => (
     <View>
-      {isSearchVisible && (
-        <SearchOverlay
-          visible={isSearchVisible}
-          onClose={() => setIsSearchVisible(false)}
-          pharmacyId={selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id}
-          onAddToCart={handleAddToCart}
-        />
-      )}
       <View className="flex-row flex-wrap items-center px-4 pt-6">
         <Text style={styles.greetingMedium}>Magandang Araw, </Text>
         <Text style={styles.greetingBold}>{toTitleCase(profile?.first_name) || 'User'}!</Text>
       </View>
 
+      {/* Pharmacy selector button */}
       <View className="px-4 mt-6">
-        <View className={`flex-row items-center rounded-full px-4 py-2 self-end shadow-sm border ${isPharmacyOpen ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'}`}>
-          <View className={`w-6 h-6 rounded-full mr-2 items-center justify-center ${isPharmacyOpen ? 'bg-green-600' : 'bg-red-600'}`}>
-            <StoreIcon width={24} height={24} />
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => setIsPharmacyModalVisible(true)}
+          className={`flex-row items-center rounded-full pl-3 pr-3.5 py-1.5 self-end shadow-sm border ${
+            isPharmacyOpen ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'
+          }`}
+        >
+          <View
+            className={`w-6 h-6 rounded-full mr-2 items-center justify-center ${
+              isPharmacyOpen ? 'bg-green-600' : 'bg-red-600'
+            }`}
+          >
+            <StoreIcon width={16} height={16} />
           </View>
           <Text className="text-sm text-gray-700" style={{ fontFamily: 'Poppins-Medium' }}>
             <Text style={{ fontFamily: 'Poppins-Bold' }}>{pharmacyStatusLabel} </Text>
-            <Text className={isPharmacyOpen ? 'text-green-600' : 'text-red-600'}>|</Text> {selectedPharmacy?.name || 'Selected pharmacy'}
+            <Text className={isPharmacyOpen ? 'text-green-600' : 'text-red-600'}>|</Text>{' '}
+            {cleanSelectedBranch}
           </Text>
-        </View>
+          <MaterialCommunityIcons
+            name="chevron-down"
+            size={18}
+            color={isPharmacyOpen ? '#15803d' : '#b91c1c'}
+            style={{ marginLeft: 3 }}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* ── Hero Section ── */}
@@ -317,6 +335,24 @@ export default function HomeScreen() {
           <View className="absolute top-3 right-3 h-3 w-3 rounded-full bg-red-500 border-2 border-sky-500" />
         )}
       </TouchableOpacity>
+
+      {/* Search overlay */}
+      {isSearchVisible && (
+        <SearchOverlay
+          visible={isSearchVisible}
+          onClose={() => setIsSearchVisible(false)}
+          pharmacyId={selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id}
+          onAddToCart={handleAddToCart}
+        />
+      )}
+
+      {/* Pharmacy selection overlay */}
+      <PharmacySelectionOverlay
+        visible={isPharmacyModalVisible}
+        onSelect={handlePharmacySelect}
+        onClose={() => setIsPharmacyModalVisible(false)}
+        currentPharmacyId={selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id}
+      />
     </View>
   );
 }

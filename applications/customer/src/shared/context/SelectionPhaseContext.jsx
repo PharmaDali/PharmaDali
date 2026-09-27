@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { notifyCartCountUpdated } from '@shared/services/cartCountEvents';
 
 const SelectionPhaseContext = createContext({
   selectionPhase: false,
@@ -19,9 +20,17 @@ export function SelectionPhaseProvider({ children }) {
   useEffect(() => {
     const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id;
     if (pharmacyId) {
-      SecureStore.setItemAsync('customer_selected_pharmacy_id', String(pharmacyId)).catch(() => {});
+      SecureStore.setItemAsync('customer_selected_pharmacy_id', String(pharmacyId))
+        .then(() => {
+          notifyCartCountUpdated({ type: 'pharmacy_changed', pharmacyId: Number(pharmacyId) });
+        })
+        .catch(() => {});
     } else {
-      SecureStore.deleteItemAsync('customer_selected_pharmacy_id').catch(() => {});
+      SecureStore.deleteItemAsync('customer_selected_pharmacy_id')
+        .then(() => {
+          notifyCartCountUpdated({ type: 'pharmacy_changed', pharmacyId: null });
+        })
+        .catch(() => {});
     }
   }, [selectedPharmacy]);
 
