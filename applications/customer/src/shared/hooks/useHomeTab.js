@@ -25,17 +25,34 @@ export function formatProductPrice(value) {
 }
 
 const HOME_PREVIEW_LIMIT = 24;
+const CACHE_TTL_MS = 60 * 1000; // 60 seconds fresh cache
+
+const homeTabCache = {
+  pharmacyId: null,
+  categories: [],
+  pharmacyProducts: [],
+  heroRecommendations: null,
+  recommendations: [],
+  recHasMore: false,
+  timestamp: 0,
+};
+
 
 export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
   const selectedPharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
+  const isCached = Boolean(
+    selectedPharmacyId &&
+    homeTabCache.pharmacyId === selectedPharmacyId &&
+    (homeTabCache.categories.length > 0 || homeTabCache.pharmacyProducts.length > 0)
+  );
 
-  const [loading, setLoading] = useState(!selectedPharmacy);
-  const [categories, setCategories] = useState([]);
-  const [pharmacyProducts, setPharmacyProducts] = useState([]);
-  const [heroRecommendations, setHeroRecommendations] = useState(null);
-  const [recommendations, setRecommendations] = useState([]);
+  const [loading, setLoading] = useState(!selectedPharmacy || !isCached);
+  const [categories, setCategories] = useState(isCached ? homeTabCache.categories : []);
+  const [pharmacyProducts, setPharmacyProducts] = useState(isCached ? homeTabCache.pharmacyProducts : []);
+  const [heroRecommendations, setHeroRecommendations] = useState(isCached ? homeTabCache.heroRecommendations : null);
+  const [recommendations, setRecommendations] = useState(isCached ? homeTabCache.recommendations : []);
   const [recPage, setRecPage] = useState(1);
-  const [recHasMore, setRecHasMore] = useState(false);
+  const [recHasMore, setRecHasMore] = useState(isCached ? homeTabCache.recHasMore : false);
   const [isFetchingMoreRecs, setIsFetchingMoreRecs] = useState(false);
   const isFetchingMoreRecsRef = useRef(false);
   const previousPharmacyIdRef = useRef(null);
@@ -55,11 +72,17 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
   const loadPharmacyData = useCallback(async (isRefresh = false) => {
     if (!selectedPharmacyId) return;
 
+    const hasCached = Boolean(
+      homeTabCache.pharmacyId === selectedPharmacyId &&
+      (homeTabCache.categories.length > 0 || homeTabCache.pharmacyProducts.length > 0)
+    );
+
     if (isRefresh) {
       setRefreshing(true);
-    } else {
+    } else if (!hasCached) {
       setLoading(true);
     }
+
 
     try {
       const [categoriesPayload, productsPayload, recommendationsPayload, pharmacyPayload] = await Promise.all([
@@ -103,26 +126,44 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
         }
       }
 
-      setCategories(normalizeApiList(categoriesPayload));
-      setPharmacyProducts(normalizeApiList(productsPayload));
+      const normCats = normalizeApiList(categoriesPayload);
+      const normProds = normalizeApiList(productsPayload);
+      setCategories(normCats);
+      setPharmacyProducts(normProds);
       
       const recData = recommendationsPayload?.data ?? recommendationsPayload;
+      let finalRecs = [];
+      let finalHasMore = false;
       if (recData && (recData.hero_title || recData.recommendations)) {
         setHeroRecommendations(recData);
-        setRecommendations(recData.recommendations ?? []);
+        finalRecs = recData.recommendations ?? [];
+        finalHasMore = Boolean(recData.has_more);
+        setRecommendations(finalRecs);
         setRecPage(1);
-        setRecHasMore(Boolean(recData.has_more));
+        setRecHasMore(finalHasMore);
       } else {
+        setHeroRecommendations(null);
         setRecommendations([]);
         setRecPage(1);
         setRecHasMore(false);
       }
+
+      // Update module-level cache
+      homeTabCache.pharmacyId = selectedPharmacyId;
+      homeTabCache.categories = normCats;
+      homeTabCache.pharmacyProducts = normProds;
+      homeTabCache.heroRecommendations = recData;
+      homeTabCache.recommendations = finalRecs;
+      homeTabCache.recHasMore = finalHasMore;
+      homeTabCache.timestamp = Date.now();
     } catch {
-      setCategories([]);
-      setPharmacyProducts([]);
-      setRecommendations([]);
-      setRecPage(1);
-      setRecHasMore(false);
+      if (!homeTabCache.pharmacyId) {
+        setCategories([]);
+        setPharmacyProducts([]);
+        setRecommendations([]);
+        setRecPage(1);
+        setRecHasMore(false);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -144,16 +185,26 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
       const newItems = recData?.recommendations ?? [];
 
       if (newItems.length > 0) {
+        let addedCount = 0;
         setRecommendations((prev) => {
           const existingIds = new Set(prev.map((item) => item.id));
           const filteredNew = newItems.filter((item) => !existingIds.has(item.id));
-          return [...prev, ...filteredNew];
+          addedCount = filteredNew.length;
+          return filteredNew.length > 0 ? [...prev, ...filteredNew] : prev;
         });
-        setRecPage(nextPage);
+
+        // If no new items were added (all were duplicates) or has_more is false, terminate pagination
+        if (addedCount > 0 && recData?.has_more) {
+          setRecPage(nextPage);
+          setRecHasMore(true);
+        } else {
+          setRecHasMore(false);
+        }
+      } else {
+        setRecHasMore(false);
       }
-      setRecHasMore(Boolean(recData?.has_more));
     } catch {
-      // Silently fail — user can scroll again
+      setRecHasMore(false);
     } finally {
       isFetchingMoreRecsRef.current = false;
       setIsFetchingMoreRecs(false);
@@ -162,9 +213,23 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
 
   useEffect(() => {
     if (!selectedPharmacyId) return;
+
+    const isCacheFresh = Boolean(
+      homeTabCache.pharmacyId === selectedPharmacyId &&
+      homeTabCache.timestamp &&
+      (Date.now() - homeTabCache.timestamp < CACHE_TTL_MS) &&
+      (homeTabCache.categories.length > 0 || homeTabCache.pharmacyProducts.length > 0)
+    );
+
+    // If data was fetched within the last 60 seconds for this pharmacy, do NOT re-fetch on tab switch!
+    if (isCacheFresh) {
+      return;
+    }
+
     previousPharmacyIdRef.current = selectedPharmacyId;
     loadPharmacyData(false);
   }, [selectedPharmacyId, loadPharmacyData]);
+
 
   const refetch = useCallback(() => {
     return loadPharmacyData(true);

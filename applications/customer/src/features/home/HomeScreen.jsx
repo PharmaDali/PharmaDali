@@ -43,9 +43,16 @@ export default function HomeScreen() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isPharmacyModalVisible, setIsPharmacyModalVisible] = useState(false);
   const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
+  const lastConversationsCheckRef = React.useRef(0);
 
   useFocusEffect(
     useCallback(() => {
+      const now = Date.now();
+      if (now - lastConversationsCheckRef.current < 30000) {
+        return;
+      }
+      lastConversationsCheckRef.current = now;
+
       let isMounted = true;
       getCustomerConversations()
         .then((result) => {
@@ -73,6 +80,7 @@ export default function HomeScreen() {
       };
     }, [])
   );
+
 
   const pharmacyStatusLabel = selectedPharmacy?.isOpen
     ? (selectedPharmacy?.formattedClosingHour ? `Open til ${selectedPharmacy.formattedClosingHour}` : 'Open now')
@@ -109,13 +117,20 @@ export default function HomeScreen() {
     });
   }, [selectedPharmacy, showError]);
 
-  if (loading) {
+  const hasDisplayContent = Boolean(
+    (categories && categories.length > 0) ||
+    (pharmacyProducts && pharmacyProducts.length > 0) ||
+    (recommendations && recommendations.length > 0)
+  );
+
+  if (loading && !hasDisplayContent) {
     return (
       <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
         <SkeletonHome />
       </View>
     );
   }
+
 
   if (!selectedPharmacy) {
     return (
@@ -128,7 +143,41 @@ export default function HomeScreen() {
 
   const recommendationFeedData = recommendations?.length ? recommendations : (pharmacyProducts ?? []);
 
+  const renderProductItem = useCallback(({ item }) => {
+    const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
+
+    return (
+      <View style={{ width: '48%' }}>
+        <ProductCard
+          productId={String(item?.product_id ?? '')}
+          pharmacyProductId={item?.id}
+          pharmacyId={pharmacyId}
+          img={item?.product?.image_url}
+          product={item?.product}
+          categoryName={item?.category?.category_name}
+          description={item?.product?.product_name || 'Unnamed product'}
+          category={item?.category?.category_name || 'Uncategorized'}
+          price={formatProductPrice(item?.selling_price)}
+          isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
+          isAvailable={
+            (item?.is_available == null
+              ? true
+              : (typeof item?.is_available === 'boolean'
+                ? item.is_available
+                : Number(item.is_available) === 1)) &&
+            (item?.is_expired == null ? true : !Boolean(Number(item.is_expired)))
+          }
+          isOutOfStock={Boolean(item?.is_out_of_stock) || (item?.stock !== undefined && Number(item?.stock) <= 0)}
+          stock={item?.stock}
+          onAddToCart={handleAddToCart}
+          style={{ width: '100%' }}
+        />
+      </View>
+    );
+  }, [selectedPharmacy?.id, selectedPharmacy?.pharmacy_id, handleAddToCart]);
+
   const renderHeader = () => (
+
     <View>
       <View className="flex-row flex-wrap items-center px-4 pt-6">
         <Text style={styles.greetingMedium}>Magandang Araw, </Text>
@@ -287,39 +336,13 @@ export default function HomeScreen() {
             tintColor="#48AAD9"
           />
         }
-        renderItem={({ item }) => {
-          const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
-
-          return (
-            <View style={{ width: '48%' }}>
-              <ProductCard
-                productId={String(item?.product_id ?? '')}
-                pharmacyProductId={item?.id}
-                pharmacyId={pharmacyId}
-                img={item?.product?.image_url}
-                product={item?.product}
-                categoryName={item?.category?.category_name}
-                description={item?.product?.product_name || 'Unnamed product'}
-                category={item?.category?.category_name || 'Uncategorized'}
-                price={formatProductPrice(item?.selling_price)}
-                isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
-                isAvailable={
-                  (item?.is_available == null
-                    ? true
-                    : (typeof item?.is_available === 'boolean'
-                      ? item.is_available
-                      : Number(item.is_available) === 1)) &&
-                  (item?.is_expired == null ? true : !Boolean(Number(item.is_expired)))
-                }
-                isOutOfStock={Boolean(item?.is_out_of_stock) || (item?.stock !== undefined && Number(item?.stock) <= 0)}
-                stock={item?.stock}
-                onAddToCart={handleAddToCart}
-                style={{ width: '100%' }}
-              />
-            </View>
-          );
-        }}
+        renderItem={renderProductItem}
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={5}
+        removeClippedSubviews={true}
       />
+
 
       <TouchableOpacity
         onPress={() => {
