@@ -30,10 +30,16 @@ class CustomerCartService
             ], 403);
         }
 
+        $pharmacyId = request()->header('X-Pharmacy-ID') ?? request()->query('pharmacy_id');
+
         $count = CartItem::query()
-            ->whereHas('cart', function ($query) use ($customerId) {
+            ->whereHas('cart', function ($query) use ($customerId, $pharmacyId) {
                 $query->where('customer_id', $customerId)
                     ->where('status', 'active');
+
+                if ($pharmacyId) {
+                    $query->where('pharmacy_id', (int) $pharmacyId);
+                }
             })->count();
 
         return response()->json([

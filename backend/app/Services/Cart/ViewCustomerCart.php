@@ -26,6 +26,8 @@ class ViewCustomerCart
 			], 403);
 		}
 
+		$pharmacyId = request()->header('X-Pharmacy-ID') ?? request()->query('pharmacy_id');
+
 		$cartItems = CartItem::query()
 			->with([
 				'cart:id,customer_id,pharmacy_id,status',
@@ -35,9 +37,13 @@ class ViewCustomerCart
 				'pharmacyProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
 				'pharmacyProduct.category:id,category_name,description',
 			])
-			->whereHas('cart', function ($query) use ($customerId) {
+			->whereHas('cart', function ($query) use ($customerId, $pharmacyId) {
 				$query->where('customer_id', $customerId)
 					->where('status', 'active');
+
+				if ($pharmacyId) {
+					$query->where('pharmacy_id', (int) $pharmacyId);
+				}
 			})
 			->latest('id')
 			->get();

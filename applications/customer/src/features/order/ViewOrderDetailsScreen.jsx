@@ -2,6 +2,7 @@ import { ActivityIndicator, Text, View, ScrollView, TouchableOpacity, Image, Sty
 import React, { useEffect, useState, useCallback } from 'react'
 import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { colors } from '@src/shared/theme/colorPalette'
 import { StatusBadge, ProductRow } from '@src/shared/components/OrderComponents'
 import CancelOrderOverlay from '@src/shared/components/CancelOrderOverlay'
@@ -283,8 +284,16 @@ export default function ViewOrderDetailsScreen() {
       <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-4 p-4">
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
           <View style={{ flex: 1, marginRight: 12 }}>
+            {Boolean(order.branchName || order.pharmacyName) && (
+              <View className="self-start bg-sky-50 border border-sky-200 rounded-full px-2 py-0.5 flex-row items-center mb-1.5">
+                <MaterialCommunityIcons name="storefront-outline" size={11} color="#0284c7" style={{ marginRight: 3.5 }} />
+                <Text className="text-[10.5px] text-sky-800" style={{ fontFamily: 'Poppins-SemiBold' }}>
+                  {order.branchName || order.pharmacyName}
+                </Text>
+              </View>
+            )}
             <Text className="text-sm" style={styles.textBold}>Order #{order.orderNumber}</Text>
-            <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>{order.date}</Text>
+            <Text className="text-xs text-gray-500 mt-0.5" style={styles.fontMedium}>{order.date}</Text>
           </View>
           <View style={{ flexShrink: 0 }}>
             <StatusBadge status={order.status} />
@@ -593,6 +602,31 @@ export default function ViewOrderDetailsScreen() {
           </View>
         )}
       </View>
+
+      {/* Branch & Pickup Location Card */}
+      {Boolean(order.branchName || order.pharmacyName || order.location) && (
+        <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-3 p-4">
+          <View className="flex-row items-center mb-1">
+            <View className="w-8 h-8 rounded-full bg-sky-100 items-center justify-center mr-3">
+              <MaterialCommunityIcons name="storefront" size={16} color="#0284c7" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[11px] text-gray-400" style={styles.fontMedium}>Pickup Pharmacy Branch</Text>
+              <Text className="text-sm text-gray-800" style={styles.textBold}>
+                {order.branchName || order.pharmacyName}
+              </Text>
+            </View>
+          </View>
+          {Boolean(order.location) && (
+            <View className="flex-row items-center pl-11 mt-0.5">
+              <MaterialCommunityIcons name="map-marker-outline" size={13} color="#64748B" style={{ marginRight: 4 }} />
+              <Text className="text-xs text-slate-500" style={styles.fontMedium}>
+                {order.location}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Re-Upload Photo Section for On-Hold Orders */}
       {isStandBy && !isPrescriptionRejected && (
