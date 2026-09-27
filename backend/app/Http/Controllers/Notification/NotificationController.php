@@ -50,6 +50,7 @@ class NotificationController extends Controller
 
                 if ($order->pharmacy) {
                     $data['pharmacy_name'] = $data['pharmacy_name'] ?? ($order->pharmacy->pharmacy_name ?? $order->pharmacy->name);
+                    $data['branch_name'] = $data['branch_name'] ?? $order->pharmacy->branch_name;
                     $data['location'] = $data['location'] ?? ($order->pharmacy->location ?? $order->pharmacy->city ?? $order->pharmacy->address);
                 }
 
@@ -66,6 +67,16 @@ class NotificationController extends Controller
                 }
             }
 
+            if (empty($data['branch_name']) && !empty($data['pharmacy_name'])) {
+                $rawName = trim($data['pharmacy_name']);
+                $cleaned = preg_replace('/^\(?pharma\s*dali\)?\s*[-–—:\/]*\s*/i', '', $rawName);
+                $cleaned = preg_replace('/\s*[-–—:\/]*\s*\(?pharma\s*dali\)?$/i', '', $cleaned);
+                $cleaned = trim($cleaned, "()[]-–—: \t\n\r\0\x0B");
+                $data['branch_name'] = ($cleaned !== '' && !preg_match('/^pharma\s*dali$/i', $cleaned))
+                    ? $cleaned
+                    : ($data['location'] ?? $data['pharmacy_name']);
+            }
+
             return [
                 'id' => $notif->id,
                 'type' => $data['type'] ?? 'System Alert',
@@ -77,6 +88,7 @@ class NotificationController extends Controller
                 'order_number' => $data['order_number'] ?? null,
                 'status' => $data['status'] ?? null,
                 'pharmacy_name' => $data['pharmacy_name'] ?? null,
+                'branch_name' => $data['branch_name'] ?? null,
                 'location' => $data['location'] ?? null,
                 'order_date' => $data['order_date'] ?? null,
                 'dateTime' => $notif->created_at ? $notif->created_at->format('M. d, Y g:i A') : '',

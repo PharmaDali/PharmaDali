@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useProfile } from '@src/shared/hooks/useProfile';
+import { formatBranchName } from '@shared/utils/notificationUtils';
 
 const getNotificationTitle = (typeStr, customTitle, statusStr) => {
   if (customTitle && typeof customTitle === 'string' && customTitle.trim()) {
@@ -69,9 +70,7 @@ const getCustomerNotificationMessage = ({
   const orderRef = formattedOrderNum ? `order ${formattedOrderNum}` : 'your order';
 
   let branchText = '';
-  if (pharmacyName && location) {
-    branchText = ` at ${pharmacyName} - ${location}`;
-  } else if (pharmacyName) {
+  if (pharmacyName) {
     branchText = ` at ${pharmacyName}`;
   } else if (location) {
     branchText = ` at our branch in ${location}`;
@@ -202,7 +201,11 @@ export default function CustomerNotificationDetailsScreen() {
     getParam(params.customerName) ||
     getParam(params.customer_name) ||
     getParam(params.customer);
+  const branchNameParam =
+    getParam(params.branchName) ||
+    getParam(params.branch_name);
   const pharmacyName =
+    branchNameParam ||
     getParam(params.pharmacyName) ||
     getParam(params.pharmacy_name) ||
     getParam(params.pharmacy);
@@ -242,6 +245,7 @@ export default function CustomerNotificationDetailsScreen() {
 
   const finalPharmacy = pharmacyName || extractedPharmacy || null;
   const finalLocation = location || extractedLocation || null;
+  const cleanBranch = formatBranchName(branchNameParam || finalPharmacy, finalLocation);
 
   const customerFirstName =
     profile?.first_name?.trim() ||
@@ -253,7 +257,7 @@ export default function CustomerNotificationDetailsScreen() {
     typeStr: type,
     customerFirstName,
     orderNumber: resolvedOrderNumber,
-    pharmacyName: finalPharmacy,
+    pharmacyName: cleanBranch,
     location: finalLocation,
     originalMessage: message,
   });
@@ -380,27 +384,27 @@ export default function CustomerNotificationDetailsScreen() {
                   </View>
                 ) : null}
 
-                {/* Pharmacy Name */}
-                {finalPharmacy ? (
+                {/* Branch Name */}
+                {cleanBranch ? (
                   <View className="flex-row justify-between items-center py-2">
                     <Text
                       className="text-[12.5px] text-slate-500 shrink-0"
                       style={{ fontFamily: 'Poppins-SemiBold' }}
                     >
-                      Pharmacy
+                      Branch
                     </Text>
                     <Text
                       className="text-xs text-[#333333] text-right shrink ml-2"
                       style={{ fontFamily: 'Poppins-Regular' }}
                       numberOfLines={1}
                     >
-                      {finalPharmacy}
+                      {cleanBranch}
                     </Text>
                   </View>
                 ) : null}
 
                 {/* Location */}
-                {finalLocation ? (
+                {finalLocation && finalLocation !== cleanBranch ? (
                   <View className="flex-row justify-between items-center py-2">
                     <Text
                       className="text-[12.5px] text-slate-500 shrink-0"

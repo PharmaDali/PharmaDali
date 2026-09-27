@@ -15,6 +15,7 @@ import ClockIcon from '@assets/icons/clock_icon.svg'
 import { useNotifications } from '@shared/hooks/useNotifications'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import ClearNotificationsOverlay from '@shared/components/ClearNotificationsOverlay'
+import { formatBranchName } from '@shared/utils/notificationUtils'
 
 const PAGE_SIZE = 10;
 
@@ -110,6 +111,11 @@ const Notifications = () => {
       item.location ||
       item.city ||
       '';
+    const rawBranch =
+      item.branch_name ||
+      parsedData.branch_name ||
+      resolvedPharmacy;
+    const resolvedBranch = formatBranchName(rawBranch, resolvedLocation);
     const resolvedOrderNumber =
       parsedData.order_number ||
       parsedData.orderNumber ||
@@ -140,8 +146,9 @@ const Notifications = () => {
         message: getNotificationMessage(parsedData),
         orderId: resolvedOrderId ? String(resolvedOrderId) : '',
         orderNumber: resolvedOrderNumber,
-        pharmacyName: resolvedPharmacy,
-        pharmacy_name: resolvedPharmacy,
+        branchName: resolvedBranch,
+        pharmacyName: resolvedBranch || resolvedPharmacy,
+        pharmacy_name: resolvedBranch || resolvedPharmacy,
         customerName: resolvedCustomer,
         customer_name: resolvedCustomer,
         location: resolvedLocation,
@@ -174,6 +181,22 @@ const Notifications = () => {
 
     const message = getNotificationMessage(parsedData);
 
+    const rawPharmacy =
+      item.branch_name ||
+      parsedData.branch_name ||
+      item.pharmacy_name ||
+      parsedData.pharmacy_name ||
+      item.pharmacy ||
+      parsedData.pharmacy ||
+      '';
+    const rawLocation =
+      item.location ||
+      parsedData.location ||
+      item.city ||
+      parsedData.city ||
+      '';
+    const branchName = formatBranchName(rawPharmacy, rawLocation);
+
     return (
       <SwipeableNotificationCard
         key={item.id}
@@ -183,6 +206,7 @@ const Notifications = () => {
         isRead={!!item.read_at}
         title={title}
         message={message}
+        branchName={branchName}
         timestamp={timeAgo(item.created_at || item.dateTime)}
       />
     );
@@ -300,6 +324,7 @@ function SwipeableNotificationCard({
   message,
   timestamp,
   isRead,
+  branchName,
 }) {
   // Keep the Animated.Value in a ref but do NOT call .current immediately —
   // access via panValue.current everywhere so useEffect can reset it.
@@ -390,18 +415,33 @@ function SwipeableNotificationCard({
                   : 'bg-white border-sky-100 shadow-sm'
               }`}
             >
-              {/* Title row */}
-              <View className="flex-row items-center mb-1">
-                {!isRead && (
-                  <View className="w-2 h-2 rounded-full bg-sky-400 mr-2 flex-shrink-0" />
+              {/* Title & Branch Row */}
+              <View className="flex-row items-center justify-between mb-1.5">
+                <View className="flex-row items-center flex-1 mr-2">
+                  {!isRead && (
+                    <View className="w-2 h-2 rounded-full bg-sky-400 mr-2 flex-shrink-0" />
+                  )}
+                  <Text
+                    className={`text-sm flex-1 ${isRead ? 'text-slate-400' : 'text-slate-800'}`}
+                    style={{ fontFamily: 'Poppins-SemiBold' }}
+                    numberOfLines={1}
+                  >
+                    {title}
+                  </Text>
+                </View>
+
+                {!!branchName && (
+                  <View className="flex-row items-center bg-sky-50 border border-sky-200/80 px-2 py-0.5 rounded-full shrink-0">
+                    <MaterialCommunityIcons name="storefront-outline" size={11} color="#0284c7" />
+                    <Text
+                      className="text-[10px] text-sky-700 ml-1"
+                      style={{ fontFamily: 'Poppins-SemiBold' }}
+                      numberOfLines={1}
+                    >
+                      {branchName}
+                    </Text>
+                  </View>
                 )}
-                <Text
-                  className={`text-sm flex-1 ${isRead ? 'text-slate-400' : 'text-slate-800'}`}
-                  style={{ fontFamily: 'Poppins-SemiBold' }}
-                  numberOfLines={1}
-                >
-                  {title}
-                </Text>
               </View>
 
               {/* Message body */}

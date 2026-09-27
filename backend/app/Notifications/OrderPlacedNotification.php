@@ -87,15 +87,20 @@ class OrderPlacedNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $branchName = $this->order->pharmacy?->branch_name;
+        $branchText = $branchName ? " at {$branchName}" : "";
+        $message = 'Your order #' . $this->order->order_number . $branchText . ' has been successfully placed.';
+
         if ($notifiable->fcm_token && !$this->pushSent) {
             $this->pushSent = true;
             try {
                 app(FcmService::class)->sendPushNotification(
                     $notifiable,
                     'Order Placed Successfully',
-                    'Your order #' . $this->order->order_number . ' has been received.',
+                    'Your order #' . $this->order->order_number . $branchText . ' has been received.',
                     [
                         'order_id' => (string) $this->order->id,
+                        'branch_name' => (string) ($branchName ?? ''),
                         'type' => 'order_placed',
                     ]
                 );
@@ -108,7 +113,11 @@ class OrderPlacedNotification extends Notification implements ShouldQueue
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
             'total_amount' => $this->order->total_amount,
-            'message' => 'Your order #' . $this->order->order_number . ' has been successfully placed.',
+            'pharmacy_id' => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name' => $branchName,
+            'location' => $this->order->pharmacy?->location,
+            'message' => $message,
             'type' => 'order_placed',
         ];
     }
@@ -118,12 +127,20 @@ class OrderPlacedNotification extends Notification implements ShouldQueue
      */
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $branchName = $this->order->pharmacy?->branch_name;
+        $branchText = $branchName ? " at {$branchName}" : "";
+        $message = 'Your order #' . $this->order->order_number . $branchText . ' has been successfully placed.';
+
         return new BroadcastMessage([
             'id' => $this->id,
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
             'total_amount' => $this->order->total_amount,
-            'message' => 'Your order #' . $this->order->order_number . ' has been successfully placed.',
+            'pharmacy_id' => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name' => $branchName,
+            'location' => $this->order->pharmacy?->location,
+            'message' => $message,
             'type' => 'order_placed',
         ]);
     }

@@ -119,3 +119,32 @@ export async function removeFcmTokenFromBackend() {
     console.error('[Push] Failed to remove token:', err);
   }
 }
+
+/**
+ * Formats and extracts the clean branch name.
+ */
+export function formatBranchName(pharmacyName, location) {
+  if (!pharmacyName && !location) return '';
+  const raw = String(pharmacyName || '').trim();
+
+  let cleaned = raw
+    .replace(/^\(?pharma\s*dali\)?\s*[-–—:\/]*\s*/i, '')
+    .replace(/\s*[-–—:\/]*\s*\(?pharma\s*dali\)?$/i, '')
+    .replace(/^[-–—:\/\s]+|[-–—:\/\s]+$/g, '')
+    .trim();
+
+  if (cleaned.startsWith('(') && cleaned.endsWith(')')) {
+    cleaned = cleaned.slice(1, -1).trim();
+  } else if (cleaned.startsWith('[') && cleaned.endsWith(']')) {
+    cleaned = cleaned.slice(1, -1).trim();
+  }
+
+  if (!cleaned || /^pharma\s*dali$/i.test(cleaned)) {
+    if (location && String(location).trim()) {
+      return String(location).trim();
+    }
+    return raw || '';
+  }
+
+  return cleaned;
+}
