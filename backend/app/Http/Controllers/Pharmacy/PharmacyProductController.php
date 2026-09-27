@@ -104,6 +104,15 @@ class PharmacyProductController extends Controller
     ) {
         $validated = $request->validated();
 
+        // Lightweight autocomplete suggestions
+        if ($request->has('query') && !empty($validated['query']) && $request->boolean('suggestions')) {
+            $names = $searchPharmacyProductService->suggestions(
+                pharmacyId: (int) $validated['pharmacy_id'],
+                query: $validated['query'],
+            );
+            return response()->json(['status' => 'success', 'data' => $names]);
+        }
+
         if ($request->has('query') && !empty($validated['query'])) {
             $paginator = $searchPharmacyProductService->handle(
                 pharmacyId: (int) $validated['pharmacy_id'],
@@ -114,7 +123,8 @@ class PharmacyProductController extends Controller
         } else {
             $user = $request->user('sanctum') ?? $request->user();
             $recommendedProductIds = [];
-            if ($user) {
+            $hasExplicitSort = !empty($validated['sort']);
+            if ($user && !$hasExplicitSort) {
                 $recService = app(\App\Services\CustomerRecommendationService::class);
                 $recommendedProductIds = $recService->getRecommendedProductIds($user, (int) $validated['pharmacy_id']);
             }
@@ -125,15 +135,26 @@ class PharmacyProductController extends Controller
                 perPage: (int) ($validated['per_page'] ?? 20),
                 cursor: $validated['cursor'] ?? null,
                 recommendedProductIds: $recommendedProductIds,
+                filters: [
+                    'price_min' => $validated['price_min'] ?? null,
+                    'price_max' => $validated['price_max'] ?? null,
+                    'brands' => $validated['brands'] ?? null,
+                    'availability' => $validated['availability'] ?? null,
+                    'prescription_type' => $validated['prescription_type'] ?? null,
+                ],
+                sort: $validated['sort'] ?? null,
             );
         }
 
         return response()->json([
             'status' => 'success',
             'data' => $paginator->items(),
-            'next_cursor' => $paginator->nextCursor()?->encode(),
+            'next_cursor' => method_exists($paginator, 'nextCursor')
+                ? $paginator->nextCursor()?->encode()
+                : ($paginator->hasMorePages() ? (string) ($paginator->currentPage() + 1) : null),
             'has_more' => $paginator->hasMorePages(),
         ]);
+
     }
 
     /**

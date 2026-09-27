@@ -44,6 +44,14 @@ class ShowPharmacyProductRequest extends FormRequest
             'cursor' => ['nullable', 'string'],
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:50'],
             'query' => ['sometimes', 'string', 'min:1', 'max:100'],
+            'suggestions' => ['sometimes', 'boolean'],
+
+            'price_min' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'price_max' => ['sometimes', 'nullable', 'numeric', 'min:0'],
+            'brands' => ['sometimes', 'nullable'],
+            'availability' => ['sometimes', 'nullable', 'string'],
+            'prescription_type' => ['sometimes', 'nullable', 'string'],
+            'sort' => ['sometimes', 'nullable', 'string'],
         ];
     }
 }

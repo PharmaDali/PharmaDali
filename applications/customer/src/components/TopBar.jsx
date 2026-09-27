@@ -11,7 +11,8 @@ import CartButton from '@shared/components/CartButton'
 const TopBar = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const { searchQuery, setSearchQuery } = useSearchContext();
+  const { searchQuery, setSearchQuery, triggerSubmit } = useSearchContext();
+
   const searchInputRef = useRef(null);
 
   // Unactivate search bar whenever navigating away from the Search tab
@@ -58,6 +59,12 @@ const TopBar = () => {
           if (pathname !== '/tabs/Search') {
             router.push('/tabs/Search');
           }
+        }}
+        onSubmitEditing={() => {
+          if (pathname !== '/tabs/Search') {
+            router.push('/tabs/Search');
+          }
+          triggerSubmit();
         }}
         onFocus={() => {
           if (pathname !== '/tabs/Search') {
