@@ -12,6 +12,10 @@ EAS_OTA_UPDATE_TUTORIAL.md
 
 # Client data exports
 backend/database/seeders/data/
+*.csv
+*.xlsx
+*.xls
+INVENTORY_IMPORT_GUIDE.md
 
 # Backups and database dumps
 *.sql
