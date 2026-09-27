@@ -28,4 +28,7 @@ _ide_helper_models.php
 
 # Client data exports
 /database/seeders/data/
+*.csv
+*.xlsx
+*.xls
 

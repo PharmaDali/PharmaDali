@@ -56,16 +56,21 @@ class OrderExpiredNotification extends Notification implements ShouldQueue
      */
     public function toArray(object $notifiable): array
     {
+        $branchName = $this->order->pharmacy?->branch_name;
+        $branchSuffix = $branchName ? " at {$branchName}" : "";
+        $message = "Your order #{$this->order->order_number} expired because it could not be fulfilled before closing time{$branchSuffix}.";
+
         if ($notifiable->fcm_token && !$this->pushSent) {
             $this->pushSent = true;
             try {
                 app(FcmService::class)->sendPushNotification(
                     $notifiable,
                     'Order Expired',
-                    'Your order #' . $this->order->order_number . ' could not be fulfilled before the pharmacy closed.',
+                    $message,
                     [
-                        'order_id' => (string) $this->order->id,
-                        'type' => 'order_expired',
+                        'order_id'    => (string) $this->order->id,
+                        'branch_name' => (string) ($branchName ?? ''),
+                        'type'        => 'order_expired',
                     ]
                 );
             } catch (\Throwable $e) {
@@ -74,11 +79,15 @@ class OrderExpiredNotification extends Notification implements ShouldQueue
         }
 
         return [
-            'order_id' => $this->order->id,
-            'order_number' => $this->order->order_number,
-            'status' => 'overdue',
-            'message' => 'Your order #' . $this->order->order_number . ' expired because the pharmacy closed before it could be fulfilled.',
-            'type' => 'order_expired',
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
+            'status'        => 'overdue',
+            'pharmacy_id'   => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name'   => $branchName,
+            'location'      => $this->order->pharmacy?->location,
+            'message'       => $message,
+            'type'          => 'order_expired',
         ];
     }
 
@@ -87,13 +96,21 @@ class OrderExpiredNotification extends Notification implements ShouldQueue
      */
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
+        $branchName = $this->order->pharmacy?->branch_name;
+        $branchSuffix = $branchName ? " at {$branchName}" : "";
+        $message = "Your order #{$this->order->order_number} expired because it could not be fulfilled before closing time{$branchSuffix}.";
+
         return new BroadcastMessage([
-            'id' => $this->id,
-            'order_id' => $this->order->id,
-            'order_number' => $this->order->order_number,
-            'status' => 'overdue',
-            'message' => 'Your order #' . $this->order->order_number . ' expired because the pharmacy closed before it could be fulfilled.',
-            'type' => 'order_expired',
+            'id'            => $this->id,
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
+            'status'        => 'overdue',
+            'pharmacy_id'   => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name'   => $branchName,
+            'location'      => $this->order->pharmacy?->location,
+            'message'       => $message,
+            'type'          => 'order_expired',
         ]);
     }
 }

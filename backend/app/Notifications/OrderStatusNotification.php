@@ -41,31 +41,34 @@ class OrderStatusNotification extends Notification implements ShouldQueue
     {
         $status = strtolower((string) ($this->order->status?->value ?? ''));
         $orderNumber = $this->order->order_number ?? $this->order->id;
+        $branchName = $this->order->pharmacy?->branch_name;
+        $atBranch = $branchName ? " at {$branchName}" : "";
+        $fromBranch = $branchName ? " from {$branchName}" : "";
 
         return match ($status) {
             'preparing' => [
                 'title' => 'Order Being Prepared',
-                'message' => "Your order #{$orderNumber} is now being prepared by the pharmacist.",
+                'message' => "Your order #{$orderNumber} is now being prepared{$atBranch}.",
             ],
             'ready_for_pickup' => [
                 'title' => 'Ready for Pickup!',
-                'message' => "Your order #{$orderNumber} is ready for pickup! Please visit the pharmacy to collect your items.",
+                'message' => "Your order #{$orderNumber} is ready for pickup{$atBranch}! Please visit the branch to collect your items.",
             ],
             'stand_by' => [
                 'title' => 'Order On Hold',
-                'message' => "Your order #{$orderNumber} has been placed on hold. Please check your order details or messages.",
+                'message' => "Your order #{$orderNumber}{$atBranch} has been placed on hold. Please check your order details or messages.",
             ],
             'cancelled', 'rejected' => [
                 'title' => 'Order Cancelled',
-                'message' => "Your order #{$orderNumber} has been cancelled.",
+                'message' => "Your order #{$orderNumber}{$atBranch} has been cancelled.",
             ],
             'completed' => [
                 'title' => 'Order Completed',
-                'message' => "Your order #{$orderNumber} has been completed. Thank you for choosing PharmaDali!",
+                'message' => "Your order #{$orderNumber}{$fromBranch} has been completed. Thank you for choosing PharmaDali!",
             ],
             default => [
                 'title' => 'Order Updated',
-                'message' => "Your order #{$orderNumber} status is now " . str_replace('_', ' ', $status) . ".",
+                'message' => "Your order #{$orderNumber}{$atBranch} status is now " . str_replace('_', ' ', $status) . ".",
             ],
         };
     }
@@ -110,6 +113,7 @@ class OrderStatusNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         $text = $this->getNotificationText();
+        $branchName = $this->order->pharmacy?->branch_name;
 
         if ($notifiable->fcm_token && !$this->pushSent) {
             $this->pushSent = true;
@@ -120,6 +124,7 @@ class OrderStatusNotification extends Notification implements ShouldQueue
                     $text['message'],
                     [
                         'order_id' => (string) $this->order->id,
+                        'branch_name' => (string) ($branchName ?? ''),
                         'type' => 'order_status_change',
                     ]
                 );
@@ -132,6 +137,10 @@ class OrderStatusNotification extends Notification implements ShouldQueue
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
             'status' => $this->order->status,
+            'pharmacy_id' => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name' => $branchName,
+            'location' => $this->order->pharmacy?->location,
             'title' => $text['title'],
             'message' => $text['message'],
             'type' => 'order_status_change',
@@ -144,12 +153,17 @@ class OrderStatusNotification extends Notification implements ShouldQueue
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         $text = $this->getNotificationText();
+        $branchName = $this->order->pharmacy?->branch_name;
 
         return new BroadcastMessage([
             'id' => $this->id,
             'order_id' => $this->order->id,
             'order_number' => $this->order->order_number,
             'status' => $this->order->status,
+            'pharmacy_id' => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name' => $branchName,
+            'location' => $this->order->pharmacy?->location,
             'title' => $text['title'],
             'message' => $text['message'],
             'type' => 'order_status_change',

@@ -6,14 +6,18 @@ import { getCartItemCount } from '@shared/services/cartService';
 import { subscribeCartCountUpdates } from '@shared/services/cartCountEvents';
 import { resetCartProductIdsCache, initializeCartProductIdsCache } from '@shared/utils/cartUtils';
 import { useFlyToCart } from '@shared/context/FlyToCartContext';
+import { useSelectionPhase } from '@shared/context/SelectionPhaseContext';
 
 export default function CartButton({ style }) {
   const router = useRouter();
   const { setCartTargetPos, registerLandingListener } = useFlyToCart();
+  const { selectedPharmacy } = useSelectionPhase();
   const [cartCount, setCartCount] = useState(0);
   const cartIconRef = useRef(null);
   const badgeScale = useRef(new Animated.Value(1)).current;
   const cartShakeAnim = useRef(new Animated.Value(0)).current;
+
+  const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id;
 
   const shakeCart = useCallback(() => {
     Animated.sequence([
@@ -45,14 +49,21 @@ export default function CartButton({ style }) {
     }
   }, []);
 
+  // Reset and load cart count on mount and whenever selected pharmacy changes
   useEffect(() => {
+    setCartCount(0);
+    resetCartProductIdsCache();
     loadCartCount();
-  }, [loadCartCount]);
+  }, [pharmacyId, loadCartCount]);
 
   useEffect(() => {
     const unsubscribe = subscribeCartCountUpdates((event) => {
       if (event && event.type === 'increment') {
         setCartCount((prev) => prev + (event.quantity || 1));
+      } else if (event && event.type === 'pharmacy_changed') {
+        setCartCount(0);
+        resetCartProductIdsCache();
+        loadCartCount();
       } else {
         loadCartCount();
       }

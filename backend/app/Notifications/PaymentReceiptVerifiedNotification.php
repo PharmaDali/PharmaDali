@@ -43,17 +43,20 @@ class PaymentReceiptVerifiedNotification extends Notification implements ShouldQ
     private function getNotificationText(): array
     {
         $orderNumber = $this->order->order_number ?? $this->order->id;
+        $branchName = $this->order->pharmacy?->branch_name;
+        $atBranch = $branchName ? " at {$branchName}" : "";
 
         if ($this->isApproved) {
             return [
                 'title' => 'Payment Approved',
-                'message' => "Your online payment for order #{$orderNumber} has been approved!",
+                'message' => "Your online payment for order #{$orderNumber}{$atBranch} has been approved!",
             ];
         }
 
+        $branchPickup = $branchName ? "at {$branchName}" : "at the pharmacy";
         return [
             'title' => 'Payment Rejected',
-            'message' => "Your payment receipt for order #{$orderNumber} was rejected. Please pay at the pharmacy upon pickup. Would you like to proceed?",
+            'message' => "Your payment receipt for order #{$orderNumber} was rejected. Please pay {$branchPickup} upon pickup. Would you like to proceed?",
         ];
     }
 
@@ -87,6 +90,7 @@ class PaymentReceiptVerifiedNotification extends Notification implements ShouldQ
     public function toArray(object $notifiable): array
     {
         $text = $this->getNotificationText();
+        $branchName = $this->order->pharmacy?->branch_name;
 
         if ($notifiable->fcm_token && !$this->pushSent) {
             $this->pushSent = true;
@@ -96,8 +100,9 @@ class PaymentReceiptVerifiedNotification extends Notification implements ShouldQ
                     $text['title'],
                     $text['message'],
                     [
-                        'order_id' => (string) $this->order->id,
-                        'type' => 'payment_receipt_verification',
+                        'order_id'    => (string) $this->order->id,
+                        'branch_name' => (string) ($branchName ?? ''),
+                        'type'        => 'payment_receipt_verification',
                     ]
                 );
             } catch (\Throwable $e) {
@@ -106,12 +111,16 @@ class PaymentReceiptVerifiedNotification extends Notification implements ShouldQ
         }
 
         return [
-            'order_id' => $this->order->id,
-            'order_number' => $this->order->order_number,
-            'title' => $text['title'],
-            'message' => $text['message'],
-            'type' => 'payment_receipt_verification',
-            'is_approved' => $this->isApproved,
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
+            'pharmacy_id'   => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name'   => $branchName,
+            'location'      => $this->order->pharmacy?->location,
+            'title'         => $text['title'],
+            'message'       => $text['message'],
+            'type'          => 'payment_receipt_verification',
+            'is_approved'   => $this->isApproved,
         ];
     }
 
@@ -121,15 +130,20 @@ class PaymentReceiptVerifiedNotification extends Notification implements ShouldQ
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         $text = $this->getNotificationText();
+        $branchName = $this->order->pharmacy?->branch_name;
 
         return new BroadcastMessage([
-            'id' => $this->id,
-            'order_id' => $this->order->id,
-            'order_number' => $this->order->order_number,
-            'title' => $text['title'],
-            'message' => $text['message'],
-            'type' => 'payment_receipt_verification',
-            'is_approved' => $this->isApproved,
+            'id'            => $this->id,
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
+            'pharmacy_id'   => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name'   => $branchName,
+            'location'      => $this->order->pharmacy?->location,
+            'title'         => $text['title'],
+            'message'       => $text['message'],
+            'type'          => 'payment_receipt_verification',
+            'is_approved'   => $this->isApproved,
         ]);
     }
 }

@@ -54,6 +54,9 @@ class OrderRejectedNotification extends Notification implements ShouldQueue
     {
         $reason = $this->order->cancellation_reason ?? 'No reason provided.';
         $cleanReason = str_replace('Rejected by pharmacist: ', '', $reason);
+        $branchName = $this->order->pharmacy?->branch_name;
+        $branchText = $branchName ? " by {$branchName}" : " by the pharmacist";
+        $message = "Your order #{$this->order->order_number} was rejected{$branchText}: {$cleanReason}";
 
         if ($notifiable->fcm_token && !$this->pushSent) {
             $this->pushSent = true;
@@ -61,10 +64,11 @@ class OrderRejectedNotification extends Notification implements ShouldQueue
                 app(FcmService::class)->sendPushNotification(
                     $notifiable,
                     'Order Rejected',
-                    'Your order #' . $this->order->order_number . ' was rejected by the pharmacist: ' . $cleanReason,
+                    $message,
                     [
-                        'order_id' => (string) $this->order->id,
-                        'type' => 'order_rejected',
+                        'order_id'    => (string) $this->order->id,
+                        'branch_name' => (string) ($branchName ?? ''),
+                        'type'        => 'order_rejected',
                     ]
                 );
             } catch (\Throwable $e) {
@@ -73,11 +77,15 @@ class OrderRejectedNotification extends Notification implements ShouldQueue
         }
 
         return [
-            'order_id' => $this->order->id,
-            'order_number' => $this->order->order_number,
-            'status' => 'cancelled',
-            'message' => 'Your order #' . $this->order->order_number . ' was rejected by the pharmacist: ' . $cleanReason,
-            'type' => 'order_rejected',
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
+            'status'        => 'cancelled',
+            'pharmacy_id'   => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name'   => $branchName,
+            'location'      => $this->order->pharmacy?->location,
+            'message'       => $message,
+            'type'          => 'order_rejected',
         ];
     }
 
@@ -85,14 +93,21 @@ class OrderRejectedNotification extends Notification implements ShouldQueue
     {
         $reason = $this->order->cancellation_reason ?? 'No reason provided.';
         $cleanReason = str_replace('Rejected by pharmacist: ', '', $reason);
+        $branchName = $this->order->pharmacy?->branch_name;
+        $branchText = $branchName ? " by {$branchName}" : " by the pharmacist";
+        $message = "Your order #{$this->order->order_number} was rejected{$branchText}: {$cleanReason}";
 
         return new BroadcastMessage([
-            'id' => $this->id,
-            'order_id' => $this->order->id,
-            'order_number' => $this->order->order_number,
-            'status' => 'cancelled',
-            'message' => 'Your order #' . $this->order->order_number . ' was rejected by the pharmacist: ' . $cleanReason,
-            'type' => 'order_rejected',
+            'id'            => $this->id,
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
+            'status'        => 'cancelled',
+            'pharmacy_id'   => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name'   => $branchName,
+            'location'      => $this->order->pharmacy?->location,
+            'message'       => $message,
+            'type'          => 'order_rejected',
         ]);
     }
 }

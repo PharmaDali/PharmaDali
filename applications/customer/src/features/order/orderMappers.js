@@ -1,3 +1,5 @@
+import { formatBranchName } from '@shared/utils/notificationUtils';
+
 const COMPLETED_STATUSES = new Set(['completed', 'cancelled', 'overdue'])
 
 const STATUS_LABELS = {
@@ -169,6 +171,11 @@ export function mapApiOrderToViewModel(order) {
     }
   }
 
+  const rawPharmacy = order?.pharmacy || {}
+  const rawPharmacyName = rawPharmacy?.pharmacy_name || rawPharmacy?.name || ''
+  const rawLocation = rawPharmacy?.location || ''
+  const cleanBranch = rawPharmacy?.branch_name || formatBranchName(rawPharmacyName, rawLocation) || rawPharmacyName || rawLocation || ''
+
   return {
     id: Number(order?.id || 0),
     rawStatus: customRawStatus,
@@ -189,6 +196,10 @@ export function mapApiOrderToViewModel(order) {
     prescriptionImagePath,
     discountIdImagePath: order?.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null,
     paymentReceiptImagePath: order?.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null,
+    pharmacy: rawPharmacy,
+    pharmacyName: rawPharmacyName,
+    branchName: cleanBranch,
+    location: rawLocation,
   }
 }
 

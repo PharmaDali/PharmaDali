@@ -20,6 +20,7 @@ import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { toTitleCase } from '@shared/utils/stringUtils';
 import { getCustomerConversations } from '@shared/services/chatService';
+import { formatBranchName } from '@shared/utils/notificationUtils';
 
 export default function HomeScreen() {
   const route = useRouter();
@@ -40,10 +41,18 @@ export default function HomeScreen() {
   } = useHomeTab(selectedPharmacy, setSelectedPharmacy);
   const { toast, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [isPharmacyModalVisible, setIsPharmacyModalVisible] = useState(false);
   const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
+  const lastConversationsCheckRef = React.useRef(0);
 
   useFocusEffect(
     useCallback(() => {
+      const now = Date.now();
+      if (now - lastConversationsCheckRef.current < 30000) {
+        return;
+      }
+      lastConversationsCheckRef.current = now;
+
       let isMounted = true;
       getCustomerConversations()
         .then((result) => {
@@ -72,6 +81,7 @@ export default function HomeScreen() {
     }, [])
   );
 
+
   const pharmacyStatusLabel = selectedPharmacy?.isOpen
     ? (selectedPharmacy?.formattedClosingHour ? `Open til ${selectedPharmacy.formattedClosingHour}` : 'Open now')
     : (selectedPharmacy?.formattedOpeningHour ? `Closed | Opens ${selectedPharmacy.formattedOpeningHour}` : 'Closed');
@@ -80,7 +90,13 @@ export default function HomeScreen() {
   const handlePharmacySelect = (pharmacy) => {
     setSelectedPharmacy(normalizeSelectedPharmacy(pharmacy));
     setSelectionPhase(false);
+    setIsPharmacyModalVisible(false);
   };
+
+  const cleanSelectedBranch =
+    formatBranchName(selectedPharmacy?.name, selectedPharmacy?.address || selectedPharmacy?.location) ||
+    selectedPharmacy?.name ||
+    'Selected pharmacy';
 
   const handleAddToCart = useCallback(({ pharmacyProductId, quantity = 1 }) => {
     const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id;
@@ -101,13 +117,20 @@ export default function HomeScreen() {
     });
   }, [selectedPharmacy, showError]);
 
-  if (loading) {
+  const hasDisplayContent = Boolean(
+    (categories && categories.length > 0) ||
+    (pharmacyProducts && pharmacyProducts.length > 0) ||
+    (recommendations && recommendations.length > 0)
+  );
+
+  if (loading && !hasDisplayContent) {
     return (
       <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
         <SkeletonHome />
       </View>
     );
   }
+
 
   if (!selectedPharmacy) {
     return (
@@ -120,31 +143,75 @@ export default function HomeScreen() {
 
   const recommendationFeedData = recommendations?.length ? recommendations : (pharmacyProducts ?? []);
 
-  const renderHeader = () => (
-    <View>
-      {isSearchVisible && (
-        <SearchOverlay
-          visible={isSearchVisible}
-          onClose={() => setIsSearchVisible(false)}
-          pharmacyId={selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id}
+  const renderProductItem = useCallback(({ item }) => {
+    const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
+
+    return (
+      <View style={{ width: '48%' }}>
+        <ProductCard
+          productId={String(item?.product_id ?? '')}
+          pharmacyProductId={item?.id}
+          pharmacyId={pharmacyId}
+          img={item?.product?.image_url}
+          product={item?.product}
+          categoryName={item?.category?.category_name}
+          description={item?.product?.product_name || 'Unnamed product'}
+          category={item?.category?.category_name || 'Uncategorized'}
+          price={formatProductPrice(item?.selling_price)}
+          isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
+          isAvailable={
+            (item?.is_available == null
+              ? true
+              : (typeof item?.is_available === 'boolean'
+                ? item.is_available
+                : Number(item.is_available) === 1)) &&
+            (item?.is_expired == null ? true : !Boolean(Number(item.is_expired)))
+          }
+          isOutOfStock={Boolean(item?.is_out_of_stock) || (item?.stock !== undefined && Number(item?.stock) <= 0)}
+          stock={item?.stock}
           onAddToCart={handleAddToCart}
+          style={{ width: '100%' }}
         />
-      )}
+      </View>
+    );
+  }, [selectedPharmacy?.id, selectedPharmacy?.pharmacy_id, handleAddToCart]);
+
+  const renderHeader = () => (
+
+    <View>
       <View className="flex-row flex-wrap items-center px-4 pt-6">
         <Text style={styles.greetingMedium}>Magandang Araw, </Text>
         <Text style={styles.greetingBold}>{toTitleCase(profile?.first_name) || 'User'}!</Text>
       </View>
 
+      {/* Pharmacy selector button */}
       <View className="px-4 mt-6">
-        <View className={`flex-row items-center rounded-full px-4 py-2 self-end shadow-sm border ${isPharmacyOpen ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'}`}>
-          <View className={`w-6 h-6 rounded-full mr-2 items-center justify-center ${isPharmacyOpen ? 'bg-green-600' : 'bg-red-600'}`}>
-            <StoreIcon width={24} height={24} />
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => setIsPharmacyModalVisible(true)}
+          className={`flex-row items-center rounded-full pl-3 pr-3.5 py-1.5 self-end shadow-sm border ${
+            isPharmacyOpen ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'
+          }`}
+        >
+          <View
+            className={`w-6 h-6 rounded-full mr-2 items-center justify-center ${
+              isPharmacyOpen ? 'bg-green-600' : 'bg-red-600'
+            }`}
+          >
+            <StoreIcon width={16} height={16} />
           </View>
           <Text className="text-sm text-gray-700" style={{ fontFamily: 'Poppins-Medium' }}>
             <Text style={{ fontFamily: 'Poppins-Bold' }}>{pharmacyStatusLabel} </Text>
-            <Text className={isPharmacyOpen ? 'text-green-600' : 'text-red-600'}>|</Text> {selectedPharmacy?.name || 'Selected pharmacy'}
+            <Text className={isPharmacyOpen ? 'text-green-600' : 'text-red-600'}>|</Text>{' '}
+            {cleanSelectedBranch}
           </Text>
-        </View>
+          <MaterialCommunityIcons
+            name="chevron-down"
+            size={18}
+            color={isPharmacyOpen ? '#15803d' : '#b91c1c'}
+            style={{ marginLeft: 3 }}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* ── Hero Section ── */}
@@ -269,39 +336,13 @@ export default function HomeScreen() {
             tintColor="#48AAD9"
           />
         }
-        renderItem={({ item }) => {
-          const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
-
-          return (
-            <View style={{ width: '48%' }}>
-              <ProductCard
-                productId={String(item?.product_id ?? '')}
-                pharmacyProductId={item?.id}
-                pharmacyId={pharmacyId}
-                img={item?.product?.image_url}
-                product={item?.product}
-                categoryName={item?.category?.category_name}
-                description={item?.product?.product_name || 'Unnamed product'}
-                category={item?.category?.category_name || 'Uncategorized'}
-                price={formatProductPrice(item?.selling_price)}
-                isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
-                isAvailable={
-                  (item?.is_available == null
-                    ? true
-                    : (typeof item?.is_available === 'boolean'
-                      ? item.is_available
-                      : Number(item.is_available) === 1)) &&
-                  (item?.is_expired == null ? true : !Boolean(Number(item.is_expired)))
-                }
-                isOutOfStock={Boolean(item?.is_out_of_stock) || (item?.stock !== undefined && Number(item?.stock) <= 0)}
-                stock={item?.stock}
-                onAddToCart={handleAddToCart}
-                style={{ width: '100%' }}
-              />
-            </View>
-          );
-        }}
+        renderItem={renderProductItem}
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={5}
+        removeClippedSubviews={true}
       />
+
 
       <TouchableOpacity
         onPress={() => {
@@ -317,6 +358,24 @@ export default function HomeScreen() {
           <View className="absolute top-3 right-3 h-3 w-3 rounded-full bg-red-500 border-2 border-sky-500" />
         )}
       </TouchableOpacity>
+
+      {/* Search overlay */}
+      {isSearchVisible && (
+        <SearchOverlay
+          visible={isSearchVisible}
+          onClose={() => setIsSearchVisible(false)}
+          pharmacyId={selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id}
+          onAddToCart={handleAddToCart}
+        />
+      )}
+
+      {/* Pharmacy selection overlay */}
+      <PharmacySelectionOverlay
+        visible={isPharmacyModalVisible}
+        onSelect={handlePharmacySelect}
+        onClose={() => setIsPharmacyModalVisible(false)}
+        currentPharmacyId={selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id}
+      />
     </View>
   );
 }

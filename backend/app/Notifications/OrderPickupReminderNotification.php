@@ -33,9 +33,9 @@ class OrderPickupReminderNotification extends Notification implements ShouldQueu
      */
     public function toArray(object $notifiable): array
     {
-        $pharmacyName = $this->order->pharmacy?->pharmacy_name ?? 'the pharmacy';
+        $branchName = $this->order->pharmacy?->branch_name ?? 'the pharmacy';
         $title = 'Order Pickup Reminder';
-        $body = "Friendly reminder: Your order #{$this->order->order_number} is ready for pickup at {$pharmacyName}. Please pick it up before closing time!";
+        $body = "Friendly reminder: Your order #{$this->order->order_number} is ready for pickup at {$branchName}. Please pick it up before closing time!";
 
         if (!empty($notifiable->fcm_token) && !$this->pushSent) {
             $this->pushSent = true;
@@ -45,8 +45,9 @@ class OrderPickupReminderNotification extends Notification implements ShouldQueu
                     $title,
                     $body,
                     [
-                        'order_id' => (string) $this->order->id,
-                        'type'     => 'order_pickup_reminder',
+                        'order_id'    => (string) $this->order->id,
+                        'branch_name' => (string) ($this->order->pharmacy?->branch_name ?? ''),
+                        'type'        => 'order_pickup_reminder',
                     ]
                 );
             } catch (\Throwable $e) {
@@ -55,11 +56,15 @@ class OrderPickupReminderNotification extends Notification implements ShouldQueu
         }
 
         return [
-            'order_id'     => $this->order->id,
-            'order_number' => $this->order->order_number,
-            'status'       => $this->order->status,
-            'message'      => $body,
-            'type'         => 'order_pickup_reminder',
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
+            'status'        => $this->order->status,
+            'pharmacy_id'   => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name'   => $this->order->pharmacy?->branch_name,
+            'location'      => $this->order->pharmacy?->location,
+            'message'       => $body,
+            'type'          => 'order_pickup_reminder',
         ];
     }
 
@@ -68,16 +73,20 @@ class OrderPickupReminderNotification extends Notification implements ShouldQueu
      */
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
-        $pharmacyName = $this->order->pharmacy?->pharmacy_name ?? 'the pharmacy';
-        $body = "Friendly reminder: Your order #{$this->order->order_number} is ready for pickup at {$pharmacyName}. Please pick it up before closing time!";
+        $branchName = $this->order->pharmacy?->branch_name ?? 'the pharmacy';
+        $body = "Friendly reminder: Your order #{$this->order->order_number} is ready for pickup at {$branchName}. Please pick it up before closing time!";
 
         return new BroadcastMessage([
-            'id'           => $this->id,
-            'order_id'     => $this->order->id,
-            'order_number' => $this->order->order_number,
-            'status'       => $this->order->status,
-            'message'      => $body,
-            'type'         => 'order_pickup_reminder',
+            'id'            => $this->id,
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
+            'status'        => $this->order->status,
+            'pharmacy_id'   => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name'   => $this->order->pharmacy?->branch_name,
+            'location'      => $this->order->pharmacy?->location,
+            'message'       => $body,
+            'type'          => 'order_pickup_reminder',
         ]);
     }
 }

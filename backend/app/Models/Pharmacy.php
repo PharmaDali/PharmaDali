@@ -61,6 +61,10 @@ class Pharmacy extends Model
         'ptu_valid_until'  => 'date',
     ];
 
+    protected $appends = [
+        'branch_name',
+    ];
+
     /**
      * Get the full public URL for the pharmacy logo.
      */
@@ -71,6 +75,31 @@ class Pharmacy extends Model
         }
 
         return Storage::disk('public')->url($this->logo_path);
+    }
+
+    /**
+     * Get the clean branch name.
+     */
+    public function getBranchNameAttribute(): string
+    {
+        $name = trim($this->pharmacy_name ?? '');
+        if ($name === '') {
+            return trim($this->location ?? 'Main Branch');
+        }
+
+        $cleaned = preg_replace('/^\(?pharma\s*dali\)?\s*[-–—:\/]*\s*/i', '', $name);
+        $cleaned = preg_replace('/\s*[-–—:\/]*\s*\(?pharma\s*dali\)?$/i', '', $cleaned);
+        $cleaned = trim($cleaned, "()[]-–—: \t\n\r\0\x0B");
+
+        if ($cleaned !== '' && !preg_match('/^pharma\s*dali$/i', $cleaned)) {
+            return $cleaned;
+        }
+
+        if (!empty($this->location)) {
+            return trim($this->location);
+        }
+
+        return $name;
     }
 
     public function users()

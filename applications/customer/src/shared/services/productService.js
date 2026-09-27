@@ -15,12 +15,24 @@ export async function getProducts(pharmacyId, categoryId = null, { cursor = null
     searchParams.append('per_page', String(perPage));
   }
 
-  if (priceMin !== undefined) searchParams.append('price_min', priceMin);
-  if (priceMax !== undefined) searchParams.append('price_max', priceMax);
-  if (brands && brands.length > 0) searchParams.append('brands', brands.join(','));
-  if (availability) searchParams.append('availability', availability);
-  if (prescriptionType) searchParams.append('prescription_type', prescriptionType);
-  if (sort) searchParams.append('sort', sort);
+  if (priceMin !== undefined && priceMin !== null && priceMin !== '' && Number(priceMin) > 0) {
+    searchParams.append('price_min', priceMin);
+  }
+  if (priceMax !== undefined && priceMax !== null && priceMax !== '' && Number(priceMax) < 5000) {
+    searchParams.append('price_max', priceMax);
+  }
+  if (brands && brands.length > 0) {
+    searchParams.append('brands', Array.isArray(brands) ? brands.join(',') : brands);
+  }
+  if (availability && String(availability).trim() !== '') {
+    searchParams.append('availability', availability);
+  }
+  if (prescriptionType && String(prescriptionType).trim() !== '') {
+    searchParams.append('prescription_type', prescriptionType);
+  }
+  if (sort && String(sort).trim() !== '') {
+    searchParams.append('sort', sort);
+  }
 
   const query = searchParams.toString();
   const endpoint = `/pharmacies/${pharmacyId}/products${query ? `?${query}` : ''}`;
@@ -52,6 +64,15 @@ export async function searchProducts(pharmacyId, query, { cursor = null, perPage
     method: 'GET',
   });
 }
+
+export async function fetchSearchSuggestions(pharmacyId, query) {
+  const searchParams = new URLSearchParams();
+  searchParams.append('query', query);
+  searchParams.append('suggestions', '1');
+  const endpoint = `/pharmacies/${pharmacyId}/products?${searchParams.toString()}`;
+  return apiRequest(endpoint, { method: 'GET' });
+}
+
 
 export async function getPharmacyProduct(pharmacyId, pharmacyProductId) {
   const endpoint = `/pharmacies/${pharmacyId}/products/${pharmacyProductId}`;
@@ -85,4 +106,4 @@ export async function getHeroRecommendations(pharmacyId, { page = 1, perPage = 1
   return apiRequest(endpoint, {
     method: 'GET',
   });
-}
+}

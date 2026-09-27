@@ -69,6 +69,21 @@ class CustomerRecommendationService
 
         // Slice recommended IDs for current page
         $validIds = array_values(array_map('intval', $allRecommendedIds));
+        $totalRecommendations = count($validIds);
+
+        // If offset already exceeds recommendations on subsequent pages, stop
+        if ($offset >= $totalRecommendations && $page > 1) {
+            return [
+                'has_history' => isset($lastOrder) && $lastOrder && !$lastOrder->items->isEmpty(),
+                'hero_title' => $heroTitle,
+                'hero_subtitle' => $heroSubtitle,
+                'recommendations' => collect(),
+                'page' => $page,
+                'per_page' => $perPage,
+                'has_more' => false,
+            ];
+        }
+
         $pageIds = array_slice($validIds, $offset, $perPage);
 
         $items = collect();
@@ -89,10 +104,10 @@ class CustomerRecommendationService
             }
         }
 
-        // If page recommendation items count is less than perPage, append general pharmacy products as fallbacks for infinite feed
-        if ($items->count() < $perPage) {
-            $needed = $perPage - $items->count();
-            $existingIds = array_merge(array_slice($validIds, 0, $offset + count($pageIds)), $items->pluck('id')->toArray());
+        // Only on initial page load, if recommended count is very low (e.g. < 4), supplement with active products
+        if ($page === 1 && $items->count() < 4) {
+            $needed = 4 - $items->count();
+            $existingIds = array_merge($validIds, $items->pluck('id')->toArray());
 
             $fallbacksQuery = PharmacyProduct::with(['product', 'category'])
                 ->where('pharmacy_id', $pharmacyId)
@@ -104,10 +119,8 @@ class CustomerRecommendationService
             $items = $items->concat($fallbacks);
         }
 
-        // Check if there are more items after this page
-        $totalPharmacyProducts = PharmacyProduct::where('pharmacy_id', $pharmacyId)->where('stock', '>', 0)->count();
-        $totalFetchedSoFar = $offset + $items->count();
-        $hasMore = $totalFetchedSoFar < $totalPharmacyProducts || ($offset + $perPage) < count($validIds);
+        // Determine if more recommendations exist
+        $hasMore = ($offset + $perPage) < $totalRecommendations;
 
         return [
             'has_history' => isset($lastOrder) && $lastOrder && !$lastOrder->items->isEmpty(),
@@ -119,6 +132,7 @@ class CustomerRecommendationService
             'has_more' => $hasMore,
         ];
     }
+
 
     /**
      * Get Apriori-recommended PharmacyProduct IDs for a customer using a Blended Hybrid strategy.

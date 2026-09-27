@@ -109,12 +109,38 @@ class Order extends Model
     }
 
     /**
+     * Resolve pharmacy context for orders.
+     * Orders are scoped by pharmacy for staff (pharmacists/admins),
+     * never by customer header (X-Pharmacy-ID) since customer orders span multiple branches.
+     */
+    public static function getPharmacyContext(): ?int
+    {
+        if (self::$currentPharmacyId !== null) {
+            return self::$currentPharmacyId;
+        }
+
+        $user = auth()->user();
+        if ($user && $user->pharmacy_id) {
+            return (int) $user->pharmacy_id;
+        }
+
+        return null;
+    }
+
+    /**
      * Retrieve the model for a bound value (supports both numeric ID and order_number string).
      */
     public function resolveRouteBinding($value, $field = null)
     {
-        return $this->where('id', $value)
-                    ->orWhere('order_number', $value)
-                    ->firstOrFail();
+        $user = auth()->user();
+
+        $query = ($user && $user->role === 'customer')
+            ? $this->withoutGlobalScope('pharmacy')
+            : $this;
+
+        return $query->where(function ($q) use ($value) {
+            $q->where('id', $value)
+              ->orWhere('order_number', $value);
+        })->firstOrFail();
     }
 }

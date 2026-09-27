@@ -16,10 +16,19 @@ function CompletedOrderCard({ order, onViewDetails }) {
 
   return (
     <View className="border border-gray-200 bg-white rounded-2xl py-4 px-4 mt-4 mx-4 shadow-md elevation-2">
+      {/* Header: Branch on top, then order number + date + badge */}
       <View className="flex-row justify-between items-start">
         <View className="flex-1 mr-2">
+          {Boolean(order.branchName || order.pharmacyName) && (
+            <View className="self-start bg-sky-50 border border-sky-200 rounded-full px-2 py-0.5 flex-row items-center mb-1.5">
+              <MaterialCommunityIcons name="storefront-outline" size={11} color="#0284c7" style={{ marginRight: 3.5 }} />
+              <Text className="text-[10.5px] text-sky-800" style={{ fontFamily: 'Poppins-SemiBold' }}>
+                {order.branchName || order.pharmacyName}
+              </Text>
+            </View>
+          )}
           <Text className="text-sm" style={styles.textColorBold}>Order #{order.orderNumber}</Text>
-          <Text className="text-xs text-gray-500 mt-1" style={styles.fontMedium}>{order.date}</Text>
+          <Text className="text-xs text-gray-500 mt-0.5" style={styles.fontMedium}>{order.date}</Text>
         </View>
         <StatusBadge status={order.status} />
       </View>

@@ -43,17 +43,20 @@ class DiscountIdVerifiedNotification extends Notification implements ShouldQueue
     private function getNotificationText(): array
     {
         $orderNumber = $this->order->order_number ?? $this->order->id;
+        $branchName = $this->order->pharmacy?->branch_name;
+        $atBranch = $branchName ? " at {$branchName}" : "";
 
         if ($this->isApproved) {
             return [
                 'title' => 'Discount ID Approved',
-                'message' => "Your ID for order #{$orderNumber} has been approved!",
+                'message' => "Your ID for order #{$orderNumber}{$atBranch} has been approved!",
             ];
         }
 
+        $branchPickup = $branchName ? "to {$branchName}" : "to the pharmacy";
         return [
             'title' => 'Discount ID Rejected',
-            'message' => "Your ID for order #{$orderNumber} was rejected. Please bring your physical ID to the pharmacy. Would you like to proceed?",
+            'message' => "Your ID for order #{$orderNumber} was rejected. Please bring your physical ID {$branchPickup}. Would you like to proceed?",
         ];
     }
 
@@ -87,6 +90,7 @@ class DiscountIdVerifiedNotification extends Notification implements ShouldQueue
     public function toArray(object $notifiable): array
     {
         $text = $this->getNotificationText();
+        $branchName = $this->order->pharmacy?->branch_name;
 
         if ($notifiable->fcm_token && !$this->pushSent) {
             $this->pushSent = true;
@@ -96,8 +100,9 @@ class DiscountIdVerifiedNotification extends Notification implements ShouldQueue
                     $text['title'],
                     $text['message'],
                     [
-                        'order_id' => (string) $this->order->id,
-                        'type' => 'discount_id_verification',
+                        'order_id'    => (string) $this->order->id,
+                        'branch_name' => (string) ($branchName ?? ''),
+                        'type'        => 'discount_id_verification',
                     ]
                 );
             } catch (\Throwable $e) {
@@ -106,12 +111,16 @@ class DiscountIdVerifiedNotification extends Notification implements ShouldQueue
         }
 
         return [
-            'order_id' => $this->order->id,
-            'order_number' => $this->order->order_number,
-            'title' => $text['title'],
-            'message' => $text['message'],
-            'type' => 'discount_id_verification',
-            'is_approved' => $this->isApproved,
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
+            'pharmacy_id'   => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name'   => $branchName,
+            'location'      => $this->order->pharmacy?->location,
+            'title'         => $text['title'],
+            'message'       => $text['message'],
+            'type'          => 'discount_id_verification',
+            'is_approved'   => $this->isApproved,
         ];
     }
 
@@ -121,15 +130,20 @@ class DiscountIdVerifiedNotification extends Notification implements ShouldQueue
     public function toBroadcast(object $notifiable): BroadcastMessage
     {
         $text = $this->getNotificationText();
+        $branchName = $this->order->pharmacy?->branch_name;
 
         return new BroadcastMessage([
-            'id' => $this->id,
-            'order_id' => $this->order->id,
-            'order_number' => $this->order->order_number,
-            'title' => $text['title'],
-            'message' => $text['message'],
-            'type' => 'discount_id_verification',
-            'is_approved' => $this->isApproved,
+            'id'            => $this->id,
+            'order_id'      => $this->order->id,
+            'order_number'  => $this->order->order_number,
+            'pharmacy_id'   => $this->order->pharmacy_id,
+            'pharmacy_name' => $this->order->pharmacy?->pharmacy_name,
+            'branch_name'   => $branchName,
+            'location'      => $this->order->pharmacy?->location,
+            'title'         => $text['title'],
+            'message'       => $text['message'],
+            'type'          => 'discount_id_verification',
+            'is_approved'   => $this->isApproved,
         ]);
     }
 }

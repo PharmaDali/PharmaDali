@@ -31,9 +31,11 @@ export function useCartTab() {
     }
   }, []);
 
+  const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id;
+
   useEffect(() => {
     loadCartItems();
-  }, [loadCartItems]);
+  }, [pharmacyId, loadCartItems]);
 
   const toggleItem = useCallback((id) => {
     setCartItems((prev) => toggleCartItemSelection(prev, id));

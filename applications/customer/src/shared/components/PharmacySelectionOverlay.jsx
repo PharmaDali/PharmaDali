@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Pressable, TouchableOpacity, ScrollView, StyleSheet, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@shared/theme/colorPalette';
 import RedStoreIcon from '@assets/icons/red_store_icon.svg';
 import { getPharmacyDataInSelectionPhase } from '@shared/services/selectionPhaseService';
 import LocationIcon from '@assets/icons/red_location_icon.svg';
 import { getManilaMinutes } from '@src/utils/pickupScheduleUtils';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { formatBranchName } from '@shared/utils/notificationUtils';
 
 const fallbackPharmacies = [];
 
@@ -77,15 +79,28 @@ function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
 }
 
 
-function PharmacyCard({ pharmacy, onSelect }) {
+function PharmacyCard({ pharmacy, onSelect, isSelected }) {
+  const branchName = formatBranchName(pharmacy.name, pharmacy.address) || pharmacy.name;
+
   return (
-    <View className="border border-[#B8DEF0] rounded-xl px-3 py-3 mb-3 bg-[#E8F4FD]">
+    <View
+      className={`border rounded-xl px-3 py-3 mb-3 ${
+        isSelected ? 'border-sky-400 bg-sky-50' : 'border-[#B8DEF0] bg-[#E8F4FD]'
+      }`}
+    >
       <View className="flex-row items-start">
         <View className="mr-3 mt-1">
           <RedStoreIcon width={24} height={24} />
         </View>
         <View className="flex-1">
-          <Text style={styles.pharmacyName}>{pharmacy.name}</Text>
+          <View className="flex-row items-center flex-wrap">
+            <Text style={styles.pharmacyName}>{branchName}</Text>
+            {isSelected && (
+              <View className="bg-sky-500 rounded-full px-2 py-0.5 ml-2">
+                <Text style={styles.currentBadge}>Current</Text>
+              </View>
+            )}
+          </View>
           
           {pharmacy.address ? (
             <View className="flex-row items-start mt-1 pr-2">
@@ -112,17 +127,17 @@ function PharmacyCard({ pharmacy, onSelect }) {
         </View>
         <Pressable
           className="rounded-full px-4 py-1.5 ml-2 self-center"
-          style={{ backgroundColor: colors.buttonColor }}
+          style={{ backgroundColor: isSelected ? '#0284c7' : colors.buttonColor }}
           onPress={() => onSelect(pharmacy)}
         >
-          <Text style={styles.selectText}>Select</Text>
+          <Text style={styles.selectText}>{isSelected ? 'Active' : 'Select'}</Text>
         </Pressable>
       </View>
     </View>
   );
 }
 
-export default function PharmacySelectionOverlay({ visible, onSelect }) {
+export default function PharmacySelectionOverlay({ visible, onSelect, onClose, currentPharmacyId }) {
   const insets = useSafeAreaInsets();
   const [remotePharmacies, setRemotePharmacies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -208,29 +223,60 @@ export default function PharmacySelectionOverlay({ visible, onSelect }) {
   if (!visible) return null;
 
   return (
-    <View style={styles.overlayContainer}>
-      <View style={styles.backdrop}>
-        <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 24) + 12 }]}>
-          <Text style={styles.title}>Select a Pharmacy</Text>
-          <Text style={styles.subtitle}>Choose a branch to view available products</Text>
-          <ScrollView className="mt-4" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 12 }}>
-            {isLoading && <Text style={styles.stateText}>Loading pharmacies...</Text>}
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose || (() => {})}
+    >
+      <View style={styles.overlayContainer}>
+        <View style={styles.backdrop}>
+          {onClose && (
+            <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+          )}
+          <View
+            style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 24) + 12 }]}
+            onStartShouldSetResponder={() => true}
+          >
+            <View className="flex-row items-start justify-between">
+              <View className="flex-1 mr-2">
+                <Text style={styles.title}>Select a Pharmacy</Text>
+                <Text style={styles.subtitle}>Choose a branch to view available products</Text>
+              </View>
+              {onClose && (
+                <TouchableOpacity
+                  onPress={onClose}
+                  className="w-8 h-8 rounded-full bg-gray-100 items-center justify-center mt-0.5"
+                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                >
+                  <MaterialCommunityIcons name="close" size={18} color="#666" />
+                </TouchableOpacity>
+              )}
+            </View>
+            <ScrollView className="mt-4" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 12 }}>
+              {isLoading && <Text style={styles.stateText}>Loading pharmacies...</Text>}
 
-            {!isLoading && errorMessage ? (
-              <Text style={styles.errorText}>{errorMessage}</Text>
-            ) : null}
+              {!isLoading && errorMessage ? (
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              ) : null}
 
-            {!isLoading && displayedPharmacies.length === 0 ? (
-              <Text style={styles.stateText}>No pharmacies available.</Text>
-            ) : null}
+              {!isLoading && displayedPharmacies.length === 0 ? (
+                <Text style={styles.stateText}>No pharmacies available.</Text>
+              ) : null}
 
-            {displayedPharmacies.map((pharmacy) => (
-              <PharmacyCard key={pharmacy.id} pharmacy={pharmacy} onSelect={onSelect} />
-            ))}
-          </ScrollView>
+              {displayedPharmacies.map((pharmacy) => (
+                <PharmacyCard
+                  key={pharmacy.id}
+                  pharmacy={pharmacy}
+                  onSelect={onSelect}
+                  isSelected={Number(pharmacy.id) === Number(currentPharmacyId)}
+                />
+              ))}
+            </ScrollView>
+          </View>
         </View>
       </View>
-    </View>
+    </Modal>
   );
 }
 
@@ -263,6 +309,11 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: '#fff',
   },
+  currentBadge: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 8,
+    color: '#fff',
+  },
   closedBadge: {
     fontFamily: 'Poppins-SemiBold',
     fontSize: 8,
@@ -288,9 +339,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   overlayContainer: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1000,
-    elevation: 10,
+    flex: 1,
   },
   backdrop: {
     flex: 1,
