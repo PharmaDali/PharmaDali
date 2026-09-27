@@ -16,6 +16,7 @@ export function OrderSubmissionProvider({ children }) {
   const [optimisticOrders, setOptimisticOrders] = useState([]);
   const [lastSubmittedOrder, setLastSubmittedOrder] = useState(null);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
+  const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
 
   const buildMockOrderForActiveOrders = (localId, payload) => {
     // Generate a temporary order number
@@ -81,9 +82,12 @@ export function OrderSubmissionProvider({ children }) {
       setOptimisticOrders(prev => prev.filter(o => o.id !== localId));
     } catch (error) {
       console.warn('Optimistic order submission failed:', error);
+      const specificMessage = error?.message || 'We encountered an issue submitting your order.';
+      setSubmissionErrorMessage(specificMessage);
+
       // Update status to error
       setOptimisticOrders(prev => prev.map(o => 
-        o.id === localId ? { ...o, status: 'error' } : o
+        o.id === localId ? { ...o, status: 'error', errorMessage: specificMessage } : o
       ));
 
       setErrorModalVisible(true);
@@ -109,6 +113,11 @@ export function OrderSubmissionProvider({ children }) {
     setOptimisticOrders(prev => prev.filter(o => o.id !== localId));
   }, []);
 
+  const handleDismissError = () => {
+    setErrorModalVisible(false);
+    setSubmissionErrorMessage('');
+  };
+
   return (
     <OrderSubmissionContext.Provider value={{ 
       optimisticOrders, 
@@ -118,19 +127,22 @@ export function OrderSubmissionProvider({ children }) {
       removeOptimisticOrder
     }}>
       {children}
-      <Modal visible={errorModalVisible} transparent animationType="fade" onRequestClose={() => setErrorModalVisible(false)}>
-        <Pressable className="flex-1 bg-black/50 justify-center items-center px-8" onPress={() => setErrorModalVisible(false)}>
+      <Modal visible={errorModalVisible} transparent animationType="fade" onRequestClose={handleDismissError}>
+        <Pressable className="flex-1 bg-black/50 justify-center items-center px-8" onPress={handleDismissError}>
           <Pressable className="bg-white rounded-2xl p-6 w-full items-center shadow-xl" onPress={(e) => e.stopPropagation()}>
             <View className="w-16 h-16 rounded-full border-4 border-red-500 bg-red-50 items-center justify-center mb-4">
               <Text className="text-3xl text-red-500" style={styles.fontBold}>!</Text>
             </View>
-            <Text className="text-xl mb-2" style={styles.errorTitle}>Submission Failed</Text>
-            <Text className="text-sm text-center mb-4" style={styles.fontMedium}>
-              We encountered an issue submitting your order. You can retry from your Active Orders.
+            <Text className="text-xl mb-2 text-center" style={styles.errorTitle}>Submission Failed</Text>
+            <Text className="text-sm text-center mb-2 px-2" style={styles.errorDescription}>
+              {submissionErrorMessage || 'We encountered an issue submitting your order.'}
+            </Text>
+            <Text className="text-xs text-center mb-4 text-gray-500" style={styles.fontMedium}>
+              You can retry from your Active Orders.
             </Text>
             <TouchableOpacity
               className="w-full rounded-xl py-3 items-center bg-[#48AAD9]"
-              onPress={() => setErrorModalVisible(false)}
+              onPress={handleDismissError}
             >
               <Text className="text-sm text-white" style={styles.fontSemiBold}>OK</Text>
             </TouchableOpacity>
@@ -145,6 +157,11 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontFamily: 'Poppins-Bold',
     color: '#DC3545',
+  },
+  errorDescription: {
+    fontFamily: 'Poppins-Medium',
+    color: '#333333',
+    lineHeight: 20,
   },
   fontBold: {
     fontFamily: 'Poppins-Bold',

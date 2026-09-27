@@ -216,12 +216,14 @@ const PickupDetailsScreen = () => {
       ? buildScheduledPickupDateTime(selectedDate, selectedTime)
       : null
 
+    const currentBounds = buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes)
+
     return validateScheduledPickupTime({
       scheduledDateTime: scheduledPickupAt,
       hasValidOperatingWindow,
       closingMinutes,
-      minimumDateTime,
-      closingDateTime,
+      minimumDateTime: currentBounds.minimumDateTime,
+      closingDateTime: currentBounds.closingDateTime,
     })
   }, [
     items,
@@ -231,8 +233,7 @@ const PickupDetailsScreen = () => {
     selectedDate,
     hasValidOperatingWindow,
     closingMinutes,
-    minimumDateTime,
-    closingDateTime,
+    openingMinutes,
   ])
 
   const isOnlinePaymentReceiptMissing = Boolean(
@@ -287,6 +288,10 @@ const PickupDetailsScreen = () => {
   }
 
   const handlePickDiscountIdFromGallery = async () => {
+    const lowerErr = (submitError || '').toLowerCase()
+    if (lowerErr.includes('discount') || lowerErr.includes('id type') || lowerErr.includes('id number')) {
+      setSubmitError('')
+    }
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
       if (status !== 'granted') {
@@ -318,6 +323,10 @@ const PickupDetailsScreen = () => {
   }
 
   const handleTakeDiscountIdPhoto = async () => {
+    const lowerErr = (submitError || '').toLowerCase()
+    if (lowerErr.includes('discount') || lowerErr.includes('id type') || lowerErr.includes('id number')) {
+      setSubmitError('')
+    }
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync()
       if (status !== 'granted') {
@@ -353,7 +362,16 @@ const PickupDetailsScreen = () => {
     setDiscountIdNumber('')
     setIsDiscountConfirmed(false)
     setShowDiscountDropdown(false)
-    if (submitError?.toLowerCase().includes('discount')) {
+    const lowerErr = (submitError || '').toLowerCase()
+    if (
+      lowerErr.includes('discount') ||
+      lowerErr.includes('id type') ||
+      lowerErr.includes('id number') ||
+      lowerErr.includes('permission') ||
+      lowerErr.includes('gallery') ||
+      lowerErr.includes('camera') ||
+      lowerErr.includes('photo')
+    ) {
       setSubmitError('')
     }
     setCheckoutDraft({
@@ -437,6 +455,24 @@ const PickupDetailsScreen = () => {
       return
     }
 
+    const scheduledPickupAt = selectedTime
+      ? buildScheduledPickupDateTime(selectedDate, selectedTime)
+      : null
+
+    const latestBounds = buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes)
+    const timeValidationError = validateScheduledPickupTime({
+      scheduledDateTime: scheduledPickupAt,
+      hasValidOperatingWindow,
+      closingMinutes,
+      minimumDateTime: latestBounds.minimumDateTime,
+      closingDateTime: latestBounds.closingDateTime,
+    })
+
+    if (timeValidationError) {
+      setSubmitError(timeValidationError)
+      return
+    }
+
     if (confirmPickupValidationError) {
       setSubmitError(confirmPickupValidationError)
       return
@@ -452,7 +488,6 @@ const PickupDetailsScreen = () => {
       return
     }
 
-    const scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, selectedTime)
     setSubmitError('')
     setShowConfirmModal(true)
   }
@@ -796,6 +831,10 @@ const PickupDetailsScreen = () => {
                             onPress={() => {
                               setDiscountType(option.key)
                               setShowDiscountDropdown(false)
+                              const lowerErr = (submitError || '').toLowerCase()
+                              if (lowerErr.includes('id type') || lowerErr.includes('discount')) {
+                                setSubmitError('')
+                              }
                             }}
                           >
                             <Text className="text-xs" style={[styles.fontMedium, { color: discountType === option.key ? '#48AAD9' : colors.textColor }]}>
@@ -809,7 +848,13 @@ const PickupDetailsScreen = () => {
                     <Text className="text-xs text-gray-500 mb-1.5" style={styles.fontMedium}>ID Number</Text>
                     <TextInput
                       value={discountIdNumber}
-                      onChangeText={setDiscountIdNumber}
+                      onChangeText={(text) => {
+                        setDiscountIdNumber(text)
+                        const lowerErr = (submitError || '').toLowerCase()
+                        if (lowerErr.includes('id number') || lowerErr.includes('discount')) {
+                          setSubmitError('')
+                        }
+                      }}
                       className="border rounded-xl px-4 py-3 bg-[#FAFAFA] text-xs mb-4"
                       style={{ borderColor: discountIdNumber ? '#48AAD9' : '#D1D5DB', fontFamily: 'Poppins-Medium', color: colors.textColor }}
                     />
@@ -828,12 +873,19 @@ const PickupDetailsScreen = () => {
                       <TouchableOpacity
                         onPress={handleRemoveDiscountId}
                         className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#48AAD9] items-center justify-center border-2 border-white"
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         activeOpacity={0.8}
                       >
                         <Text className="text-white text-[11px] font-bold leading-none">✕</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
+
+                  {!!submitError && (submitError.toLowerCase().includes('id type') || submitError.toLowerCase().includes('id number') || submitError.toLowerCase().includes('discount')) && (
+                    <View className="mt-3 rounded-lg bg-[#FFF1F1] border border-[#FFD7D7] px-3 py-2">
+                      <Text className="text-[10px] text-[#B42318]" style={styles.fontMedium}>{submitError}</Text>
+                    </View>
+                  )}
 
                   <TouchableOpacity
                     className="mt-4 bg-[#48AAD9] rounded-xl py-3 items-center justify-center"
@@ -875,7 +927,8 @@ const PickupDetailsScreen = () => {
                          setIsDiscountConfirmed(false);
                          handleRemoveDiscountId();
                       }}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#48AAD9] items-center justify-center border-2 border-white"
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full bg-[#48AAD9] items-center justify-center border-2 border-white"
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                       activeOpacity={0.8}
                     >
                       <Text className="text-white text-[11px] font-bold leading-none">✕</Text>

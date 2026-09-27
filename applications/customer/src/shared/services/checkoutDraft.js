@@ -18,21 +18,21 @@ let checkoutDraft = {
 
 export function setCheckoutDraft(payload) {
   checkoutDraft = {
-    items: Array.isArray(payload?.items) ? payload.items : [],
+    items: Array.isArray(payload?.items) ? payload.items : (checkoutDraft.items || []),
     selectedPharmacy: payload?.selectedPharmacy || payload?.targetPharmacy || checkoutDraft.selectedPharmacy || null,
-    pharmacyLabel: payload?.pharmacyLabel || '',
-    pharmacyLocationLabel: payload?.pharmacyLocationLabel || '',
-    total: Number(payload?.total ?? 0),
-    orderId: payload?.orderId ? Number(payload.orderId) : null,
-    prescriptionImage: payload?.prescriptionImage || null,
-    prescriptionPrepared: Boolean(payload?.prescriptionPrepared),
-    discountIdImage: payload?.discountIdImage || null,
-    discountType: payload?.discountType || null,
-    discountIdNumber: payload?.discountIdNumber || '',
-    gcashReceiptImage: payload?.gcashReceiptImage || null,
-    isPharmacyOpen: payload?.isPharmacyOpen !== false,
-    closedPharmacyName: payload?.closedPharmacyName || '',
-    pharmacyHoursLabel: payload?.pharmacyHoursLabel || '',
+    pharmacyLabel: payload?.pharmacyLabel !== undefined ? payload.pharmacyLabel : (checkoutDraft.pharmacyLabel || ''),
+    pharmacyLocationLabel: payload?.pharmacyLocationLabel !== undefined ? payload.pharmacyLocationLabel : (checkoutDraft.pharmacyLocationLabel || ''),
+    total: payload?.total !== undefined ? Number(payload.total) : (checkoutDraft.total || 0),
+    orderId: payload?.orderId !== undefined ? (payload.orderId ? Number(payload.orderId) : null) : checkoutDraft.orderId,
+    prescriptionImage: payload?.prescriptionImage !== undefined ? payload.prescriptionImage : checkoutDraft.prescriptionImage,
+    prescriptionPrepared: payload?.prescriptionPrepared !== undefined ? Boolean(payload.prescriptionPrepared) : checkoutDraft.prescriptionPrepared,
+    discountIdImage: payload?.discountIdImage !== undefined ? payload.discountIdImage : checkoutDraft.discountIdImage,
+    discountType: payload?.discountType !== undefined ? payload.discountType : checkoutDraft.discountType,
+    discountIdNumber: payload?.discountIdNumber !== undefined ? payload.discountIdNumber : (checkoutDraft.discountIdNumber || ''),
+    gcashReceiptImage: payload?.gcashReceiptImage !== undefined ? payload.gcashReceiptImage : checkoutDraft.gcashReceiptImage,
+    isPharmacyOpen: payload?.isPharmacyOpen !== undefined ? (payload.isPharmacyOpen !== false) : checkoutDraft.isPharmacyOpen,
+    closedPharmacyName: payload?.closedPharmacyName !== undefined ? payload.closedPharmacyName : (checkoutDraft.closedPharmacyName || ''),
+    pharmacyHoursLabel: payload?.pharmacyHoursLabel !== undefined ? payload.pharmacyHoursLabel : (checkoutDraft.pharmacyHoursLabel || ''),
   };
 }
 
