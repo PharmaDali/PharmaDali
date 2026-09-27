@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { colors } from '@src/shared/theme/colorPalette';
 import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
@@ -43,7 +43,7 @@ export default function HomeScreen() {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isPharmacyModalVisible, setIsPharmacyModalVisible] = useState(false);
   const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
-  const lastConversationsCheckRef = React.useRef(0);
+  const lastConversationsCheckRef = useRef(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -117,32 +117,6 @@ export default function HomeScreen() {
     });
   }, [selectedPharmacy, showError]);
 
-  const hasDisplayContent = Boolean(
-    (categories && categories.length > 0) ||
-    (pharmacyProducts && pharmacyProducts.length > 0) ||
-    (recommendations && recommendations.length > 0)
-  );
-
-  if (loading && !hasDisplayContent) {
-    return (
-      <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
-        <SkeletonHome />
-      </View>
-    );
-  }
-
-
-  if (!selectedPharmacy) {
-    return (
-      <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
-        <SkeletonHome />
-        <PharmacySelectionOverlay visible={true} onSelect={handlePharmacySelect} />
-      </View>
-    );
-  }
-
-  const recommendationFeedData = recommendations?.length ? recommendations : (pharmacyProducts ?? []);
-
   const renderProductItem = useCallback(({ item }) => {
     const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null;
 
@@ -175,6 +149,32 @@ export default function HomeScreen() {
       </View>
     );
   }, [selectedPharmacy?.id, selectedPharmacy?.pharmacy_id, handleAddToCart]);
+
+  const hasDisplayContent = Boolean(
+    (categories && categories.length > 0) ||
+    (pharmacyProducts && pharmacyProducts.length > 0) ||
+    (recommendations && recommendations.length > 0)
+  );
+
+  if (loading && !hasDisplayContent) {
+    return (
+      <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
+        <SkeletonHome />
+      </View>
+    );
+  }
+
+
+  if (!selectedPharmacy) {
+    return (
+      <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
+        <SkeletonHome />
+        <PharmacySelectionOverlay visible={true} onSelect={handlePharmacySelect} />
+      </View>
+    );
+  }
+
+  const recommendationFeedData = recommendations?.length ? recommendations : (pharmacyProducts ?? []);
 
   const renderHeader = () => (
 
