@@ -91,6 +91,8 @@ const VerifyOtpModal = ({ show, onHide, email, onVerify, title = "Two-Factor Aut
                 key={i}
                 id={`shared-otp-input-${i}`}
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 maxLength="1"
                 value={digit}
                 onChange={(e) => handleOtpChange(i, e.target.value)}
