@@ -26,27 +26,55 @@ class SearchPharmacyProductService
         $perPage = min($perPage, 50);
         $page = (is_numeric($cursor) && (int) $cursor > 0) ? (int) $cursor : 1;
 
-        $cacheKey = "search_products_{$pharmacyId}_" . md5($query) . "_{$perPage}_{$page}_{$cursor}";
+        $cacheKey = "search_products_{$pharmacyId}_" . md5(trim(strtolower($query))) . "_{$perPage}_{$page}_{$cursor}";
 
-        return Cache::remember($cacheKey, self::CACHE_TTL, function () use ($pharmacyId, $query, $perPage, $page, $cursor) {
-            // 1. Try Meilisearch via Scout if driver is enabled
-            if (config('scout.driver') === 'meilisearch') {
-                try {
-                    return PharmacyProduct::search($query)
-                        ->where('pharmacy_id', $pharmacyId)
-                        ->query(function ($builder) {
-                            $builder->with([
-                                'product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
-                                'category:id,category_name,description',
-                            ]);
-                        })
-                        ->paginate($perPage, 'page', $page);
-                } catch (Throwable $e) {
-                    report($e);
+        $cached = Cache::get($cacheKey);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        $result = $this->executeSearch($pharmacyId, $query, $perPage, $page, $cursor);
+
+        // Cache non-empty searches for 5 minutes; empty searches for only 15 seconds to avoid caching unindexed state
+        $ttl = (count($result->items()) > 0) ? self::CACHE_TTL : 15;
+        Cache::put($cacheKey, $result, $ttl);
+
+        return $result;
+    }
+
+    /**
+     * Perform product search using Meilisearch with automatic MySQL fallback.
+     */
+    protected function executeSearch(
+        int $pharmacyId,
+        string $query,
+        int $perPage,
+        int $page,
+        ?string $cursor = null,
+    ) {
+        // 1. Try Meilisearch via Scout if driver is enabled
+        if (config('scout.driver') === 'meilisearch') {
+            try {
+                $results = PharmacyProduct::search($query)
+                    ->where('pharmacy_id', $pharmacyId)
+                    ->query(function ($builder) {
+                        $builder->with([
+                            'product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
+                            'category:id,category_name,description',
+                        ]);
+                    })
+                    ->paginate($perPage, 'page', $page);
+
+                // If Meilisearch returned matching items, return them immediately
+                if ($results->total() > 0) {
+                    return $results;
                 }
+            } catch (Throwable $e) {
+                report($e);
             }
+        }
 
-            // 2. MySQL Fallback: Check if exact LIKE match yields any results
+        // 2. MySQL Fallback: Check if exact LIKE match yields any results
             $exactCount = $cursor === null
                 ? PharmacyProduct::where('pharmacy_id', $pharmacyId)
                     ->whereHas('product', function ($q) use ($query) {
@@ -91,8 +119,7 @@ class SearchPharmacyProductService
                 });
             }
 
-            return $baseQuery->orderBy('id')->cursorPaginate(perPage: $perPage, cursor: $cursor);
-        });
+        return $baseQuery->orderBy('id')->cursorPaginate(perPage: $perPage, cursor: $cursor);
     }
 
     /**
