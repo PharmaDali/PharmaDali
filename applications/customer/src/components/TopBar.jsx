@@ -7,6 +7,7 @@ import theme from '@shared/theme/inputTheme'
 import React, { useEffect, useRef } from 'react'
 import { useSearchContext } from '@shared/context/SearchContext'
 import CartButton from '@shared/components/CartButton'
+import { stripEmojis } from '@src/shared/utils/inputSanitizers'
 
 const TopBar = () => {
   const router = useRouter();
@@ -54,8 +55,10 @@ const TopBar = () => {
         }
         theme={theme}
         value={searchQuery}
+        maxLength={100}
         onChangeText={(text) => {
-          setSearchQuery(text);
+          const clean = stripEmojis(text).slice(0, 100);
+          setSearchQuery(clean);
           if (pathname !== '/tabs/Search') {
             router.push('/tabs/Search');
           }

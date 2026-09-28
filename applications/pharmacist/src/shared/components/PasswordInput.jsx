@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text, Platform } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import theme from '@src/shared/theme/inputTheme';
+import { stripEmojis } from '@shared/utils/inputSanitizers';
 
 const PasswordInput = ({
   label = 'Password',
@@ -12,10 +13,17 @@ const PasswordInput = ({
   helperText,
   style,
   autoCapitalize = 'none',
+  maxLength = 64,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const dynamicFontFamily = showPassword ? 'Poppins-Regular' : (Platform.OS === 'ios' ? 'Poppins-Regular' : undefined);
+
+  const handleTextChange = (text) => {
+    if (!onChangeText) return;
+    const sanitized = stripEmojis(text);
+    onChangeText(typeof maxLength === 'number' ? sanitized.slice(0, maxLength) : sanitized);
+  };
 
   return (
     <View className="w-full mb-4">
@@ -24,7 +32,8 @@ const PasswordInput = ({
         mode="outlined"
         secureTextEntry={!showPassword}
         value={value}
-        onChangeText={onChangeText}
+        onChangeText={handleTextChange}
+        maxLength={maxLength}
         placeholder={placeholder}
         autoCapitalize={autoCapitalize}
         theme={{

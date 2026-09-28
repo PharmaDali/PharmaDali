@@ -10,6 +10,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 import { loginPharmacist } from '@src/shared/services/authService';
 import { validatePharmacistLogin } from '@src/shared/validation/authValidation';
+import { sanitizeAlphanumeric } from '@shared/utils/inputSanitizers';
 
 import { syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 
@@ -65,7 +66,8 @@ const PharmacistLogin = () => {
         contentStyle={styles.inputContent}
         style={styles.input}
         value={employeeNumber}
-        onChangeText={setEmployeeNumber}
+        onChangeText={(text) => setEmployeeNumber(sanitizeAlphanumeric(text, 20))}
+        maxLength={20}
       />
       <PasswordInput
         label="Password"
@@ -73,7 +75,12 @@ const PharmacistLogin = () => {
         onChangeText={setPassword}
       />  
       {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-      <Link href="" style={styles.forgotPassword}>Forgot Password?</Link>
+      <TouchableOpacity
+        style={styles.forgotPasswordButton}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+      </TouchableOpacity>
       <View style={{ alignItems: 'center' }}>
         <Button mode="contained" style={styles.loginButton} onPress={handleLogin} loading={isSubmitting} disabled={isSubmitting}>
           Mag-Login
@@ -112,11 +119,16 @@ const styles = StyleSheet.create({
     width: '50%',
     backgroundColor: '#48AAD9',
   },
-  forgotPassword: {
+  forgotPasswordButton: {
+    alignSelf: 'flex-start',
     marginTop: 8,
     marginBottom: 16,
+  },
+  forgotPasswordText: {
     color: '#48AAD9',
     textDecorationLine: 'underline',
+    fontFamily: 'Poppins-Regular',
+    fontSize: 13,
   },
   noAccountText: {
     marginTop: 20,

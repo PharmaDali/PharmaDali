@@ -1,5 +1,6 @@
 import { Text, View, Modal, TouchableOpacity, Pressable, StyleSheet, TextInput, ActivityIndicator } from 'react-native'
 import React, { useState, useEffect } from 'react'
+import { stripEmojis } from '@src/shared/utils/inputSanitizers'
 
 export default function CancelOrderOverlay({ visible, onClose, onConfirm, submitting = false, errorMessage = '' }) {
   const [reason, setReason] = useState('')
@@ -32,7 +33,8 @@ export default function CancelOrderOverlay({ visible, onClose, onConfirm, submit
             placeholder="Reason for cancellation (optional)"
             placeholderTextColor="#9CA3AF"
             value={reason}
-            onChangeText={setReason}
+            onChangeText={(text) => setReason(stripEmojis(text).slice(0, 250))}
+            maxLength={250}
             multiline
             numberOfLines={2}
             style={styles.fontMedium}
