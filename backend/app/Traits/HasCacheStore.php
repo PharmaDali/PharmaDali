@@ -20,6 +20,7 @@ trait HasCacheStore
             $store->has('ping');
             return $store;
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('[HasCacheStore] Redis unavailable, falling back to default store: ' . $e->getMessage());
             return Cache::store();
         }
     }

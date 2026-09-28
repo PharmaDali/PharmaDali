@@ -19,6 +19,14 @@ try {
 done
 echo "Database is ready."
 
+# Ensure storage and bootstrap/cache directories exist
+mkdir -p /var/www/storage/framework/cache/data \
+         /var/www/storage/framework/sessions \
+         /var/www/storage/framework/views \
+         /var/www/storage/logs \
+         /var/www/storage/app/public \
+         /var/www/bootstrap/cache
+
 # Only the main PHP-FPM process runs migrations and warms the cache.
 # queue-worker and reverb-server share this entrypoint but skip this block.
 if [ "$1" = "php-fpm" ]; then
@@ -31,5 +39,9 @@ if [ "$1" = "php-fpm" ]; then
     echo "Warming application cache..."
     php artisan optimize
 fi
+
+# Ensure correct permissions for www-data after any artisan command
+chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 exec "$@"

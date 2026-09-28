@@ -71,6 +71,9 @@ echo -e "${YELLOW}>>> Refreshing Laravel optimizations and caches...${NC}"
 docker compose exec -T backend-app php artisan optimize:clear
 docker compose exec -T backend-app php artisan optimize
 
+echo -e "${YELLOW}>>> Ensuring correct storage and cache permissions...${NC}"
+docker compose exec -T backend-app sh -c "mkdir -p /var/www/storage/framework/cache/data /var/www/storage/framework/sessions /var/www/storage/framework/views /var/www/storage/logs && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache && chmod -R 775 /var/www/storage /var/www/bootstrap/cache"
+
 # 7. Clean up dangling/unused docker images (saves SSD space on 50GB plan)
 echo -e "${YELLOW}>>> Pruning old Docker images...${NC}"
 docker image prune -f
