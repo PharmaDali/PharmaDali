@@ -14,6 +14,7 @@ import ToastMessage from '@shared/components/ToastMessage';
 import SkeletonProductView from '@src/shared/components/SkeletonProductView';
 import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { formatStockLeft, getStockTextColor } from '@shared/utils/stringUtils';
 import { useFlyToCart } from '@shared/context/FlyToCartContext';
 import CartButton from '@shared/components/CartButton';
 
@@ -175,6 +176,8 @@ const ProductView = () => {
   const isOutOfStock = Boolean(is_out_of_stock) || (stock !== undefined && stock !== null && Number(stock) <= 0);
   const canAddToCart = isAvailable && !isOutOfStock;
   const buttonText = isOutOfStock ? 'Out of Stock' : (!isAvailable ? 'Unavailable' : 'Add to cart');
+  const stockLabel = formatStockLeft(stock);
+  const stockTextColor = getStockTextColor(stock);
 
   return (
     <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
@@ -208,9 +211,22 @@ const ProductView = () => {
           <Text className="text-base" style={styles.productName}>
             {[name, product?.strength, product?.form, product?.size].filter(Boolean).join(' ')}
           </Text>
-          <Text className="text-xl mt-2" style={styles.priceText}>
-            PHP {Number(selling_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-          </Text>
+          <View className="flex-row items-center justify-between mt-2">
+            <Text className="text-xl" style={styles.priceText}>
+              PHP {Number(selling_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+            </Text>
+            {stockLabel && (
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontFamily: 'Poppins-Medium',
+                  color: stockTextColor,
+                }}
+              >
+                {stockLabel}
+              </Text>
+            )}
+          </View>
         </View>
 
         <View className="px-5 mb-4">
@@ -321,12 +337,25 @@ const ProductView = () => {
                 >
                   {name}
                 </Text>
-                <Text
-                  className="text-[13px] mt-0.5 text-[#48AAD9]"
-                  style={{ fontFamily: 'Poppins-Bold' }}
-                >
-                  PHP {Number(selling_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                </Text>
+                <View className="flex-row items-center justify-between mt-1">
+                  <Text
+                    className="text-[13px] text-[#48AAD9]"
+                    style={{ fontFamily: 'Poppins-Bold' }}
+                  >
+                    PHP {Number(selling_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                  </Text>
+                  {stockLabel && (
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontFamily: 'Poppins-Medium',
+                        color: stockTextColor,
+                      }}
+                    >
+                      {stockLabel}
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
 
@@ -365,6 +394,15 @@ const ProductView = () => {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {stock != null && Number(stock) > 0 && Number(quantity) >= maxStock && (
+              <Text
+                className="text-[11px] text-center text-amber-600 mb-3 -mt-2"
+                style={{ fontFamily: 'Poppins-Medium' }}
+              >
+                Maximum available stock reached ({maxStock})
+              </Text>
+            )}
 
             {/* Action buttons */}
             <View className="flex-row">

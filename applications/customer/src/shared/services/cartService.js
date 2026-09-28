@@ -190,9 +190,13 @@ export function changeCartItemQuantity(items, id, direction) {
     }
 
     const currentQty = Number(item.quantity) || 1;
+    const maxStock = (item.stock !== undefined && item.stock !== null && Number(item.stock) > 0)
+      ? Number(item.stock)
+      : Infinity;
+
     const nextQty =
       direction === 'increment'
-        ? currentQty + 1
+        ? Math.min(maxStock, currentQty + 1)
         : Math.max(1, currentQty - 1);
 
     return {
