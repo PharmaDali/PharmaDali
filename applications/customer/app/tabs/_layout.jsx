@@ -3,6 +3,7 @@ import { PaperProvider } from 'react-native-paper';
 import BottomBar from '@components/BottomBar';
 import TopBar from '@components/TopBar';
 import NotificationDetailsHeader from '@shared/components/NotificationDetailsHeader';
+import ChatFloatingButton from '@shared/components/ChatFloatingButton';
 import { Slot, usePathname, useRouter } from 'expo-router';
 import { colors } from '@src/shared/theme/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
@@ -105,6 +106,7 @@ function LayoutContent() {
   }, []);
 
   const isNotificationDetails = pathname?.startsWith('/tabs/NotificationDetails');
+  const showChatButton = !selectionPhase && !isFullScreen && !detailTitle && !isNotificationDetails;
 
   return (
     <View style={styles.container}>
@@ -117,7 +119,10 @@ function LayoutContent() {
           <TopBar />
         )
       )}
-      <Slot />
+      <View style={styles.contentWrapper}>
+        <Slot />
+        {showChatButton && <ChatFloatingButton />}
+      </View>
       {!selectionPhase && !isFullScreen && <BottomBar />}
     </View>
   );
@@ -142,6 +147,10 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  contentWrapper: {
+    flex: 1,
+    position: 'relative',
   },
 });
 

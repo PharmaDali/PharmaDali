@@ -253,3 +253,18 @@ export function formatTimeToAmPm(timeValue) {
   return formatMinutesToAmPm(minutes);
 }
 
+// Returns a localized time-based Filipino greeting: "Magandang Araw, " (AM), "Magandang Hapon, " (afternoon), "Magandang Gabi, " (evening)
+export function getTimeBasedGreeting(date = new Date()) {
+  const currentMinutes = getManilaMinutes(date);
+  const hour = Math.floor(currentMinutes / 60);
+
+  if (hour < 12) {
+    return 'Magandang Araw, ';
+  }
+  if (hour < 18) {
+    return 'Magandang Hapon, ';
+  }
+  return 'Magandang Gabi, ';
+}
+
+

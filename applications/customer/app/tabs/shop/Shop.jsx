@@ -54,6 +54,18 @@ const Shop = () => {
   const [categoriesExpanded, setCategoriesExpanded] = useState(expandCategories === 'true')
   const [products, setProducts] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [prevPharmacyId, setPrevPharmacyId] = useState(selectedPharmacyId)
+
+  // Immediately clear products & display skeletons when pharmacy changes
+  if (selectedPharmacyId !== prevPharmacyId) {
+    setPrevPharmacyId(selectedPharmacyId)
+    setIsLoading(true)
+    setCategories([])
+    setProducts([])
+    setNextCursor(null)
+    setHasMore(false)
+  }
+
   const { toast, showSuccess, showError } = useToast()
 
   // Pagination state

@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, Pressable, TouchableOpacity, ScrollView, StyleSheet, Modal } from 'react-native';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
+import { View, Text, Pressable, TouchableOpacity, ScrollView, StyleSheet, Modal, Animated, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@shared/theme/colorPalette';
 import RedStoreIcon from '@assets/icons/red_store_icon.svg';
@@ -7,7 +7,7 @@ import { getPharmacyDataInSelectionPhase } from '@shared/services/selectionPhase
 import LocationIcon from '@assets/icons/red_location_icon.svg';
 import { getManilaMinutes } from '@src/utils/pickupScheduleUtils';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { formatBranchName } from '@shared/utils/notificationUtils';
+import { formatBranchName, parsePharmacyLocation } from '@shared/utils/notificationUtils';
 
 const fallbackPharmacies = [];
 
@@ -80,68 +80,131 @@ function isPharmacyOpenNow(openingHour, closingHour, now = new Date()) {
 
 
 function PharmacyCard({ pharmacy, onSelect, isSelected }) {
-  const branchName = formatBranchName(pharmacy.name, pharmacy.address) || pharmacy.name;
+  const { address, landmark } = parsePharmacyLocation(pharmacy.address || pharmacy.location);
+  const branchName = formatBranchName(pharmacy.name, address || pharmacy.address) || pharmacy.name || address;
 
   return (
     <View
-      className={`border rounded-xl px-3 py-3 mb-3 ${
-        isSelected ? 'border-sky-400 bg-sky-50' : 'border-[#B8DEF0] bg-[#E8F4FD]'
-      }`}
+      style={[
+        styles.cardContainer,
+        isSelected ? styles.cardContainerSelected : styles.cardContainerDefault,
+      ]}
     >
-      <View className="flex-row items-start">
-        <View className="mr-3 mt-1">
-          <RedStoreIcon width={24} height={24} />
-        </View>
-        <View className="flex-1">
-          <View className="flex-row items-center flex-wrap">
-            <Text style={styles.pharmacyName}>{branchName}</Text>
+      {/* Header: Store Icon + Branch Name + Open/Closed Status Badge */}
+      <View style={styles.cardHeader}>
+        <View style={styles.headerLeft}>
+          <View style={styles.storeIconWrap}>
+            <RedStoreIcon width={18} height={18} />
+          </View>
+          <View style={styles.headerTitleWrap}>
+            <Text style={styles.pharmacyName} numberOfLines={1}>
+              {branchName}
+            </Text>
             {isSelected && (
-              <View className="bg-sky-500 rounded-full px-2 py-0.5 ml-2">
+              <View style={styles.currentBadgeWrap}>
                 <Text style={styles.currentBadge}>Current</Text>
               </View>
             )}
           </View>
-          
-          {pharmacy.address ? (
-            <View className="flex-row items-start mt-1 pr-2">
-              <View className="mt-0.5 mr-1">
-                <LocationIcon width={12} height={12} />
-              </View>
-              <Text style={[styles.pharmacyDetail, { flex: 1 }]}>{pharmacy.address}</Text>
-            </View>
-          ) : null}
-
-          <View className="flex-row items-center mt-2">
-            <Text style={styles.pharmacyDetail}>{pharmacy.hours}</Text>
-            {pharmacy.isOpen && (
-              <View className="bg-green-500 rounded-full px-2 py-0.5 ml-2">
-                <Text style={styles.openBadge}>Open now</Text>
-              </View>
-            )}
-            {!pharmacy.isOpen && (
-              <View className="bg-red-500 rounded-full px-2 py-0.5 ml-2">
-                <Text style={styles.closedBadge}>Closed</Text>
-              </View>
-            )}
-          </View>
         </View>
-        <Pressable
-          className="rounded-full px-4 py-1.5 ml-2 self-center"
-          style={{ backgroundColor: isSelected ? '#0284c7' : colors.buttonColor }}
-          onPress={() => onSelect(pharmacy)}
+
+        <View
+          style={[
+            styles.statusBadge,
+            pharmacy.isOpen ? styles.openBadgeBg : styles.closedBadgeBg,
+          ]}
         >
-          <Text style={styles.selectText}>{isSelected ? 'Active' : 'Select'}</Text>
-        </Pressable>
+          <Text style={styles.statusBadgeText}>
+            {pharmacy.isOpen ? 'Open now' : 'Closed'}
+          </Text>
+        </View>
       </View>
+
+      {/* Subtle Divider */}
+      <View style={styles.cardDivider} />
+
+      {/* Middle Body: Primary Address, Highlighted Landmark Callout, & Operating Hours */}
+      <View style={styles.cardBody}>
+        {address ? (
+          <View style={styles.infoRow}>
+            <View style={styles.infoIconWrap}>
+              <LocationIcon width={13} height={13} />
+            </View>
+            <Text style={styles.pharmacyAddress} numberOfLines={2}>
+              {address}
+            </Text>
+          </View>
+        ) : null}
+
+        {landmark ? (
+          <View style={styles.landmarkBox}>
+            <View style={styles.landmarkIconWrap}>
+              <MaterialCommunityIcons name="compass-outline" size={13} color="#0284c7" />
+            </View>
+            <Text style={styles.landmarkText} numberOfLines={2}>
+              <Text style={styles.landmarkLabel}>Landmark: </Text>
+              {landmark}
+            </Text>
+          </View>
+        ) : null}
+
+        <View style={[styles.infoRow, (address || landmark) ? { marginTop: 7 } : null]}>
+          <View style={styles.infoIconWrap}>
+            <MaterialCommunityIcons name="clock-outline" size={13} color="#666" />
+          </View>
+          <Text style={styles.pharmacyHours}>
+            {pharmacy.hours || 'Operating hours not specified'}
+          </Text>
+        </View>
+      </View>
+
+      {/* Bottom Action: Dedicated Full-Width Select / Active Button */}
+      <TouchableOpacity
+        style={[
+          styles.actionButton,
+          isSelected ? styles.actionButtonActive : styles.actionButtonDefault,
+        ]}
+        onPress={() => onSelect(pharmacy)}
+        activeOpacity={0.8}
+      >
+        {isSelected ? (
+          <View style={styles.actionButtonContent}>
+            <MaterialCommunityIcons name="check-circle" size={15} color="#FFFFFF" style={{ marginRight: 6 }} />
+            <Text style={styles.actionButtonText}>Active Branch</Text>
+          </View>
+        ) : (
+          <View style={styles.actionButtonContent}>
+            <Text style={styles.actionButtonText}>Select This Branch</Text>
+          </View>
+        )}
+      </TouchableOpacity>
     </View>
   );
 }
+
 
 export default function PharmacySelectionOverlay({ visible, onSelect, onClose, currentPharmacyId }) {
   const insets = useSafeAreaInsets();
   const [remotePharmacies, setRemotePharmacies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [containerHeight, setContainerHeight] = useState(0);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  const isScrollable = contentHeight > containerHeight && containerHeight > 0;
+  const scrollTrackHeight = containerHeight > 0 ? containerHeight : 1;
+  const scrollRatio = contentHeight > 0 ? containerHeight / contentHeight : 1;
+  const thumbHeight = Math.max(32, Math.min(scrollTrackHeight * scrollRatio, scrollTrackHeight - 8));
+  const maxScroll = Math.max(1, contentHeight - containerHeight);
+  const maxTranslate = Math.max(0, scrollTrackHeight - thumbHeight);
+
+  const thumbTranslateY = scrollY.interpolate({
+    inputRange: [0, maxScroll],
+    outputRange: [0, maxTranslate],
+    extrapolate: 'clamp',
+  });
 
   useEffect(() => {
     if (!visible) return;
@@ -236,9 +299,8 @@ export default function PharmacySelectionOverlay({ visible, onSelect, onClose, c
           )}
           <View
             style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 24) + 12 }]}
-            onStartShouldSetResponder={() => true}
           >
-            <View className="flex-row items-start justify-between">
+            <View style={styles.sheetHeader}>
               <View className="flex-1 mr-2">
                 <Text style={styles.title}>Select a Pharmacy</Text>
                 <Text style={styles.subtitle}>Choose a branch to view available products</Text>
@@ -253,26 +315,60 @@ export default function PharmacySelectionOverlay({ visible, onSelect, onClose, c
                 </TouchableOpacity>
               )}
             </View>
-            <ScrollView className="mt-4" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 12 }}>
-              {isLoading && <Text style={styles.stateText}>Loading pharmacies...</Text>}
 
-              {!isLoading && errorMessage ? (
-                <Text style={styles.errorText}>{errorMessage}</Text>
-              ) : null}
+            {/* Scrollable Container with Theme-Matched Visible Scrollbar */}
+            <View
+              style={styles.scrollWrapper}
+              onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
+            >
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+                nestedScrollEnabled={true}
+                keyboardShouldPersistTaps="handled"
+                scrollEventThrottle={16}
+                onContentSizeChange={(_, h) => setContentHeight(h)}
+                onScroll={Animated.event(
+                  [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                  { useNativeDriver: false }
+                )}
+              >
+                {isLoading && <Text style={styles.stateText}>Loading pharmacies...</Text>}
 
-              {!isLoading && displayedPharmacies.length === 0 ? (
-                <Text style={styles.stateText}>No pharmacies available.</Text>
-              ) : null}
+                {!isLoading && errorMessage ? (
+                  <Text style={styles.errorText}>{errorMessage}</Text>
+                ) : null}
 
-              {displayedPharmacies.map((pharmacy) => (
-                <PharmacyCard
-                  key={pharmacy.id}
-                  pharmacy={pharmacy}
-                  onSelect={onSelect}
-                  isSelected={Number(pharmacy.id) === Number(currentPharmacyId)}
-                />
-              ))}
-            </ScrollView>
+                {!isLoading && displayedPharmacies.length === 0 ? (
+                  <Text style={styles.stateText}>No pharmacies available.</Text>
+                ) : null}
+
+                {displayedPharmacies.map((pharmacy) => (
+                  <PharmacyCard
+                    key={pharmacy.id}
+                    pharmacy={pharmacy}
+                    onSelect={onSelect}
+                    isSelected={Number(pharmacy.id) === Number(currentPharmacyId)}
+                  />
+                ))}
+              </ScrollView>
+
+              {/* PharmaDali Theme-Matched Scrollbar */}
+              {isScrollable && (
+                <View style={styles.scrollbarTrack}>
+                  <Animated.View
+                    style={[
+                      styles.scrollbarThumb,
+                      {
+                        height: thumbHeight,
+                        transform: [{ translateY: thumbTranslateY }],
+                      },
+                    ]}
+                  />
+                </View>
+              )}
+            </View>
           </View>
         </View>
       </View>
@@ -294,35 +390,163 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 2,
   },
+  cardContainer: {
+    borderRadius: 14,
+    padding: 13,
+    marginBottom: 12,
+  },
+  cardContainerDefault: {
+    borderWidth: 1,
+    borderColor: '#B8DEF0',
+    backgroundColor: '#F5FAFE',
+  },
+  cardContainerSelected: {
+    borderWidth: 1.5,
+    borderColor: '#0284c7',
+    backgroundColor: '#EAF6FD',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 8,
+  },
+  storeIconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  headerTitleWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
   pharmacyName: {
     fontFamily: 'Poppins-SemiBold',
-    fontSize: 12,
+    fontSize: 13,
     color: colors.textColor,
+    flexShrink: 1,
   },
-  pharmacyDetail: {
-    fontFamily: 'Poppins-Medium',
-    fontSize: 10,
-    color: '#888',
-  },
-  openBadge: {
-    fontFamily: 'Poppins-SemiBold',
-    fontSize: 8,
-    color: '#fff',
+  currentBadgeWrap: {
+    backgroundColor: '#0284c7',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    marginLeft: 6,
   },
   currentBadge: {
     fontFamily: 'Poppins-SemiBold',
-    fontSize: 8,
-    color: '#fff',
+    fontSize: 8.5,
+    color: '#FFFFFF',
   },
-  closedBadge: {
+  statusBadge: {
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  openBadgeBg: {
+    backgroundColor: '#22C55E',
+  },
+  closedBadgeBg: {
+    backgroundColor: '#EF4444',
+  },
+  statusBadgeText: {
     fontFamily: 'Poppins-SemiBold',
-    fontSize: 8,
-    color: '#fff',
+    fontSize: 9,
+    color: '#FFFFFF',
   },
-  selectText: {
+  cardDivider: {
+    height: 1,
+    backgroundColor: '#E2EBF1',
+    marginVertical: 10,
+  },
+  cardBody: {
+    marginBottom: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  infoIconWrap: {
+    width: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+    marginTop: 1.5,
+  },
+  pharmacyAddress: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 11,
+    color: '#555',
+    flex: 1,
+    lineHeight: 16,
+  },
+  landmarkBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
+    marginTop: 6,
+  },
+  landmarkIconWrap: {
+    marginRight: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  landmarkText: {
+    fontFamily: 'Poppins-Regular',
+    fontSize: 10.5,
+    color: '#0369A1',
+    flex: 1,
+    lineHeight: 15,
+  },
+  landmarkLabel: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 10.5,
+    color: '#0284C7',
+  },
+  pharmacyHours: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 11,
+    color: '#666',
+    flex: 1,
+  },
+  actionButton: {
+    borderRadius: 10,
+    paddingVertical: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonDefault: {
+    backgroundColor: colors.buttonColor,
+  },
+  actionButtonActive: {
+    backgroundColor: '#0284c7',
+  },
+  actionButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionButtonText: {
     fontFamily: 'Poppins-SemiBold',
     fontSize: 12,
-    color: '#fff',
+    color: '#FFFFFF',
   },
   stateText: {
     fontFamily: 'Poppins-Medium',
@@ -352,6 +576,37 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingTop: 24,
-    maxHeight: '75%',
+    maxHeight: '82%',
+    flexDirection: 'column',
+  },
+  sheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  scrollWrapper: {
+    flexDirection: 'row',
+    marginTop: 16,
+    maxHeight: Math.min(Dimensions.get('window').height * 0.58, 480),
+  },
+  scrollView: {
+    flex: 1,
+    paddingRight: 6,
+  },
+  scrollContent: {
+    paddingBottom: 8,
+  },
+  scrollbarTrack: {
+    width: 5,
+    backgroundColor: '#E0F2FE',
+    borderRadius: 3,
+    marginLeft: 4,
+    marginVertical: 2,
+    overflow: 'hidden',
+  },
+  scrollbarThumb: {
+    width: 5,
+    backgroundColor: colors.buttonColor,
+    borderRadius: 3,
   },
 });

@@ -46,6 +46,7 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
     (homeTabCache.categories.length > 0 || homeTabCache.pharmacyProducts.length > 0)
   );
 
+  const [currentPharmacyId, setCurrentPharmacyId] = useState(selectedPharmacyId);
   const [loading, setLoading] = useState(!selectedPharmacy || !isCached);
   const [categories, setCategories] = useState(isCached ? homeTabCache.categories : []);
   const [pharmacyProducts, setPharmacyProducts] = useState(isCached ? homeTabCache.pharmacyProducts : []);
@@ -56,6 +57,21 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
   const [isFetchingMoreRecs, setIsFetchingMoreRecs] = useState(false);
   const isFetchingMoreRecsRef = useRef(false);
   const previousPharmacyIdRef = useRef(null);
+  const selectedPharmacyIdRef = useRef(selectedPharmacyId);
+  selectedPharmacyIdRef.current = selectedPharmacyId;
+
+  // React pattern: Synchronously adjust state during render when selectedPharmacyId changes
+  // to prevent rendering stale data or having a frame delay before the skeleton appears
+  if (selectedPharmacyId !== currentPharmacyId) {
+    setCurrentPharmacyId(selectedPharmacyId);
+    setLoading(true);
+    setCategories([]);
+    setPharmacyProducts([]);
+    setHeroRecommendations(null);
+    setRecommendations([]);
+    setRecPage(1);
+    setRecHasMore(false);
+  }
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -72,25 +88,26 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
   const loadPharmacyData = useCallback(async (isRefresh = false) => {
     if (!selectedPharmacyId) return;
 
-    const hasCached = Boolean(
-      homeTabCache.pharmacyId === selectedPharmacyId &&
-      (homeTabCache.categories.length > 0 || homeTabCache.pharmacyProducts.length > 0)
-    );
+    const targetPharmacyId = selectedPharmacyId;
 
     if (isRefresh) {
       setRefreshing(true);
-    } else if (!hasCached) {
+    } else {
       setLoading(true);
     }
 
-
     try {
       const [categoriesPayload, productsPayload, recommendationsPayload, pharmacyPayload] = await Promise.all([
-        getPharmacyCategories(selectedPharmacyId, isRefresh),
-        getProducts(selectedPharmacyId, null, { perPage: HOME_PREVIEW_LIMIT }),
-        getHeroRecommendations(selectedPharmacyId, { page: 1, perPage: 10 }).catch(() => null),
-        typeof setSelectedPharmacy === 'function' ? getPharmacyById(selectedPharmacyId).catch(() => null) : Promise.resolve(null),
+        getPharmacyCategories(targetPharmacyId, isRefresh),
+        getProducts(targetPharmacyId, null, { perPage: HOME_PREVIEW_LIMIT }),
+        getHeroRecommendations(targetPharmacyId, { page: 1, perPage: 10 }).catch(() => null),
+        typeof setSelectedPharmacy === 'function' ? getPharmacyById(targetPharmacyId).catch(() => null) : Promise.resolve(null),
       ]);
+
+      // If another pharmacy was selected while this request was running, ignore this response
+      if (selectedPharmacyIdRef.current !== targetPharmacyId) {
+        return;
+      }
 
       if (pharmacyPayload && typeof setSelectedPharmacy === 'function') {
         const pData = pharmacyPayload?.data ?? pharmacyPayload;
@@ -149,7 +166,7 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
       }
 
       // Update module-level cache
-      homeTabCache.pharmacyId = selectedPharmacyId;
+      homeTabCache.pharmacyId = targetPharmacyId;
       homeTabCache.categories = normCats;
       homeTabCache.pharmacyProducts = normProds;
       homeTabCache.heroRecommendations = recData;
@@ -157,7 +174,7 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
       homeTabCache.recHasMore = finalHasMore;
       homeTabCache.timestamp = Date.now();
     } catch {
-      if (!homeTabCache.pharmacyId) {
+      if (selectedPharmacyIdRef.current === targetPharmacyId) {
         setCategories([]);
         setPharmacyProducts([]);
         setRecommendations([]);
@@ -165,10 +182,12 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
         setRecHasMore(false);
       }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      if (selectedPharmacyIdRef.current === targetPharmacyId) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
-  }, [selectedPharmacyId]);
+  }, [selectedPharmacyId, setSelectedPharmacy]);
 
   const loadMoreRecommendations = useCallback(async () => {
     if (isFetchingMoreRecsRef.current || !recHasMore || !selectedPharmacyId || loading) {
@@ -221,8 +240,8 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
       (homeTabCache.categories.length > 0 || homeTabCache.pharmacyProducts.length > 0)
     );
 
-    // If data was fetched within the last 60 seconds for this pharmacy, do NOT re-fetch on tab switch!
-    if (isCacheFresh) {
+    // If data was fetched within the last 60 seconds for this pharmacy AND it was already loaded, do NOT re-fetch on tab switch!
+    if (isCacheFresh && previousPharmacyIdRef.current === selectedPharmacyId) {
       return;
     }
 
