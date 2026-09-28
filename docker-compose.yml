@@ -4,6 +4,8 @@ x-backend-common: &backend-common
     target: php-fpm
   restart: unless-stopped
   environment:
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
     REVERB_INTERNAL_HOST: reverb-server
     REVERB_INTERNAL_PORT: "8080"
     REVERB_INTERNAL_SCHEME: http
@@ -109,6 +111,11 @@ services:
     <<: *backend-common
     command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080", "--no-interaction"]
     environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REVERB_INTERNAL_HOST: reverb-server
+      REVERB_INTERNAL_PORT: "8080"
+      REVERB_INTERNAL_SCHEME: http
       VIRTUAL_HOST: ${REVERB_DOMAIN}
       VIRTUAL_PORT: "8080"
       LETSENCRYPT_HOST: ${REVERB_DOMAIN}
