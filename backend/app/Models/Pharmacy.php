@@ -84,7 +84,8 @@ class Pharmacy extends Model
     {
         $name = trim($this->pharmacy_name ?? '');
         if ($name === '') {
-            return trim($this->location ?? 'Main Branch');
+            $firstLine = strtok(trim($this->location ?? ''), "\r\n");
+            return trim($firstLine ?: '');
         }
 
         $cleaned = preg_replace('/^\(?pharma\s*dali\)?\s*[-–—:\/]*\s*/i', '', $name);
@@ -96,7 +97,8 @@ class Pharmacy extends Model
         }
 
         if (!empty($this->location)) {
-            return trim($this->location);
+            $firstLine = strtok(trim($this->location), "\r\n");
+            return trim($firstLine ?: $name);
         }
 
         return $name;
