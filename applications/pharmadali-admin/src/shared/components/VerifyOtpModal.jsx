@@ -53,6 +53,14 @@ const VerifyOtpModal = ({ show, onHide, email, onVerify, title = "Two-Factor Aut
     }
   };
 
+  const handleClick = (index) => {
+    const firstEmptyIndex = otp.findIndex((val) => val === "");
+    if (firstEmptyIndex !== -1 && index > firstEmptyIndex) {
+      const emptyInput = document.getElementById(`shared-otp-input-${firstEmptyIndex}`);
+      if (emptyInput) emptyInput.focus();
+    }
+  };
+
   const handleClose = () => {
     onHide();
   };
@@ -83,10 +91,13 @@ const VerifyOtpModal = ({ show, onHide, email, onVerify, title = "Two-Factor Aut
                 key={i}
                 id={`shared-otp-input-${i}`}
                 type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 maxLength="1"
                 value={digit}
                 onChange={(e) => handleOtpChange(i, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(i, e)}
+                onClick={() => handleClick(i)}
                 className="form-control shared-otp-input text-center p-0 fw-semibold fs-5"
                 style={{ width: "40px", height: "45px" }}
               />

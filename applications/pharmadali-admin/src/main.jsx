@@ -17,6 +17,42 @@ import './assets/css/loading-system.css'
 import './index.css'
 import App from './App.jsx'
 
+// Global event listener to prevent emoji input in all input and textarea fields
+document.addEventListener('input', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+    // Regex to detect emojis
+    const emojiRegex = /[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu;
+    
+    if (emojiRegex.test(e.target.value)) {
+      const start = e.target.selectionStart;
+      const end = e.target.selectionEnd;
+      const oldLength = e.target.value.length;
+      
+      // Strip emojis
+      const newValue = e.target.value.replace(emojiRegex, '');
+      
+      // Bypass React's input value setter tracking to trigger onChange
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+      const nativeTextAreaValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+      
+      if (e.target.tagName === 'INPUT') {
+        nativeInputValueSetter.call(e.target, newValue);
+      } else {
+        nativeTextAreaValueSetter.call(e.target, newValue);
+      }
+      
+      // Dispatch event to notify React
+      e.target.dispatchEvent(new Event('input', { bubbles: true }));
+      
+      // Restore cursor position
+      try {
+        const diff = oldLength - newValue.length;
+        e.target.setSelectionRange(Math.max(0, start - diff), Math.max(0, end - diff));
+      } catch (err) {}
+    }
+  }
+}, { capture: true });
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
