@@ -52,7 +52,10 @@ function Login() {
   };
 
   const handle2FAVerify = async (code) => {
-    const data = await verifyAdminTwoFactor(twoFactorToken, code);
+    return await verifyAdminTwoFactor(twoFactorToken, code);
+  };
+
+  const handle2FAProceed = (data) => {
     setShow2FA(false);
     localStorage.setItem("isAuthenticated", "true");
     localStorage.setItem("tokenExpiry", String(Date.now() + 8 * 60 * 60 * 1000));
@@ -124,6 +127,7 @@ function Login() {
         onHide={handle2FAHide} 
         email={twoFactorEmail || credentials.email} 
         onVerify={handle2FAVerify}
+        onProceed={handle2FAProceed}
         onResend={handle2FAResend}
       />
     </div>
