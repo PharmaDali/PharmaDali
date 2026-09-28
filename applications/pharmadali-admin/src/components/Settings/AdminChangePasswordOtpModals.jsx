@@ -206,7 +206,7 @@ const AdminChangePasswordOtpModals = ({ show, onHide, email, currentPassword, on
             <PasswordField 
               value={newPassword} 
               onChange={(e) => setNewPassword(e.target.value)} 
-              placeholder="••••••••••••" 
+              placeholder="Enter new password" 
             />
             <small className="text-muted" style={{ fontSize: "0.7rem" }}>Minimum of 8 characters</small>
           </div>
@@ -216,7 +216,7 @@ const AdminChangePasswordOtpModals = ({ show, onHide, email, currentPassword, on
             <PasswordField 
               value={confirmPassword} 
               onChange={(e) => setConfirmPassword(e.target.value)} 
-              placeholder="••••••••••••" 
+              placeholder="Confirm new password" 
             />
           </div>
 
