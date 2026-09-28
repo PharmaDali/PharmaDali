@@ -17,6 +17,8 @@ import ClearCartOverlay from '@shared/components/ClearCartOverlay';
 import RoundedCheckIcon from '@shared/components/RoundedCheckIcon';
 import { formatPharmacyHoursLabel } from '@src/utils/pickupScheduleUtils';
 
+import { formatStockLeft, getStockTextColor } from '@shared/utils/stringUtils';
+
 import DeleteIcon from '@assets/icons/delete.svg';
 
 function Checkbox({ checked, onPress }) {
@@ -33,7 +35,9 @@ function Checkbox({ checked, onPress }) {
   );
 }
 
-function QuantityControl({ quantity, onIncrement, onDecrement }) {
+function QuantityControl({ quantity, maxStock, onIncrement, onDecrement }) {
+  const isMaxReached = maxStock !== undefined && maxStock !== null && Number(quantity) >= Number(maxStock);
+
   return (
     <View className="flex-row items-center border-2 border-[#48AAD9] rounded-full px-3 py-0.5 min-w-[80px] justify-between">
       <TouchableOpacity
@@ -45,7 +49,9 @@ function QuantityControl({ quantity, onIncrement, onDecrement }) {
       <Text className="text-[#48AAD9] text-sm mx-2" style={styles.fontSemiBold}>{quantity}</Text>
       <TouchableOpacity
         onPress={onIncrement}
+        disabled={isMaxReached}
         className="items-center justify-center"
+        style={{ opacity: isMaxReached ? 0.35 : 1 }}
       >
         <Text className="text-[#48AAD9] text-base" style={styles.fontSemiBold}>+</Text>
       </TouchableOpacity>
@@ -65,6 +71,9 @@ function truncateText(value, maxLength = 48) {
 function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
   const displayName = truncateText(item.description);
   const canCheckout = item.canCheckout !== false;
+  const stockLabel = formatStockLeft(item?.stock);
+  const stockTextColor = getStockTextColor(item?.stock);
+  const isMaxReached = canCheckout && item?.stock != null && Number(item.quantity) >= Number(item.stock) && Number(item.stock) > 0;
 
   return (
     <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-2" style={{ opacity: canCheckout ? 1 : 0.7 }}>
@@ -103,9 +112,22 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
             <Text className="text-[10px] ml-1" style={styles.rxText}>Prescription Required</Text>
           </View>
         )}
-        <Text className="text-[10px] text-gray-500 mt-1" style={styles.fontMedium}>
-          {item.sizeLabel || 'Size'}: {item.size}
-        </Text>
+        <View className="flex-row items-center justify-between mt-1">
+          <Text className="text-[10px] text-gray-500" style={styles.fontMedium}>
+            {item.sizeLabel || 'Size'}: {item.size}
+          </Text>
+          {stockLabel && (
+            <Text
+              style={{
+                fontSize: 10,
+                fontFamily: 'Poppins-Medium',
+                color: stockTextColor,
+              }}
+            >
+              {stockLabel}
+            </Text>
+          )}
+        </View>
         <View className="flex-row justify-between items-center mt-2">
           <Text className="text-sm" style={styles.priceText}>
             PHP {item.price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
@@ -113,6 +135,7 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
           {canCheckout ? (
             <QuantityControl
               quantity={item.quantity}
+              maxStock={item?.stock}
               onIncrement={onIncrement}
               onDecrement={onDecrement}
             />
@@ -129,6 +152,11 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
             </View>
           )}
         </View>
+        {isMaxReached && (
+          <Text className="text-[10px] text-amber-600 mt-1 text-right" style={styles.fontMedium}>
+            Max stock reached ({item.stock})
+          </Text>
+        )}
       </View>
     </View>
   );

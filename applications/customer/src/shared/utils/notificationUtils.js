@@ -121,6 +121,31 @@ export async function removeFcmTokenFromBackend() {
 }
 
 /**
+ * Parses a location string into primary address and landmark note.
+ * Handles production multi-line formats like:
+ * "Pob. 3, Tanauan City, Batangas\n\nAcross the street, near Healthway DMMC."
+ */
+export function parsePharmacyLocation(locationString) {
+  if (!locationString || typeof locationString !== 'string') {
+    return { address: '', landmark: '' };
+  }
+
+  const lines = locationString
+    .split(/\r?\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length === 0) {
+    return { address: '', landmark: '' };
+  }
+
+  const address = lines[0];
+  const landmark = lines.slice(1).join(' • ');
+
+  return { address, landmark };
+}
+
+/**
  * Formats and extracts the clean branch name.
  */
 export function formatBranchName(pharmacyName, location) {
@@ -141,10 +166,12 @@ export function formatBranchName(pharmacyName, location) {
 
   if (!cleaned || /^pharma\s*dali$/i.test(cleaned)) {
     if (location && String(location).trim()) {
-      return String(location).trim();
+      const firstLine = String(location).split(/\r?\n/)[0].trim();
+      return firstLine || raw || '';
     }
     return raw || '';
   }
 
   return cleaned;
 }
+

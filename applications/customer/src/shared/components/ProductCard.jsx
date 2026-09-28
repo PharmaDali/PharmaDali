@@ -6,6 +6,7 @@ import AddToCartIcon from '@assets/icons/add_to_cart_icon.svg';
 import RxIcon from '@assets/icons/rx_icon.svg';
 import ProductImage from '@shared/components/ProductImage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { formatStockLeft, getStockTextColor } from '@shared/utils/stringUtils';
 
 import { useFlyToCart } from '@shared/context/FlyToCartContext';
 
@@ -35,6 +36,8 @@ const ProductCard = ({
 
   const isOutOfStockComputed = Boolean(isOutOfStock) || (stock !== undefined && stock !== null && Number(stock) <= 0);
   const canAddToCart = isAvailable !== false && !isOutOfStockComputed;
+  const stockLabel = formatStockLeft(stock);
+  const stockTextColor = getStockTextColor(stock);
 
   const handlePress = () => {
     router.push({
@@ -155,6 +158,21 @@ const ProductCard = ({
           )}
           <Text className="text-sm mt-2" style={{ fontFamily: 'Poppins-Medium' }} numberOfLines={2}>{description}</Text>
 
+          {/* Stocks left indicator */}
+          {stockLabel && (
+            <Text
+              style={{
+                fontSize: 11,
+                fontFamily: 'Poppins-Medium',
+                color: stockTextColor,
+                marginTop: 2,
+              }}
+              numberOfLines={1}
+            >
+              {stockLabel}
+            </Text>
+          )}
+
           <View className="flex-row items-center justify-between mt-2">
             <Text className="text-md" style={styles.priceBold}>{price}</Text>
             <TouchableOpacity
@@ -218,12 +236,25 @@ const ProductCard = ({
                 >
                   {description}
                 </Text>
-                <Text
-                  className="text-[13px] mt-0.5 text-[#48AAD9]"
-                  style={{ fontFamily: 'Poppins-Bold' }}
-                >
-                  {price}
-                </Text>
+                <View className="flex-row items-center justify-between mt-1">
+                  <Text
+                    className="text-[13px] text-[#48AAD9]"
+                    style={{ fontFamily: 'Poppins-Bold' }}
+                  >
+                    {price}
+                  </Text>
+                  {stockLabel && (
+                    <Text
+                      style={{
+                        fontSize: 11,
+                        fontFamily: 'Poppins-Medium',
+                        color: stockTextColor,
+                      }}
+                    >
+                      {stockLabel}
+                    </Text>
+                  )}
+                </View>
               </View>
             </View>
 
@@ -262,6 +293,15 @@ const ProductCard = ({
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {stock != null && Number(stock) > 0 && Number(quantity) >= maxStock && (
+              <Text
+                className="text-[11px] text-center text-amber-600 mb-3 -mt-2"
+                style={{ fontFamily: 'Poppins-Medium' }}
+              >
+                Maximum available stock reached ({maxStock})
+              </Text>
+            )}
 
             {/* Action buttons */}
             <View className="flex-row">

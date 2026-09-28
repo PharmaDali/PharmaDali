@@ -19,8 +19,8 @@ import ToastMessage from '@shared/components/ToastMessage';
 import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { toTitleCase } from '@shared/utils/stringUtils';
-import { getCustomerConversations } from '@shared/services/chatService';
 import { formatBranchName } from '@shared/utils/notificationUtils';
+import { getTimeBasedGreeting } from '@src/utils/pickupScheduleUtils';
 
 export default function HomeScreen() {
   const route = useRouter();
@@ -42,44 +42,6 @@ export default function HomeScreen() {
   const { toast, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isPharmacyModalVisible, setIsPharmacyModalVisible] = useState(false);
-  const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
-  const lastConversationsCheckRef = useRef(0);
-
-  useFocusEffect(
-    useCallback(() => {
-      const now = Date.now();
-      if (now - lastConversationsCheckRef.current < 30000) {
-        return;
-      }
-      lastConversationsCheckRef.current = now;
-
-      let isMounted = true;
-      getCustomerConversations()
-        .then((result) => {
-          if (!isMounted) return;
-          const validConversations = (Array.isArray(result) ? result : []).filter((c) => {
-            const orderStatus = String(c?.order?.status || '').toLowerCase();
-            const convStatus = String(c?.status || '').toLowerCase();
-            return (
-              c.latest_message !== null &&
-              orderStatus !== 'completed' &&
-              orderStatus !== 'cancelled' &&
-              orderStatus !== 'rejected' &&
-              convStatus !== 'closed'
-            );
-          });
-          const hasUnread = validConversations.some((c) => (Number(c?.unread_count) || 0) > 0);
-          setHasUnreadMessage(hasUnread);
-        })
-        .catch(() => {
-          if (isMounted) setHasUnreadMessage(false);
-        });
-
-      return () => {
-        isMounted = false;
-      };
-    }, [])
-  );
 
 
   const pharmacyStatusLabel = selectedPharmacy?.isOpen
@@ -97,6 +59,8 @@ export default function HomeScreen() {
     formatBranchName(selectedPharmacy?.name, selectedPharmacy?.address || selectedPharmacy?.location) ||
     selectedPharmacy?.name ||
     'Selected pharmacy';
+
+  const greetingPrefix = getTimeBasedGreeting();
 
   const handleAddToCart = useCallback(({ pharmacyProductId, quantity = 1 }) => {
     const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id;
@@ -150,21 +114,6 @@ export default function HomeScreen() {
     );
   }, [selectedPharmacy?.id, selectedPharmacy?.pharmacy_id, handleAddToCart]);
 
-  const hasDisplayContent = Boolean(
-    (categories && categories.length > 0) ||
-    (pharmacyProducts && pharmacyProducts.length > 0) ||
-    (recommendations && recommendations.length > 0)
-  );
-
-  if (loading && !hasDisplayContent) {
-    return (
-      <View className="flex-1 bg-white" style={{ paddingTop: insets.top }}>
-        <SkeletonHome />
-      </View>
-    );
-  }
-
-
   if (!selectedPharmacy) {
     return (
       <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
@@ -174,48 +123,65 @@ export default function HomeScreen() {
     );
   }
 
+  if (loading) {
+    return (
+      <View className="flex-1 bg-white">
+        <ToastMessage
+          visible={toast.visible}
+          message={toast.message}
+          type={toast.type}
+          topOffset={insets.top + 8}
+        />
+        <SkeletonHome />
+        <PharmacySelectionOverlay
+          visible={isPharmacyModalVisible}
+          onSelect={handlePharmacySelect}
+          onClose={() => setIsPharmacyModalVisible(false)}
+          currentPharmacyId={selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id}
+        />
+      </View>
+    );
+  }
+
   const recommendationFeedData = recommendations?.length ? recommendations : (pharmacyProducts ?? []);
 
   const renderHeader = () => (
 
     <View>
-      <View className="flex-row flex-wrap items-center px-4 pt-6">
-        <Text style={styles.greetingMedium}>Magandang Araw, </Text>
-        <Text style={styles.greetingBold}>{toTitleCase(profile?.first_name) || 'User'}!</Text>
-      </View>
-
-      {/* Pharmacy selector button */}
-      <View className="px-4 mt-6">
+      {/* ── Top Bar: Pharmacy Selector Dropdown Pill ── */}
+      <View className="px-4 pt-4 items-end">
         <TouchableOpacity
-          activeOpacity={0.7}
+          activeOpacity={0.75}
           onPress={() => setIsPharmacyModalVisible(true)}
-          className={`flex-row items-center rounded-full pl-3 pr-3.5 py-1.5 self-end shadow-sm border ${
-            isPharmacyOpen ? 'bg-green-100 border-green-300' : 'bg-red-100 border-red-300'
-          }`}
+          style={styles.pharmacyPill}
         >
-          <View
-            className={`w-6 h-6 rounded-full mr-2 items-center justify-center ${
-              isPharmacyOpen ? 'bg-green-600' : 'bg-red-600'
-            }`}
-          >
-            <StoreIcon width={16} height={16} />
+          <View style={styles.pillStoreIconWrap}>
+            <MaterialCommunityIcons name="storefront-outline" size={13} color="#0284c7" />
           </View>
-          <Text className="text-sm text-gray-700" style={{ fontFamily: 'Poppins-Medium' }}>
-            <Text style={{ fontFamily: 'Poppins-Bold' }}>{pharmacyStatusLabel} </Text>
-            <Text className={isPharmacyOpen ? 'text-green-600' : 'text-red-600'}>|</Text>{' '}
+          <Text style={styles.pillBranchName} numberOfLines={1}>
             {cleanSelectedBranch}
+          </Text>
+          <View style={[styles.statusDot, { backgroundColor: isPharmacyOpen ? '#22C55E' : '#EF4444' }]} />
+          <Text style={[styles.pillStatusText, { color: isPharmacyOpen ? '#16A34A' : '#DC2626' }]}>
+            {isPharmacyOpen ? 'Open' : 'Closed'}
           </Text>
           <MaterialCommunityIcons
             name="chevron-down"
-            size={18}
-            color={isPharmacyOpen ? '#15803d' : '#b91c1c'}
-            style={{ marginLeft: 3 }}
+            size={15}
+            color="#64748B"
+            style={{ marginLeft: 2 }}
           />
         </TouchableOpacity>
       </View>
 
+      {/* ── Greeting Section ── */}
+      <View className="flex-row flex-wrap items-center px-4 pt-3">
+        <Text style={styles.greetingMedium}>{greetingPrefix}</Text>
+        <Text style={styles.greetingBold}>{toTitleCase(profile?.first_name) || 'User'}!</Text>
+      </View>
+
       {/* ── Hero Section ── */}
-      <View className="mx-4 mt-8 rounded-2xl overflow-hidden">
+      <View className="mx-4 mt-3.5 rounded-2xl overflow-hidden">
         <HeroImage
           width="100%"
           height={200}
@@ -344,20 +310,7 @@ export default function HomeScreen() {
       />
 
 
-      <TouchableOpacity
-        onPress={() => {
-          setHasUnreadMessage(false);
-          route.push('/tabs/chat/Chat');
-        }}
-        activeOpacity={0.9}
-        className="absolute right-4 h-14 w-14 items-center justify-center rounded-full bg-sky-500 shadow-lg shadow-slate-900/30"
-        style={{ bottom: Math.max(insets.bottom, 16) + 12 }}
-      >
-        <MaterialCommunityIcons name="message-text-outline" size={26} color="#fff" />
-        {hasUnreadMessage && (
-          <View className="absolute top-3 right-3 h-3 w-3 rounded-full bg-red-500 border-2 border-sky-500" />
-        )}
-      </TouchableOpacity>
+
 
       {/* Search overlay */}
       {isSearchVisible && (
@@ -381,18 +334,63 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  pharmacyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    alignSelf: 'flex-end',
+    maxWidth: '92%',
+  },
+  pillStoreIconWrap: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+  },
+  pillBranchName: {
+    fontFamily: 'Poppins-SemiBold',
+    fontSize: 12,
+    color: '#1E293B',
+    flexShrink: 1,
+    marginRight: 6,
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 4,
+  },
+  pillStatusText: {
+    fontFamily: 'Poppins-Medium',
+    fontSize: 11,
+    marginRight: 2,
+  },
   greetingMedium: {
     fontFamily: 'Modulus-Medium',
     fontWeight: 'normal',
-    fontSize: 30,
-    lineHeight: 36,
+    fontSize: 22,
+    lineHeight: 26,
+    color: '#334155',
   },
   greetingBold: {
     fontFamily: 'Modulus-Bold',
     fontWeight: 'normal',
     color: colors.buttonColor,
-    fontSize: 30,
-    lineHeight: 36,
+    fontSize: 22,
+    lineHeight: 26,
   },
   seeAllLink: {
     color: colors.buttonColor,
