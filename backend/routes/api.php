@@ -40,6 +40,8 @@ Route::post('customer/register', [AuthController::class, 'customerRegister'])->m
 Route::post('login', [AuthController::class, 'login']);
 Route::post('pharmacist/login', [AuthController::class, 'pharmacistLogin']);
 Route::post('admin/login', [AuthController::class, 'adminLogin']);
+Route::post('admin/login/verify-2fa', [AuthController::class, 'adminVerifyTwoFactor'])->middleware('throttle:otp-verify');
+Route::post('admin/login/resend-2fa', [AuthController::class, 'adminResendTwoFactor'])->middleware('throttle:otp-verify');
 
 // App Downloads (Direct APK download)
 Route::get('download/pharmacist-app', [AppDownloadController::class, 'downloadPharmacistApp']);

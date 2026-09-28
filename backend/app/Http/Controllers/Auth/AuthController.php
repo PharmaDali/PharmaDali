@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\AdminLoginRequest;
 use App\Http\Requests\Auth\AdminRegisterRequest;
+use App\Http\Requests\Auth\AdminResendTwoFactorRequest;
+use App\Http\Requests\Auth\AdminVerifyTwoFactorRequest;
 use App\Http\Requests\Auth\CustomerRegisterRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\PharmacistLoginRequest;
@@ -70,6 +72,24 @@ class AuthController extends Controller
             $request->validated(),
             $request->ip(),
             $request->userAgent() ?? 'Unknown'
+        );
+    }
+
+    public function adminVerifyTwoFactor(AdminVerifyTwoFactorRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        return $this->adminLoginService->verifyTwoFactor(
+            $validated['two_factor_token'],
+            $validated['otp'],
+            $request->ip()
+        );
+    }
+
+    public function adminResendTwoFactor(AdminResendTwoFactorRequest $request): JsonResponse
+    {
+        $validated = $request->validated();
+        return $this->adminLoginService->resendTwoFactor(
+            $validated['two_factor_token']
         );
     }
 

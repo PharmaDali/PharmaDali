@@ -10,6 +10,11 @@ export const login = async (credentials) => {
 
 	const data = await apiRequest.post("/admin/login", payload);
 
+	// If 2FA is required, do NOT save token yet; return challenge payload to UI
+	if (data?.two_factor_required) {
+		return data;
+	}
+
 	const token = data?.token || data?.access_token;
 	if (token) {
 		setAuthToken(token);
@@ -24,6 +29,32 @@ export const login = async (credentials) => {
 	return data;
 };
 
+export const verifyAdminTwoFactor = async (twoFactorToken, otp) => {
+	const data = await apiRequest.post("/admin/login/verify-2fa", {
+		two_factor_token: twoFactorToken,
+		otp,
+	});
+
+	const token = data?.token || data?.access_token;
+	if (token) {
+		setAuthToken(token);
+		if (data?.user?.pharmacy_id) {
+			localStorage.setItem("pharmacy_id", data.user.pharmacy_id);
+		}
+		if (data?.user?.id) {
+			localStorage.setItem("user_id", data.user.id);
+		}
+	}
+
+	return data;
+};
+
+export const resendAdminTwoFactor = async (twoFactorToken) => {
+	return await apiRequest.post("/admin/login/resend-2fa", {
+		two_factor_token: twoFactorToken,
+	});
+};
+
 export const getCurrentUser = async () => apiRequest.get("/user");
 
 export const logout = async () => {
@@ -35,5 +66,6 @@ export const logout = async () => {
 		localStorage.removeItem("tokenExpiry");
 		localStorage.removeItem("pharmacy_id");
 		localStorage.removeItem("user_id");
+		localStorage.removeItem("isAuthenticated");
 	}
 };
