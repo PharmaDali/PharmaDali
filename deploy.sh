@@ -63,12 +63,16 @@ docker compose exec -T backend-app php artisan migrate --force
 echo -e "${YELLOW}>>> Ensuring public storage symlink exists...${NC}"
 docker compose exec -T backend-app php artisan storage:link 2>/dev/null || true
 
+echo -e "${YELLOW}>>> Clearing cached optimizations and configurations...${NC}"
+docker compose exec -T backend-app php artisan optimize:clear
+
 echo -e "${YELLOW}>>> Syncing search index settings (Meilisearch)...${NC}"
-docker compose exec -T backend-app php artisan scout:sync-index-settings 2>/dev/null || true
+docker compose exec -T backend-app php artisan scout:sync-index-settings || true
+
+echo -e "${YELLOW}>>> Importing products into search index (Meilisearch)...${NC}"
+docker compose exec -T backend-app php artisan scout:import "App\Models\PharmacyProduct" || true
 
 echo -e "${YELLOW}>>> Refreshing Laravel optimizations and caches...${NC}"
-
-docker compose exec -T backend-app php artisan optimize:clear
 docker compose exec -T backend-app php artisan optimize
 
 echo -e "${YELLOW}>>> Ensuring correct storage and cache permissions...${NC}"
