@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, logout } from "../services/loginService";
+import { login, verifyAdminTwoFactor, resendAdminTwoFactor } from "../services/loginService";
 import PasswordField from "../shared/components/PasswordField";
 import VerifyOtpModal from "../shared/components/VerifyOtpModal";
 
@@ -10,7 +10,8 @@ function Login() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [show2FA, setShow2FA] = useState(false);
-  const [loginData, setLoginData] = useState(null);
+  const [twoFactorToken, setTwoFactorToken] = useState("");
+  const [twoFactorEmail, setTwoFactorEmail] = useState("");
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -23,22 +24,40 @@ function Login() {
 
     try {
       const data = await login(credentials);
-      setLoginData(data);
-      setShow2FA(true);
+
+      // If 2FA challenge is issued by backend
+      if (data?.two_factor_required) {
+        setTwoFactorToken(data.two_factor_token);
+        setTwoFactorEmail(data.email || credentials.email);
+        setShow2FA(true);
+        return;
+      }
+
+      // Direct login fallback (if 2FA was not triggered)
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("tokenExpiry", String(Date.now() + 8 * 60 * 60 * 1000));
+
+      const role = data?.role || data?.user?.role;
+      if (role === "pharmacist") {
+        navigate("/pos", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (err) {
-      setError(err?.message || "Invalid email or password.");
+      setError(err?.response?.data?.message || err?.message || "Invalid email or password.");
       localStorage.removeItem("isAuthenticated");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handle2FASuccess = () => {
+  const handle2FAVerify = async (code) => {
+    const data = await verifyAdminTwoFactor(twoFactorToken, code);
     setShow2FA(false);
     localStorage.setItem("isAuthenticated", "true");
     localStorage.setItem("tokenExpiry", String(Date.now() + 8 * 60 * 60 * 1000));
 
-    const role = loginData?.role || loginData?.user?.role;
+    const role = data?.role || data?.user?.role;
     if (role === "pharmacist") {
       navigate("/pos", { replace: true });
     } else {
@@ -46,9 +65,13 @@ function Login() {
     }
   };
 
+  const handle2FAResend = async () => {
+    return await resendAdminTwoFactor(twoFactorToken);
+  };
+
   const handle2FAHide = () => {
     setShow2FA(false);
-    logout(); // clean up any temporarily stored token
+    setTwoFactorToken("");
   };
 
   return (
@@ -99,8 +122,9 @@ function Login() {
       <VerifyOtpModal 
         show={show2FA} 
         onHide={handle2FAHide} 
-        email={credentials.email} 
-        onVerify={handle2FASuccess} 
+        email={twoFactorEmail || credentials.email} 
+        onVerify={handle2FAVerify}
+        onResend={handle2FAResend}
       />
     </div>
   );
