@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, ActivityIndicator } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { View, StyleSheet, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
 import theme from '@src/shared/theme/inputTheme';
@@ -8,6 +8,7 @@ import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggl
 import AnimatedSplashLayout from '@src/shared/components/AnimatedSplashLayout';
 import { loginCustomer } from '@src/shared/services/authService';
 import { validateCustomerLogin } from '@src/shared/validation/authValidation';
+import { stripEmojis } from '@src/shared/utils/inputSanitizers';
 
 import { syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 
@@ -98,7 +99,8 @@ export default function LoginScreen() {
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
-        onChangeText={setEmail}
+        onChangeText={(text) => setEmail(stripEmojis(text))}
+        maxLength={100}
       />
       <TextInput
         label="Password"
@@ -108,11 +110,18 @@ export default function LoginScreen() {
         style={styles.input}
         right={passwordToggleIcon.icon}
         value={password}
-        onChangeText={setPassword}
+        onChangeText={(text) => setPassword(stripEmojis(text))}
+        maxLength={64}
         autoCapitalize="none"
       />
       {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
-      <Link href="/auth/EnterMobileNumberFPW" style={styles.forgotPassword}>Forgot Password?</Link>
+      <TouchableOpacity
+        onPress={() => router.push('/auth/EnterMobileNumberFPW')}
+        style={styles.forgotPasswordButton}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+      </TouchableOpacity>
       <View style={{ alignItems: 'center' }}>
         <Button mode="contained" style={styles.loginButton} onPress={handleLogin} loading={isSubmitting} disabled={isSubmitting}>
           Mag-Login
@@ -141,11 +150,16 @@ const styles = StyleSheet.create({
     width: '50%',
     backgroundColor: '#48AAD9',
   },
-  forgotPassword: {
+  forgotPasswordButton: {
+    alignSelf: 'flex-start',
     marginTop: 8,
     marginBottom: 16,
+  },
+  forgotPasswordText: {
     color: '#48AAD9',
     textDecorationLine: 'underline',
+    fontFamily: 'Poppins-Regular',
+    fontSize: 13,
   },
   noAccountText: {
     marginTop: 20,
