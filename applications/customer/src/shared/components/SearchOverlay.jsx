@@ -15,6 +15,7 @@ import { useSearch } from '@shared/hooks/useSearch';
 import ProductCard from '@shared/components/ProductCard';
 import { formatProductPrice } from '@shared/hooks/useHomeTab';
 import { colors } from '@shared/theme/colorPalette';
+import { stripEmojis } from '@src/shared/utils/inputSanitizers';
 
 export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCart }) {
   const [query, setQuery] = useState('');
@@ -48,14 +49,15 @@ export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCar
 
   // While typing — only fetch suggestions, never auto-trigger product search
   const handleSearchChange = (text) => {
-    setQuery(text);
+    const clean = stripEmojis(text).slice(0, 100);
+    setQuery(clean);
 
     if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
 
-    if (text.trim().length >= 2) {
+    if (clean.trim().length >= 2) {
       setMode('suggesting');
       suggestDebounceRef.current = setTimeout(() => {
-        fetchSuggestions(text);
+        fetchSuggestions(clean);
       }, 200);
     } else {
       setMode('idle');
@@ -141,6 +143,7 @@ export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCar
             placeholderTextColor="#999"
             value={query}
             onChangeText={handleSearchChange}
+            maxLength={100}
             autoFocus
             returnKeyType="search"
             onSubmitEditing={handleSubmit}

@@ -11,6 +11,13 @@ import { registerCustomer } from '@src/shared/services/authService';
 import { validateCustomerRegistration } from '@src/shared/validation/authValidation';
 import ToastMessage from '@src/shared/components/ToastMessage';
 import { useToast } from '@src/shared/hooks/useToast';
+import {
+  sanitizeNameInput,
+  sanitizeNumericInput,
+  sanitizeMobileInput,
+  stripEmojis,
+  sanitizeNoEmoji,
+} from '@src/shared/utils/inputSanitizers';
 
 const Register = () => {
   const router = useRouter();
@@ -121,20 +128,22 @@ const Register = () => {
             </View>
             <View style={styles.nameContainer}>
               <TextInput
-                label="Last Name"
-                mode="outlined"
-                theme={theme}
-                value={lastName}
-                onChangeText={setLastName}
-                editable={!isSubmitting}
-                style={styles.input}
-              />
-              <TextInput
                 label="First Name"
                 mode="outlined"
                 theme={theme}
                 value={firstName}
-                onChangeText={setFirstName}
+                onChangeText={(text) => setFirstName(sanitizeNameInput(text, 50))}
+                maxLength={50}
+                editable={!isSubmitting}
+                style={styles.input}
+              />
+              <TextInput
+                label="Last Name"
+                mode="outlined"
+                theme={theme}
+                value={lastName}
+                onChangeText={(text) => setLastName(sanitizeNameInput(text, 50))}
+                maxLength={50}
                 editable={!isSubmitting}
                 style={styles.input}
               />
@@ -146,7 +155,8 @@ const Register = () => {
                 keyboardType='email-address'
                 theme={theme}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => setEmail(stripEmojis(text))}
+                maxLength={100}
                 autoCapitalize='none'
                 editable={!isSubmitting}
                 style={{ marginBottom: 16 }}
@@ -185,12 +195,14 @@ const Register = () => {
               )}
               <TextInput
                 label="Mobile Number"
+                placeholder="e.g. 09123456789 or +639123456789"
                 mode="outlined"
                 keyboardType='phone-pad'
                 theme={theme}
                 style={{ marginTop: 16 }}
                 value={mobileNumber}
-                onChangeText={setMobileNumber}
+                onChangeText={(text) => setMobileNumber(sanitizeMobileInput(text))}
+                maxLength={13}
                 editable={!isSubmitting}
               />
               <TextInput
@@ -199,7 +211,8 @@ const Register = () => {
                 theme={theme}
                 style={{ marginTop: 16 }}
                 value={address}
-                onChangeText={setAddress}
+                onChangeText={(text) => setAddress(sanitizeNoEmoji(text, 150))}
+                maxLength={150}
                 editable={!isSubmitting}
               />
               <TextInput
@@ -208,7 +221,8 @@ const Register = () => {
                 secureTextEntry={!passwordToggleIcon.showPassword}
                 theme={theme}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(text) => setPassword(stripEmojis(text))}
+                maxLength={64}
                 style={{ marginTop: 16 }}
                 right={passwordToggleIcon.icon}
                 autoCapitalize='none'
@@ -221,7 +235,8 @@ const Register = () => {
                 theme={theme}
                 style={{ marginTop: 16 }}
                 value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                onChangeText={(text) => setConfirmPassword(stripEmojis(text))}
+                maxLength={64}
                 right={confirmPasswordToggleIcon.icon}
                 autoCapitalize='none'
                 editable={!isSubmitting}

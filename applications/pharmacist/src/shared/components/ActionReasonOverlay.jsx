@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { colors } from '@shared/theme/colorPalette';
 import { Ionicons } from '@expo/vector-icons';
+import { stripEmojis } from '@shared/utils/inputSanitizers';
 
 const REJECT_REASONS_GENERAL = [
   'Invalid Prescription - Please re-order OTC items separately',
@@ -172,9 +173,11 @@ export default function ActionReasonOverlay({
                       numberOfLines={3}
                       value={reason}
                       onChangeText={(txt) => {
-                        setReason(txt);
-                        if (selectedPrewritten !== txt) setSelectedPrewritten('');
+                        const clean = stripEmojis(txt).slice(0, 250);
+                        setReason(clean);
+                        if (selectedPrewritten !== clean) setSelectedPrewritten('');
                       }}
+                      maxLength={250}
                       textAlignVertical="top"
                       style={styles.inputFont}
                     />

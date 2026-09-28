@@ -8,6 +8,7 @@ import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { resetPasswordWithOtp } from '@src/shared/services/authService';
+import { stripEmojis, containsEmoji } from '@src/shared/utils/inputSanitizers';
 
 const CreateNewPasswordFPW = () => {
   const router = useRouter();
@@ -29,8 +30,18 @@ const CreateNewPasswordFPW = () => {
       return;
     }
 
+    if (containsEmoji(password) || containsEmoji(confirmPassword)) {
+      setErrorMessage('Passwords cannot contain emojis.');
+      return;
+    }
+
     if (password.length < 8) {
       setErrorMessage('Password must be at least 8 characters long.');
+      return;
+    }
+
+    if (password.length > 64) {
+      setErrorMessage('Password must not exceed 64 characters.');
       return;
     }
 
@@ -98,7 +109,8 @@ const CreateNewPasswordFPW = () => {
             autoCapitalize="none"
             secureTextEntry={!passwordToggleIcon.showPassword}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => setPassword(stripEmojis(text))}
+            maxLength={64}
             style={{ width: '100%', marginBottom: 16, marginTop: 8 }}
             theme={theme}
             right={passwordToggleIcon.icon}
@@ -109,7 +121,8 @@ const CreateNewPasswordFPW = () => {
             autoCapitalize="none"
             secureTextEntry={!confirmPasswordToggleIcon.showPassword}
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(text) => setConfirmPassword(stripEmojis(text))}
+            maxLength={64}
             style={{ width: '100%', marginBottom: 16, marginTop: 8 }}
             theme={theme}
             right={confirmPasswordToggleIcon.icon}

@@ -7,6 +7,7 @@ import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 import { useRouter } from 'expo-router';
 import theme from '@src/shared/theme/inputTheme';
 import { sendForgotPasswordOtp } from '@src/shared/services/authService';
+import { stripEmojis } from '@src/shared/utils/inputSanitizers';
 
 const EnterMobileNumber = () => {
   const router = useRouter();
@@ -64,7 +65,8 @@ const EnterMobileNumber = () => {
           keyboardType="email-address"
           autoCapitalize="none"
           value={email}
-          onChangeText={setEmail}
+          onChangeText={(text) => setEmail(stripEmojis(text))}
+          maxLength={100}
           theme={theme}
           style={{ width: '100%', marginBottom: 16 }}
         />

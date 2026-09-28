@@ -24,6 +24,7 @@ import {
   buildScheduledPickupDateTime,
   validateScheduledPickupTime,
 } from '@shared/validation/pickupValidation'
+import { stripEmojis, sanitizeAlphanumeric } from '@src/shared/utils/inputSanitizers'
 import {
   formatMinutesToAmPm,
   parsePharmacyOperatingMinutes,
@@ -748,7 +749,7 @@ const PickupDetailsScreen = () => {
           <Text className="text-sm mt-4 mb-2" style={styles.fontSemiBold}>Customer Notes (Optional)</Text>
           <TextInput
             value={customerNote}
-            onChangeText={setCustomerNote}
+            onChangeText={(text) => setCustomerNote(stripEmojis(text).slice(0, 250))}
             placeholder="Add note for pharmacist (e.g., call me before substitution)"
             placeholderTextColor="#9CA3AF"
             multiline
@@ -849,12 +850,14 @@ const PickupDetailsScreen = () => {
                     <TextInput
                       value={discountIdNumber}
                       onChangeText={(text) => {
-                        setDiscountIdNumber(text)
-                        const lowerErr = (submitError || '').toLowerCase()
+                        const sanitized = sanitizeAlphanumeric(text, 30);
+                        setDiscountIdNumber(sanitized);
+                        const lowerErr = (submitError || '').toLowerCase();
                         if (lowerErr.includes('id number') || lowerErr.includes('discount')) {
-                          setSubmitError('')
+                          setSubmitError('');
                         }
                       }}
+                      maxLength={30}
                       className="border rounded-xl px-4 py-3 bg-[#FAFAFA] text-xs mb-4"
                       style={{ borderColor: discountIdNumber ? '#48AAD9' : '#D1D5DB', fontFamily: 'Poppins-Medium', color: colors.textColor }}
                     />

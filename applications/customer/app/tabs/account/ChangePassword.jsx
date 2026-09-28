@@ -23,6 +23,7 @@ import {
   resetCustomerPassword,
   logoutCustomer,
 } from '@shared/services/authService';
+import { containsEmoji } from '@src/shared/utils/inputSanitizers';
 
 const ChangePassword = () => {
   const router = useRouter();
@@ -121,6 +122,7 @@ const ChangePassword = () => {
   };
 
   const handleOtpChange = (text, index) => {
+    if (text && !/^\d+$/.test(text)) return;
     setApiError('');
     const newOtp = [...otp];
     newOtp[index] = text;
@@ -193,12 +195,20 @@ const ChangePassword = () => {
       setPasswordError('Please fill out all password fields.');
       return;
     }
+    if (containsEmoji(newPassword) || containsEmoji(confirmPassword)) {
+      setPasswordError('Passwords cannot contain emojis.');
+      return;
+    }
     if (newPassword !== confirmPassword) {
       setPasswordError('Passwords do not match.');
       return;
     }
     if (newPassword.length < 8) {
       setPasswordError('Password must be at least 8 characters.');
+      return;
+    }
+    if (newPassword.length > 64) {
+      setPasswordError('Password must not exceed 64 characters.');
       return;
     }
 
