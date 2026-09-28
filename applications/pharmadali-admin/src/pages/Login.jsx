@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../services/loginService";
+import { login, logout } from "../services/loginService";
 import PasswordField from "../shared/components/PasswordField";
+import VerifyOtpModal from "../shared/components/VerifyOtpModal";
 
 function Login() {
   const navigate = useNavigate();
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [show2FA, setShow2FA] = useState(false);
+  const [loginData, setLoginData] = useState(null);
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -20,21 +23,32 @@ function Login() {
 
     try {
       const data = await login(credentials);
-      localStorage.setItem("isAuthenticated", "true");
-      localStorage.setItem("tokenExpiry", String(Date.now() + 8 * 60 * 60 * 1000));
-
-      const role = data?.role || data?.user?.role;
-      if (role === "pharmacist") {
-        navigate("/pos", { replace: true });
-      } else {
-        navigate("/", { replace: true });
-      }
+      setLoginData(data);
+      setShow2FA(true);
     } catch (err) {
       setError(err?.message || "Invalid email or password.");
       localStorage.removeItem("isAuthenticated");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handle2FASuccess = () => {
+    setShow2FA(false);
+    localStorage.setItem("isAuthenticated", "true");
+    localStorage.setItem("tokenExpiry", String(Date.now() + 8 * 60 * 60 * 1000));
+
+    const role = loginData?.role || loginData?.user?.role;
+    if (role === "pharmacist") {
+      navigate("/pos", { replace: true });
+    } else {
+      navigate("/", { replace: true });
+    }
+  };
+
+  const handle2FAHide = () => {
+    setShow2FA(false);
+    logout(); // clean up any temporarily stored token
   };
 
   return (
@@ -81,6 +95,13 @@ function Login() {
           </button>
         </div>
       </form>
+
+      <VerifyOtpModal 
+        show={show2FA} 
+        onHide={handle2FAHide} 
+        email={credentials.email} 
+        onVerify={handle2FASuccess} 
+      />
     </div>
   );
 }
