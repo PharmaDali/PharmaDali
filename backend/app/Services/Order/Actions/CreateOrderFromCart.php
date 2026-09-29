@@ -4,6 +4,7 @@ namespace App\Services\Order\Actions;
 
 use App\Models\Cart;
 use App\Models\Order;
+use App\Models\CartItem;
 use App\Models\OrderItem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -62,7 +63,7 @@ class CreateOrderFromCart
                 'total_amount' => $subtotal,
             ]);
 
-            $this->cleanupCartAfterOrder($activeCart, $selectedCartItemIds);
+            $this->cleanupCartAfterOrder($cartItems, $selectedCartItemIds);
 
             return $order->load([
                 'customer:id,user_id',
@@ -107,16 +108,19 @@ class CreateOrderFromCart
     /**
      * Remove checked out items from cart and mark cart completed if empty.
      */
-    private function cleanupCartAfterOrder(Cart $activeCart, Collection $selectedCartItemIds): void
+    private function cleanupCartAfterOrder(Collection $cartItems, Collection $selectedCartItemIds): void
     {
-        $activeCart->items()
-            ->whereIn('id', $selectedCartItemIds)
-            ->delete();
+        $cartIds = $cartItems->pluck('cart_id')->unique();
 
-        if (!$activeCart->items()->exists()) {
-            $activeCart->update([
-                'status' => 'completed',
-            ]);
+        CartItem::query()->whereIn('id', $selectedCartItemIds)->delete();
+
+        foreach ($cartIds as $cartId) {
+            $cart = Cart::withoutGlobalScopes()->find($cartId);
+            if ($cart && !$cart->items()->exists()) {
+                $cart->update([
+                    'status' => 'completed',
+                ]);
+            }
         }
     }
 

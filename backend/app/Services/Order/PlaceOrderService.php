@@ -3,6 +3,7 @@
 namespace App\Services\Order;
 
 use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Pharmacy;
@@ -32,30 +33,43 @@ class PlaceOrderService
             return $this->errorResponse('Customer profile not found.', 403);
         }
 
-        $activeCart = $this->resolveActiveCart($customer->id, $user->id);
-        if (!$activeCart) {
-            return $this->errorResponse('No active cart found for checkout.', 422);
-        }
-
-        $pharmacy = Pharmacy::find($activeCart->pharmacy_id);
-        $hoursReason = null;
-        $scheduledPickupAt = $payload['scheduled_pickup_at'] ?? null;
-        if (!$this->operatingHoursChecker->isScheduledPickupEligible($pharmacy, $scheduledPickupAt, $hoursReason)) {
-            return $this->errorResponse($hoursReason ?: 'The selected pickup schedule is invalid or outside store operating hours.', 422);
-        }
-
         $selectedCartItemIds = $this->normalizeSelectedCartItemIds($payload);
         if ($selectedCartItemIds->isEmpty()) {
             return $this->errorResponse('No selected cart items found for checkout.', 422);
         }
 
-        $cartItems = $this->resolveSelectedCartItems($activeCart, $selectedCartItemIds);
+        // Resolve the specific cart items selected by customer across any of their active carts
+        $cartItems = $this->resolveSelectedCartItems((int) $customer->id, (int) $user->id, $selectedCartItemIds);
         if ($cartItems->isEmpty()) {
             return $this->errorResponse('Cannot place an order with an empty cart.', 422);
         }
 
         if ($cartItems->count() !== $selectedCartItemIds->count()) {
             return $this->errorResponse('Some selected cart items are invalid for this checkout.', 422);
+        }
+
+        // Validate that all selected items belong to the same pharmacy
+        $pharmacyIds = $cartItems->map(fn($item) => $item->cart?->pharmacy_id)->filter()->unique();
+        if ($pharmacyIds->count() > 1) {
+            return $this->errorResponse('Selected items belong to multiple pharmacies. Please checkout items from one pharmacy at a time.', 422);
+        }
+
+        // Resolve the active cart and pharmacy from the items directly
+        /** @var Cart $activeCart */
+        $activeCart = $cartItems->first()->cart;
+        if (!$activeCart) {
+            return $this->errorResponse('No active cart found for checkout.', 422);
+        }
+
+        $pharmacy = $activeCart->pharmacy ?? Pharmacy::find($activeCart->pharmacy_id);
+        if (!$pharmacy) {
+            return $this->errorResponse('Pharmacy not found for this order.', 422);
+        }
+
+        $hoursReason = null;
+        $scheduledPickupAt = $payload['scheduled_pickup_at'] ?? null;
+        if (!$this->operatingHoursChecker->isScheduledPickupEligible($pharmacy, $scheduledPickupAt, $hoursReason)) {
+            return $this->errorResponse($hoursReason ?: 'The selected pickup schedule is invalid or outside store operating hours.', 422);
         }
 
         $unavailableItems = $cartItems->filter(fn($item) => !$item->pharmacyProduct || !$item->pharmacyProduct->is_available || $item->pharmacyProduct->stock < $item->quantity);
@@ -86,18 +100,6 @@ class PlaceOrderService
         }
     }
 
-    private function resolveActiveCart(int $customerId, int $userId): ?Cart
-    {
-        return Cart::query()
-            ->where('status', 'active')
-            ->where(function ($query) use ($customerId, $userId) {
-                $query->where('customer_id', $customerId)
-                    ->orWhere('customer_id', $userId);
-            })
-            ->latest('id')
-            ->first();
-    }
-
     private function normalizeSelectedCartItemIds(array $payload): Collection
     {
         return collect($payload['cart_item_ids'] ?? [])
@@ -107,11 +109,23 @@ class PlaceOrderService
             ->values();
     }
 
-    private function resolveSelectedCartItems(Cart $activeCart, Collection $selectedCartItemIds): Collection
+    private function resolveSelectedCartItems(int $customerId, int $userId, Collection $selectedCartItemIds): Collection
     {
-        return $activeCart->items()
+        return CartItem::query()
             ->whereIn('id', $selectedCartItemIds)
-            ->with(['pharmacyProduct.product:id,product_name'])
+            ->whereHas('cart', function ($query) use ($customerId, $userId) {
+                $query->withoutGlobalScopes()
+                    ->where('status', 'active')
+                    ->where(function ($q) use ($customerId, $userId) {
+                        $q->where('customer_id', $customerId)
+                            ->orWhere('customer_id', $userId);
+                    });
+            })
+            ->with([
+                'cart' => fn($q) => $q->withoutGlobalScopes(),
+                'cart.pharmacy',
+                'pharmacyProduct.product:id,product_name',
+            ])
             ->get();
     }
 
