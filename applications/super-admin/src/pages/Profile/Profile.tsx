@@ -21,12 +21,14 @@ const Profile = () => {
   };
 
   return (
-    <div className="w-full flex flex-col gap-6 max-w-[800px]">
-      <div>
-        <h1 className="m-0 text-[clamp(1.6rem,2.8vw,2.6rem)] leading-[1.05] text-white">Profile Settings</h1>
+    <div className="flex flex-col w-full h-full flex-1 min-h-0 text-sm font-[var(--font-primary)]">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="m-0 text-[clamp(1.8rem,3vw,2.6rem)] font-regular text-white tracking-wide">
+          Profile Settings
+        </h1>
       </div>
 
-      <div className="bg-[#424754] border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 md:p-8 shadow-lg flex flex-col gap-8">
+      <div className="bg-[#424754] border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 md:p-8 shadow-lg flex flex-col gap-8 w-full max-w-[800px] mx-auto">
         <div className="flex items-center gap-6">
           <div className="w-24 h-24 rounded-full bg-[#404552] border-2 border-[#48aad9] flex items-center justify-center overflow-hidden shadow-inner shrink-0">
             <img src={profileIcon} alt="Profile" className="w-12 h-12 opacity-80" />
