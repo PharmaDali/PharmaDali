@@ -124,9 +124,9 @@ class PharmacyOperatingHoursChecker
         $pickupMinutes = ($scheduledCarbon->hour * 60) + $scheduledCarbon->minute;
 
         if ($pickupDateStr === $todayStr) {
-            // Must be at least 30 minutes in advance
-            if ($scheduledCarbon->lt($nowPht->copy()->addMinutes(30))) {
-                $reason = "Pickup time for today must be at least 30 minutes in advance.";
+            // Must be at least 20 minutes in advance (allowing a 10-minute checkout completion and latency grace period)
+            if ($scheduledCarbon->lt($nowPht->copy()->addMinutes(20))) {
+                $reason = "Pickup time for today must be at least 20 minutes in advance.";
                 return false;
             }
 
