@@ -9,6 +9,7 @@ import Users from '../Users/Users'
 import Notifications from '../Notifications/Notifications'
 import Tickets from '../Tickets/Tickets'
 import TicketDetailsPage from '../Tickets/TicketDetailsPage'
+import Profile from '../Profile/Profile'
 import { useTickets } from '../../context/TicketContext'
 
 import { getDashboardMetrics } from '../../services/dashboardService'
@@ -19,6 +20,7 @@ const PAGE_TITLES: Record<string, string> = {
   '/users': 'Users',
   '/tickets': 'Tickets',
   '/notifications': 'Notifications',
+  '/profile': 'Profile Settings',
 }
 
 function HomePage() {
@@ -100,6 +102,10 @@ function HomePage() {
           ) : pathname === '/notifications' ? (
             <section className="w-full">
               <Notifications />
+            </section>
+          ) : pathname === '/profile' ? (
+            <section className="w-full flex justify-center">
+              <Profile />
             </section>
           ) : (
             <section className="max-w-[720px] bg-[#424754] border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 md:p-[36px] shadow-lg">
