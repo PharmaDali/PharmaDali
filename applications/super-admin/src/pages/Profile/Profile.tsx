@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Input } from '../../components/common/Input';
 import profileIcon from '../../assets/profile-icon.svg';
 
 const Profile = () => {
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [formData, setFormData] = useState({
     firstName: 'Denmar',
     lastName: 'Superman',
@@ -17,7 +20,18 @@ const Profile = () => {
   };
 
   const handleSave = () => {
-    console.log('Profile saved', formData);
+    console.log('Profile saved', formData, 'New Image:', !!profileImage);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -30,13 +44,27 @@ const Profile = () => {
 
       <div className="bg-[#424754] border border-[rgba(255,255,255,0.05)] rounded-[24px] p-6 md:p-8 shadow-lg flex flex-col gap-8 w-full max-w-[800px] mx-auto">
         <div className="flex items-center gap-6">
-          <div className="w-24 h-24 rounded-full bg-[#404552] border-2 border-[#48aad9] flex items-center justify-center overflow-hidden shadow-inner shrink-0">
-            <img src={profileIcon} alt="Profile" className="w-12 h-12 opacity-80" />
+          <div className="w-24 h-24 rounded-full bg-[#404552] border-2 border-[#48aad9] flex items-center justify-center overflow-hidden shadow-inner shrink-0 relative">
+            {profileImage ? (
+              <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <img src={profileIcon} alt="Profile" className="w-12 h-12 opacity-80" />
+            )}
           </div>
           <div>
             <h2 className="text-xl font-bold text-white m-0 mb-1">{formData.firstName} {formData.lastName}</h2>
             <p className="text-[#8ccfed] text-sm font-semibold tracking-wide m-0">{formData.role}</p>
-            <button className="mt-3 px-4 py-1.5 rounded-full bg-[rgba(140,207,237,0.1)] text-[#8ccfed] text-xs font-semibold hover:bg-[rgba(140,207,237,0.2)] border border-[rgba(140,207,237,0.2)] transition-colors">
+            <input 
+              type="file" 
+              accept="image/*" 
+              ref={fileInputRef} 
+              className="hidden" 
+              onChange={handleImageChange} 
+            />
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="mt-3 px-4 py-1.5 rounded-full bg-[rgba(140,207,237,0.1)] text-[#8ccfed] text-xs font-semibold hover:bg-[rgba(140,207,237,0.2)] border border-[rgba(140,207,237,0.2)] transition-colors cursor-pointer"
+            >
               Change Picture
             </button>
           </div>
