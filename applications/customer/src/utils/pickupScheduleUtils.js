@@ -267,4 +267,13 @@ export function getTimeBasedGreeting(date = new Date()) {
   return 'Magandang Gabi, ';
 }
 
-
+// Rounds a Date forward to the next clean 5-minute interval (with zeroed seconds and milliseconds)
+export function roundToNextFiveMinutes(date) {
+  const d = new Date(date);
+  d.setSeconds(0, 0);
+  const remainder = d.getMinutes() % 5;
+  if (remainder !== 0) {
+    d.setMinutes(d.getMinutes() + (5 - remainder));
+  }
+  return d;
+}
