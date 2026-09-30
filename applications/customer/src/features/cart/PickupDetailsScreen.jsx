@@ -29,6 +29,7 @@ import {
   formatMinutesToAmPm,
   parsePharmacyOperatingMinutes,
   formatPharmacyHoursLabel,
+  roundToNextFiveMinutes,
 } from '@src/utils/pickupScheduleUtils'
 
 const PickupDetailsScreen = () => {
@@ -217,7 +218,9 @@ const PickupDetailsScreen = () => {
       ? buildScheduledPickupDateTime(selectedDate, selectedTime)
       : null
 
-    const currentBounds = buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes)
+    // For ongoing checkout confirmation, allow a 10-minute grace window (lead time 20 minutes)
+    // so taking 1-5 minutes to complete details doesn't prematurely disable checkout
+    const currentBounds = buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes, 20)
 
     return validateScheduledPickupTime({
       scheduledDateTime: scheduledPickupAt,
@@ -256,10 +259,12 @@ const PickupDetailsScreen = () => {
       return
     }
 
-    if (selectedTime && (selectedTime < minimumDateTime || selectedTime > closingDateTime)) {
+    // Use 20-minute grace window so selected time isn't cleared while filling out the form
+    const currentGraceBounds = buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes, 20)
+    if (selectedTime && (selectedTime < currentGraceBounds.minimumDateTime || selectedTime > closingDateTime)) {
       setSelectedTime(null)
     }
-  }, [hasValidOperatingWindow, hasWindowToday, minimumDateTime, closingDateTime, selectedTime])
+  }, [hasValidOperatingWindow, hasWindowToday, selectedDate, openingMinutes, closingMinutes, closingDateTime, selectedTime])
 
   const handleTimePickerChange = (event, pickedValue) => {
     setShowTimePicker(false)
@@ -456,11 +461,26 @@ const PickupDetailsScreen = () => {
       return
     }
 
-    const scheduledPickupAt = selectedTime
-      ? buildScheduledPickupDateTime(selectedDate, selectedTime)
-      : null
+    if (!selectedTime) {
+      setSubmitError('Please select a pickup time.')
+      return
+    }
 
-    const latestBounds = buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes)
+    let activeSelectedTime = selectedTime
+    let scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, activeSelectedTime)
+
+    // Check with 20-minute lead time (matching the backend's 10-minute checkout grace period)
+    const latestBounds = buildEffectivePickupBounds(selectedDate, openingMinutes, closingMinutes, 20)
+
+    // If the selected time became past the 20-minute threshold (e.g. idle for 15+ minutes),
+    // automatically bump forward to the new earliest valid time rather than rejecting checkout
+    if (scheduledPickupAt < latestBounds.minimumDateTime) {
+      const bumpedTime = roundToNextFiveMinutes(new Date(Date.now() + 35 * 60 * 1000))
+      activeSelectedTime = bumpedTime
+      setSelectedTime(bumpedTime)
+      scheduledPickupAt = buildScheduledPickupDateTime(selectedDate, bumpedTime)
+    }
+
     const timeValidationError = validateScheduledPickupTime({
       scheduledDateTime: scheduledPickupAt,
       hasValidOperatingWindow,

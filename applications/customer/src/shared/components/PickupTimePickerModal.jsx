@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { formatMinutesToAmPm } from '@src/utils/pickupScheduleUtils'
+import { formatMinutesToAmPm, roundToNextFiveMinutes } from '@src/utils/pickupScheduleUtils'
 import BlueClockIcon from '@assets/icons/blue_clock_icon.svg'
 
 const ITEM_HEIGHT = 48
@@ -159,12 +159,18 @@ export default function PickupTimePickerModal({
     return res
   }, [minMs, maxMs])
 
+  const getEarliestTarget = useCallback(() => {
+    // 35 minutes ahead, rounded forward to next clean 5-minute interval (e.g. 2:40 PM)
+    const base = new Date(Date.now() + 35 * 60 * 1000)
+    return clampDate(roundToNextFiveMinutes(base))
+  }, [clampDate])
+
   useEffect(() => {
     if (visible) {
-      const initial = selectedTime || new Date(minMs)
+      const initial = selectedTime || getEarliestTarget()
       setTempSelectedTime(clampDate(new Date(initial)))
     }
-  }, [visible, selectedTime, clampDate, minMs])
+  }, [visible, selectedTime, clampDate, getEarliestTarget])
 
   const formatTime12Hour = (date) => {
     if (!date || !(date instanceof Date)) return '--:--'
@@ -339,15 +345,15 @@ export default function PickupTimePickerModal({
               {[
                 {
                   label: 'Earliest',
-                  getDate: () => new Date(minMs),
+                  getDate: () => getEarliestTarget(),
                 },
                 {
                   label: '+1 Hour',
-                  getDate: () => clampDate(new Date(Date.now() + 60 * 60 * 1000)),
+                  getDate: () => clampDate(roundToNextFiveMinutes(new Date(Date.now() + 60 * 60 * 1000))),
                 },
                 {
                   label: '+2 Hours',
-                  getDate: () => clampDate(new Date(Date.now() + 120 * 60 * 1000)),
+                  getDate: () => clampDate(roundToNextFiveMinutes(new Date(Date.now() + 120 * 60 * 1000))),
                 },
                 {
                   label: 'Before Close',

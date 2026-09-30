@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { View, Text, Modal, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { submitCheckoutOrder } from '@shared/services/checkoutSubmissionService';
 
 const OrderSubmissionContext = createContext();
@@ -13,6 +14,7 @@ export function useOrderSubmission() {
 }
 
 export function OrderSubmissionProvider({ children }) {
+  const router = useRouter();
   const [optimisticOrders, setOptimisticOrders] = useState([]);
   const [lastSubmittedOrder, setLastSubmittedOrder] = useState(null);
   const [errorModalVisible, setErrorModalVisible] = useState(false);
@@ -90,7 +92,16 @@ export function OrderSubmissionProvider({ children }) {
         o.id === localId ? { ...o, status: 'error', errorMessage: specificMessage } : o
       ));
 
-      setErrorModalVisible(true);
+      // Seamlessly navigate to the dedicated OrderFailed screen matching the user design
+      try {
+        router.replace({
+          pathname: '/tabs/cart/OrderFailed',
+          params: { errorMessage: specificMessage },
+        });
+      } catch (navErr) {
+        console.warn('Failed to route to OrderFailed:', navErr);
+        setErrorModalVisible(true);
+      }
     }
   };
 

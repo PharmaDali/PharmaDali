@@ -5,14 +5,18 @@ import { colors } from '@shared/theme/colorPalette'
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg'
 import MainLogoSVG from '@assets/main_logo.svg'
 
-export default function LogoHeader({ showBackButton = true }) {
+export default function LogoHeader({ showBackButton = true, onBackPress, style }) {
   const router = useRouter()
 
   return (
-    <View className="items-center px-5 pt-12 pb-3" style={styles.header}>
+    <View className="items-center px-5 pt-12 pb-3" style={[styles.header, style]}>
       <View className="flex-row items-center w-full">
         {showBackButton && (
-          <TouchableOpacity onPress={() => router.back()} className="absolute left-0 z-10">
+          <TouchableOpacity 
+            onPress={onBackPress || (() => router.back())} 
+            className="absolute left-0 z-10"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          >
             <ArrowBackIcon width={24} height={24} />
           </TouchableOpacity>
         )}

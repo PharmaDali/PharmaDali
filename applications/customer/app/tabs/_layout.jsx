@@ -29,6 +29,7 @@ const fullScreenRoutes = [
   '/tabs/cart/UploadPrescription',
   '/tabs/cart/PickupDetails',
   '/tabs/cart/OrderSubmitted',
+  '/tabs/cart/OrderFailed',
   '/tabs/shop/ProductView',
   '/tabs/chat/Chat',
   '/tabs/chat/Conversation',
