@@ -104,7 +104,7 @@ function HomePage() {
               <Notifications />
             </section>
           ) : pathname === '/profile' ? (
-            <section className="w-full flex justify-center">
+            <section className="w-full">
               <Profile />
             </section>
           ) : (
