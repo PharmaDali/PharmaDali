@@ -565,12 +565,15 @@ const PickupDetailsScreen = () => {
     }
 
     // Submit optimistically in the background
-    submitOptimisticOrder(payload)
+    const localOrderId = submitOptimisticOrder(payload)
 
-    // Instantly navigate with summary params
+    // Instantly navigate with summary and orderId params
     router.replace({
       pathname: '/tabs/cart/OrderSubmitted',
-      params: { summary: JSON.stringify(summary) }
+      params: { 
+        summary: JSON.stringify(summary),
+        orderId: localOrderId,
+      }
     })
   }
 

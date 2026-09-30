@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
-import { View, Text, Modal, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
 import { submitCheckoutOrder } from '@shared/services/checkoutSubmissionService';
 
 const OrderSubmissionContext = createContext();
@@ -8,17 +6,15 @@ const OrderSubmissionContext = createContext();
 export function useOrderSubmission() {
   const context = useContext(OrderSubmissionContext);
   if (!context) {
-    return { submitOptimisticOrder: () => {}, optimisticOrders: [] };
+    return { submitOptimisticOrder: () => {}, optimisticOrders: [], lastSubmissionError: null };
   }
   return context;
 }
 
 export function OrderSubmissionProvider({ children }) {
-  const router = useRouter();
   const [optimisticOrders, setOptimisticOrders] = useState([]);
   const [lastSubmittedOrder, setLastSubmittedOrder] = useState(null);
-  const [errorModalVisible, setErrorModalVisible] = useState(false);
-  const [submissionErrorMessage, setSubmissionErrorMessage] = useState('');
+  const [lastSubmissionError, setLastSubmissionError] = useState(null);
 
   const buildMockOrderForActiveOrders = (localId, payload) => {
     // Generate a temporary order number
@@ -63,6 +59,9 @@ export function OrderSubmissionProvider({ children }) {
     const localId = Date.now().toString();
     const mockOrder = buildMockOrderForActiveOrders(localId, payload);
     
+    // Clear previous error on new submission attempt
+    setLastSubmissionError(null);
+
     // Add to state
     setOptimisticOrders(prev => [mockOrder, ...prev]);
 
@@ -80,28 +79,18 @@ export function OrderSubmissionProvider({ children }) {
         setLastSubmittedOrder(result.order);
       }
       
-      // On success, remove from optimistic orders list
+      // On success, clear any failure states
+      setLastSubmissionError(null);
       setOptimisticOrders(prev => prev.filter(o => o.id !== localId));
     } catch (error) {
       console.warn('Optimistic order submission failed:', error);
       const specificMessage = error?.message || 'We encountered an issue submitting your order.';
-      setSubmissionErrorMessage(specificMessage);
+      setLastSubmissionError(specificMessage);
 
-      // Update status to error
+      // Update status to error for this specific optimistic order
       setOptimisticOrders(prev => prev.map(o => 
         o.id === localId ? { ...o, status: 'error', errorMessage: specificMessage } : o
       ));
-
-      // Seamlessly navigate to the dedicated OrderFailed screen matching the user design
-      try {
-        router.replace({
-          pathname: '/tabs/cart/OrderFailed',
-          params: { errorMessage: specificMessage },
-        });
-      } catch (navErr) {
-        console.warn('Failed to route to OrderFailed:', navErr);
-        setErrorModalVisible(true);
-      }
     }
   };
 
@@ -109,6 +98,8 @@ export function OrderSubmissionProvider({ children }) {
     setOptimisticOrders(prev => {
       const orderToRetry = prev.find(o => o.id === localId);
       if (!orderToRetry) return prev;
+
+      setLastSubmissionError(null);
 
       // Process again in background
       processSubmission(localId, orderToRetry._payload);
@@ -124,65 +115,21 @@ export function OrderSubmissionProvider({ children }) {
     setOptimisticOrders(prev => prev.filter(o => o.id !== localId));
   }, []);
 
-  const handleDismissError = () => {
-    setErrorModalVisible(false);
-    setSubmissionErrorMessage('');
-  };
+  const clearSubmissionError = useCallback(() => {
+    setLastSubmissionError(null);
+  }, []);
 
   return (
     <OrderSubmissionContext.Provider value={{ 
       optimisticOrders, 
       lastSubmittedOrder,
+      lastSubmissionError,
+      clearSubmissionError,
       submitOptimisticOrder, 
       retrySubmission,
       removeOptimisticOrder
     }}>
       {children}
-      <Modal visible={errorModalVisible} transparent animationType="fade" onRequestClose={handleDismissError}>
-        <Pressable className="flex-1 bg-black/50 justify-center items-center px-8" onPress={handleDismissError}>
-          <Pressable className="bg-white rounded-2xl p-6 w-full items-center shadow-xl" onPress={(e) => e.stopPropagation()}>
-            <View className="w-16 h-16 rounded-full border-4 border-red-500 bg-red-50 items-center justify-center mb-4">
-              <Text className="text-3xl text-red-500" style={styles.fontBold}>!</Text>
-            </View>
-            <Text className="text-xl mb-2 text-center" style={styles.errorTitle}>Submission Failed</Text>
-            <Text className="text-sm text-center mb-2 px-2" style={styles.errorDescription}>
-              {submissionErrorMessage || 'We encountered an issue submitting your order.'}
-            </Text>
-            <Text className="text-xs text-center mb-4 text-gray-500" style={styles.fontMedium}>
-              You can retry from your Active Orders.
-            </Text>
-            <TouchableOpacity
-              className="w-full rounded-xl py-3 items-center bg-[#48AAD9]"
-              onPress={handleDismissError}
-            >
-              <Text className="text-sm text-white" style={styles.fontSemiBold}>OK</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
     </OrderSubmissionContext.Provider>
   );
 }
-
-const styles = StyleSheet.create({
-  errorTitle: {
-    fontFamily: 'Poppins-Bold',
-    color: '#DC3545',
-  },
-  errorDescription: {
-    fontFamily: 'Poppins-Medium',
-    color: '#333333',
-    lineHeight: 20,
-  },
-  fontBold: {
-    fontFamily: 'Poppins-Bold',
-  },
-  fontMedium: {
-    fontFamily: 'Poppins-Medium',
-    color: '#666',
-  },
-  fontSemiBold: {
-    fontFamily: 'Poppins-SemiBold',
-  },
-});
-
