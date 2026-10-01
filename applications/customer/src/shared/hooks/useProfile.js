@@ -6,33 +6,25 @@ export function useProfile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    let mounted = true;
-
-    async function fetchProfile() {
-      try {
-        const result = await getCustomerProfile();
-        if (mounted && result?.data?.user) {
-          setProfile(result.data.user);
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const result = await getCustomerProfile();
+      if (result?.data?.user) {
+        setProfile(result.data.user);
       }
+    } catch (err) {
+      setError(err);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
     fetchProfile();
-
-    return () => {
-      mounted = false;
-    };
   }, []);
 
-  return { profile, loading, error, setProfile };
+  return { profile, loading, error, setProfile, refetchProfile: fetchProfile };
 }
 

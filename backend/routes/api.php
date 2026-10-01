@@ -110,6 +110,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Profile
         Route::get('customer/profile', [CustomerProfileController::class, 'show']);
+        Route::match(['put', 'patch'], 'customer/profile', [CustomerProfileController::class, 'update']);
         Route::get('customer/recommendations/hero', [CustomerRecommendationController::class, 'hero']);
 
         // Cart
@@ -149,6 +150,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('pos/orders/{order}/receipt', [PosController::class, 'getReceipt']);
 
         Route::get('pharmacist/profile', [PharmacistProfileController::class, 'show']);
+        Route::match(['put', 'patch'], 'pharmacist/profile', [PharmacistProfileController::class, 'update']);
 
         Route::get('pharmacist/orders', [OrderController::class, 'index']);
         Route::get('pharmacist/orders/{order}', [OrderController::class, 'show']);

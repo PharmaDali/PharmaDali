@@ -7,3 +7,15 @@ export const getPharmacistProfile = async () => {
 		throw error;
 	}
 };
+
+export const updatePharmacistProfile = async (payload) => {
+	try {
+		return await apiRequest('/pharmacist/profile', {
+			method: 'PUT',
+			body: payload,
+		});
+	} catch (error) {
+		throw error;
+	}
+};
+
