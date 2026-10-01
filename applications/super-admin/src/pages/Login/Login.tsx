@@ -23,6 +23,10 @@ function Login() {
 
     try {
       const data = await login(credentials);
+      if (!data?.token) {
+        setError(data?.message || "Login failed: No authentication token received.");
+        return;
+      }
       if (data?.role !== "super_admin") {
         localStorage.removeItem("token");
         localStorage.removeItem("user");

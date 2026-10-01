@@ -16,7 +16,7 @@ export interface User {
   lastName: string
 }
 
-const ROLES = ['All', 'Pharmacist', 'Manager(Admin)', 'System Admin', 'Customer']
+const ROLES = ['All', 'Super Admin', 'Pharmacist', 'Manager(Admin)', 'System Admin', 'Customer']
 const STATUSES = ['All', 'Status', 'Active', 'Inactive']
 
 const mapRoleToDisplay = (role: string) => {
@@ -43,6 +43,8 @@ const mapDisplayToRole = (display: string) => {
 
 const Users: React.FC = () => {
   const [users, setUsers] = useState<User[]>([])
+  const [isLoading, setIsLoading] = useState<boolean>(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const { pharmacies, fetchPharmacies } = usePharmacies()
   const BRANCHES = ['All', ...pharmacies.map(p => p.name)]
   
@@ -83,28 +85,44 @@ const Users: React.FC = () => {
     if (localStorage.getItem('token')) {
       fetchUsers()
       fetchPharmacies()
+    } else {
+      setIsLoading(false)
+      setFetchError('Authentication token missing. Please log in again.')
     }
   }, [fetchPharmacies])
 
   const fetchUsers = async () => {
+    setIsLoading(true)
+    setFetchError(null)
     try {
       const res = await userService.getUsers()
-      const data = res.data || res // Handle both wrapped and unwrapped arrays safely
-      const mappedUsers = data.map((u: any) => ({
+      const rawList = Array.isArray(res)
+        ? res
+        : Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.data?.data)
+        ? res.data.data
+        : Array.isArray(res?.users)
+        ? res.users
+        : []
+      const mappedUsers = rawList.map((u: any) => ({
         id: u.id,
-        firstName: u.first_name,
+        firstName: u.first_name || '',
         lastName: u.last_name || '',
-        fullName: `${u.first_name} ${u.last_name || ''}`.trim(),
-        email: u.email,
-        phoneNumber: u.mobile_number,
+        fullName: `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'N/A',
+        email: u.email || 'N/A',
+        phoneNumber: u.mobile_number || 'N/A',
         role: mapRoleToDisplay(u.role),
         branchName: u.pharmacy ? u.pharmacy.pharmacy_name : 'N/A',
-        status: u.is_active ? 'Active' : 'Inactive',
+        status: (u.is_active === 1 || u.is_active === true || u.is_active === '1') ? 'Active' : 'Inactive',
         pharmacyId: u.pharmacy_id,
       }))
       setUsers(mappedUsers)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching users:', error)
+      setFetchError(error?.response?.data?.message || error?.message || 'Error fetching users')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -403,7 +421,30 @@ const Users: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[rgba(255,255,255,0.03)]">
-              {paginatedUsers.length > 0 ? (
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="py-12 text-center text-gray-400 text-sm">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="w-6 h-6 border-2 border-[#2aa6e0] border-t-transparent rounded-full animate-spin"></div>
+                      <span className="text-gray-300">Loading users...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : fetchError ? (
+                <tr>
+                  <td colSpan={5} className="py-10 text-center text-red-400 text-sm">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <p className="m-0 font-medium">{fetchError}</p>
+                      <button
+                        onClick={fetchUsers}
+                        className="px-4 py-1.5 bg-[#2aa6e0] hover:bg-[#35b3f0] text-white rounded-[6px] text-xs font-semibold cursor-pointer transition-colors"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : paginatedUsers.length > 0 ? (
                 paginatedUsers.map((user) => (
                   <tr
                     key={user.id}

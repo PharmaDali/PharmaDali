@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import Sidebar from '../../components/Sidebar/Sidebar'
 import Navbar from '../../components/Navbar/Navbar'
 import StatusCard from '../../components/Dashboard/StatusCard'
@@ -23,6 +23,7 @@ const PAGE_TITLES: Record<string, string> = {
 
 function HomePage() {
   const { pathname } = useLocation()
+  const navigate = useNavigate()
   const title = PAGE_TITLES[pathname] ?? 'Dashboard'
   const { tickets } = useTickets()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
@@ -32,6 +33,14 @@ function HomePage() {
     totalActivePharmacies: 0,
     totalUsers: 0,
   })
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      navigate('/', { replace: true })
+      return
+    }
+  }, [navigate])
 
   useEffect(() => {
     const fetchMetrics = async () => {
