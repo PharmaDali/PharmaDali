@@ -49,6 +49,24 @@ class AdminLoginService
 
         RateLimiter::clear('admin-login:' . $ip);
 
+        // Super Admin does not require 2FA — issue token directly
+        if ($user->role === 'super_admin') {
+            $user->tokens()->delete();
+
+            $token = $user->createToken(
+                'API Token',
+                [$user->role],
+                now()->addHours(8)
+            )->plainTextToken;
+
+            return response()->json([
+                'token'      => $token,
+                'token_type' => 'Bearer',
+                'role'       => $user->role,
+                'user'       => $user->load('pharmacy'),
+            ], 200);
+        }
+
         // Logout session to prevent unauthenticated access until 2FA is verified
         Auth::logout();
 
