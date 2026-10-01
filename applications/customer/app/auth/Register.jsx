@@ -1,5 +1,5 @@
-import { StyleSheet, View, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
-import React, { useState } from 'react'
+import { View, Pressable, KeyboardAvoidingView, Platform, ScrollView, Keyboard } from 'react-native';
+import React, { useState, useEffect } from 'react'
 import { TextInput, Button, Text } from 'react-native-paper'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -11,6 +11,8 @@ import { registerCustomer } from '@src/shared/services/authService';
 import { validateCustomerRegistration } from '@src/shared/validation/authValidation';
 import ToastMessage from '@src/shared/components/ToastMessage';
 import { useToast } from '@src/shared/hooks/useToast';
+import * as SecureStore from 'expo-secure-store';
+import { syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 import {
   sanitizeNameInput,
   sanitizeNumericInput,
@@ -32,9 +34,25 @@ const Register = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const passwordToggleIcon = useConfirmPasswordToggle();
   const confirmPasswordToggleIcon = useConfirmPasswordToggle();
   const { toast, showSuccess } = useToast();
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => setIsKeyboardVisible(true)
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setIsKeyboardVisible(false)
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const formatDate = (date) => {
     if (!date) return '';
@@ -71,18 +89,24 @@ const Register = () => {
     setIsSubmitting(true);
 
     try {
-      await registerCustomer({
+      const response = await registerCustomer({
         credentials: {
           ...credentials,
           dateOfBirth: formatDateForApi(dateOfBirth),
         },
       });
 
-      showSuccess('Registration successful! Please log in.');
+      const token = response?.token || response?.data?.token;
+      if (token) {
+        await SecureStore.setItemAsync('customer_token', JSON.stringify(token));
+        syncFcmTokenWithBackend().catch(() => {});
+      }
+
+      showSuccess('Registration successful! Welcome to PharmaDali.');
 
       setTimeout(() => {
-        router.replace('/');
-      }, 3000);
+        router.replace(token ? '/tabs/Home' : '/');
+      }, 1500);
 
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
@@ -93,7 +117,8 @@ const Register = () => {
 
   return (
     <SafeAreaView
-      style={styles.safeArea}
+      className="flex-1 bg-white"
+      style={{ flex: 1, backgroundColor: '#FFFFFF' }}
       edges={['top', 'bottom']}
     >
       <ToastMessage
@@ -105,50 +130,48 @@ const Register = () => {
       />
 
       <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : (isKeyboardVisible ? 'padding' : undefined)}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 24}
       >
         <ScrollView
-          style={{ width: '100%' }}
+          style={{ flex: 1 }}
           contentContainerStyle={{
             padding: 16,
-            paddingBottom: 16,
+            paddingBottom: isKeyboardVisible ? 40 : 24,
+            flexGrow: 1,
             alignItems: 'center',
           }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
         >
           <DescriptiveLogo />
-          
-          <View className="flex-1 border border-gray-300 p-3 rounded-lg">
-            <View style={styles.registerLabel}>
-              <Text variant="headlineSmall">Register</Text>
+
+          <View className="w-full border border-gray-300 p-4 rounded-xl mt-2 bg-white">
+            <View className="mb-3 items-center">
+              <Text variant="headlineSmall" className="font-bold text-slate-800">Register</Text>
             </View>
-            <View style={styles.nameContainer}>
-              <TextInput
-                label="First Name"
-                mode="outlined"
-                theme={theme}
-                value={firstName}
-                onChangeText={(text) => setFirstName(sanitizeNameInput(text, 50))}
-                maxLength={50}
-                editable={!isSubmitting}
-                style={styles.input}
-              />
-              <TextInput
-                label="Last Name"
-                mode="outlined"
-                theme={theme}
-                value={lastName}
-                onChangeText={(text) => setLastName(sanitizeNameInput(text, 50))}
-                maxLength={50}
-                editable={!isSubmitting}
-                style={styles.input}
-              />
-            </View>
-            <View style={styles.primaryInfoContainer}>
+            <TextInput
+              label="First Name"
+              mode="outlined"
+              theme={theme}
+              value={firstName}
+              onChangeText={(text) => setFirstName(sanitizeNameInput(text, 50))}
+              maxLength={50}
+              editable={!isSubmitting}
+              style={{ marginBottom: 16 }}
+            />
+            <TextInput
+              label="Last Name"
+              mode="outlined"
+              theme={theme}
+              value={lastName}
+              onChangeText={(text) => setLastName(sanitizeNameInput(text, 50))}
+              maxLength={50}
+              editable={!isSubmitting}
+              style={{ marginBottom: 16 }}
+            />
+            <View className="mb-2">
               <TextInput
                 label="Email"
                 mode="outlined"
@@ -195,7 +218,6 @@ const Register = () => {
               )}
               <TextInput
                 label="Mobile Number"
-                placeholder="e.g. 09123456789 or +639123456789"
                 mode="outlined"
                 keyboardType='phone-pad'
                 theme={theme}
@@ -241,10 +263,18 @@ const Register = () => {
                 autoCapitalize='none'
                 editable={!isSubmitting}
               />
-              {!!errorMessage && <Text style={styles.errorText}>{errorMessage}</Text>}
+              {!!errorMessage && <Text className="text-[#E53935] text-xs mt-3 text-center">{errorMessage}</Text>}
             </View>
           </View>
-          <Button mode="contained" style={{ marginTop: 16, borderRadius: 10 }} buttonColor="#48AAD9" textColor="#FFFFFF" onPress={handleRegister} loading={isSubmitting} disabled={isSubmitting}>
+          <Button
+            mode="contained"
+            style={{ marginTop: 16, borderRadius: 12, width: '100%' }}
+            buttonColor="#48AAD9"
+            textColor="#FFFFFF"
+            onPress={handleRegister}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          >
             Mag-Register
           </Button>
         </ScrollView>
@@ -253,36 +283,5 @@ const Register = () => {
   );
 }
 
-export default Register
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  container: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  registerLabel: {
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  nameContainer: {
-    gap: 8,
-    flexDirection: 'row',
-    width: '100%',
-    marginBottom: 16,
-  },
-  input: {
-    flex: 1,
-  },
-  primaryInfoContainer: {
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#E53935',
-    marginTop: 12,
-  },
-})
+export default Register;
 

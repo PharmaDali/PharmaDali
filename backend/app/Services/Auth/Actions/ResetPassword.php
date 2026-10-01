@@ -48,6 +48,16 @@ class ResetPassword
         // Remove reset token from Redis
         $this->cacheStore()->forget($tokenKey);
 
-        return $this->successResponse(null, $successMessage, 200);
+        // Issue fresh Sanctum API token so user is automatically authenticated
+        $abilities = [$user->role];
+        $expiry = $user->role === 'customer' ? now()->addDays(30) : now()->addHours(8);
+        $token = $user->createToken('API Token', $abilities, $expiry)->plainTextToken;
+
+        return $this->successResponse([
+            'token'      => $token,
+            'token_type' => 'Bearer',
+            'role'       => $user->role,
+            'user'       => $user->loadMissing(['customer', 'pharmacist.pharmacy']),
+        ], $successMessage, 200);
     }
 }
