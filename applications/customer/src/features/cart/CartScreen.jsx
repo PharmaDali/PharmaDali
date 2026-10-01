@@ -22,16 +22,28 @@ import { formatStockLeft, getStockTextColor } from '@shared/utils/stringUtils';
 import DeleteIcon from '@assets/icons/delete.svg';
 
 function Checkbox({ checked, onPress }) {
+  const content = (
+    <View
+      className={`w-5 h-5 rounded border-2 items-center justify-center ${
+        checked ? 'bg-[#48AAD9] border-[#48AAD9]' : 'border-gray-300 bg-white'
+      }`}
+    >
+      {checked && <RoundedCheckIcon size={12} color="#FFFFFF" strokeWidth={3.5} />}
+    </View>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity onPress={onPress} className="mr-3 items-center justify-center">
+        {content}
+      </TouchableOpacity>
+    );
+  }
+
   return (
-    <TouchableOpacity onPress={onPress} className="mr-3 items-center justify-center">
-      <View
-        className={`w-5 h-5 rounded border-2 items-center justify-center ${
-          checked ? 'bg-[#48AAD9] border-[#48AAD9]' : 'border-gray-300 bg-white'
-        }`}
-      >
-        {checked && <RoundedCheckIcon size={12} color="#FFFFFF" strokeWidth={3.5} />}
-      </View>
-    </TouchableOpacity>
+    <View className="mr-3 items-center justify-center">
+      {content}
+    </View>
   );
 }
 
@@ -42,6 +54,7 @@ function QuantityControl({ quantity, maxStock, onIncrement, onDecrement }) {
     <View className="flex-row items-center border-2 border-[#48AAD9] rounded-full px-3 py-0.5 min-w-[80px] justify-between">
       <TouchableOpacity
         onPress={onDecrement}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         className="items-center justify-center"
       >
         <Text className="text-[#48AAD9] text-base" style={styles.fontSemiBold}>−</Text>
@@ -50,6 +63,7 @@ function QuantityControl({ quantity, maxStock, onIncrement, onDecrement }) {
       <TouchableOpacity
         onPress={onIncrement}
         disabled={isMaxReached}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         className="items-center justify-center"
         style={{ opacity: isMaxReached ? 0.35 : 1 }}
       >
@@ -73,12 +87,20 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
   const canCheckout = item.canCheckout !== false;
   const stockLabel = formatStockLeft(item?.stock);
   const stockTextColor = getStockTextColor(item?.stock);
+  const isStockExceeded = canCheckout && item?.stock != null && Number(item.quantity) > Number(item.stock);
   const isMaxReached = canCheckout && item?.stock != null && Number(item.quantity) >= Number(item.stock) && Number(item.stock) > 0;
 
   return (
-    <View className="flex-row items-start bg-white rounded-2xl border border-gray-200 p-3 mb-2" style={{ opacity: canCheckout ? 1 : 0.7 }}>
+    <TouchableOpacity
+      activeOpacity={canCheckout ? 0.75 : 1}
+      onPress={canCheckout ? onToggle : undefined}
+      className={`flex-row items-start bg-white rounded-2xl border ${
+        isStockExceeded ? 'border-red-300' : 'border-gray-200'
+      } p-3 mb-2`}
+      style={{ opacity: canCheckout ? 1 : 0.7 }}
+    >
       {canCheckout && (
-        <Checkbox checked={item.selected} onPress={onToggle} />
+        <Checkbox checked={item.selected} />
       )}
       <ProductImage
         source={item?.img || item?.product?.image_url}
@@ -99,7 +121,10 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
             {displayName}
           </Text>
           <TouchableOpacity
-            onPress={onRemove}
+            onPress={(e) => {
+              e?.stopPropagation?.();
+              onRemove();
+            }}
             className="p-1"
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
           >
@@ -152,13 +177,18 @@ function CartItem({ item, onToggle, onIncrement, onDecrement, onRemove }) {
             </View>
           )}
         </View>
-        {isMaxReached && (
+        {isStockExceeded && (
+          <Text className="text-[10px] text-red-500 mt-1 text-right" style={styles.fontMedium}>
+            Quantity exceeds available stock ({item.stock})
+          </Text>
+        )}
+        {!isStockExceeded && isMaxReached && (
           <Text className="text-[10px] text-amber-600 mt-1 text-right" style={styles.fontMedium}>
             Max stock reached ({item.stock})
           </Text>
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -189,8 +219,11 @@ export default function CartScreen() {
   const isPharmacyActive = viewState.isPharmacyActive !== false;
   const closedPharmacyName = viewState.closedPharmacyName || '';
   const pharmacyHoursLabel = viewState.pharmacyHoursLabel || '';
-  const canProceed = viewState.selectedCount > 0 && isPharmacyActive;
   const selectedItems = cartItems.filter((item) => item.selected);
+  const hasExceededItems = selectedItems.some(
+    (item) => item?.stock != null && Number(item.quantity) > Number(item.stock)
+  );
+  const canProceed = viewState.selectedCount > 0 && isPharmacyActive && !hasExceededItems;
 
   const displayHoursLabel = useMemo(() => {
     if (pharmacyHoursLabel && !pharmacyHoursLabel.toLowerCase().includes('unavail') && pharmacyHoursLabel.toLowerCase() !== 'closed') {
@@ -203,7 +236,7 @@ export default function CartScreen() {
   const [showClearModal, setShowClearModal] = useState(false);
 
   const handleProceed = () => {
-    if (!selectedItems.length || !isPharmacyActive) {
+    if (!selectedItems.length || !isPharmacyActive || hasExceededItems) {
       return;
     }
 
@@ -366,6 +399,14 @@ export default function CartScreen() {
           </View>
         )}
 
+        {hasExceededItems && (
+          <View className="flex-row items-center mx-4 mt-1 mb-2 gap-1.5 bg-red-50 border border-red-200 rounded-lg p-2.5">
+            <RedInfoIcon width={15} height={15} />
+            <Text className="text-[11px] text-[#B42318] flex-1" style={styles.fontMedium}>
+              Some selected items exceed available stock. Please reduce quantity to proceed.
+            </Text>
+          </View>
+        )}
       </ScrollView>
 
       <View className="bg-white border-t border-gray-200">

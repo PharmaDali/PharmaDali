@@ -65,7 +65,14 @@ const ProductCard = ({
     setIsQuantityModalOpen(true);
   };
 
-  const maxStock = (stock !== undefined && stock !== null && Number(stock) > 0) ? Number(stock) : 999;
+  const availableStock = (stock !== undefined && stock !== null) ? Number(stock) : null;
+  const hasStockLimit = availableStock !== null && !Number.isNaN(availableStock);
+  const maxStock = hasStockLimit ? Math.max(0, availableStock) : 999;
+
+  const numQuantity = Number(quantity);
+  const isExceeded = hasStockLimit && numQuantity > maxStock;
+  const isBelowMin = !quantity || numQuantity < 1;
+  const isQuantityInvalid = isExceeded || isBelowMin;
 
   const handleQuantityChange = (text) => {
     const cleaned = text.replace(/[^0-9]/g, '');
@@ -74,7 +81,7 @@ const ProductCard = ({
       return;
     }
     const num = parseInt(cleaned, 10);
-    setQuantity(num > maxStock ? maxStock : num);
+    setQuantity(num);
   };
 
   const handleQuantityBlur = () => {
@@ -86,7 +93,10 @@ const ProductCard = ({
   const handleIncrement = () => {
     setQuantity((q) => {
       const current = Number(q) || 0;
-      return Math.min(maxStock, current + 1);
+      if (hasStockLimit && current >= maxStock) {
+        return current;
+      }
+      return current + 1;
     });
   };
 
@@ -98,8 +108,11 @@ const ProductCard = ({
   };
 
   const handleConfirmAddToCart = () => {
+    const finalQuantity = Number(quantity);
+    if (!finalQuantity || finalQuantity < 1 || (hasStockLimit && finalQuantity > maxStock)) {
+      return;
+    }
     setIsQuantityModalOpen(false);
-    const finalQuantity = Math.max(1, Number(quantity) || 1);
     if (typeof onAddToCart === 'function') {
       const promise = onAddToCart({
         productId,
@@ -259,10 +272,12 @@ const ProductCard = ({
             </View>
 
             {/* Quantity selector adjustment controls */}
-            <View className="flex-row justify-center items-center mb-5">
+            <View className="flex-row justify-center items-center mb-3">
               <TouchableOpacity
                 onPress={handleDecrement}
+                disabled={Number(quantity) <= 1}
                 className="w-[38px] h-[38px] rounded-[10px] border-2 border-[#48AAD9] justify-center items-center bg-white"
+                style={Number(quantity) <= 1 ? { opacity: 0.35 } : null}
               >
                 <Text
                   className="text-base text-[#48AAD9]"
@@ -279,11 +294,16 @@ const ProductCard = ({
                 returnKeyType="done"
                 selectTextOnFocus
                 textAlign="center"
-                style={styles.quantityInput}
+                style={[
+                  styles.quantityInput,
+                  isQuantityInvalid && styles.quantityInputError,
+                ]}
               />
               <TouchableOpacity
                 onPress={handleIncrement}
+                disabled={hasStockLimit && (Number(quantity) >= maxStock || isExceeded)}
                 className="w-[38px] h-[38px] rounded-[10px] border-2 border-[#48AAD9] justify-center items-center bg-white"
+                style={hasStockLimit && (Number(quantity) >= maxStock || isExceeded) ? { opacity: 0.35 } : null}
               >
                 <Text
                   className="text-base text-[#48AAD9]"
@@ -294,9 +314,28 @@ const ProductCard = ({
               </TouchableOpacity>
             </View>
 
-            {stock != null && Number(stock) > 0 && Number(quantity) >= maxStock && (
+            {/* Error or max stock warning */}
+            {isExceeded && (
               <Text
-                className="text-[11px] text-center text-amber-600 mb-3 -mt-2"
+                className="text-xs text-center text-red-500 mb-3"
+                style={{ fontFamily: 'Poppins-Medium' }}
+              >
+                Quantity exceeds available stock ({maxStock} available)
+              </Text>
+            )}
+
+            {!isExceeded && isBelowMin && quantity !== '' && (
+              <Text
+                className="text-xs text-center text-red-500 mb-3"
+                style={{ fontFamily: 'Poppins-Medium' }}
+              >
+                Quantity must be at least 1
+              </Text>
+            )}
+
+            {!isExceeded && !isBelowMin && hasStockLimit && numQuantity === maxStock && maxStock > 0 && (
+              <Text
+                className="text-[11px] text-center text-amber-600 mb-3"
                 style={{ fontFamily: 'Poppins-Medium' }}
               >
                 Maximum available stock reached ({maxStock})
@@ -318,7 +357,10 @@ const ProductCard = ({
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleConfirmAddToCart}
-                className="flex-1 py-3 ml-1.5 rounded-xl bg-[#48AAD9] items-center justify-center"
+                disabled={isQuantityInvalid}
+                className={`flex-1 py-3 ml-1.5 rounded-xl items-center justify-center ${
+                  isQuantityInvalid ? 'bg-gray-300' : 'bg-[#48AAD9]'
+                }`}
               >
                 <Text
                   className="text-[13px] text-white"
@@ -377,6 +419,10 @@ const styles = StyleSheet.create({
     color: '#444444',
     paddingVertical: 0,
     paddingHorizontal: 4,
+  },
+  quantityInputError: {
+    borderColor: '#EF4444',
+    color: '#EF4444',
   },
 });
 
