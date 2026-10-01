@@ -27,7 +27,7 @@ export function formatProductPrice(value) {
 const HOME_PREVIEW_LIMIT = 24;
 const CACHE_TTL_MS = 60 * 1000; // 60 seconds fresh cache
 
-const homeTabCache = {
+export const homeTabCache = {
   pharmacyId: null,
   categories: [],
   pharmacyProducts: [],
@@ -35,6 +35,7 @@ const homeTabCache = {
   recommendations: [],
   recHasMore: false,
   timestamp: 0,
+  scrollOffset: 0,
 };
 
 
@@ -56,7 +57,7 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
   const [recHasMore, setRecHasMore] = useState(isCached ? homeTabCache.recHasMore : false);
   const [isFetchingMoreRecs, setIsFetchingMoreRecs] = useState(false);
   const isFetchingMoreRecsRef = useRef(false);
-  const previousPharmacyIdRef = useRef(null);
+  const previousPharmacyIdRef = useRef(isCached ? selectedPharmacyId : null);
   const selectedPharmacyIdRef = useRef(selectedPharmacyId);
   selectedPharmacyIdRef.current = selectedPharmacyId;
 
@@ -64,13 +65,16 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
   // to prevent rendering stale data or having a frame delay before the skeleton appears
   if (selectedPharmacyId !== currentPharmacyId) {
     setCurrentPharmacyId(selectedPharmacyId);
-    setLoading(true);
-    setCategories([]);
-    setPharmacyProducts([]);
-    setHeroRecommendations(null);
-    setRecommendations([]);
-    setRecPage(1);
-    setRecHasMore(false);
+    homeTabCache.scrollOffset = 0;
+    if (!isCached) {
+      setLoading(true);
+      setCategories([]);
+      setPharmacyProducts([]);
+      setHeroRecommendations(null);
+      setRecommendations([]);
+      setRecPage(1);
+      setRecHasMore(false);
+    }
   }
 
   const [refreshing, setRefreshing] = useState(false);
@@ -92,7 +96,7 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
 
     if (isRefresh) {
       setRefreshing(true);
-    } else {
+    } else if (!isCached) {
       setLoading(true);
     }
 
@@ -240,8 +244,9 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
       (homeTabCache.categories.length > 0 || homeTabCache.pharmacyProducts.length > 0)
     );
 
-    // If data was fetched within the last 60 seconds for this pharmacy AND it was already loaded, do NOT re-fetch on tab switch!
-    if (isCacheFresh && previousPharmacyIdRef.current === selectedPharmacyId) {
+    // If data was fetched within the last 60 seconds for this pharmacy, do NOT re-fetch!
+    if (isCacheFresh) {
+      previousPharmacyIdRef.current = selectedPharmacyId;
       return;
     }
 
@@ -251,6 +256,7 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
 
 
   const refetch = useCallback(() => {
+    homeTabCache.scrollOffset = 0;
     return loadPharmacyData(true);
   }, [loadPharmacyData]);
 

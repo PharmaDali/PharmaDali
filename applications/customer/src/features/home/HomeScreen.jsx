@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
 import { colors } from '@src/shared/theme/colorPalette';
 import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
@@ -12,7 +12,7 @@ import SkeletonHome from '@shared/components/SkeletonHome';
 import PharmacySelectionOverlay from '@shared/components/PharmacySelectionOverlay';
 import SearchOverlay from '@shared/components/SearchOverlay';
 import { useSelectionPhase } from '@shared/context/SelectionPhaseContext';
-import { formatProductPrice, useHomeTab } from '@shared/hooks/useHomeTab';
+import { formatProductPrice, useHomeTab, homeTabCache } from '@shared/hooks/useHomeTab';
 import { useProfile } from '@shared/hooks/useProfile';
 import { addPharmacyProductToCart } from '@shared/utils/cartUtils';
 import ToastMessage from '@shared/components/ToastMessage';
@@ -25,6 +25,7 @@ import { getTimeBasedGreeting } from '@src/utils/pickupScheduleUtils';
 export default function HomeScreen() {
   const route = useRouter();
   const insets = useSafeAreaInsets();
+  const flatListRef = useRef(null);
   const { profile } = useProfile();
   const { setSelectionPhase, selectedPharmacy, setSelectedPharmacy } = useSelectionPhase();
   const {
@@ -42,6 +43,18 @@ export default function HomeScreen() {
   const { toast, showError } = useToast();
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [isPharmacyModalVisible, setIsPharmacyModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (homeTabCache.scrollOffset > 0) {
+      const timer = setTimeout(() => {
+        flatListRef.current?.scrollToOffset({
+          offset: homeTabCache.scrollOffset,
+          animated: false,
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
 
   const pharmacyStatusLabel = selectedPharmacy?.isOpen
@@ -273,6 +286,7 @@ export default function HomeScreen() {
       />
       
       <FlatList
+        ref={flatListRef}
         className="flex-1 bg-white"
         data={recommendationFeedData}
         numColumns={2}
@@ -282,6 +296,14 @@ export default function HomeScreen() {
         contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) + 40 }}
         onEndReached={loadMoreRecommendations}
         onEndReachedThreshold={0.5}
+        onScroll={(e) => {
+          const y = e.nativeEvent?.contentOffset?.y ?? 0;
+          if (y >= 0) {
+            homeTabCache.scrollOffset = y;
+          }
+        }}
+        scrollEventThrottle={16}
+        contentOffset={{ x: 0, y: homeTabCache.scrollOffset || 0 }}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={() => {
           if (!isFetchingMoreRecs) return null;
