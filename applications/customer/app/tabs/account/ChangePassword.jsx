@@ -23,6 +23,7 @@ import {
   resetCustomerPassword,
   logoutCustomer,
 } from '@shared/services/authService';
+import * as SecureStore from 'expo-secure-store';
 import { containsEmoji } from '@src/shared/utils/inputSanitizers';
 
 const ChangePassword = () => {
@@ -214,12 +215,18 @@ const ChangePassword = () => {
 
     setLoading(true);
     try {
-      await resetCustomerPassword({
+      const res = await resetCustomerPassword({
         email,
         resetToken,
         password: newPassword,
         passwordConfirmation: confirmPassword,
       });
+
+      const token = res?.data?.token || res?.token;
+      if (token) {
+        await SecureStore.setItemAsync('customer_token', JSON.stringify(token));
+      }
+
       setStep(5);
     } catch (err) {
       setPasswordError(err?.message || 'Failed to update password.');
@@ -396,7 +403,7 @@ const ChangePassword = () => {
             </Text>
 
             <Text className="text-sm text-center leading-6 mb-6" style={styles.successSubtext}>
-              Your password has been updated. Please log in again with your new credentials to continue.
+              Your password has been updated and your session has been refreshed. You can continue using your account.
             </Text>
 
             {/* Organized Security Note Box */}
@@ -434,12 +441,11 @@ const ChangePassword = () => {
 
             <TouchableOpacity
               className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center mt-6"
-              onPress={async () => {
-                await logoutCustomer();
-                router.replace('/');
+              onPress={() => {
+                router.replace('/tabs/account/Account');
               }}
             >
-              <Text className="text-base" style={styles.primaryButtonText}>Re-login</Text>
+              <Text className="text-base" style={styles.primaryButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
         )}

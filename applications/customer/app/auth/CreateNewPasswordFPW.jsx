@@ -7,6 +7,7 @@ import CustomButton from '@src/shared/components/Button';
 import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { resetPasswordWithOtp } from '@src/shared/services/authService';
 import { stripEmojis, containsEmoji } from '@src/shared/utils/inputSanitizers';
 
@@ -57,21 +58,26 @@ const CreateNewPasswordFPW = () => {
 
     setLoading(true);
     try {
-      await resetPasswordWithOtp({
+      const res = await resetPasswordWithOtp({
         email,
         resetToken,
         password,
         passwordConfirmation: confirmPassword,
       });
 
+      const token = res?.data?.token || res?.token;
+      if (token) {
+        await SecureStore.setItemAsync('customer_token', JSON.stringify(token));
+      }
+
       if (Platform.OS === 'web') {
-        alert('Password reset successful! You can now log in with your new password.');
-        router.replace('/');
+        alert('Password reset successful! You are now logged in.');
+        router.replace(token ? '/tabs/Home' : '/');
       } else {
         Alert.alert(
           'Success',
-          'Password reset successful! You can now log in with your new password.',
-          [{ text: 'OK', onPress: () => router.replace('/') }]
+          'Password reset successful! You are now logged in.',
+          [{ text: 'OK', onPress: () => router.replace(token ? '/tabs/Home' : '/') }]
         );
       }
     } catch (error) {
@@ -85,7 +91,7 @@ const CreateNewPasswordFPW = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
     >
       <ScrollView

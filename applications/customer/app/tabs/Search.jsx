@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useSearch } from '@shared/hooks/useSearch';
+import { useSearch, searchCache } from '@shared/hooks/useSearch';
 import ProductCard from '@shared/components/ProductCard';
 import { formatProductPrice } from '@shared/hooks/useHomeTab';
 import { useSelectionPhase } from '@shared/context/SelectionPhaseContext';
@@ -28,12 +28,20 @@ export default function SearchTab() {
   const { toast, showError } = useToast();
   const { searchQuery, setSearchQuery, submitSignal } = useSearchContext();
 
+  const isCachedResults = Boolean(
+    pharmacyId &&
+    searchCache.pharmacyId === pharmacyId &&
+    searchCache.query &&
+    searchCache.results?.length > 0 &&
+    searchQuery === searchCache.query
+  );
 
   // 'idle' | 'suggesting' | 'loading' | 'results'
-  const [mode, setMode] = useState('idle');
+  const [mode, setMode] = useState(isCachedResults ? 'results' : (searchCache.mode || 'idle'));
   const suggestDebounceRef = useRef(null);
   // Track the last query that the product grid was built for
-  const committedQueryRef = useRef('');
+  const committedQueryRef = useRef(isCachedResults ? searchCache.query : '');
+  const flatListRef = useRef(null);
 
   const {
     results,
@@ -56,19 +64,39 @@ export default function SearchTab() {
     loadSearchSuggestionProducts();
   }, [loadRecentSearches, loadSearchSuggestionProducts]);
 
+  // Restore scroll position when returning to results
+  useEffect(() => {
+    if (mode === 'results' && searchCache.scrollOffset > 0) {
+      const timer = setTimeout(() => {
+        flatListRef.current?.scrollToOffset({
+          offset: searchCache.scrollOffset,
+          animated: false,
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [mode]);
+
   // When TopBar typing changes searchQuery — only fetch autocomplete, never auto-search
   useEffect(() => {
     if (suggestDebounceRef.current) clearTimeout(suggestDebounceRef.current);
 
+    // If searchQuery matches the committed query and we are already displaying results, stay in results mode
+    if (searchQuery === committedQueryRef.current && mode === 'results') {
+      return;
+    }
+
     if (searchQuery.trim().length >= 2) {
       setMode('suggesting');
+      searchCache.mode = 'suggesting';
       suggestDebounceRef.current = setTimeout(() => {
         fetchSuggestions(searchQuery);
       }, 200);
     } else {
       setMode('idle');
+      searchCache.mode = 'idle';
     }
-  }, [searchQuery, fetchSuggestions]);
+  }, [searchQuery, fetchSuggestions, mode]);
 
   // When user presses the keyboard Return/Search key on the TopBar
   useEffect(() => {
@@ -82,9 +110,14 @@ export default function SearchTab() {
   const commitSearch = useCallback((q) => {
     if (!q || q.trim().length < 2) return;
     committedQueryRef.current = q;
+    searchCache.scrollOffset = 0;
     setMode('loading');
+    searchCache.mode = 'loading';
     Keyboard.dismiss();
-    performSearch(q).then(() => setMode('results'));
+    performSearch(q).then(() => {
+      setMode('results');
+      searchCache.mode = 'results';
+    });
   }, [performSearch]);
 
   const handleSuggestionPress = (name) => {
@@ -276,6 +309,7 @@ export default function SearchTab() {
         {mode === 'results' && (
           results.length > 0 ? (
             <FlatList
+              ref={flatListRef}
               data={results}
               renderItem={renderProduct}
               keyExtractor={(item) => item.id.toString()}
@@ -289,6 +323,14 @@ export default function SearchTab() {
               windowSize={5}
               removeClippedSubviews={true}
               ListFooterComponent={hasMore && <ActivityIndicator style={{ margin: 20 }} />}
+              onScroll={(e) => {
+                const y = e.nativeEvent?.contentOffset?.y ?? 0;
+                if (y >= 0) {
+                  searchCache.scrollOffset = y;
+                }
+              }}
+              scrollEventThrottle={16}
+              contentOffset={{ x: 0, y: searchCache.scrollOffset || 0 }}
             />
           ) : (
             <View style={styles.centerBox}>

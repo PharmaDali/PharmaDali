@@ -36,18 +36,51 @@ function formatPrice(value) {
   return `PHP ${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+export const categoryCache = {
+  key: null,
+  categories: [],
+  products: [],
+  nextCursor: null,
+  hasMore: false,
+  timestamp: 0,
+  scrollOffset: 0,
+}
+
 const Categories = () => {
   const { category: initialCategoryLabel, categoryId: initialCategoryId } = useLocalSearchParams()
   const insets = useSafeAreaInsets()
+  const flatListRef = useRef(null)
   const { selectedPharmacy } = useSelectionPhase()
   const selectedPharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null
   const { toast, showError } = useToast()
 
-  const [categories, setCategories] = useState([])
-  const [products, setProducts] = useState([])
   const normalizedInitialId = (initialCategoryId && String(initialCategoryId) !== 'null' && String(initialCategoryId) !== 'undefined') ? initialCategoryId : null
   const [selectedCategoryId, setSelectedCategoryId] = useState(normalizedInitialId)
   const [selectedCategoryLabel, setSelectedCategoryLabel] = useState(initialCategoryLabel || 'All')
+
+  const [sortVisible, setSortVisible] = useState(false)
+  const [filterVisible, setFilterVisible] = useState(false)
+  const [selectedSort, setSelectedSort] = useState(null)
+  const [filters, setFilters] = useState({})
+
+  const cacheKey = `${selectedPharmacyId}_${selectedCategoryId}_${selectedSort}_${JSON.stringify(filters)}`
+  const isCached = Boolean(
+    categoryCache.key === cacheKey &&
+    categoryCache.products.length > 0
+  )
+
+  const [categories, setCategories] = useState(categoryCache.categories?.length > 0 ? categoryCache.categories : [])
+  const [products, setProducts] = useState(isCached ? categoryCache.products : [])
+  const [isLoading, setIsLoading] = useState(!isCached && Boolean(selectedPharmacyId))
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  
+  // Pagination
+  const [nextCursor, setNextCursor] = useState(isCached ? categoryCache.nextCursor : null)
+  const [hasMore, setHasMore] = useState(isCached ? categoryCache.hasMore : false)
+  const isFetchingMoreRef = useRef(false)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
+
+  const [dropdownOpen, setDropdownOpen] = useState(false)
 
   // Update selected category if navigation params change
   useEffect(() => {
@@ -55,28 +88,28 @@ const Categories = () => {
     setSelectedCategoryId(validId)
     setSelectedCategoryLabel(initialCategoryLabel || 'All')
   }, [initialCategoryId, initialCategoryLabel])
-  
-  const [isLoading, setIsLoading] = useState(false)
-  const [isRefreshing, setIsRefreshing] = useState(false)
-  
-  // Pagination
-  const [nextCursor, setNextCursor] = useState(null)
-  const [hasMore, setHasMore] = useState(false)
-  const isFetchingMoreRef = useRef(false)
-  const [isFetchingMore, setIsFetchingMore] = useState(false)
 
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [sortVisible, setSortVisible] = useState(false)
-  const [filterVisible, setFilterVisible] = useState(false)
-  const [selectedSort, setSelectedSort] = useState(null)
-  const [filters, setFilters] = useState({})
+  // Restore scroll position
+  useEffect(() => {
+    if (categoryCache.scrollOffset > 0 && categoryCache.key === cacheKey) {
+      const timer = setTimeout(() => {
+        flatListRef.current?.scrollToOffset({
+          offset: categoryCache.scrollOffset,
+          animated: false,
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [cacheKey]);
 
   // Fetch Categories once
   useEffect(() => {
     if (!selectedPharmacyId) return
     
     getPharmacyCategories(selectedPharmacyId).then(payload => {
-      setCategories(normalizeApiList(payload))
+      const cats = normalizeApiList(payload)
+      setCategories(cats)
+      categoryCache.categories = cats
     }).catch(() => {
       setCategories([])
     })
@@ -86,9 +119,21 @@ const Categories = () => {
   const loadInitialProducts = useCallback(async (refresh = false) => {
     if (!selectedPharmacyId) return
 
+    const currentKey = `${selectedPharmacyId}_${selectedCategoryId}_${selectedSort}_${JSON.stringify(filters)}`
+    const isCacheFresh = Boolean(
+      categoryCache.key === currentKey &&
+      categoryCache.timestamp &&
+      (Date.now() - categoryCache.timestamp < 60000) &&
+      categoryCache.products.length > 0
+    )
+
+    if (isCacheFresh && !refresh) {
+      return
+    }
+
     if (refresh) {
       setIsRefreshing(true)
-    } else {
+    } else if (!isCached) {
       setIsLoading(true)
       setProducts([])
     }
@@ -100,18 +145,30 @@ const Categories = () => {
         sort: selectedSort
       })
 
-      setProducts(normalizeApiList(payload))
-      setNextCursor(payload?.next_cursor ?? null)
-      setHasMore(payload?.has_more ?? false)
+      const normProds = normalizeApiList(payload)
+      const newCursor = payload?.next_cursor ?? null
+      const newHasMore = payload?.has_more ?? false
+
+      setProducts(normProds)
+      setNextCursor(newCursor)
+      setHasMore(newHasMore)
+
+      categoryCache.key = currentKey
+      categoryCache.products = normProds
+      categoryCache.nextCursor = newCursor
+      categoryCache.hasMore = newHasMore
+      categoryCache.timestamp = Date.now()
     } catch (error) {
-      setProducts([])
-      setNextCursor(null)
-      setHasMore(false)
+      if (!isCached) {
+        setProducts([])
+        setNextCursor(null)
+        setHasMore(false)
+      }
     } finally {
       setIsLoading(false)
       setIsRefreshing(false)
     }
-  }, [selectedPharmacyId, selectedCategoryId, filters, selectedSort])
+  }, [selectedPharmacyId, selectedCategoryId, filters, selectedSort, isCached])
 
   useEffect(() => {
     loadInitialProducts()
@@ -472,6 +529,7 @@ const Categories = () => {
         </ScrollView>
       ) : (
         <FlatList
+          ref={flatListRef}
           data={products}
           keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
           renderItem={renderProductItem}
@@ -491,6 +549,14 @@ const Categories = () => {
           }
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ backgroundColor: 'white', flexGrow: 1 }}
+          onScroll={(e) => {
+            const y = e.nativeEvent?.contentOffset?.y ?? 0
+            if (y >= 0) {
+              categoryCache.scrollOffset = y
+            }
+          }}
+          scrollEventThrottle={16}
+          contentOffset={{ x: 0, y: (categoryCache.key === cacheKey ? categoryCache.scrollOffset : 0) || 0 }}
         />
       )}
 

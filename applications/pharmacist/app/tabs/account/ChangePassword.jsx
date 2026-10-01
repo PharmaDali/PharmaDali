@@ -9,9 +9,11 @@ import {
   SafeAreaView,
   BackHandler,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import ChangePassHeroIcon from '@assets/icons/account/change-password/change_pass_hero.svg';
 import SuccessIcon from '@assets/icons/account/change-password/success.svg';
 import PasswordInput from '@src/shared/components/PasswordInput';
@@ -214,12 +216,24 @@ const ChangePassword = () => {
 
     setLoading(true);
     try {
-      await resetPharmacistPassword({
+      const res = await resetPharmacistPassword({
         email,
         resetToken,
         password: newPassword,
         passwordConfirmation: confirmPassword,
       });
+
+      const newToken = res?.token || res?.data?.token;
+      if (newToken) {
+        if (Platform.OS === 'web') {
+          try {
+            localStorage.setItem('pharmacist_token', newToken);
+          } catch {}
+        } else {
+          await SecureStore.setItemAsync('pharmacist_token', newToken);
+        }
+      }
+
       setStep(5);
     } catch (err) {
       setPasswordError(err?.message || 'Failed to update password.');
@@ -396,7 +410,7 @@ const ChangePassword = () => {
             </Text>
 
             <Text className="text-sm text-center leading-6 mb-6" style={styles.successSubtext}>
-              Your password has been updated. Please log in again with your new credentials to continue.
+              Your password has been updated and your session has been refreshed. You can continue using your account.
             </Text>
 
             {/* Organized Security Note Box */}
@@ -434,12 +448,11 @@ const ChangePassword = () => {
 
             <TouchableOpacity
               className="w-full bg-[#48AAD9] rounded-xl py-3.5 items-center mt-6"
-              onPress={async () => {
-                await logoutPharmacist();
-                router.replace('/auth/PharmacistLogin');
+              onPress={() => {
+                router.replace('/tabs/account/Account');
               }}
             >
-              <Text className="text-base" style={styles.primaryButtonText}>Re-login</Text>
+              <Text className="text-base" style={styles.primaryButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
         )}

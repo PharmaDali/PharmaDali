@@ -44,21 +44,52 @@ function formatPrice(value) {
   return `PHP ${amount.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
+export const shopCache = {
+  pharmacyId: null,
+  categories: [],
+  products: [],
+  nextCursor: null,
+  hasMore: false,
+  categoriesExpanded: false,
+  timestamp: 0,
+  scrollOffset: 0,
+}
+
 const Shop = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
+  const flatListRef = useRef(null)
   const { selectedPharmacy } = useSelectionPhase()
   const selectedPharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id ?? null
   const { expandCategories } = useLocalSearchParams()
-  const [categories, setCategories] = useState([])
-  const [categoriesExpanded, setCategoriesExpanded] = useState(expandCategories === 'true')
-  const [products, setProducts] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
+
+  const isCached = Boolean(
+    selectedPharmacyId &&
+    shopCache.pharmacyId === selectedPharmacyId &&
+    shopCache.products.length > 0
+  )
+
+  const [categories, setCategories] = useState(isCached ? shopCache.categories : [])
+  const [categoriesExpanded, setCategoriesExpanded] = useState(
+    expandCategories === 'true' ? true : (isCached ? shopCache.categoriesExpanded : false)
+  )
+  const [products, setProducts] = useState(isCached ? shopCache.products : [])
+  const [isLoading, setIsLoading] = useState(!isCached && Boolean(selectedPharmacyId))
   const [prevPharmacyId, setPrevPharmacyId] = useState(selectedPharmacyId)
+
+  // Pagination state
+  const [nextCursor, setNextCursor] = useState(isCached ? shopCache.nextCursor : null)
+  const [hasMore, setHasMore] = useState(isCached ? shopCache.hasMore : false)
+  const isFetchingMoreRef = useRef(false)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
 
   // Immediately clear products & display skeletons when pharmacy changes
   if (selectedPharmacyId !== prevPharmacyId) {
     setPrevPharmacyId(selectedPharmacyId)
+    shopCache.pharmacyId = null
+    shopCache.products = []
+    shopCache.categories = []
+    shopCache.scrollOffset = 0
     setIsLoading(true)
     setCategories([])
     setProducts([])
@@ -66,13 +97,20 @@ const Shop = () => {
     setHasMore(false)
   }
 
-  const { toast, showSuccess, showError } = useToast()
+  // Restore scroll position
+  useEffect(() => {
+    if (shopCache.scrollOffset > 0) {
+      const timer = setTimeout(() => {
+        flatListRef.current?.scrollToOffset({
+          offset: shopCache.scrollOffset,
+          animated: false,
+        });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
-  // Pagination state
-  const [nextCursor, setNextCursor] = useState(null)
-  const [hasMore, setHasMore] = useState(false)
-  const isFetchingMoreRef = useRef(false)
-  const [isFetchingMore, setIsFetchingMore] = useState(false)
+  const { toast, showSuccess, showError } = useToast()
 
   useEffect(() => {
     if (!selectedPharmacyId) {
@@ -84,12 +122,23 @@ const Shop = () => {
       return
     }
 
+    const isCacheFresh = Boolean(
+      shopCache.pharmacyId === selectedPharmacyId &&
+      shopCache.timestamp &&
+      (Date.now() - shopCache.timestamp < 60000) &&
+      shopCache.products.length > 0
+    )
+
+    if (isCacheFresh) {
+      return
+    }
+
     let mounted = true
 
     async function loadShopData() {
-      setIsLoading(true)
-      setNextCursor(null)
-      setHasMore(false)
+      if (!isCached) {
+        setIsLoading(true)
+      }
 
       try {
         const [categoriesPayload, productsPayload] = await Promise.all([
@@ -101,12 +150,25 @@ const Shop = () => {
           return
         }
 
-        setCategories(normalizeApiList(categoriesPayload))
-        setProducts(normalizeApiList(productsPayload))
-        setNextCursor(productsPayload?.next_cursor ?? null)
-        setHasMore(productsPayload?.has_more ?? false)
+        const normCats = normalizeApiList(categoriesPayload)
+        const normProds = normalizeApiList(productsPayload)
+        const newCursor = productsPayload?.next_cursor ?? null
+        const newHasMore = productsPayload?.has_more ?? false
+
+        setCategories(normCats)
+        setProducts(normProds)
+        setNextCursor(newCursor)
+        setHasMore(newHasMore)
+
+        shopCache.pharmacyId = selectedPharmacyId
+        shopCache.categories = normCats
+        shopCache.products = normProds
+        shopCache.nextCursor = newCursor
+        shopCache.hasMore = newHasMore
+        shopCache.categoriesExpanded = categoriesExpanded
+        shopCache.timestamp = Date.now()
       } catch (error) {
-        if (mounted) {
+        if (mounted && !isCached) {
           setCategories([])
           setProducts([])
           setNextCursor(null)
@@ -141,9 +203,19 @@ const Shop = () => {
       })
 
       const newItems = normalizeApiList(productsPayload)
-      setProducts((prev) => [...prev, ...newItems])
-      setNextCursor(productsPayload?.next_cursor ?? null)
-      setHasMore(productsPayload?.has_more ?? false)
+      const newCursor = productsPayload?.next_cursor ?? null
+      const newHasMore = productsPayload?.has_more ?? false
+
+      setProducts((prev) => {
+        const updated = [...prev, ...newItems]
+        shopCache.products = updated
+        return updated
+      })
+      setNextCursor(newCursor)
+      setHasMore(newHasMore)
+
+      shopCache.nextCursor = newCursor
+      shopCache.hasMore = newHasMore
     } catch (error) {
       // Silently fail — user can scroll up and try again
     } finally {
@@ -325,7 +397,8 @@ const Shop = () => {
         topOffset={insets.top + 8}
       />
       <FlatList
-        data={isLoading ? [] : products}
+        ref={flatListRef}
+        data={isLoading && !isCached ? [] : products}
         keyExtractor={(item, index) => `${item?.id ?? 'product'}-${index}`}
         renderItem={renderProductItem}
         numColumns={2}
@@ -337,6 +410,14 @@ const Shop = () => {
         onEndReached={loadMoreProducts}
         onEndReachedThreshold={0.5}
         columnWrapperStyle={{ paddingHorizontal: 16 }}
+        onScroll={(e) => {
+          const y = e.nativeEvent?.contentOffset?.y ?? 0
+          if (y >= 0) {
+            shopCache.scrollOffset = y
+          }
+        }}
+        scrollEventThrottle={16}
+        contentOffset={{ x: 0, y: shopCache.scrollOffset || 0 }}
       />
     </View>
   )

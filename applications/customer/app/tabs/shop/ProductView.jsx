@@ -18,6 +18,8 @@ import { formatStockLeft, getStockTextColor } from '@shared/utils/stringUtils';
 import { useFlyToCart } from '@shared/context/FlyToCartContext';
 import CartButton from '@shared/components/CartButton';
 
+const productDetailCache = new Map();
+
 const ProductView = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -30,9 +32,13 @@ const ProductView = () => {
   const [quantity, setQuantity] = useState(1);
   const [isAddedSuccess, setIsAddedSuccess] = useState(false);
 
-  const [productData, setProductData] = useState(null);
-  const [similarProducts, setSimilarProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = `${pharmacyId}_${pharmacyProductId}`;
+  const cached = productDetailCache.get(cacheKey);
+  const isFresh = Boolean(cached && (Date.now() - cached.timestamp < 120000));
+
+  const [productData, setProductData] = useState(cached?.productData || null);
+  const [similarProducts, setSimilarProducts] = useState(cached?.similarProducts || []);
+  const [loading, setLoading] = useState(!cached?.productData);
 
   useEffect(() => {
     let isMounted = true;
@@ -46,6 +52,7 @@ const ProductView = () => {
           const productInfo = result.data;
           setProductData(productInfo);
 
+          let filtered = [];
           // Fetch similar products in the same category
           if (productInfo.category_id) {
             const similarResult = await getProducts(pharmacyId, productInfo.category_id, {
@@ -53,12 +60,18 @@ const ProductView = () => {
             });
             if (isMounted && similarResult.status === 'success') {
               // Filter out the current product
-              const filtered = similarResult.data.filter(
+              filtered = similarResult.data.filter(
                 (p) => String(p.id) !== String(pharmacyProductId)
               );
               setSimilarProducts(filtered);
             }
           }
+
+          productDetailCache.set(cacheKey, {
+            productData: productInfo,
+            similarProducts: filtered,
+            timestamp: Date.now(),
+          });
         }
       } catch (error) {
         console.error('Error fetching product:', error);
@@ -73,14 +86,19 @@ const ProductView = () => {
     };
 
     if (pharmacyId && pharmacyProductId) {
-      setLoading(true);
+      if (isFresh) {
+        return;
+      }
+      if (!cached?.productData) {
+        setLoading(true);
+      }
       fetchProductData();
     }
 
     return () => {
       isMounted = false;
     };
-  }, [pharmacyId, pharmacyProductId]);
+  }, [pharmacyId, pharmacyProductId, cacheKey, isFresh]);
 
   const handleAddToCartPress = (event) => {
     setTapPos({ x: event?.nativeEvent?.pageX ?? null, y: event?.nativeEvent?.pageY ?? null });
@@ -88,9 +106,16 @@ const ProductView = () => {
     setIsQuantityModalOpen(true);
   };
 
-  const maxStock = (productData?.stock !== undefined && productData?.stock !== null && Number(productData.stock) > 0)
+  const availableStock = (productData?.stock !== undefined && productData?.stock !== null)
     ? Number(productData.stock)
-    : 999;
+    : null;
+  const hasStockLimit = availableStock !== null && !Number.isNaN(availableStock);
+  const maxStock = hasStockLimit ? Math.max(0, availableStock) : 999;
+
+  const numQuantity = Number(quantity);
+  const isExceeded = hasStockLimit && numQuantity > maxStock;
+  const isBelowMin = !quantity || numQuantity < 1;
+  const isQuantityInvalid = isExceeded || isBelowMin;
 
   const handleQuantityChange = (text) => {
     const cleaned = text.replace(/[^0-9]/g, '');
@@ -99,7 +124,7 @@ const ProductView = () => {
       return;
     }
     const num = parseInt(cleaned, 10);
-    setQuantity(num > maxStock ? maxStock : num);
+    setQuantity(num);
   };
 
   const handleQuantityBlur = () => {
@@ -111,7 +136,10 @@ const ProductView = () => {
   const handleIncrement = () => {
     setQuantity((q) => {
       const current = Number(q) || 0;
-      return Math.min(maxStock, current + 1);
+      if (hasStockLimit && current >= maxStock) {
+        return current;
+      }
+      return current + 1;
     });
   };
 
@@ -123,8 +151,11 @@ const ProductView = () => {
   };
 
   const handleConfirmAddToCart = () => {
+    const finalQuantity = Number(quantity);
+    if (!finalQuantity || finalQuantity < 1 || (hasStockLimit && finalQuantity > maxStock)) {
+      return;
+    }
     setIsQuantityModalOpen(false);
-    const finalQuantity = Math.max(1, Number(quantity) || 1);
     addPharmacyProductToCart({
       pharmacyId,
       pharmacyProductId,
@@ -360,10 +391,12 @@ const ProductView = () => {
             </View>
 
             {/* Quantity selector adjustment controls */}
-            <View className="flex-row justify-center items-center mb-5">
+            <View className="flex-row justify-center items-center mb-3">
               <TouchableOpacity
                 onPress={handleDecrement}
+                disabled={Number(quantity) <= 1}
                 className="w-[38px] h-[38px] rounded-[10px] border-2 border-[#48AAD9] justify-center items-center bg-white"
+                style={Number(quantity) <= 1 ? { opacity: 0.35 } : null}
               >
                 <Text
                   className="text-base text-[#48AAD9]"
@@ -380,11 +413,16 @@ const ProductView = () => {
                 returnKeyType="done"
                 selectTextOnFocus
                 textAlign="center"
-                style={styles.quantityInput}
+                style={[
+                  styles.quantityInput,
+                  isQuantityInvalid && styles.quantityInputError,
+                ]}
               />
               <TouchableOpacity
                 onPress={handleIncrement}
+                disabled={hasStockLimit && (Number(quantity) >= maxStock || isExceeded)}
                 className="w-[38px] h-[38px] rounded-[10px] border-2 border-[#48AAD9] justify-center items-center bg-white"
+                style={hasStockLimit && (Number(quantity) >= maxStock || isExceeded) ? { opacity: 0.35 } : null}
               >
                 <Text
                   className="text-base text-[#48AAD9]"
@@ -395,9 +433,28 @@ const ProductView = () => {
               </TouchableOpacity>
             </View>
 
-            {stock != null && Number(stock) > 0 && Number(quantity) >= maxStock && (
+            {/* Error or max stock warning */}
+            {isExceeded && (
               <Text
-                className="text-[11px] text-center text-amber-600 mb-3 -mt-2"
+                className="text-xs text-center text-red-500 mb-3"
+                style={{ fontFamily: 'Poppins-Medium' }}
+              >
+                Quantity exceeds available stock ({maxStock} available)
+              </Text>
+            )}
+
+            {!isExceeded && isBelowMin && quantity !== '' && (
+              <Text
+                className="text-xs text-center text-red-500 mb-3"
+                style={{ fontFamily: 'Poppins-Medium' }}
+              >
+                Quantity must be at least 1
+              </Text>
+            )}
+
+            {!isExceeded && !isBelowMin && hasStockLimit && numQuantity === maxStock && maxStock > 0 && (
+              <Text
+                className="text-[11px] text-center text-amber-600 mb-3"
                 style={{ fontFamily: 'Poppins-Medium' }}
               >
                 Maximum available stock reached ({maxStock})
@@ -419,7 +476,10 @@ const ProductView = () => {
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleConfirmAddToCart}
-                className="flex-1 py-3 ml-1.5 rounded-xl bg-[#48AAD9] items-center justify-center"
+                disabled={isQuantityInvalid}
+                className={`flex-1 py-3 ml-1.5 rounded-xl items-center justify-center ${
+                  isQuantityInvalid ? 'bg-gray-300' : 'bg-[#48AAD9]'
+                }`}
               >
                 <Text
                   className="text-[13px] text-white"
@@ -480,6 +540,10 @@ const styles = StyleSheet.create({
     color: '#444444',
     paddingVertical: 0,
     paddingHorizontal: 4,
+  },
+  quantityInputError: {
+    borderColor: '#EF4444',
+    color: '#EF4444',
   },
 });
 

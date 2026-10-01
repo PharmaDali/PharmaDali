@@ -16,9 +16,9 @@ const TopBar = () => {
 
   const searchInputRef = useRef(null);
 
-  // Unactivate search bar whenever navigating away from the Search tab
+  // Unactivate search bar whenever navigating away from the Search tab (except when viewing product details)
   useEffect(() => {
-    if (pathname !== '/tabs/Search') {
+    if (pathname !== '/tabs/Search' && !pathname?.startsWith('/tabs/shop/ProductView')) {
       searchInputRef.current?.blur();
       Keyboard.dismiss();
       if (searchQuery) {
