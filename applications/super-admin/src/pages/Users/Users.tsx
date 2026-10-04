@@ -16,14 +16,13 @@ export interface User {
   lastName: string
 }
 
-const ROLES = ['All', 'Super Admin', 'Pharmacist', 'Manager(Admin)', 'System Admin', 'Customer']
+const ROLES = ['All', 'Super Admin', 'Pharmacist', 'Manager(Admin)', 'Customer']
 const STATUSES = ['All', 'Status', 'Active', 'Inactive']
 
 const mapRoleToDisplay = (role: string) => {
   switch (role) {
     case 'pharmacy_admin': return 'Manager(Admin)'
     case 'pharmacist': return 'Pharmacist'
-    case 'system_admin': return 'System Admin'
     case 'super_admin': return 'Super Admin'
     case 'customer': return 'Customer'
     default: return role
@@ -34,7 +33,6 @@ const mapDisplayToRole = (display: string) => {
   switch (display) {
     case 'Manager(Admin)': return 'pharmacy_admin'
     case 'Pharmacist': return 'pharmacist'
-    case 'System Admin': return 'system_admin'
     case 'Super Admin': return 'super_admin'
     case 'Customer': return 'customer'
     default: return display

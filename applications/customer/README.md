@@ -1,79 +1,91 @@
-# PharmaDali Customer App Setup (Expo)
+# PharmaDali Customer Mobile App (Expo)
 
-This folder contains the React Native Expo app for Customer 
+The **PharmaDali Customer App** is a mobile application built with **React Native** and **Expo SDK 54** that enables pharmacy customers to browse products, verify store operating hours, upload digital prescriptions, place orders for delivery or in-store pickup, and receive real-time order status updates.
+
+---
 
 ## Prerequisites
 
-- Node.js 18+ and npm
-- Expo CLI (optional globally, but helpful)
-- Android Studio emulator or physical Android device with Expo Go
-- Running backend API (see `../backend/README.md`)
+- **Node.js 18+** and npm
+- **Expo CLI**: `npm install -g eas-cli` (recommended for cloud builds)
+- **Android Studio** emulator or a physical Android device with Expo Go
+- **Backend API**: Running Laravel API server (see [`backend/README.md`](../../backend/README.md))
 
-## 1) Install dependencies
+---
+
+## 1. Installation
 
 ```bash
-cd customer-mobile-app
+cd applications/customer
 npm install
 ```
 
-## 2) Configure environment
+---
 
-Create `.env` from `.env.example`:
+## 2. Environment Configuration
 
+Copy the example environment file:
 ```bash
 copy .env.example .env
 ```
 
-Set API URL in `.env`:
-
-```env
-EXPO_PUBLIC_API_URL=http://<your-local-ip>:3000/api
-```
-
-Important:
-- Use your machine LAN IP for physical devices.
-- Do not use `127.0.0.1` on physical devices (it points to the device itself).
-- Variable name must start with `EXPO_PUBLIC_` to be available in app code.
-- If you run backend with `php artisan serve` on port 8000, use:
-
+Configure your `.env` file:
 ```env
 EXPO_PUBLIC_API_URL=http://<your-local-ip>:8000/api
 ```
 
-How to get `<your-local-ip>` on Windows:
+> [!IMPORTANT]
+> - Always use your machine's **LAN IPv4 address** (e.g. `192.168.1.15`) instead of `127.0.0.1` or `localhost` when testing on a physical phone, as `127.0.0.1` refers to the phone itself.
+> - Run `ipconfig` in PowerShell to find your `IPv4 Address`.
+> - The environment variable name **must** begin with `EXPO_PUBLIC_` to be bundled into the client runtime.
+> - Fully restart the Expo server after editing `.env`.
 
-```bash
-ipconfig
-```
+---
 
-Use the `IPv4 Address` of your active network adapter.
+## 3. Development Server
 
-After editing `.env`, fully restart Expo (`npm start`) so new env values are loaded.
-
-## 3) Start development server
-
+Start the Metro development server:
 ```bash
 npx expo start
 ```
 
-## Backend and Redis dependency
+Press `a` in the terminal to launch the Android emulator, or scan the displayed QR code with the **Expo Go** app on your physical device.
 
-The mobile app depends on the backend API, and backend depends on Redis.
+---
 
-Run Redis in Docker (from any terminal):
+## 4. Building Standalone APKs
 
+The app includes preconfigured build profiles in [`eas.json`](eas.json) and native Android resources.
+
+### Option A: Cloud Build via EAS (Recommended for Testing APK)
+Generate an installable `.apk` file hosted by Expo:
 ```bash
-docker run -d --name pharmadali-redis -p 6379:6379 redis:7-alpine
+eas build --platform android --profile preview
 ```
+Scan the terminal QR code when finished to download and install the APK directly to your phone.
 
-If the container already exists:
+### Option B: Local Android Build via Gradle
+If you have JDK 17 installed and prefer compiling directly on your PC:
+```powershell
+cd android
+.\gradlew.bat assembleDebug
+```
+* **Generated APK:** `android/app/build/outputs/apk/debug/app-debug.apk`
 
+---
+
+## 5. Over-The-Air (OTA) Updates
+
+Once users install the APK, you can push instant JavaScript and UI bug fixes over the air without requiring a full APK rebuild:
 ```bash
-docker start pharmadali-redis
+eas update --channel preview --message "Fixed cart discount calculation"
 ```
+The app will automatically check for and apply updates on launch.
 
-## Troubleshooting
+---
 
-- If API calls fail, verify `EXPO_PUBLIC_API_URL` and restart Expo.
-- If auth/cart endpoints fail, confirm backend migrations are applied.
-- If backend uses MySQL, verify DB connection in backend `.env` and check data in MySQL Workbench.
+## 6. App Icon & Assets
+
+The app uses standard Android Adaptive Icons:
+- **[`assets/adaptive_icon.png`](assets/adaptive_icon.png)**: 1024×1024 transparent foreground with the PharmaDali brand emblem centered within the 66% safe zone circle (guarantees 0% cropping on any launcher mask).
+- **[`assets/app_icon.png`](assets/app_icon.png)**: 1024×1024 solid `#ffffff` icon for iOS and Web favicons.
