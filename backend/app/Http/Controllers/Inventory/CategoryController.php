@@ -103,7 +103,7 @@ class CategoryController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        if (!in_array($request->user()?->role, ['super_admin', 'system_admin'])) {
+        if ($request->user()?->role !== 'super_admin') {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Only super administrators can add new master categories.',
@@ -154,7 +154,7 @@ class CategoryController extends Controller
      */
     public function update(Request $request, int $id): JsonResponse
     {
-        if (!in_array($request->user()?->role, ['super_admin', 'system_admin'])) {
+        if ($request->user()?->role !== 'super_admin') {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Only super administrators can edit master categories.',
@@ -219,7 +219,7 @@ class CategoryController extends Controller
      */
     public function destroy(Request $request, int $id): JsonResponse
     {
-        if (!in_array($request->user()?->role, ['super_admin', 'system_admin'])) {
+        if ($request->user()?->role !== 'super_admin') {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Only super administrators can delete master categories.',
