@@ -1,77 +1,89 @@
-# PharmaDali Admin Setup (React + Vite)
+# PharmaDali Pharmacy Admin & POS Portal (React + Vite)
 
-This folder contains the admin dashboard web app.
+The **PharmaDali Pharmacy Admin Portal** is a web application built with **React**, **Vite**, and **Bootstrap 5** for pharmacy managers, branch administrators, and cashiers. It houses the in-store Point of Sale (POS) system, FEFO batch inventory tracking, thermal printing hardware integration, restock forecasting analytics, and real-time WebSocket alerts.
+
+---
 
 ## Prerequisites
 
-- Node.js 18+ and npm
-- Running backend API (see `../backend/README.md`)
+- **Node.js 18+** and npm
+- **Backend API**: Running Laravel API server (see [`backend/README.md`](../../backend/README.md))
+- **Laravel Reverb**: Real-time WebSocket server running on port `8080` (or `443` in production)
 
-## 1) Install dependencies
+---
+
+## 1. Installation
 
 ```bash
-cd pharmadali-admin
+cd applications/pharmadali-admin
 npm install
 ```
 
-## 2) Configure environment
+---
 
-Create `.env` in this folder.
+## 2. Environment Configuration
 
-If `.env.example` exists, copy it first:
+Create or update `.env` based on `.env.example`:
 
 ```bash
 copy .env.example .env
 ```
 
-If there is no `.env.example`, create `.env` manually and add:
+Configure your environment settings:
 
 ```env
+# Backend API Base URL (must include /api)
 VITE_API_BASE_URL=http://127.0.0.1:8000/api
+
+# Laravel Reverb WebSocket Connection
+VITE_REVERB_APP_KEY=pharmadali-app-key
+VITE_REVERB_HOST=127.0.0.1
+VITE_REVERB_PORT=8080
 ```
 
-If your backend is started using `serve-lan.bat`, use:
+> [!NOTE]
+> - Always include `/api` at the end of `VITE_API_BASE_URL`.
+> - In production, set `VITE_REVERB_HOST=ws.pharmadali.com` and `VITE_REVERB_PORT=443`.
+> - Restart `npm run dev` after modifying `.env` so Vite loads the new values.
 
-```env
-VITE_API_BASE_URL=http://<your-local-ip>:3000/api
-```
+---
 
-How to get `<your-local-ip>` on Windows:
-
-```bash
-ipconfig
-```
-
-Use the `IPv4 Address` of your active network adapter.
-
-Important `.env` notes:
-
-- Variable name must be exactly `VITE_API_BASE_URL`.
-- Include `/api` at the end of the URL.
-- Restart `npm run dev` after changing `.env` so Vite reloads env values.
-
-## 3) Run the app
+## 3. Development Server
 
 ```bash
 npm run dev
 ```
 
-Open the URL shown in terminal (usually `http://localhost:5173`).
+Open your browser to the URL displayed in the terminal (typically `http://localhost:5173`).
 
-## Build and preview
+---
+
+## 4. Key Functional Modules
+
+### A. Point of Sale (POS) & Hardware Integration
+- **Fast Cashier Checkout**: Barcode scanning, item lookup, customer discount handling, and change calculation.
+- **In-Store Pickup Verification**: Complete and hand over pre-ordered customer pickups.
+- **Thermal Receipt Printing**: Built-in WebUSB and ESC/POS thermal printer support for automatic 58mm/80mm receipt generation.
+
+### B. FEFO Batch Inventory Management
+- **Batch Tracking**: Record manufacturing and expiry dates per batch (`ProductBatch`).
+- **Bulk CSV Import**: Import product catalogs and batch stock using the CSV import utility (`php artisan pharmacy:import-csv`).
+- **Stock Audit Logs**: Real-time observation of stock deductions adhering strictly to the First-Expiry, First-Out rule.
+
+### C. Restock Prediction & Shortage Analytics
+- Dynamic forecast badges identifying products running out of stock within $\le 7$ days based on Average Daily Sales (ADS) and Reorder Point (ROP).
+- Categorized notification tabs: **Primary**, **Stocks**, **Expiring**, and **Alerts**.
+
+---
+
+## 5. Build for Production
 
 ```bash
+# Type-check and bundle assets
 npm run build
+
+# Preview the production build locally
 npm run preview
 ```
 
-## Lint
-
-```bash
-npm run lint
-```
-
-## Notes
-
-- This app sends requests to the backend base URL from `VITE_API_BASE_URL`.
-- Keep `/api` in the base URL because API routes are under that prefix.
+The production output is placed in the `dist/` directory, ready to be served by Nginx or uploaded to a static host.
