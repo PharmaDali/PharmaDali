@@ -735,6 +735,25 @@ const Users: React.FC = () => {
               />
             </div>
 
+            <Input
+              label="Email"
+              type="email"
+              value={editingUser.email || ''}
+              disabled
+              readOnly
+              className="bg-[#404554] rounded-[8px] py-3 opacity-60 cursor-not-allowed"
+            />
+
+            <Input
+              label="Phone Number"
+              type="tel"
+              value={editingUser.phoneNumber || ''}
+              onChange={(e) =>
+                setEditingUser({ ...editingUser, phoneNumber: e.target.value })
+              }
+              className="bg-[#404554] rounded-[8px] py-3 focus:ring-1 focus:ring-[#48aad9]"
+            />
+
             <Select
               label="Role"
               value={editingUser.role}
