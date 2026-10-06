@@ -373,7 +373,7 @@ const Categories = () => {
               onPress={() => setDropdownOpen(!dropdownOpen)}
               activeOpacity={0.7}
             >
-              <Text className="text-[14px] text-center" style={[styles.fontMedium, { color: '#48AAD9' }]} numberOfLines={1}>
+              <Text className="text-sm text-center" style={[styles.fontMedium, { color: '#48AAD9' }]} numberOfLines={1}>
                 {selectedCategoryLabel === 'All' ? 'All Categories' : selectedCategoryLabel}
               </Text>
             </TouchableOpacity>

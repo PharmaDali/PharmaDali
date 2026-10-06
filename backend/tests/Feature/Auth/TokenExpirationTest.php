@@ -119,7 +119,7 @@ class TokenExpirationTest extends TestCase
         ]);
 
         $admin = User::factory()->create([
-            'role' => 'pharmacy_admin',
+            'role' => 'super_admin',
             'pharmacy_id' => $pharmacy->id,
             'password' => bcrypt('admin123'),
             'is_active' => true,

@@ -68,7 +68,7 @@ function ActiveOrderCard({ order, onViewDetails, onPay, onCancel }) {
               pointerEvents="none"
             />
             <View className="flex-row items-center mb-0">
-              <Text className="text-[12px] text-[#48AAD9]" style={{ fontFamily: 'Poppins-Bold' }}>See {order.products.length - 1} more</Text>
+              <Text className="text-xs text-[#48AAD9]" style={{ fontFamily: 'Poppins-Bold' }}>See {order.products.length - 1} more</Text>
               <MaterialCommunityIcons name="chevron-down" size={14} color="#48AAD9" style={{ marginLeft: 2 }} />
             </View>
           </TouchableOpacity>
@@ -80,7 +80,7 @@ function ActiveOrderCard({ order, onViewDetails, onPay, onCancel }) {
             onPress={() => setIsExpanded(false)}
             activeOpacity={0.7}
           >
-            <Text className="text-[12px] text-[#48AAD9]" style={{ fontFamily: 'Poppins-Bold' }}>See less</Text>
+            <Text className="text-xs text-[#48AAD9]" style={{ fontFamily: 'Poppins-Bold' }}>See less</Text>
             <MaterialCommunityIcons name="chevron-up" size={16} color="#48AAD9" style={{ marginLeft: 2 }} />
           </TouchableOpacity>
         )}

@@ -31,12 +31,20 @@ api.interceptors.response.use(
   (error) => {
     // Handle 401 Unauthorized or 403 Forbidden globally by clearing token and redirecting to login
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      const isDeactivated = error.response.data?.message?.toLowerCase().includes('deactivated');
+      const deactivationMsg = error.response.data?.message || 'Your account has been deactivated. Please contact support.';
+
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       localStorage.removeItem('isAuthenticated');
       localStorage.removeItem('tokenExpiry');
+
+      if (isDeactivated) {
+        sessionStorage.setItem('superadmin_account_deactivated_notice', deactivationMsg);
+      }
+
       if (window.location.pathname !== '/') {
-        window.location.href = '/';
+        window.location.href = isDeactivated ? '/?deactivated=1' : '/';
       }
     }
     return Promise.reject(error);

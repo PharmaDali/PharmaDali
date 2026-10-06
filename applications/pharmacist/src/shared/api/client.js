@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
+import { triggerAccountDeactivatedModal } from '@shared/components/AccountDeactivatedModal';
 
 class ApiError extends Error {
   constructor(message, status, data) {
@@ -95,8 +96,11 @@ const clearAuthStorage = async () => {
   }
 };
 
-const handleUnauthorized = async () => {
+const handleUnauthorized = async (message) => {
   await clearAuthStorage();
+  triggerAccountDeactivatedModal(
+    message || 'Your pharmacist account has been deactivated. Please contact your pharmacy administrator.'
+  );
   if (!isRedirectingToLogin) {
     isRedirectingToLogin = true;
     try {
@@ -153,7 +157,7 @@ export async function apiRequest(path, options = {}) {
 
   if (!response.ok) {
     if (response.status === 401 && authToken && !path.includes('/login')) {
-      await handleUnauthorized();
+      await handleUnauthorized(data?.message);
     }
     throw new ApiError(getErrorMessage(data, 'Request failed.'), response.status, data);
   }

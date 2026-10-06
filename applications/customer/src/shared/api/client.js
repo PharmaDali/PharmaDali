@@ -1,5 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
+import { triggerAccountDeactivatedModal } from '@shared/components/AccountDeactivatedModal';
 
 let isRedirectingToLogin = false;
 
@@ -9,8 +10,9 @@ const clearCustomerStorage = async () => {
   } catch {}
 };
 
-const handleUnauthorized = async () => {
+const handleUnauthorized = async (message) => {
   await clearCustomerStorage();
+  triggerAccountDeactivatedModal(message || 'Your account has been deactivated. Please contact customer support.');
   if (!isRedirectingToLogin) {
     isRedirectingToLogin = true;
     try {
@@ -140,7 +142,7 @@ export async function apiRequest(path, options = {}) {
 
     if (!response.ok) {
       if (response.status === 401 && authToken && !path.includes('/login') && !path.includes('/register')) {
-        await handleUnauthorized();
+        await handleUnauthorized(data?.message);
       }
       throw new ApiError(getErrorMessage(data, 'Request failed.'), response.status, data);
     }

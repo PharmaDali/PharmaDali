@@ -8,11 +8,13 @@ import React, { useEffect, useRef } from 'react'
 import { useSearchContext } from '@shared/context/SearchContext'
 import CartButton from '@shared/components/CartButton'
 import { stripEmojis } from '@src/shared/utils/inputSanitizers'
+import { useFontSize } from '@shared/context/FontSizeContext'
 
 const TopBar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { searchQuery, setSearchQuery, triggerSubmit } = useSearchContext();
+  const { scaleFontSize } = useFontSize();
 
   const searchInputRef = useRef(null);
 
@@ -40,7 +42,7 @@ const TopBar = () => {
         dense
         textColor="#444444"
         contentStyle={{ color: '#444444', paddingVertical: 0 }}
-        style={{ height: 40, backgroundColor: '#FFFFFF', fontSize: 13 }}
+        style={{ height: 40, backgroundColor: '#FFFFFF', fontSize: scaleFontSize(13) }}
         left={<TextInput.Icon icon="magnify" size={20} />}
         right={
           searchQuery ? (

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, AppState } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import BottomBar from '@components/BottomBar';
 import TopBar from '@components/TopBar';
@@ -14,6 +14,8 @@ import * as Notifications from 'expo-notifications';
 import { FlyToCartProvider } from '@shared/context/FlyToCartContext';
 import { configureForegroundNotifications, syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 import { OrderSubmissionProvider } from '@shared/context/OrderSubmissionContext';
+import { apiRequest } from '@shared/api/client';
+import { useFontSize } from '@shared/context/FontSizeContext';
 
 // Configure foreground notification presentation at module level
 configureForegroundNotifications();
@@ -52,6 +54,7 @@ function LayoutContent() {
   const detailTitle = detailHeaders[pathname]
   const isFullScreen = fullScreenRoutes.includes(pathname)
   const { selectionPhase } = useSelectionPhase()
+  const { fontSize } = useFontSize()
   const notificationResponseListener = useRef();
 
   useEffect(() => {
@@ -100,8 +103,24 @@ function LayoutContent() {
       }, 300);
     });
 
+    // Proactively validate session on mount and whenever the app resumes to foreground
+    const checkSession = async () => {
+      try {
+        await apiRequest('/user');
+      } catch {}
+    };
+
+    checkSession();
+
+    const appStateSubscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        checkSession();
+      }
+    });
+
     return () => {
       notificationResponseListener.current?.remove();
+      appStateSubscription.remove();
     };
   }, []);
 
@@ -120,7 +139,7 @@ function LayoutContent() {
         )
       )}
       <View style={styles.contentWrapper}>
-        <Slot />
+        <Slot key={fontSize} />
         {showChatButton && <ChatFloatingButton />}
       </View>
       {!selectionPhase && !isFullScreen && <BottomBar />}

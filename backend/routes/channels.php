@@ -5,6 +5,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Broadcast;
 
 Broadcast::channel('conversations.{conversationId}', function (User $user, int $conversationId) {
+    if (!$user->is_active) {
+        return false;
+    }
+
     return Conversation::query()
         ->whereKey($conversationId)
         ->where(function ($query) use ($user) {
@@ -19,10 +23,14 @@ Broadcast::channel('conversations.{conversationId}', function (User $user, int $
 });
 
 Broadcast::channel('App.Models.User.{id}', function (User $user, int $id) {
-    return (int) $user->id === (int) $id;
+    return (int) $user->id === (int) $id && (bool) $user->is_active;
 });
 
 Broadcast::channel('conversations.{conversationId}.staff', function (User $user, int $conversationId) {
+    if (!$user->is_active) {
+        return false;
+    }
+
     return in_array($user->role, ['pharmacist', 'pharmacy_admin'], true)
         && Conversation::query()
             ->whereKey($conversationId)

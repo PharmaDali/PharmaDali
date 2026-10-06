@@ -4,6 +4,7 @@ import { useFonts } from "expo-font";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { View } from "react-native";
 import UpdateNoticeModal from "@shared/components/UpdateNoticeModal";
+import AccountDeactivatedModal from "@shared/components/AccountDeactivatedModal";
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -27,6 +28,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <Stack screenOptions={{ headerShown: false }} />
       <UpdateNoticeModal />
+      <AccountDeactivatedModal />
     </SafeAreaProvider>
   );
 }

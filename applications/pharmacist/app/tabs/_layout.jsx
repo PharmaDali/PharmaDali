@@ -1,4 +1,4 @@
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, AppState } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { Slot, usePathname, useRouter } from 'expo-router';
 import TopBar from './TopBar';
@@ -9,6 +9,7 @@ import * as Notifications from 'expo-notifications';
 import { configureForegroundNotifications, syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 import FirstTimePasswordModal from '@src/shared/components/FirstTimePasswordModal';
 import { useFirstTimePasswordCheck } from '@src/shared/hooks/useFirstTimePasswordCheck';
+import { apiRequest } from '@shared/api/client';
 
 // Configure foreground notification presentation at module level
 configureForegroundNotifications();
@@ -59,8 +60,24 @@ function LayoutContent() {
       }, 300);
     });
 
+    // Proactively validate session on mount and whenever the app resumes to foreground
+    const checkSession = async () => {
+      try {
+        await apiRequest('/user');
+      } catch {}
+    };
+
+    checkSession();
+
+    const appStateSubscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        checkSession();
+      }
+    });
+
     return () => {
       notificationResponseListener.current?.remove();
+      appStateSubscription.remove();
     };
   }, []);
 

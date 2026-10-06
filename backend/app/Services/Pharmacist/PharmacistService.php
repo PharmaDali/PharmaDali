@@ -41,6 +41,11 @@ class PharmacistService
 
         $user->save();
 
+        if (array_key_exists('is_active', $data) && !$data['is_active']) {
+            $user->tokens()->delete();
+            $user->updateQuietly(['fcm_token' => null]);
+        }
+
         if (array_key_exists('license_number', $data)) {
             $user->pharmacist()->updateOrCreate(
                 ['user_id' => $user->id],

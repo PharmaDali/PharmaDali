@@ -16,7 +16,7 @@ const HOURS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, '0'))
 const PERIODS = ['AM', 'PM']
 
-function WheelColumn({ items, selectedIndex, onSelect, width = 76 }) {
+function WheelColumn({ items, selectedIndex, onSelect, width = 76, visible = false }) {
   const scrollViewRef = useRef(null)
   const isUserScrolling = useRef(false)
   const currentScrolledIndex = useRef(selectedIndex)
@@ -32,7 +32,21 @@ function WheelColumn({ items, selectedIndex, onSelect, width = 76 }) {
     }
   }, [selectedIndex])
 
-  // Initial scroll when component mounts or modal opens
+  // Sync scroll position whenever modal becomes visible
+  useEffect(() => {
+    if (visible && selectedIndex >= 0) {
+      currentScrolledIndex.current = selectedIndex
+      const timer = setTimeout(() => {
+        scrollViewRef.current?.scrollTo({
+          y: selectedIndex * ITEM_HEIGHT,
+          animated: false,
+        })
+      }, 50)
+      return () => clearTimeout(timer)
+    }
+  }, [visible])
+
+  // Initial scroll when component mounts
   useEffect(() => {
     if (selectedIndex >= 0) {
       currentScrolledIndex.current = selectedIndex
@@ -143,37 +157,54 @@ export default function PickupTimePickerModal({
     return minMs + 8 * 3600 * 1000
   }, [closingDateTime, minMs])
 
+  const getAlignedDate = useCallback((date) => {
+    const targetDate = minimumDateTime instanceof Date ? minimumDateTime : selectedDate
+    const d = new Date(date)
+    if (targetDate instanceof Date) {
+      d.setFullYear(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate())
+    }
+    return d
+  }, [minimumDateTime, selectedDate])
+
   const clampDate = useCallback((date) => {
-    if (!date || !(date instanceof Date)) {
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
       const fallback = new Date(minMs)
       fallback.setSeconds(0, 0)
       return fallback
     }
-    const res = new Date(date)
-    res.setSeconds(0, 0)
-    const timeMs = res.getTime()
+    const aligned = getAlignedDate(date)
+    aligned.setSeconds(0, 0)
+    const timeMs = aligned.getTime()
     const effectiveMax = maxMs < minMs ? minMs : maxMs
 
     if (timeMs < minMs) return new Date(minMs)
     if (timeMs > effectiveMax) return new Date(effectiveMax)
-    return res
-  }, [minMs, maxMs])
+    return aligned
+  }, [minMs, maxMs, getAlignedDate])
 
   const getEarliestTarget = useCallback(() => {
-    // 35 minutes ahead, rounded forward to next clean 5-minute interval (e.g. 2:40 PM)
-    const base = new Date(Date.now() + 35 * 60 * 1000)
+    const base = new Date(minMs)
     return clampDate(roundToNextFiveMinutes(base))
-  }, [clampDate])
+  }, [clampDate, minMs])
 
   useEffect(() => {
     if (visible) {
-      const initial = selectedTime || getEarliestTarget()
+      let initial = selectedTime
+      if (!initial || !(initial instanceof Date) || isNaN(initial.getTime())) {
+        initial = getEarliestTarget()
+      } else {
+        const targetDate = minimumDateTime instanceof Date ? minimumDateTime : selectedDate
+        if (targetDate instanceof Date) {
+          initial = new Date(initial)
+          initial.setFullYear(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate())
+        }
+      }
       setTempSelectedTime(clampDate(new Date(initial)))
     }
-  }, [visible, selectedTime, clampDate, getEarliestTarget])
+  }, [visible, selectedTime, selectedDate, minimumDateTime, clampDate, getEarliestTarget])
 
   const formatTime12Hour = (date) => {
-    if (!date || !(date instanceof Date)) return '--:--'
+    if (!date || !(date instanceof Date) || isNaN(date.getTime())) return '--:--'
     return date.toLocaleTimeString('en-PH', {
       timeZone: 'Asia/Manila',
       hour: 'numeric',
@@ -207,9 +238,54 @@ export default function PickupTimePickerModal({
     let hour24 = hour12 % 12
     if (isPm) hour24 += 12
 
-    const updated = new Date(tempSelectedTime || Date.now())
+    const base = tempSelectedTime || selectedDate || new Date(minMs)
+    const updated = getAlignedDate(base)
     updated.setHours(hour24, minute, 0, 0)
     setTempSelectedTime(updated)
+  }
+
+  const handlePreset = (type) => {
+    const earliest = getEarliestTarget()
+    const oneHourTarget = clampDate(new Date(earliest.getTime() + 60 * 60 * 1000))
+    const twoHoursTarget = clampDate(new Date(earliest.getTime() + 120 * 60 * 1000))
+
+    if (type === 'earliest') {
+      setTempSelectedTime(earliest)
+      return
+    }
+
+    if (type === 'close') {
+      setTempSelectedTime(new Date(maxMs))
+      return
+    }
+
+    const currentMs = tempSelectedTime?.getTime?.() || earliest.getTime()
+
+    if (type === 'plus1') {
+      if (currentMs === oneHourTarget.getTime()) {
+        const nextTime = clampDate(new Date(currentMs + 60 * 60 * 1000))
+        setTempSelectedTime(nextTime)
+      } else if (currentMs === earliest.getTime() || currentMs === twoHoursTarget.getTime()) {
+        setTempSelectedTime(oneHourTarget)
+      } else {
+        const nextTime = clampDate(new Date(currentMs + 60 * 60 * 1000))
+        setTempSelectedTime(nextTime)
+      }
+      return
+    }
+
+    if (type === 'plus2') {
+      if (currentMs === twoHoursTarget.getTime()) {
+        const nextTime = clampDate(new Date(currentMs + 120 * 60 * 1000))
+        setTempSelectedTime(nextTime)
+      } else if (currentMs === earliest.getTime() || currentMs === oneHourTarget.getTime()) {
+        setTempSelectedTime(twoHoursTarget)
+      } else {
+        const nextTime = clampDate(new Date(currentMs + 120 * 60 * 1000))
+        setTempSelectedTime(nextTime)
+      }
+      return
+    }
   }
 
   const isValidTime = useMemo(() => {
@@ -218,21 +294,33 @@ export default function PickupTimePickerModal({
     return timeMs >= minMs && timeMs <= maxMs
   }, [tempSelectedTime, minMs, maxMs])
 
+  const isSelectedDateToday = useMemo(() => {
+    const target = selectedDate instanceof Date ? selectedDate : minimumDateTime
+    if (!(target instanceof Date)) return true
+    const now = new Date()
+    return (
+      target.getFullYear() === now.getFullYear() &&
+      target.getMonth() === now.getMonth() &&
+      target.getDate() === now.getDate()
+    )
+  }, [selectedDate, minimumDateTime])
+
   const validationWarning = useMemo(() => {
     if (!tempSelectedTime) return null
     const timeMs = tempSelectedTime.getTime()
     if (timeMs < minMs) {
-      return `Earliest pickup is ${formatTime12Hour(new Date(minMs))} (30m prep required)`
+      const reason = isSelectedDateToday ? ' (30m prep required)' : ' (store opening time)'
+      return `Earliest pickup is ${formatTime12Hour(new Date(minMs))}${reason}`
     }
     if (timeMs > maxMs) {
       return `Latest pickup is ${formatTime12Hour(new Date(maxMs))} (15m before closing)`
     }
     return null
-  }, [tempSelectedTime, minMs, maxMs])
+  }, [tempSelectedTime, minMs, maxMs, isSelectedDateToday])
 
   const handleConfirm = () => {
     if (tempSelectedTime && isValidTime) {
-      const finalTime = new Date(tempSelectedTime)
+      const finalTime = getAlignedDate(tempSelectedTime)
       finalTime.setSeconds(0, 0)
       onSelectTime(finalTime)
     }
@@ -269,7 +357,7 @@ export default function PickupTimePickerModal({
                   Select Pickup Time
                 </Text>
                 <Text className="text-[11px] text-slate-400" style={styles.fontMedium}>
-                  Open: {hoursLabel || `${formatMinutesToAmPm(openingMinutes)} – ${formatMinutesToAmPm(closingMinutes)}`}
+                  Open: {hoursLabel || `${formatMinutesToAmPm(openingMinutes)} - ${formatMinutesToAmPm(closingMinutes)}`}
                 </Text>
               </View>
             </View>
@@ -300,6 +388,7 @@ export default function PickupTimePickerModal({
                 selectedIndex={hourIndex}
                 onSelect={(newH) => handleWheelChange(newH, minuteIndex, periodIndex)}
                 width={76}
+                visible={visible}
               />
 
               {/* Colon Separator */}
@@ -316,6 +405,7 @@ export default function PickupTimePickerModal({
                 selectedIndex={minuteIndex}
                 onSelect={(newM) => handleWheelChange(hourIndex, newM, periodIndex)}
                 width={76}
+                visible={visible}
               />
 
               {/* AM/PM Column */}
@@ -324,6 +414,7 @@ export default function PickupTimePickerModal({
                 selectedIndex={periodIndex}
                 onSelect={(newP) => handleWheelChange(hourIndex, minuteIndex, newP)}
                 width={76}
+                visible={visible}
               />
             </View>
 
@@ -345,25 +436,25 @@ export default function PickupTimePickerModal({
               {[
                 {
                   label: 'Earliest',
-                  getDate: () => getEarliestTarget(),
+                  type: 'earliest',
                 },
                 {
                   label: '+1 Hour',
-                  getDate: () => clampDate(roundToNextFiveMinutes(new Date(Date.now() + 60 * 60 * 1000))),
+                  type: 'plus1',
                 },
                 {
                   label: '+2 Hours',
-                  getDate: () => clampDate(roundToNextFiveMinutes(new Date(Date.now() + 120 * 60 * 1000))),
+                  type: 'plus2',
                 },
                 {
                   label: 'Before Close',
-                  getDate: () => new Date(maxMs),
+                  type: 'close',
                 },
               ].map((preset) => (
                 <TouchableOpacity
                   key={preset.label}
                   className="flex-1 py-1.5 rounded-lg border border-slate-200 bg-slate-50 items-center justify-center active:bg-sky-50 active:border-[#48AAD9]"
-                  onPress={() => setTempSelectedTime(clampDate(preset.getDate()))}
+                  onPress={() => handlePreset(preset.type)}
                   activeOpacity={0.75}
                 >
                   <Text className="text-[11px] text-slate-600" style={styles.fontMedium}>

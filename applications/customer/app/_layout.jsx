@@ -4,6 +4,8 @@ import { useFonts } from "expo-font";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { View, ActivityIndicator } from "react-native";
 import UpdateNoticeModal from "@shared/components/UpdateNoticeModal";
+import AccountDeactivatedModal from "@shared/components/AccountDeactivatedModal";
+import { FontSizeProvider } from "@shared/context/FontSizeContext";
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -30,6 +32,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <FontSizeProvider>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="auth/CreateNewPasswordFPW" />
@@ -39,6 +42,8 @@ export default function RootLayout() {
           <Stack.Screen name="tabs" />
         </Stack>
         <UpdateNoticeModal />
+        <AccountDeactivatedModal />
+      </FontSizeProvider>
     </SafeAreaProvider>
   );
 }

@@ -20,9 +20,11 @@ import { useToast } from '@shared/hooks/useToast';
 import ToastMessage from '@shared/components/ToastMessage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSearchContext } from '@shared/context/SearchContext';
+import { useFontSize } from '@shared/context/FontSizeContext';
 
 export default function SearchTab() {
   const insets = useSafeAreaInsets();
+  const { scaleFontSize } = useFontSize();
   const { selectedPharmacy } = useSelectionPhase();
   const pharmacyId = selectedPharmacy?.id ?? selectedPharmacy?.pharmacy_id;
   const { toast, showError } = useToast();
@@ -201,10 +203,10 @@ export default function SearchTab() {
         {mode === 'idle' && (
           <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Recent Searches</Text>
+              <Text style={[styles.sectionTitle, { fontSize: scaleFontSize(16) }]}>Recent Searches</Text>
               {recentSearches.length > 0 && (
                 <TouchableOpacity onPress={clearRecentSearches}>
-                  <Text style={styles.clearText}>Clear All</Text>
+                  <Text style={[styles.clearText, { fontSize: scaleFontSize(12) }]}>Clear All</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -217,18 +219,18 @@ export default function SearchTab() {
                     onPress={() => handleRecentClick(s)}
                   >
                     <MaterialCommunityIcons name="history" size={16} color="#48AAD9" />
-                    <Text style={styles.tagText}>{s}</Text>
+                    <Text style={[styles.tagText, { fontSize: scaleFontSize(13) }]}>{s}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
             ) : (
-              <Text style={styles.emptyText}>No recent searches</Text>
+              <Text style={[styles.emptyText, { fontSize: scaleFontSize(13) }]}>No recent searches</Text>
             )}
 
             {searchSuggestionProducts.length > 0 && (
               <>
                 <View style={[styles.sectionHeader, { marginTop: 16 }]}>
-                  <Text style={styles.sectionTitle}>Search Suggestions</Text>
+                  <Text style={[styles.sectionTitle, { fontSize: scaleFontSize(16) }]}>Search Suggestions</Text>
                 </View>
                 <View style={styles.suggestionGrid}>
                   {searchSuggestionProducts.map((item) => {
@@ -271,7 +273,7 @@ export default function SearchTab() {
             {/* Confirm search row at top */}
             <TouchableOpacity style={styles.confirmRow} onPress={handleSearchConfirm}>
               <MaterialCommunityIcons name="magnify" size={18} color="#48AAD9" />
-              <Text style={styles.confirmText} numberOfLines={1}>
+              <Text style={[styles.confirmText, { fontSize: scaleFontSize(13) }]} numberOfLines={1}>
                 Search for "<Text style={{ fontFamily: 'Poppins-SemiBold' }}>{searchQuery}</Text>"
               </Text>
               <MaterialCommunityIcons name="arrow-right" size={16} color="#48AAD9" />
@@ -288,7 +290,7 @@ export default function SearchTab() {
                     onPress={() => handleSuggestionPress(name)}
                   >
                     <MaterialCommunityIcons name="magnify" size={18} color="#ccc" />
-                    <Text style={styles.suggestionText} numberOfLines={1}>{name}</Text>
+                    <Text style={[styles.suggestionText, { fontSize: scaleFontSize(13) }]} numberOfLines={1}>{name}</Text>
                     <MaterialCommunityIcons name="arrow-top-left" size={15} color="#ccc" />
                   </TouchableOpacity>
                 ))}

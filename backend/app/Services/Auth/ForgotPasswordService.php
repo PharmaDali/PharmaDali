@@ -29,6 +29,10 @@ class ForgotPasswordService
             return $this->errorResponse('No customer account found with this email address.', 404);
         }
 
+        if (!$user->is_active) {
+            return $this->errorResponse('This account has been deactivated. Please contact support.', 403);
+        }
+
         return $this->sendPasswordOtp->execute(
             $user,
             "otp:customer:forgot_password:{$email}",

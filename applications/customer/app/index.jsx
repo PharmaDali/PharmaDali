@@ -7,8 +7,10 @@ import theme from '@src/shared/theme/inputTheme';
 import { useConfirmPasswordToggle } from '@src/shared/hooks/confirmPasswordToggle';
 import AnimatedSplashLayout from '@src/shared/components/AnimatedSplashLayout';
 import { loginCustomer } from '@src/shared/services/authService';
+import { apiRequest } from '@src/shared/api/client';
 import { validateCustomerLogin } from '@src/shared/validation/authValidation';
 import { stripEmojis } from '@src/shared/utils/inputSanitizers';
+import { triggerAccountDeactivatedModal } from '@shared/components/AccountDeactivatedModal';
 
 import { syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 
@@ -37,8 +39,16 @@ export default function LoginScreen() {
           }
 
           if (tokenStr) {
-            router.replace('/tabs/Home');
-            return;
+            try {
+              await apiRequest('/user');
+              if (isMounted) {
+                router.replace('/tabs/Home');
+                return;
+              }
+            } catch (authErr) {
+              await SecureStore.deleteItemAsync('customer_token');
+              triggerAccountDeactivatedModal('Your account has been deactivated. Please contact customer support.');
+            }
           }
         }
       } catch (err) {
@@ -75,7 +85,11 @@ export default function LoginScreen() {
 
       router.replace('/tabs/Home');
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
+      if (error?.message?.toLowerCase().includes('deactivated')) {
+        triggerAccountDeactivatedModal(error.message);
+      } else {
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -120,7 +134,7 @@ export default function LoginScreen() {
         style={styles.forgotPasswordButton}
         activeOpacity={0.7}
       >
-        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        <Text className="text-xs" style={styles.forgotPasswordText}>Forgot Password?</Text>
       </TouchableOpacity>
       <View style={{ alignItems: 'center' }}>
         <Button mode="contained" style={styles.loginButton} onPress={handleLogin} loading={isSubmitting} disabled={isSubmitting}>
@@ -159,7 +173,6 @@ const styles = StyleSheet.create({
     color: '#48AAD9',
     textDecorationLine: 'underline',
     fontFamily: 'Poppins-Regular',
-    fontSize: 13,
   },
   noAccountText: {
     marginTop: 20,

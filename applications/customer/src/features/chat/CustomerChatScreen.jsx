@@ -222,7 +222,7 @@ export default function CustomerChatScreen() {
       >
         {/* Avatar */}
         <View className="h-[52px] w-[52px] rounded-full bg-sky-100 items-center justify-center mr-3 relative">
-          <Text className="text-[17px]" style={{ fontFamily: 'Poppins-Bold', color: colors.buttonColor }}>
+          <Text className="text-base" style={{ fontFamily: 'Poppins-Bold', color: colors.buttonColor }}>
             {getInitials(pharmacyName)}
           </Text>
           <View
@@ -235,7 +235,7 @@ export default function CustomerChatScreen() {
         <View className="flex-1 mr-1.5">
           <View className="flex-row items-center justify-between mb-0.5">
             <Text
-              className="text-[15px] text-slate-900 flex-1 mr-1.5"
+              className="text-base text-slate-900 flex-1 mr-1.5"
               style={{ fontFamily: hasUnread ? 'Poppins-Bold' : 'Poppins-SemiBold' }}
               numberOfLines={1}
             >
@@ -250,7 +250,7 @@ export default function CustomerChatScreen() {
           </Text>
           {!!latest && (
             <Text
-              className={`text-[13px] ${hasUnread ? 'text-slate-800' : 'text-slate-400'}`}
+              className={`text-sm ${hasUnread ? 'text-slate-800' : 'text-slate-400'}`}
               style={{ fontFamily: hasUnread ? 'Poppins-SemiBold' : 'Poppins-Medium' }}
               numberOfLines={1}
             >
