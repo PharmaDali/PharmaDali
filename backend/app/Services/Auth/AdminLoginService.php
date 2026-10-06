@@ -44,6 +44,7 @@ class AdminLoginService
         // Block inactive accounts
         if (!$user->is_active) {
             Auth::logout();
+            $user->tokens()->delete();
             return response()->json(['message' => 'Your account has been deactivated.'], 403);
         }
 

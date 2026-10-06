@@ -1,16 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../../services/authService";
 import logo from '../../assets/log-in-logo.svg';
-import { Input } from "../../components/common";
+import { Input, Modal } from "../../components/common";
 
 function Login() {
   const navigate = useNavigate();
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
+  const [showDeactivatedModal, setShowDeactivatedModal] = useState(false);
+  const [deactivatedMessage, setDeactivatedMessage] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const notice = sessionStorage.getItem("superadmin_account_deactivated_notice");
+    if (params.get("deactivated") === "1" || notice) {
+      setDeactivatedMessage(notice || "Your account has been deactivated. Please contact support.");
+      setShowDeactivatedModal(true);
+      sessionStorage.removeItem("superadmin_account_deactivated_notice");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -38,7 +50,13 @@ function Login() {
       localStorage.setItem("tokenExpiry", String(Date.now() + 8 * 60 * 60 * 1000));
       navigate("/homepage", { replace: true });
     } catch (err: any) {
-      setError(err?.message || "Invalid email or password.");
+      const rawMsg = err?.response?.data?.message || err?.message || "";
+      if (typeof rawMsg === "string" && rawMsg.toLowerCase().includes("deactivated")) {
+        setDeactivatedMessage(rawMsg);
+        setShowDeactivatedModal(true);
+      } else {
+        setError(rawMsg || "Invalid email or password.");
+      }
       localStorage.removeItem("isAuthenticated");
     } finally {
       setIsSubmitting(false);
@@ -110,6 +128,42 @@ function Login() {
         </div>
         
       </div>
+
+      <Modal
+        isOpen={showDeactivatedModal}
+        onClose={() => setShowDeactivatedModal(false)}
+        maxWidth="max-w-[400px]"
+      >
+        <div className="flex flex-col items-center text-center p-2">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-4 text-red-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+
+          <div className="px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-bold uppercase tracking-wider mb-2">
+            Access Revoked
+          </div>
+
+          <h3 className="text-xl font-bold text-white mb-2">
+            Account Deactivated
+          </h3>
+
+          <p className="text-sm text-gray-300 leading-relaxed mb-6">
+            {deactivatedMessage || "Your Super Admin account has been deactivated. Please contact the platform administration."}
+          </p>
+
+          <button
+            type="button"
+            onClick={() => setShowDeactivatedModal(false)}
+            className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors shadow-lg active:scale-95 cursor-pointer"
+          >
+            Understood
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -5,6 +5,8 @@ import * as SecureStore from 'expo-secure-store';
 import CircularLogo from '@assets/circular_logo.svg';
 import { colors } from '@src/shared/theme/colorPalette';
 import AnimatedSplashLayout from '@src/shared/components/AnimatedSplashLayout';
+import { apiRequest } from '@shared/api/client';
+import { triggerAccountDeactivatedModal } from '@shared/components/AccountDeactivatedModal';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -26,8 +28,16 @@ export default function LoginScreen() {
           }
 
           if (tokenStr) {
-            router.replace('/tabs/Home');
-            return;
+            try {
+              await apiRequest('/user');
+              if (isMounted) {
+                router.replace('/tabs/Home');
+                return;
+              }
+            } catch (authErr) {
+              await SecureStore.deleteItemAsync('pharmacist_token');
+              triggerAccountDeactivatedModal('Your pharmacist account has been deactivated. Please contact your pharmacy administrator.');
+            }
           }
         }
       } catch (err) {

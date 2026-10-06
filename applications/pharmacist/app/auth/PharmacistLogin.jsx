@@ -11,6 +11,7 @@ import DescriptiveLogo from '@src/shared/components/DescriptiveLogo';
 import { loginPharmacist } from '@src/shared/services/authService';
 import { validatePharmacistLogin } from '@src/shared/validation/authValidation';
 import { sanitizeAlphanumeric } from '@shared/utils/inputSanitizers';
+import { triggerAccountDeactivatedModal } from '@shared/components/AccountDeactivatedModal';
 
 import { syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 
@@ -39,7 +40,11 @@ const PharmacistLogin = () => {
       syncFcmTokenWithBackend().catch(() => {});
       router.replace('/tabs/Home');
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
+      if (error?.message?.toLowerCase().includes('deactivated')) {
+        triggerAccountDeactivatedModal(error.message);
+      } else {
+        setErrorMessage(error instanceof Error ? error.message : 'Unable to connect to server.');
+      }
     } finally {
       setIsSubmitting(false);
     }

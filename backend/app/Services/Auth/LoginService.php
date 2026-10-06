@@ -34,6 +34,14 @@ class LoginService
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
+        // Block inactive accounts
+        if (!$user->is_active) {
+            RateLimiter::hit('login:' . $ip);
+            Auth::logout();
+            $user->tokens()->delete();
+            return response()->json(['message' => 'Your account has been deactivated. Please contact support.'], 403);
+        }
+
         RateLimiter::clear('login:' . $ip);
 
         $customer = $user->customer()->firstOrCreate([]);

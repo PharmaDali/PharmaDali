@@ -31,6 +31,7 @@ use App\Http\Controllers\Pos\PosController;
 use App\Http\Controllers\Report\ReportController;
 use App\Http\Controllers\User\AdminProfileController;
 use App\Http\Controllers\Auth\AdminChangePasswordController;
+use App\Http\Middleware\EnsureUserIsActive;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
@@ -69,10 +70,10 @@ Route::post('admin/change-password/send-otp', [AdminChangePasswordController::cl
 Route::post('admin/change-password/verify-otp', [AdminChangePasswordController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
 Route::post('admin/change-password/reset-password', [AdminChangePasswordController::class, 'changePassword']);
 
-Broadcast::routes(['middleware' => ['auth:sanctum']]);
+Broadcast::routes(['middleware' => ['auth:sanctum', EnsureUserIsActive::class]]);
 
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', EnsureUserIsActive::class])->group(function () {
     Route::get('user', [AuthController::class, 'userInfo']);
     Route::post('logout', [AuthController::class, 'logout']);
 

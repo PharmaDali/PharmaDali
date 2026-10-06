@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { login, verifyAdminTwoFactor, resendAdminTwoFactor } from "../services/loginService";
 import PasswordField from "../shared/components/PasswordField";
 import VerifyOtpModal from "../shared/components/VerifyOtpModal";
+import AccountDeactivatedModal from "../shared/components/AccountDeactivatedModal";
 
 function Login() {
   const navigate = useNavigate();
@@ -12,6 +13,19 @@ function Login() {
   const [show2FA, setShow2FA] = useState(false);
   const [twoFactorToken, setTwoFactorToken] = useState("");
   const [twoFactorEmail, setTwoFactorEmail] = useState("");
+  const [showDeactivatedModal, setShowDeactivatedModal] = useState(false);
+  const [deactivatedMessage, setDeactivatedMessage] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const notice = sessionStorage.getItem("account_deactivated_notice");
+    if (params.get("deactivated") === "1" || notice) {
+      setDeactivatedMessage(notice || "Your account has been deactivated. Please contact support.");
+      setShowDeactivatedModal(true);
+      sessionStorage.removeItem("account_deactivated_notice");
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   const handleChange = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -44,7 +58,13 @@ function Login() {
         navigate("/", { replace: true });
       }
     } catch (err) {
-      setError(err?.response?.data?.message || err?.message || "Invalid email or password.");
+      const rawMsg = err?.response?.data?.message || err?.message || "";
+      if (typeof rawMsg === "string" && rawMsg.toLowerCase().includes("deactivated")) {
+        setDeactivatedMessage(rawMsg);
+        setShowDeactivatedModal(true);
+      } else {
+        setError(rawMsg || "Invalid email or password.");
+      }
       localStorage.removeItem("isAuthenticated");
     } finally {
       setIsSubmitting(false);
@@ -129,6 +149,12 @@ function Login() {
         onVerify={handle2FAVerify}
         onProceed={handle2FAProceed}
         onResend={handle2FAResend}
+      />
+
+      <AccountDeactivatedModal
+        isOpen={showDeactivatedModal}
+        onClose={() => setShowDeactivatedModal(false)}
+        message={deactivatedMessage}
       />
     </div>
   );

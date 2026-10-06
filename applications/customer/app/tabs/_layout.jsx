@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, AppState } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import BottomBar from '@components/BottomBar';
 import TopBar from '@components/TopBar';
@@ -14,6 +14,7 @@ import * as Notifications from 'expo-notifications';
 import { FlyToCartProvider } from '@shared/context/FlyToCartContext';
 import { configureForegroundNotifications, syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 import { OrderSubmissionProvider } from '@shared/context/OrderSubmissionContext';
+import { apiRequest } from '@shared/api/client';
 
 // Configure foreground notification presentation at module level
 configureForegroundNotifications();
@@ -100,8 +101,24 @@ function LayoutContent() {
       }, 300);
     });
 
+    // Proactively validate session on mount and whenever the app resumes to foreground
+    const checkSession = async () => {
+      try {
+        await apiRequest('/user');
+      } catch {}
+    };
+
+    checkSession();
+
+    const appStateSubscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        checkSession();
+      }
+    });
+
     return () => {
       notificationResponseListener.current?.remove();
+      appStateSubscription.remove();
     };
   }, []);
 

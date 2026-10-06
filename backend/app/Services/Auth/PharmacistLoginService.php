@@ -33,6 +33,14 @@ class PharmacistLoginService
         /** @var User $user */
         $user = $pharmacist->user;
 
+        // Block inactive accounts
+        if (!$user->is_active) {
+            RateLimiter::hit('pharmacist_login:' . $ip);
+            Auth::logout();
+            $user->tokens()->delete();
+            return response()->json(['message' => 'Your account has been deactivated. Please contact support.'], 403);
+        }
+
         Auth::login($user);
 
         $user->tokens()->delete();

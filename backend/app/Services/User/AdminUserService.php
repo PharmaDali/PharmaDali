@@ -59,6 +59,11 @@ class AdminUserService
 
         $user->update($validated);
 
+        if (array_key_exists('is_active', $validated) && !$validated['is_active']) {
+            $user->tokens()->delete();
+            $user->updateQuietly(['fcm_token' => null]);
+        }
+
         if ($user->role === 'pharmacist' && !$user->pharmacist) {
             $user->pharmacist()->create([
                 'employee_number' => 'PHAR-' . $user->id . '-' . ($user->pharmacy_id ?? '0'),

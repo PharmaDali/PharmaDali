@@ -7,9 +7,12 @@ use Illuminate\Support\ServiceProvider;
 use App\Models\Order;
 use App\Models\PharmacyProduct;
 use App\Models\ProductBatch;
+use App\Models\User;
 use App\Observers\OrderObserver;
 use App\Observers\PharmacyProductObserver;
 use App\Observers\ProductBatchObserver;
+use App\Observers\UserObserver;
+use Laravel\Sanctum\Sanctum;
 
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -30,9 +33,25 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        User::observe(UserObserver::class);
         PharmacyProduct::observe(PharmacyProductObserver::class);
         ProductBatch::observe(ProductBatchObserver::class);
         Order::observe(OrderObserver::class);
+
+        // Instantly revoke and reject access tokens for deactivated users across all platforms
+        Sanctum::authenticateAccessTokensUsing(function ($accessToken, $isValid) {
+            if (!$isValid) {
+                return false;
+            }
+
+            $user = $accessToken->tokenable;
+            if ($user instanceof User && !$user->is_active) {
+                $accessToken->delete();
+                return false;
+            }
+
+            return true;
+        });
 
         RateLimiter::for('discount-id-upload', function (Request $request) {
             return Limit::perMinute(10)->by($request->user()?->id ?: $request->ip());
