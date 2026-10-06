@@ -11,10 +11,14 @@ import { logoutCustomer } from '@shared/services/authService'
 import LogoutOverlay from '@shared/components/LogoutOverlay'
 import LogoutIcon from '@assets/icons/account/logout.svg'
 import ChangePassIcon from '@assets/icons/account/change-password/change_pass.svg'
+import { useFontSize } from '@shared/context/FontSizeContext'
+import FontSizeModal from '@shared/components/FontSizeModal'
 
 const Account = () => {
   const router = useRouter();
   const { profile, loading } = useProfile();
+  const { fontSize } = useFontSize();
+  const [isFontSizeModalVisible, setIsFontSizeModalVisible] = useState(false);
   const [isLogoutOverlayVisible, setIsLogoutOverlayVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -80,12 +84,39 @@ const Account = () => {
 
       <TouchableOpacity
         className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
+        onPress={() => setIsFontSizeModalVisible(true)}
+        activeOpacity={0.7}
+      >
+        <View className="w-[26px] h-[26px] items-center justify-center">
+          <Ionicons name="text-outline" size={22} color="#48AAD9" />
+        </View>
+        <Text style={styles.textMedium} className="flex-1 text-base ml-3.5">Font Size</Text>
+        <View className="flex-row items-center">
+          <View className="bg-[#EBF7FC] border border-[#BAE6FD] px-2.5 py-0.5 rounded-full mr-2">
+            <Text
+              className="text-xs text-[#0284C7] capitalize"
+              style={{ fontFamily: 'Poppins-SemiBold', includeFontPadding: false }}
+            >
+              {fontSize}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#48AAD9" />
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
         onPress={() => setIsLogoutOverlayVisible(true)}
       >
         <LogoutIcon width={26} height={26} />
         <Text style={styles.textMedium} className="flex-1 text-base ml-3.5">Logout</Text>
         <Ionicons name="chevron-forward" size={20} color="#48AAD9" />
       </TouchableOpacity>
+
+      <FontSizeModal
+        visible={isFontSizeModalVisible}
+        onClose={() => setIsFontSizeModalVisible(false)}
+      />
 
       <LogoutOverlay
         visible={isLogoutOverlayVisible}

@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { View, ActivityIndicator } from "react-native";
 import UpdateNoticeModal from "@shared/components/UpdateNoticeModal";
 import AccountDeactivatedModal from "@shared/components/AccountDeactivatedModal";
+import { FontSizeProvider } from "@shared/context/FontSizeContext";
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -31,16 +32,18 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="auth/CreateNewPasswordFPW" />
-        <Stack.Screen name="auth/EnterMobileNumberFPW" />
-        <Stack.Screen name="auth/EnterOTPFPW" />
-        <Stack.Screen name="auth/Register" />
-        <Stack.Screen name="tabs" />
-      </Stack>
-      <UpdateNoticeModal />
-      <AccountDeactivatedModal />
+      <FontSizeProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="auth/CreateNewPasswordFPW" />
+          <Stack.Screen name="auth/EnterMobileNumberFPW" />
+          <Stack.Screen name="auth/EnterOTPFPW" />
+          <Stack.Screen name="auth/Register" />
+          <Stack.Screen name="tabs" />
+        </Stack>
+        <UpdateNoticeModal />
+        <AccountDeactivatedModal />
+      </FontSizeProvider>
     </SafeAreaProvider>
   );
 }

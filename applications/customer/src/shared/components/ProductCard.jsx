@@ -9,6 +9,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatStockLeft, getStockTextColor } from '@shared/utils/stringUtils';
 
 import { useFlyToCart } from '@shared/context/FlyToCartContext';
+import { useFontSize } from '@shared/context/FontSizeContext';
 
 const ProductCard = ({
   img,
@@ -29,6 +30,7 @@ const ProductCard = ({
 }) => {
   const router = useRouter();
   const { triggerFlyToCart } = useFlyToCart();
+  const { scaleFontSize } = useFontSize();
   const [isQuantityModalOpen, setIsQuantityModalOpen] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isAddedSuccess, setIsAddedSuccess] = useState(false);
@@ -175,7 +177,7 @@ const ProductCard = ({
           {stockLabel && (
             <Text
               style={{
-                fontSize: 11,
+                fontSize: scaleFontSize(11),
                 fontFamily: 'Poppins-Medium',
                 color: stockTextColor,
                 marginTop: 2,
@@ -187,7 +189,7 @@ const ProductCard = ({
           )}
 
           <View className="flex-row items-center justify-between mt-2">
-            <Text className="text-md" style={styles.priceBold}>{price}</Text>
+            <Text className="text-base" style={styles.priceBold}>{price}</Text>
             <TouchableOpacity
               onPress={handleAddToCartPress}
               hitSlop={{ top: 8, right: 8, bottom: 8, left: 8 }}
@@ -251,7 +253,7 @@ const ProductCard = ({
                 </Text>
                 <View className="flex-row items-center justify-between mt-1">
                   <Text
-                    className="text-[13px] text-[#48AAD9]"
+                    className="text-sm text-[#48AAD9]"
                     style={{ fontFamily: 'Poppins-Bold' }}
                   >
                     {price}
@@ -259,7 +261,7 @@ const ProductCard = ({
                   {stockLabel && (
                     <Text
                       style={{
-                        fontSize: 11,
+                        fontSize: scaleFontSize(11),
                         fontFamily: 'Poppins-Medium',
                         color: stockTextColor,
                       }}
@@ -349,7 +351,7 @@ const ProductCard = ({
                 className="flex-1 py-3 mr-1.5 rounded-xl border border-gray-200 items-center justify-center"
               >
                 <Text
-                  className="text-[13px] text-gray-500"
+                  className="text-sm text-gray-500"
                   style={{ fontFamily: 'Poppins-SemiBold' }}
                 >
                   Cancel
@@ -363,7 +365,7 @@ const ProductCard = ({
                 }`}
               >
                 <Text
-                  className="text-[13px] text-white"
+                  className="text-sm text-white"
                   style={{ fontFamily: 'Poppins-SemiBold' }}
                 >
                   Add to Cart

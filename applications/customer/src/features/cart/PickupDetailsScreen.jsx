@@ -1177,7 +1177,6 @@ const styles = StyleSheet.create({
   noteInput: {
     fontFamily: 'Poppins-Medium',
     minHeight: 52,
-    fontSize: 11,
     color: '#444444',
   },
   closedWarningTitle: {

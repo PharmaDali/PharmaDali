@@ -21,12 +21,14 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { toTitleCase } from '@shared/utils/stringUtils';
 import { formatBranchName } from '@shared/utils/notificationUtils';
 import { getTimeBasedGreeting } from '@src/utils/pickupScheduleUtils';
+import { useFontSize } from '@shared/context/FontSizeContext';
 
 export default function HomeScreen() {
   const route = useRouter();
   const insets = useSafeAreaInsets();
   const flatListRef = useRef(null);
   const { profile } = useProfile();
+  const { scaleFontSize } = useFontSize();
   const { setSelectionPhase, selectedPharmacy, setSelectedPharmacy } = useSelectionPhase();
   const {
     loading,
@@ -171,11 +173,11 @@ export default function HomeScreen() {
           <View style={styles.pillStoreIconWrap}>
             <MaterialCommunityIcons name="storefront-outline" size={13} color="#0284c7" />
           </View>
-          <Text style={styles.pillBranchName} numberOfLines={1}>
+          <Text style={[styles.pillBranchName, { fontSize: scaleFontSize(12) }]} numberOfLines={1}>
             {cleanSelectedBranch}
           </Text>
           <View style={[styles.statusDot, { backgroundColor: isPharmacyOpen ? '#22C55E' : '#EF4444' }]} />
-          <Text style={[styles.pillStatusText, { color: isPharmacyOpen ? '#16A34A' : '#DC2626' }]}>
+          <Text style={[styles.pillStatusText, { color: isPharmacyOpen ? '#16A34A' : '#DC2626', fontSize: scaleFontSize(11) }]}>
             {isPharmacyOpen ? 'Open' : 'Closed'}
           </Text>
           <MaterialCommunityIcons
@@ -189,8 +191,8 @@ export default function HomeScreen() {
 
       {/* ── Greeting Section ── */}
       <View className="flex-row flex-wrap items-center px-4 pt-3">
-        <Text style={styles.greetingMedium}>{greetingPrefix}</Text>
-        <Text style={styles.greetingBold}>{toTitleCase(profile?.first_name) || 'User'}!</Text>
+        <Text style={[styles.greetingMedium, { fontSize: scaleFontSize(22), lineHeight: scaleFontSize(26) }]}>{greetingPrefix}</Text>
+        <Text style={[styles.greetingBold, { fontSize: scaleFontSize(22), lineHeight: scaleFontSize(26) }]}>{toTitleCase(profile?.first_name) || 'User'}!</Text>
       </View>
 
       {/* ── Hero Section ── */}

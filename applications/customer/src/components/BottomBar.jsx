@@ -5,6 +5,7 @@ import { Text, View, Keyboard } from 'react-native';
 import { colors } from '@shared/theme/colorPalette';
 import { useUnreadNotifications } from '@shared/hooks/useUnreadNotifications';
 import { useSearchContext } from '@shared/context/SearchContext';
+import { useFontSize } from '@shared/context/FontSizeContext';
 
 // Icons
 import homeIcon from '@assets/icons/home_icon.svg';
@@ -31,6 +32,7 @@ export default function BottomBar() {
   const pathname = usePathname();
   const { unreadCount } = useUnreadNotifications();
   const { setSearchQuery } = useSearchContext();
+  const { scaleFontSize } = useFontSize();
   const [optimisticRead, setOptimisticRead] = useState(false);
 
   // If new notifications arrive, reset the optimistic state
@@ -92,10 +94,11 @@ export default function BottomBar() {
       }}
       renderLabel={({ route }) => (
         <Text
-          className="text-[10px] text-center"
+          className="text-center"
           style={{ 
             color: colors.buttonColor, 
-            fontFamily: 'Poppins-Medium' 
+            fontFamily: 'Poppins-Medium',
+            fontSize: scaleFontSize(10),
           }}
           numberOfLines={1}
         >

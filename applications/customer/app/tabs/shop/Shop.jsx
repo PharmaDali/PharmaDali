@@ -331,7 +331,7 @@ const Shop = () => {
               onPress={() => setCategoriesExpanded(prev => !prev)}
               className="flex-row items-center justify-center pb-3 gap-1"
             >
-              <Text style={{ fontFamily: 'Poppins-SemiBold', color: '#48AAD9', fontSize: 13 }}>
+              <Text className="text-sm" style={{ fontFamily: 'Poppins-SemiBold', color: '#48AAD9' }}>
                 {categoriesExpanded ? 'See less' : 'See all'}
               </Text>
               {categoriesExpanded

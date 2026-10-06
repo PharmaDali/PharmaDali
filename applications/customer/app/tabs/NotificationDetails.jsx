@@ -356,7 +356,7 @@ export default function CustomerNotificationDetailsScreen() {
           {hasOrderDetails && (
             <>
               <Text
-                className="text-[15px] text-[#333333] mb-3"
+                className="text-base text-[#333333] mb-3"
                 style={{ fontFamily: 'Poppins-SemiBold' }}
               >
                 Order Details
@@ -367,7 +367,7 @@ export default function CustomerNotificationDetailsScreen() {
                 {resolvedOrderNumber ? (
                   <View className="flex-row justify-between items-center py-2">
                     <Text
-                      className="text-[12.5px] text-slate-500 shrink-0"
+                      className="text-xs text-slate-500 shrink-0"
                       style={{ fontFamily: 'Poppins-SemiBold' }}
                     >
                       Order Number
@@ -388,7 +388,7 @@ export default function CustomerNotificationDetailsScreen() {
                 {cleanBranch ? (
                   <View className="flex-row justify-between items-center py-2">
                     <Text
-                      className="text-[12.5px] text-slate-500 shrink-0"
+                      className="text-xs text-slate-500 shrink-0"
                       style={{ fontFamily: 'Poppins-SemiBold' }}
                     >
                       Branch
@@ -407,7 +407,7 @@ export default function CustomerNotificationDetailsScreen() {
                 {finalLocation && finalLocation !== cleanBranch ? (
                   <View className="flex-row justify-between items-center py-2">
                     <Text
-                      className="text-[12.5px] text-slate-500 shrink-0"
+                      className="text-xs text-slate-500 shrink-0"
                       style={{ fontFamily: 'Poppins-SemiBold' }}
                     >
                       Location
@@ -426,7 +426,7 @@ export default function CustomerNotificationDetailsScreen() {
                 {displayOrderDate ? (
                   <View className="flex-row justify-between items-center py-2">
                     <Text
-                      className="text-[12.5px] text-slate-500 shrink-0"
+                      className="text-xs text-slate-500 shrink-0"
                       style={{ fontFamily: 'Poppins-SemiBold' }}
                     >
                       Order Date
@@ -444,7 +444,7 @@ export default function CustomerNotificationDetailsScreen() {
                 {/* Status Row */}
                 <View className="flex-row justify-between items-center py-2">
                   <Text
-                    className="text-[12.5px] text-slate-500 shrink-0"
+                    className="text-xs text-slate-500 shrink-0"
                     style={{ fontFamily: 'Poppins-SemiBold' }}
                   >
                     Status

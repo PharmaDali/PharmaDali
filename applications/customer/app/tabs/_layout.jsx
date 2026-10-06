@@ -15,6 +15,7 @@ import { FlyToCartProvider } from '@shared/context/FlyToCartContext';
 import { configureForegroundNotifications, syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
 import { OrderSubmissionProvider } from '@shared/context/OrderSubmissionContext';
 import { apiRequest } from '@shared/api/client';
+import { useFontSize } from '@shared/context/FontSizeContext';
 
 // Configure foreground notification presentation at module level
 configureForegroundNotifications();
@@ -53,6 +54,7 @@ function LayoutContent() {
   const detailTitle = detailHeaders[pathname]
   const isFullScreen = fullScreenRoutes.includes(pathname)
   const { selectionPhase } = useSelectionPhase()
+  const { fontSize } = useFontSize()
   const notificationResponseListener = useRef();
 
   useEffect(() => {
@@ -137,7 +139,7 @@ function LayoutContent() {
         )
       )}
       <View style={styles.contentWrapper}>
-        <Slot />
+        <Slot key={fontSize} />
         {showChatButton && <ChatFloatingButton />}
       </View>
       {!selectionPhase && !isFullScreen && <BottomBar />}

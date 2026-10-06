@@ -134,7 +134,7 @@ export default function LoginScreen() {
         style={styles.forgotPasswordButton}
         activeOpacity={0.7}
       >
-        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        <Text className="text-xs" style={styles.forgotPasswordText}>Forgot Password?</Text>
       </TouchableOpacity>
       <View style={{ alignItems: 'center' }}>
         <Button mode="contained" style={styles.loginButton} onPress={handleLogin} loading={isSubmitting} disabled={isSubmitting}>
@@ -173,7 +173,6 @@ const styles = StyleSheet.create({
     color: '#48AAD9',
     textDecorationLine: 'underline',
     fontFamily: 'Poppins-Regular',
-    fontSize: 13,
   },
   noAccountText: {
     marginTop: 20,

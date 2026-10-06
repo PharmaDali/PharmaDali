@@ -17,6 +17,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatStockLeft, getStockTextColor } from '@shared/utils/stringUtils';
 import { useFlyToCart } from '@shared/context/FlyToCartContext';
 import CartButton from '@shared/components/CartButton';
+import { useFontSize } from '@shared/context/FontSizeContext';
 
 const productDetailCache = new Map();
 
@@ -24,6 +25,7 @@ const ProductView = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { triggerFlyToCart } = useFlyToCart();
+  const { scaleFontSize } = useFontSize();
   const [tapPos, setTapPos] = useState({ x: null, y: null });
   const { productId, pharmacyProductId, pharmacyId } = useLocalSearchParams();
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -249,7 +251,7 @@ const ProductView = () => {
             {stockLabel && (
               <Text
                 style={{
-                  fontSize: 13,
+                  fontSize: scaleFontSize(13),
                   fontFamily: 'Poppins-Medium',
                   color: stockTextColor,
                 }}
@@ -362,7 +364,7 @@ const ProductView = () => {
               />
               <View className="flex-1 ml-3">
                 <Text
-                  className="text-[11px] text-gray-600"
+                  className="text-xs text-gray-600"
                   style={{ fontFamily: 'Poppins-Medium' }}
                   numberOfLines={2}
                 >
@@ -370,7 +372,7 @@ const ProductView = () => {
                 </Text>
                 <View className="flex-row items-center justify-between mt-1">
                   <Text
-                    className="text-[13px] text-[#48AAD9]"
+                    className="text-sm text-[#48AAD9]"
                     style={{ fontFamily: 'Poppins-Bold' }}
                   >
                     PHP {Number(selling_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
@@ -378,7 +380,7 @@ const ProductView = () => {
                   {stockLabel && (
                     <Text
                       style={{
-                        fontSize: 11,
+                        fontSize: scaleFontSize(11),
                         fontFamily: 'Poppins-Medium',
                         color: stockTextColor,
                       }}
@@ -468,7 +470,7 @@ const ProductView = () => {
                 className="flex-1 py-3 mr-1.5 rounded-xl border border-gray-200 items-center justify-center"
               >
                 <Text
-                  className="text-[13px] text-gray-500"
+                  className="text-sm text-gray-500"
                   style={{ fontFamily: 'Poppins-SemiBold' }}
                 >
                   Cancel
@@ -482,7 +484,7 @@ const ProductView = () => {
                 }`}
               >
                 <Text
-                  className="text-[13px] text-white"
+                  className="text-sm text-white"
                   style={{ fontFamily: 'Poppins-SemiBold' }}
                 >
                   Add to Cart

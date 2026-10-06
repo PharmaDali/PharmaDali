@@ -23,6 +23,7 @@ import {
 } from '@shared/services/chatService';
 import { getCustomerProfile } from '@shared/services/customerProfileService';
 import ChatOrderContextCard from '@shared/components/ChatOrderContextCard';
+import { useFontSize } from '@shared/context/FontSizeContext';
 
 const formatTime = (value) => {
   if (!value) return '';
@@ -69,6 +70,7 @@ export default function CustomerConversationScreen() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { scaleFontSize } = useFontSize();
 
   const flatListRef = useRef(null);
   const isNearBottomRef = useRef(true);
@@ -301,6 +303,7 @@ export default function CustomerConversationScreen() {
               <Text
                 style={[
                   s.messageText,
+                  { fontSize: scaleFontSize(14), lineHeight: scaleFontSize(20) },
                   isMine ? s.mineText : s.theirsText,
                   (item?.message_type === 'image' || item?.metadata?.image_url) && { paddingHorizontal: 8, paddingVertical: 4 },
                 ]}
@@ -353,14 +356,14 @@ export default function CustomerConversationScreen() {
             className="h-10 w-10 rounded-full items-center justify-center mr-2.5 border-2"
             style={{ backgroundColor: 'rgba(255,255,255,0.25)', borderColor: 'rgba(255,255,255,0.4)' }}
           >
-            <Text style={s.headerAvatarText}>{getInitials(partnerName)}</Text>
+            <Text style={[s.headerAvatarText, { fontSize: scaleFontSize(14) }]}>{getInitials(partnerName)}</Text>
           </View>
 
           <View className="flex-1">
-            <Text style={s.headerName} numberOfLines={1}>{partnerName}</Text>
+            <Text style={[s.headerName, { fontSize: scaleFontSize(16) }]} numberOfLines={1}>{partnerName}</Text>
             <View className="flex-row items-center mt-px">
               <View className="h-[7px] w-[7px] rounded-full bg-emerald-400 mr-1.5" />
-              <Text style={s.headerSub} numberOfLines={1}>
+              <Text style={[s.headerSub, { fontSize: scaleFontSize(12) }]} numberOfLines={1}>
                 {conversation?.pharmacy?.pharmacy_name || 'Pharmacy'}
               </Text>
             </View>
@@ -418,8 +421,8 @@ export default function CustomerConversationScreen() {
               <View className="h-[68px] w-[68px] rounded-full bg-sky-100 items-center justify-center mb-3.5">
                 <MaterialCommunityIcons name="message-text-outline" size={34} color={colors.buttonColor} />
               </View>
-              <Text style={s.emptyTitle} className="mb-1">Start the conversation</Text>
-              <Text style={s.emptySubtitle} className="text-center">Your pharmacist is ready to help.</Text>
+              <Text style={[s.emptyTitle, { fontSize: scaleFontSize(17) }]} className="mb-1">Start the conversation</Text>
+              <Text style={[s.emptySubtitle, { fontSize: scaleFontSize(13) }]} className="text-center">Your pharmacist is ready to help.</Text>
             </View>
           }
         />
@@ -455,7 +458,7 @@ export default function CustomerConversationScreen() {
             onChangeText={setDraft}
             placeholder="Type a message..."
             placeholderTextColor="#94A3B8"
-            style={s.input}
+            style={[s.input, { fontSize: scaleFontSize(14) }]}
             multiline
             blurOnSubmit={false}
           />
