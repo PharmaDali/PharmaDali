@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getPharmacyCategories, getProducts, getHeroRecommendations } from '@shared/services/productService';
 import { getPharmacyById } from '@shared/services/selectionPhaseService';
 import { formatTimeToAmPm, isPharmacyOpenNow } from '@src/utils/pickupScheduleUtils';
@@ -34,6 +35,7 @@ export const homeTabCache = {
   heroRecommendations: null,
   recommendations: [],
   recHasMore: false,
+  recentSearchesKey: '',
   timestamp: 0,
   scrollOffset: 0,
 };
@@ -57,6 +59,7 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
   const [recHasMore, setRecHasMore] = useState(isCached ? homeTabCache.recHasMore : false);
   const [isFetchingMoreRecs, setIsFetchingMoreRecs] = useState(false);
   const isFetchingMoreRecsRef = useRef(false);
+  const recentSearchesRef = useRef([]);
   const previousPharmacyIdRef = useRef(isCached ? selectedPharmacyId : null);
   const selectedPharmacyIdRef = useRef(selectedPharmacyId);
   selectedPharmacyIdRef.current = selectedPharmacyId;
@@ -100,11 +103,26 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
       setLoading(true);
     }
 
+    let currentSearches = [];
+    try {
+      const stored = await AsyncStorage.getItem('@recent_searches');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) {
+          currentSearches = parsed.slice(0, 5);
+        }
+      }
+    } catch {
+      currentSearches = [];
+    }
+    recentSearchesRef.current = currentSearches;
+    const searchesKey = JSON.stringify(currentSearches);
+
     try {
       const [categoriesPayload, productsPayload, recommendationsPayload, pharmacyPayload] = await Promise.all([
         getPharmacyCategories(targetPharmacyId, isRefresh),
         getProducts(targetPharmacyId, null, { perPage: HOME_PREVIEW_LIMIT }),
-        getHeroRecommendations(targetPharmacyId, { page: 1, perPage: 10 }).catch(() => null),
+        getHeroRecommendations(targetPharmacyId, { page: 1, perPage: 10, recentSearches: currentSearches }).catch(() => null),
         typeof setSelectedPharmacy === 'function' ? getPharmacyById(targetPharmacyId).catch(() => null) : Promise.resolve(null),
       ]);
 
@@ -176,6 +194,7 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
       homeTabCache.heroRecommendations = recData;
       homeTabCache.recommendations = finalRecs;
       homeTabCache.recHasMore = finalHasMore;
+      homeTabCache.recentSearchesKey = searchesKey;
       homeTabCache.timestamp = Date.now();
     } catch {
       if (selectedPharmacyIdRef.current === targetPharmacyId) {
@@ -203,7 +222,11 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
 
     try {
       const nextPage = recPage + 1;
-      const res = await getHeroRecommendations(selectedPharmacyId, { page: nextPage, perPage: 10 });
+      const res = await getHeroRecommendations(selectedPharmacyId, {
+        page: nextPage,
+        perPage: 10,
+        recentSearches: recentSearchesRef.current,
+      });
       const recData = res?.data ?? res;
       const newItems = recData?.recommendations ?? [];
 

@@ -96,11 +96,18 @@ export async function getPharmacyCategories(pharmacyId, forceRefresh = false) {
   });
 }
 
-export async function getHeroRecommendations(pharmacyId, { page = 1, perPage = 10 } = {}) {
+export async function getHeroRecommendations(pharmacyId, { page = 1, perPage = 10, recentSearches = [] } = {}) {
   const searchParams = new URLSearchParams();
   searchParams.append('pharmacy_id', String(pharmacyId));
   if (page) searchParams.append('page', String(page));
   if (perPage) searchParams.append('per_page', String(perPage));
+  if (Array.isArray(recentSearches)) {
+    recentSearches.forEach((term) => {
+      if (typeof term === 'string' && term.trim()) {
+        searchParams.append('recent_searches[]', term.trim());
+      }
+    });
+  }
 
   const endpoint = `/customer/recommendations/hero?${searchParams.toString()}`;
   return apiRequest(endpoint, {

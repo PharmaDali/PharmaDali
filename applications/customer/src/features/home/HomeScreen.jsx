@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, RefreshControl, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { colors } from '@src/shared/theme/colorPalette';
 import CategoriesSlider from '@src/components/customer-home/CategoriesSlider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,6 +58,22 @@ export default function HomeScreen() {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      AsyncStorage.getItem('@recent_searches')
+        .then((stored) => {
+          if (!stored) return;
+          const parsed = JSON.parse(stored);
+          const topSearches = Array.isArray(parsed) ? parsed.slice(0, 5) : [];
+          const key = JSON.stringify(topSearches);
+          if (homeTabCache.recentSearchesKey && homeTabCache.recentSearchesKey !== key) {
+            refetch();
+          }
+        })
+        .catch(() => {});
+    }, [refetch])
+  );
 
 
   const pharmacyStatusLabel = selectedPharmacy?.isOpen

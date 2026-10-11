@@ -24,8 +24,9 @@ class CustomerRecommendationController extends Controller
         $pharmacyId = (int) $request->input('pharmacy_id');
         $page = (int) $request->input('page', 1);
         $perPage = (int) $request->input('per_page', 10);
+        $recentSearches = (array) $request->input('recent_searches', []);
         
-        $data = $this->recommendationService->getRecommendations($customer, $pharmacyId, $page, $perPage);
+        $data = $this->recommendationService->getRecommendations($customer, $pharmacyId, $page, $perPage, $recentSearches);
 
         return $this->successResponse($data);
     }

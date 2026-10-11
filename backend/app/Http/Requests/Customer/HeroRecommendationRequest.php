@@ -25,6 +25,8 @@ class HeroRecommendationRequest extends FormRequest
             'pharmacy_id' => 'required|integer',
             'page' => 'nullable|integer|min:1',
             'per_page' => 'nullable|integer|min:1|max:50',
+            'recent_searches' => 'nullable|array|max:5',
+            'recent_searches.*' => 'string|max:50',
         ];
     }
 }
