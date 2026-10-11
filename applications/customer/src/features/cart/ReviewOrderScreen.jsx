@@ -11,6 +11,7 @@ import RedInfoIcon from '@assets/icons/red_info_icon.svg'
 import BlueInfoIcon from '@assets/icons/blue_info_icon.svg'
 import ProductImage from '@shared/components/ProductImage'
 import TermsAndConditionsModal from '@shared/components/TermsAndConditionsModal'
+import PrivacyPolicyModal from '@shared/components/PrivacyPolicyModal'
 import { getCheckoutDraft } from '@shared/services/checkoutDraft'
 import { formatPharmacyHoursLabel } from '@src/utils/pickupScheduleUtils'
 
@@ -69,6 +70,7 @@ const ReviewOrderScreen = () => {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const [showTermsModal, setShowTermsModal] = useState(false)
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false)
   const {
     items: orderItems,
     selectedPharmacy: draftPharmacy,
@@ -178,7 +180,7 @@ const ReviewOrderScreen = () => {
         )}
       </ScrollView>
 
-      {/* T&C Agreement Notice */}
+      {/* T&C and Privacy Agreement Notice */}
       <View className="items-center px-6 pt-2 pb-1 bg-white">
         <Text className="text-[11px] text-gray-500 text-center" style={styles.fontMedium}>
           By proceeding, you agree to PharmaDali’s{' '}
@@ -188,6 +190,14 @@ const ReviewOrderScreen = () => {
             onPress={() => setShowTermsModal(true)}
           >
             Terms & Conditions
+          </Text>{' '}
+          and{' '}
+          <Text
+            className="text-[#48AAD9]"
+            style={styles.fontSemiBold}
+            onPress={() => setShowPrivacyModal(true)}
+          >
+            Privacy Policy
           </Text>
           .
         </Text>
@@ -219,6 +229,10 @@ const ReviewOrderScreen = () => {
       <TermsAndConditionsModal
         visible={showTermsModal}
         onClose={() => setShowTermsModal(false)}
+      />
+      <PrivacyPolicyModal
+        visible={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
       />
     </View>
   )

@@ -30,8 +30,8 @@ export default function TermsAndConditionsModal({ visible, onClose }) {
           {/* Header */}
           <View className="flex-row items-center justify-between px-6 py-3 border-b border-slate-100">
             <View className="flex-row items-center flex-1">
-              <View className="w-8 h-8 rounded-lg bg-sky-50 items-center justify-center mr-2.5">
-                <RedInfoIcon width={16} height={16} />
+              <View className="mr-2.5">
+                <RedInfoIcon width={20} height={20} />
               </View>
               <View className="flex-1">
                 <Text className="text-base text-slate-800" style={styles.fontBold}>
@@ -70,7 +70,7 @@ export default function TermsAndConditionsModal({ visible, onClose }) {
                 2. Senior Citizen & PWD Discount Terms
               </Text>
               <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
-                Senior Citizen (RA 9994) and Persons with Disability (RA 10754) discounts require a valid OSCA/PWD ID and purchase booklet. Discount approvals are subject to verification against Philippine regulatory laws. Fake or altered IDs will result in order cancellation.
+                Senior Citizen (RA 9994) and Persons with Disability (RA 10754) discount eligibility depends on participating client pharmacy policies, as some client pharmacies already offer their products at discounted rates. In accordance with Philippine regulations, statutory discounts cannot be combined with existing promotional or pre-discounted prices. Where applicable, a valid OSCA/PWD ID and purchase booklet must be presented for pharmacist verification. Fake or altered IDs will result in order cancellation.
               </Text>
             </View>
 
