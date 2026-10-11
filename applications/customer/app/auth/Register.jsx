@@ -1,4 +1,4 @@
-import { View, Pressable, KeyboardAvoidingView, Platform, ScrollView, Keyboard } from 'react-native';
+import { View, Pressable, KeyboardAvoidingView, Platform, ScrollView, Keyboard, StyleSheet, Text as RNText } from 'react-native';
 import React, { useState, useEffect } from 'react'
 import { TextInput, Button, Text } from 'react-native-paper'
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +13,8 @@ import ToastMessage from '@src/shared/components/ToastMessage';
 import { useToast } from '@src/shared/hooks/useToast';
 import * as SecureStore from 'expo-secure-store';
 import { syncFcmTokenWithBackend } from '@shared/utils/notificationUtils';
+import TermsAndConditionsModal from '@src/shared/components/TermsAndConditionsModal';
+import PrivacyPolicyModal from '@src/shared/components/PrivacyPolicyModal';
 import {
   sanitizeNameInput,
   sanitizeNumericInput,
@@ -34,6 +36,8 @@ const Register = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const passwordToggleIcon = useConfirmPasswordToggle();
   const confirmPasswordToggleIcon = useConfirmPasswordToggle();
@@ -266,9 +270,32 @@ const Register = () => {
               {!!errorMessage && <Text className="text-[#E53935] text-xs mt-3 text-center">{errorMessage}</Text>}
             </View>
           </View>
+          {/* Policy Agreement Notice */}
+          <View className="mt-4 px-2 items-center">
+            <RNText className="text-xs text-slate-500 text-center leading-5" style={styles.fontMedium}>
+              By registering, you agree to PharmaDali's{' '}
+              <RNText
+                className="text-[#48AAD9]"
+                style={styles.fontSemiBold}
+                onPress={() => setShowTermsModal(true)}
+              >
+                Terms & Conditions
+              </RNText>{' '}
+              and{' '}
+              <RNText
+                className="text-[#48AAD9]"
+                style={styles.fontSemiBold}
+                onPress={() => setShowPrivacyModal(true)}
+              >
+                Privacy Policy
+              </RNText>
+              .
+            </RNText>
+          </View>
+
           <Button
             mode="contained"
-            style={{ marginTop: 16, borderRadius: 12, width: '100%' }}
+            style={{ marginTop: 14, borderRadius: 12, width: '100%' }}
             buttonColor="#48AAD9"
             textColor="#FFFFFF"
             onPress={handleRegister}
@@ -279,9 +306,30 @@ const Register = () => {
           </Button>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <TermsAndConditionsModal
+        visible={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+      />
+      <PrivacyPolicyModal
+        visible={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+      />
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  fontMedium: {
+    fontFamily: 'Poppins-Medium',
+  },
+  fontSemiBold: {
+    fontFamily: 'Poppins-SemiBold',
+  },
+  fontBold: {
+    fontFamily: 'Poppins-Bold',
+  },
+});
 
 export default Register;
 
