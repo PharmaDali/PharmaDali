@@ -36,7 +36,7 @@ class DiscountIdUploadController extends Controller
             return $this->successResponse([
                 'order_id'               => $updatedOrder->id,
                 'discount_id_image_path' => $updatedOrder->discount_id_image_path,
-                'discount_id_image_url'  => Storage::disk('public')->url($updatedOrder->discount_id_image_path),
+                'discount_id_image_url'  => $updatedOrder->discount_id_image_url,
             ], 'Discount customer ID uploaded and compressed successfully.');
         } catch (\Exception $e) {
             $statusCode = in_array($e->getCode(), [401, 403, 404, 422]) ? $e->getCode() : 400;

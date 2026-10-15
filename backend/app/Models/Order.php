@@ -64,7 +64,27 @@ class Order extends Model
 
     protected $appends = [
         'is_prescription_reuploaded',
+        'discount_id_image_url',
+        'payment_receipt_image_url',
     ];
+
+    public function getDiscountIdImageUrlAttribute(): ?string
+    {
+        if (!$this->discount_id_image_path) {
+            return null;
+        }
+
+        return app(\App\Services\Media\PrivateMediaUrlGenerator::class)->generateUrl($this->discount_id_image_path);
+    }
+
+    public function getPaymentReceiptImageUrlAttribute(): ?string
+    {
+        if (!$this->payment_receipt_image_path) {
+            return null;
+        }
+
+        return app(\App\Services\Media\PrivateMediaUrlGenerator::class)->generateUrl($this->payment_receipt_image_path);
+    }
 
     public function getIsPrescriptionReuploadedAttribute(): bool
     {

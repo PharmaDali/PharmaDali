@@ -14,6 +14,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class UploadOrderItemPrescriptionService
 {
@@ -50,11 +51,19 @@ class UploadOrderItemPrescriptionService
             ], 404);
         }
 
-        $storedPath = $image->store('prescriptions/order-items', 'public');
-
         $existingPrescription = OrderItemPrescription::query()
             ->where('order_item_id', $orderItemId)
             ->first();
+
+        if ($existingPrescription?->prescription_image_path) {
+            if (Storage::disk('local')->exists($existingPrescription->prescription_image_path)) {
+                Storage::disk('local')->delete($existingPrescription->prescription_image_path);
+            } elseif (Storage::disk('public')->exists($existingPrescription->prescription_image_path)) {
+                Storage::disk('public')->delete($existingPrescription->prescription_image_path);
+            }
+        }
+
+        $storedPath = $image->store('prescriptions/order-items', 'local');
 
         $currentOrderStatus = $orderItem->order?->status;
         $isReupload = ($currentOrderStatus === OrderStatus::STAND_BY || $currentOrderStatus?->value === 'stand_by')
@@ -113,6 +122,7 @@ class UploadOrderItemPrescriptionService
             'data' => [
                 'order_item_id' => $record->order_item_id,
                 'prescription_image_path' => $record->prescription_image_path,
+                'prescription_image_url' => $record->prescription_image_url,
                 'status' => $record->status,
             ],
         ]);

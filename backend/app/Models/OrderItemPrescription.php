@@ -28,7 +28,29 @@ class OrderItemPrescription extends Model
 
     protected $appends = [
         'is_reuploaded',
+        'prescription_image_url',
+        'image_url',
+        'image_path',
     ];
+
+    public function getPrescriptionImageUrlAttribute(): ?string
+    {
+        if (!$this->prescription_image_path) {
+            return null;
+        }
+
+        return app(\App\Services\Media\PrivateMediaUrlGenerator::class)->generateUrl($this->prescription_image_path);
+    }
+
+    public function getImagePathAttribute(): ?string
+    {
+        return $this->prescription_image_path;
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->prescription_image_url;
+    }
 
     public function getIsReuploadedAttribute(): bool
     {

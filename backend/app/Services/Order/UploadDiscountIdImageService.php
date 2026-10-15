@@ -14,7 +14,7 @@ class UploadDiscountIdImageService
     private const MAX_WIDTH   = 1200;
     private const MAX_HEIGHT  = 1200;
     private const QUALITY     = 80;
-    private const DISK        = 'public';
+    private const DISK        = 'local';
     private const STORAGE_DIR = 'discount_ids';
 
     /**
@@ -53,8 +53,12 @@ class UploadDiscountIdImageService
         }
 
         // Delete previous image if one exists
-        if ($order->discount_id_image_path && Storage::disk(self::DISK)->exists($order->discount_id_image_path)) {
-            Storage::disk(self::DISK)->delete($order->discount_id_image_path);
+        if ($order->discount_id_image_path) {
+            if (Storage::disk(self::DISK)->exists($order->discount_id_image_path)) {
+                Storage::disk(self::DISK)->delete($order->discount_id_image_path);
+            } elseif (Storage::disk('public')->exists($order->discount_id_image_path)) {
+                Storage::disk('public')->delete($order->discount_id_image_path);
+            }
         }
 
         // Compress and convert to WebP using Intervention Image GD driver

@@ -34,7 +34,7 @@ class PaymentReceiptUploadController extends Controller
             return $this->successResponse([
                 'order_id'                   => $updatedOrder->id,
                 'payment_receipt_image_path' => $updatedOrder->payment_receipt_image_path,
-                'payment_receipt_image_url'  => Storage::disk('public')->url($updatedOrder->payment_receipt_image_path),
+                'payment_receipt_image_url'  => $updatedOrder->payment_receipt_image_url,
             ], 'Customer GCash payment receipt uploaded and compressed successfully.');
         } catch (\Exception $e) {
             $statusCode = in_array($e->getCode(), [401, 403, 404, 422]) ? $e->getCode() : 400;
