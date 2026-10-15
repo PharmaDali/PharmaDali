@@ -29,7 +29,7 @@ class UploadDiscountIdTest extends TestCase
     {
         parent::setUp();
 
-        Storage::fake('public');
+        Storage::fake('local');
 
         $this->pharmacy = Pharmacy::create([
             'pharmacy_name'  => 'Dali Pharmacy',
@@ -86,7 +86,7 @@ class UploadDiscountIdTest extends TestCase
         $this->assertNotNull($this->order->discount_id_image_path);
         $this->assertStringEndsWith('.webp', $this->order->discount_id_image_path);
 
-        Storage::disk('public')->assertExists($this->order->discount_id_image_path);
+        Storage::disk('local')->assertExists($this->order->discount_id_image_path);
     }
 
     public function test_unauthorized_customer_cannot_upload_discount_id_for_another_customer_order(): void

@@ -25,7 +25,7 @@ class UploadPaymentReceiptTest extends TestCase
     {
         parent::setUp();
 
-        Storage::fake('public');
+        Storage::fake('local');
 
         $this->pharmacy = Pharmacy::create([
             'pharmacy_name'  => 'Dali Pharmacy',
@@ -78,7 +78,7 @@ class UploadPaymentReceiptTest extends TestCase
         $this->assertNotNull($this->order->payment_receipt_image_path);
         $this->assertStringEndsWith('.webp', $this->order->payment_receipt_image_path);
 
-        Storage::disk('public')->assertExists($this->order->payment_receipt_image_path);
+        Storage::disk('local')->assertExists($this->order->payment_receipt_image_path);
     }
 
     public function test_unauthorized_customer_cannot_upload_payment_receipt_for_another_customer_order(): void
