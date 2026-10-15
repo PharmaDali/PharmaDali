@@ -21,6 +21,7 @@ use App\Http\Controllers\Order\DiscountIdUploadController;
 use App\Http\Controllers\Order\OrderController;
 use App\Http\Controllers\Order\OrderItemPrescriptionController;
 use App\Http\Controllers\Order\PaymentReceiptUploadController;
+use App\Http\Controllers\Media\PrivateMediaController;
 use App\Http\Controllers\Pharmacist\PharmacistProfileController;
 use App\Http\Controllers\Pharmacy\PharmacyController;
 use App\Http\Controllers\Pharmacy\PharmacyPharmacistController;
@@ -49,6 +50,11 @@ Route::get('download/pharmacist-app', [AppDownloadController::class, 'downloadPh
 Route::get('downloads/pharmacist-app', [AppDownloadController::class, 'downloadPharmacistApp']);
 Route::get('download/customer-app', [AppDownloadController::class, 'downloadCustomerApp']);
 Route::get('downloads/customer-app', [AppDownloadController::class, 'downloadCustomerApp']);
+
+// Private secure media streaming (validates HMAC signature or Sanctum token)
+Route::get('media/private/{path}', [PrivateMediaController::class, 'show'])
+    ->where('path', '.*')
+    ->name('media.private');
 
 // Customer Forgot Password routes (Email OTP stored in Redis)
 Route::post('customer/forgot-password/send-otp', [CustomerForgotPasswordController::class, 'sendOtp']);
