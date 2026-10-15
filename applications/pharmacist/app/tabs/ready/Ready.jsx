@@ -46,10 +46,10 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       submittedAgo: formatShortDateTime12h(order?.placed_at || order?.created_at) || 'Recently',
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
-      discountIdImagePath: order.discount_id_image_path ? `${baseUrl}/storage/${String(order.discount_id_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null,
+      discountIdImagePath: order?.discount_id_image_url || (order.discount_id_image_path ? `${baseUrl}/storage/${String(order.discount_id_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null),
       discountType: order.discount_type,
       discountRemarks: order.discount_remarks,
-      paymentReceiptImagePath: order.payment_receipt_image_path ? `${baseUrl}/storage/${String(order.payment_receipt_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null,
+      paymentReceiptImagePath: order?.payment_receipt_image_url || (order.payment_receipt_image_path ? `${baseUrl}/storage/${String(order.payment_receipt_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null),
       paymentStatus: order.payment_status,
       paymentMethod: order.payment_method,
       note: order?.note || null,
@@ -57,9 +57,10 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
         const product = item?.pharmacy_product?.product;
         const categoryName = item?.pharmacy_product?.category?.category_name || '';
         const prescription = item?.order_item_prescription;
-        const hasPrescriptionImage = Boolean(prescription?.prescription_image_path);
+        const rxUrl = prescription?.prescription_image_url || prescription?.image_url;
+        const hasPrescriptionImage = Boolean(rxUrl || prescription?.prescription_image_path);
         const prescriptionRequired = Boolean(product?.is_prescribed) || hasPrescriptionImage;
-        const cleanRxPath = hasPrescriptionImage
+        const cleanRxPath = prescription?.prescription_image_path
           ? String(prescription.prescription_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')
           : null;
         const baseName = item?.product_name
@@ -80,7 +81,7 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
           sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
           size: product?.size || product?.strength || '-',
           prescriptionRequired,
-          prescriptionImage: cleanRxPath ? { uri: `${baseUrl}/storage/${cleanRxPath}` } : null,
+          prescriptionImage: rxUrl ? { uri: rxUrl } : (cleanRxPath ? { uri: `${baseUrl}/storage/${cleanRxPath}` } : null),
         };
       }),
     };

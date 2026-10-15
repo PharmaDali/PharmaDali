@@ -32,10 +32,10 @@ class SendChatMessage
 
         $metadata = null;
         if ($image) {
-            $path = $image->store('chat_images', 'public');
+            $path = $image->store('chat_images', 'local');
             $metadata = [
-                'image_url' => asset('storage/' . $path),
                 'image_path' => $path,
+                'image_url' => app(\App\Services\Media\PrivateMediaUrlGenerator::class)->generateUrl($path),
             ];
         }
 

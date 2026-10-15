@@ -28,6 +28,16 @@ class ConversationMessage extends Model
         'metadata' => 'array',
     ];
 
+    public function getMetadataAttribute($value): ?array
+    {
+        $metadata = is_string($value) ? json_decode($value, true) : $value;
+        if (is_array($metadata) && !empty($metadata['image_path'])) {
+            $metadata['image_url'] = app(\App\Services\Media\PrivateMediaUrlGenerator::class)
+                ->generateUrl($metadata['image_path']);
+        }
+        return $metadata;
+    }
+
     public function conversation(): BelongsTo
     {
         return $this->belongsTo(Conversation::class);

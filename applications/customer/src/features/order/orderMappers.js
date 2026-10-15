@@ -110,10 +110,10 @@ export function mapApiOrderToViewModel(order) {
   const baseUrl = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/+$/, '').replace(/\/api$/, '')
   const prescriptionItem = items.find((item) => {
     const rx = item?.order_item_prescription || item?.orderItemPrescription
-    return rx?.prescription_image_path
+    return rx?.prescription_image_url || rx?.image_url || rx?.prescription_image_path
   })
   const rxRecord = prescriptionItem?.order_item_prescription || prescriptionItem?.orderItemPrescription
-  const prescriptionImagePath = rxRecord?.prescription_image_path ? `${baseUrl}/storage/${rxRecord.prescription_image_path}` : null
+  const prescriptionImagePath = rxRecord?.prescription_image_url || rxRecord?.image_url || (rxRecord?.prescription_image_path ? `${baseUrl}/storage/${rxRecord.prescription_image_path}` : null)
 
   // Logic to distinguish between Rejected (by Pharmacist) and Cancelled (by Customer)
   let rawStatus = rawStatusFromApi
@@ -194,8 +194,8 @@ export function mapApiOrderToViewModel(order) {
     paymentStatus: order?.payment_status || '',
     paymentMethod: order?.payment_method || '',
     prescriptionImagePath,
-    discountIdImagePath: order?.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null,
-    paymentReceiptImagePath: order?.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null,
+    discountIdImagePath: order?.discount_id_image_url || (order?.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null),
+    paymentReceiptImagePath: order?.payment_receipt_image_url || (order?.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null),
     pharmacy: rawPharmacy,
     pharmacyName: rawPharmacyName,
     branchName: cleanBranch,

@@ -172,21 +172,40 @@ export function PickupOrderDetailsSidebar({
           if (path.startsWith('http')) return path;
           const apiUrl = import.meta.env.VITE_API_BASE_URL || '';
           const baseUrl = apiUrl.replace(/\/api\/?$/, '');
-          const cleanPath = path.startsWith('/') ? path : `/${path}`;
-          // Laravel storage paths are often 'storage/...' in the DB
-          // but sometimes just relative paths. Let's ensure it maps to the public URL
-          return baseUrl + (cleanPath.startsWith('/storage') ? cleanPath : `/storage${cleanPath}`);
+          const cleanPath = path.replace(/^\/?storage\//, '').replace(/^\/+/, '');
+          if (
+            cleanPath.startsWith('prescriptions/') || 
+            cleanPath.startsWith('discount_ids/') || 
+            cleanPath.startsWith('payment_receipts/') || 
+            cleanPath.startsWith('chat_images/')
+          ) {
+            return `${apiUrl.replace(/\/+$/, '')}/media/private/${cleanPath}`;
+          }
+          return `${baseUrl}/storage/${cleanPath}`;
         };
 
         const attachments = [];
         
         // Find prescription if it exists
-        const rxItem = activeOrder.items?.find(i => i.order_item_prescription?.image_path);
-        if (rxItem) attachments.push(resolveImageUrl(rxItem.order_item_prescription.image_path));
+        const rxItem = activeOrder.items?.find(i => 
+          i.order_item_prescription?.prescription_image_url || 
+          i.order_item_prescription?.image_url || 
+          i.order_item_prescription?.prescription_image_path || 
+          i.order_item_prescription?.image_path
+        );
+        if (rxItem) {
+          const rx = rxItem.order_item_prescription;
+          const rxUrl = rx.prescription_image_url || rx.image_url || resolveImageUrl(rx.prescription_image_path || rx.image_path);
+          if (rxUrl) attachments.push(rxUrl);
+        }
         
         // Discount ID and Payment Receipt
-        if (activeOrder.discount_id_image_path) attachments.push(resolveImageUrl(activeOrder.discount_id_image_path));
-        if (activeOrder.payment_receipt_image_path) attachments.push(resolveImageUrl(activeOrder.payment_receipt_image_path));
+        if (activeOrder.discount_id_image_url || activeOrder.discount_id_image_path) {
+          attachments.push(activeOrder.discount_id_image_url || resolveImageUrl(activeOrder.discount_id_image_path));
+        }
+        if (activeOrder.payment_receipt_image_url || activeOrder.payment_receipt_image_path) {
+          attachments.push(activeOrder.payment_receipt_image_url || resolveImageUrl(activeOrder.payment_receipt_image_path));
+        }
 
         const validAttachments = attachments.filter(Boolean);
         if (validAttachments.length === 0) return null;
@@ -215,7 +234,7 @@ export function PickupOrderDetailsSidebar({
       })()}
 
       {/* Payment Method Select (Conditional) */}
-      {isReady && activeOrder.payment_method === 'gcash' && activeOrder.payment_status === 'unpaid' && (activeOrder.discount_id_image_path || (activeOrder.items && activeOrder.items.some(i => i.order_item_prescription?.image_path))) && (
+      {isReady && activeOrder.payment_method === 'gcash' && activeOrder.payment_status === 'unpaid' && (activeOrder.discount_id_image_url || activeOrder.discount_id_image_path || (activeOrder.items && activeOrder.items.some(i => i.order_item_prescription?.prescription_image_url || i.order_item_prescription?.prescription_image_path || i.order_item_prescription?.image_path))) && (
         <PaymentMethodSelect
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
