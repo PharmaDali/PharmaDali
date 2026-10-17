@@ -23,3 +23,8 @@ INVENTORY_IMPORT_GUIDE.md
 *.tar.gz
 backups/
 
+# Graphify local knowledge graph
+graphify-out/
+.graphifyignore
+
+
