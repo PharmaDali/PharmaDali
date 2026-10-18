@@ -26,7 +26,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive_icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#96D2EE"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.pharmadali.pharmacist",
