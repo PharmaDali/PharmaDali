@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Models\Pharmacist;
 use App\Models\Pharmacy;
 use Illuminate\Support\Facades\Cache;
 
@@ -23,6 +24,15 @@ class PharmacySettingsRepository
     {
         $pharmacy->fill($data);
         $pharmacy->save();
+
+        if (!$pharmacy->isCurrentlyOpen()) {
+            Pharmacist::whereHas('user', function ($query) use ($pharmacy) {
+                $query->where('pharmacy_id', $pharmacy->id);
+            })->where('is_on_duty', true)->update([
+                'is_on_duty'      => false,
+                'duty_updated_at' => now(),
+            ]);
+        }
 
         Cache::forget('pharmacies_all');
         Cache::forget("pharmacy_{$pharmacy->id}");

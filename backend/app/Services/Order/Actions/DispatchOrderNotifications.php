@@ -25,9 +25,11 @@ class DispatchOrderNotifications
         app()->terminating(function () use ($user, $order, $pharmacy) {
             try {
                 $user->notify(new OrderPlacedNotification($order));
-                $pharmacists = $pharmacy->pharmacists;
-                if ($pharmacists && $pharmacists->isNotEmpty()) {
-                    Notification::send($pharmacists, new NewOrderPharmacistNotification($order));
+                $pharmacists = $pharmacy->pharmacists()->with('pharmacist')->where('is_active', true)->get();
+                $onDutyPharmacists = $pharmacists->filter(fn ($p) => (bool) ($p->pharmacist?->is_on_duty ?? true));
+                $targetPharmacists = $onDutyPharmacists->isNotEmpty() ? $onDutyPharmacists : $pharmacists;
+                if ($targetPharmacists->isNotEmpty()) {
+                    Notification::send($targetPharmacists, new NewOrderPharmacistNotification($order));
                 }
             } catch (\Throwable $notifException) {
                 Log::warning('Order notification dispatch error (order placed successfully): ' . $notifException->getMessage());

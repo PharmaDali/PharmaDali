@@ -35,7 +35,9 @@ class PharmacyOperatingHoursChecker
         }
 
         $isOpenNow = false;
-        if ($openingMinutes < $closingMinutes) {
+        if ($pharmacy->is_manually_closed) {
+            $isOpenNow = false;
+        } elseif ($openingMinutes < $closingMinutes) {
             $isOpenNow = $currentMinutes >= $openingMinutes && $currentMinutes <= $closingMinutes;
         } else if ($openingMinutes > $closingMinutes) {
             $isOpenNow = $currentMinutes >= $openingMinutes || $currentMinutes <= $closingMinutes;
@@ -49,7 +51,9 @@ class PharmacyOperatingHoursChecker
             }
 
             if (!$isOpenNow) {
-                $reason = "Item exchange can only be processed during pharmacy operating hours ({$openingStr} - {$closingStr}).";
+                $reason = $pharmacy->is_manually_closed
+                    ? "The pharmacy is currently closed. Item exchange can only be processed when the store is open."
+                    : "Item exchange can only be processed during pharmacy operating hours ({$openingStr} - {$closingStr}).";
                 return false;
             }
         } else {
@@ -124,6 +128,11 @@ class PharmacyOperatingHoursChecker
         $pickupMinutes = ($scheduledCarbon->hour * 60) + $scheduledCarbon->minute;
 
         if ($pickupDateStr === $todayStr) {
+            if ($pharmacy->is_manually_closed) {
+                $reason = "The store is currently closed for today. You can still place your order and schedule pickup for tomorrow ({$openingStr} - {$closingStr}).";
+                return false;
+            }
+
             // Must be at least 20 minutes in advance (allowing a 10-minute checkout completion and latency grace period)
             if ($scheduledCarbon->lt($nowPht->copy()->addMinutes(20))) {
                 $reason = "Pickup time for today must be at least 20 minutes in advance.";

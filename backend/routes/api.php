@@ -158,6 +158,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class])->group(function (
 
         Route::get('pharmacist/profile', [PharmacistProfileController::class, 'show']);
         Route::match(['put', 'patch'], 'pharmacist/profile', [PharmacistProfileController::class, 'update']);
+        Route::patch('pharmacist/duty-status', [PharmacistProfileController::class, 'updateDutyStatus']);
 
         Route::get('pharmacist/orders', [OrderController::class, 'index']);
         Route::get('pharmacist/orders/{order}', [OrderController::class, 'show']);
@@ -181,6 +182,7 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class])->group(function (
         // Pharmacy settings (store profile, operating hours, alert thresholds, account security)
         Route::get('pharmacy/settings', [PharmacySettingsController::class, 'show']);
         Route::put('pharmacy/settings', [PharmacySettingsController::class, 'update']);
+        Route::patch('pharmacy/settings/store-status', [PharmacySettingsController::class, 'updateStoreStatus']);
         Route::post('pharmacy/settings/logo', [PharmacySettingsController::class, 'uploadLogo'])->middleware('throttle:file-upload');
         Route::patch('pharmacy/settings/password', [PharmacySettingsController::class, 'updatePassword']);
 

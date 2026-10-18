@@ -1,11 +1,14 @@
-import { StyleSheet, Text, View, ScrollView, RefreshControl, TouchableOpacity } from 'react-native'
-import React, { useEffect, useState, useCallback } from 'react'
-import { useRouter } from 'expo-router'
+import { StyleSheet, Text, View, ScrollView, RefreshControl, TouchableOpacity, Switch, Animated } from 'react-native'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
+import { useRouter, useFocusEffect } from 'expo-router'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import StatsIcon from '@assets/icons/pharmacist_home/stats_icon.svg'
 
 import { colors } from '@src/shared/theme/colorPalette'
 import { getPharmacyOrders } from '@shared/services/orderToPharmacistService'
+import { getPharmacistProfile, updatePharmacistDutyStatus } from '@shared/services/pharmacistProfileService'
+import { toTitleCase } from '@shared/utils/stringUtils'
+import DutyStatusConfirmationOverlay from '@shared/components/DutyStatusConfirmationOverlay'
 
 const isSameDay = (dateStr) => {
   if (!dateStr) return false;
@@ -15,6 +18,108 @@ const isSameDay = (dateStr) => {
     d.getFullYear() === now.getFullYear() &&
     d.getMonth() === now.getMonth() &&
     d.getDate() === now.getDate()
+  );
+};
+
+const SkeletonBlock = ({ width, height, borderRadius = 8, style }) => {
+  const opacity = useRef(new Animated.Value(0.35)).current;
+
+  useEffect(() => {
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.9, duration: 750, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.35, duration: 750, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [opacity]);
+
+  return (
+    <Animated.View
+      style={[
+        { width, height, borderRadius, backgroundColor: '#E2E8F0', opacity },
+        style,
+      ]}
+    />
+  );
+};
+
+const ShiftStatusBanner = ({ firstName, isOnDuty, isPharmacyOpen = false, profileLoaded = false, isUpdatingDuty, onToggleDuty }) => {
+  const displayFirstName = firstName ? toTitleCase(firstName) : '';
+  const effectiveOnDuty = profileLoaded && isPharmacyOpen && Boolean(isOnDuty);
+
+  return (
+    <View className="mx-4 mt-4 mb-0 bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+      {!profileLoaded ? (
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center flex-1 pr-3">
+            <SkeletonBlock width={40} height={40} borderRadius={20} style={{ marginRight: 12 }} />
+            <View className="flex-1">
+              <SkeletonBlock width={120} height={17} borderRadius={6} style={{ marginBottom: 7 }} />
+              <SkeletonBlock width={145} height={13} borderRadius={6} />
+            </View>
+          </View>
+          <SkeletonBlock width={46} height={26} borderRadius={13} />
+        </View>
+      ) : (
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center flex-1 pr-3">
+            <View
+              className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${
+                effectiveOnDuty ? 'bg-[#E8F8FF]' : 'bg-slate-100'
+              }`}
+            >
+              <MaterialCommunityIcons
+                name={effectiveOnDuty ? 'account-check-outline' : 'account-clock-outline'}
+                size={22}
+                color={effectiveOnDuty ? '#48AAD9' : '#64748B'}
+              />
+            </View>
+            <View className="flex-1">
+              {Boolean(displayFirstName) && (
+                <Text style={styles.titleText} numberOfLines={1}>
+                  Hi, {displayFirstName}!
+                </Text>
+              )}
+              <View className="flex-row items-center mt-0.5">
+                <View
+                  className={`w-2 h-2 rounded-full mr-1.5 ${
+                    effectiveOnDuty ? 'bg-[#48AAD9]' : 'bg-slate-400'
+                  }`}
+                />
+                <Text
+                  className={`text-xs ${
+                    effectiveOnDuty ? 'text-[#48AAD9]' : 'text-slate-500'
+                  }`}
+                  style={{ fontFamily: 'Poppins-SemiBold', includeFontPadding: false }}
+                >
+                  {effectiveOnDuty ? 'In Duty' : 'Out of Duty'}
+                </Text>
+                <Text
+                  className="text-slate-400 text-[11px] ml-1.5"
+                  style={{ fontFamily: 'Poppins-Regular', includeFontPadding: false }}
+                >
+                  {!isPharmacyOpen
+                    ? '• Store closed'
+                    : effectiveOnDuty
+                    ? '• Active shift'
+                    : '• Shift paused'}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <Switch
+            value={effectiveOnDuty}
+            onValueChange={onToggleDuty}
+            disabled={isUpdatingDuty || !isPharmacyOpen}
+            trackColor={{ false: '#CBD5E1', true: '#BAE6FD' }}
+            thumbColor={effectiveOnDuty ? '#48AAD9' : '#94A3B8'}
+          />
+        </View>
+      )}
+    </View>
   );
 };
 
@@ -229,6 +334,28 @@ const Home = () => {
   const [actionCounts, setActionCounts] = useState({ forReview: 0, preparing: 0, ready: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [isOnDuty, setIsOnDuty] = useState(false);
+  const [isPharmacyOpen, setIsPharmacyOpen] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  const [isUpdatingDuty, setIsUpdatingDuty] = useState(false);
+  const [pendingDutyValue, setPendingDutyValue] = useState(null);
+
+  const loadPharmacistStatus = useCallback(async () => {
+    try {
+      const response = await getPharmacistProfile();
+      const profileData = response?.data ?? null;
+      if (profileData) {
+        const storeOpen = Boolean(profileData?.is_pharmacy_open ?? profileData?.pharmacy?.is_open ?? true);
+        setFirstName(profileData?.user?.first_name ?? '');
+        setIsPharmacyOpen(storeOpen);
+        setIsOnDuty(storeOpen && Boolean(profileData?.is_on_duty ?? true));
+        setProfileLoaded(true);
+      }
+    } catch {
+      // Keep existing state on transient error
+    }
+  }, []);
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -265,13 +392,56 @@ const Home = () => {
 
   useEffect(() => {
     loadDashboardData();
-  }, [loadDashboardData]);
+    loadPharmacistStatus();
+  }, [loadDashboardData, loadPharmacistStatus]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadPharmacistStatus();
+    }, [loadPharmacistStatus])
+  );
+
+  const handleToggleDuty = (nextValue) => {
+    if (!isPharmacyOpen && nextValue) {
+      setIsOnDuty(false);
+      return;
+    }
+    setPendingDutyValue(Boolean(nextValue));
+  };
+
+  const handleConfirmDutyToggle = async () => {
+    if (pendingDutyValue === null) return;
+    const nextValue = Boolean(pendingDutyValue);
+    if (!isPharmacyOpen && nextValue) {
+      setIsOnDuty(false);
+      setPendingDutyValue(null);
+      return;
+    }
+    const previousValue = isOnDuty;
+    setIsUpdatingDuty(true);
+    try {
+      const res = await updatePharmacistDutyStatus(nextValue);
+      if (res?.data) {
+        const storeOpen = Boolean(res.data.is_pharmacy_open ?? res.data.pharmacy?.is_open ?? isPharmacyOpen);
+        setIsPharmacyOpen(storeOpen);
+        setIsOnDuty(storeOpen && Boolean(res.data.is_on_duty));
+      } else {
+        setIsOnDuty(nextValue);
+      }
+      setPendingDutyValue(null);
+    } catch {
+      setIsOnDuty(isPharmacyOpen ? previousValue : false);
+      setPendingDutyValue(null);
+    } finally {
+      setIsUpdatingDuty(false);
+    }
+  };
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadDashboardData();
+    await Promise.all([loadDashboardData(), loadPharmacistStatus()]);
     setRefreshing(false);
-  }, [loadDashboardData]);
+  }, [loadDashboardData, loadPharmacistStatus]);
 
   return (
     <ScrollView
@@ -287,6 +457,15 @@ const Home = () => {
         />
       }
     >
+      <ShiftStatusBanner
+        firstName={firstName}
+        isOnDuty={isOnDuty}
+        isPharmacyOpen={isPharmacyOpen}
+        profileLoaded={profileLoaded}
+        isUpdatingDuty={isUpdatingDuty}
+        onToggleDuty={handleToggleDuty}
+      />
+
       <QuickStats
         pendingCount={pendingCount}
         completedTodayCount={completedTodayCount}
@@ -297,6 +476,16 @@ const Home = () => {
       <RecentOrdersFeed
         orders={recentOrders}
         onNavigate={(path) => router.push(path)}
+      />
+
+      <DutyStatusConfirmationOverlay
+        visible={pendingDutyValue !== null}
+        targetDutyStatus={Boolean(pendingDutyValue)}
+        loading={isUpdatingDuty}
+        onClose={() => {
+          if (!isUpdatingDuty) setPendingDutyValue(null);
+        }}
+        onConfirm={handleConfirmDutyToggle}
       />
     </ScrollView>
   );

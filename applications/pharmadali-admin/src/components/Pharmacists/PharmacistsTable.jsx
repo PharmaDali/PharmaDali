@@ -50,18 +50,32 @@ export function PharmacistsTable({
                 <span className="fw-semibold text-dark" style={{ fontSize: "15px" }}>
                   {`${item.first_name || ""} ${item.last_name || ""}`.trim() || "—"}
                 </span>
-                <span 
-                  className="badge rounded-pill" 
-                  style={{ 
-                    fontSize: "12px", 
-                    padding: "4px 14px", 
-                    backgroundColor: item.is_active ? "#a7f3d0" : "#e2e8f0", 
-                    color: item.is_active ? "#047857" : "#475569",
-                    fontWeight: "600"
-                  }}
-                >
-                  {item.is_active ? "Active" : "Inactive"}
-                </span>
+                <div className="d-flex align-items-center gap-1">
+                  <span 
+                    className="badge rounded-pill" 
+                    style={{ 
+                      fontSize: "11px", 
+                      padding: "4px 10px", 
+                      backgroundColor: (item.pharmacist?.is_on_duty ?? true) ? "#e0f2fe" : "#f1f5f9", 
+                      color: (item.pharmacist?.is_on_duty ?? true) ? "#0369a1" : "#64748b",
+                      fontWeight: "600"
+                    }}
+                  >
+                    {(item.pharmacist?.is_on_duty ?? true) ? "In Duty" : "Out of Duty"}
+                  </span>
+                  <span 
+                    className="badge rounded-pill" 
+                    style={{ 
+                      fontSize: "12px", 
+                      padding: "4px 14px", 
+                      backgroundColor: item.is_active ? "#a7f3d0" : "#e2e8f0", 
+                      color: item.is_active ? "#047857" : "#475569",
+                      fontWeight: "600"
+                    }}
+                  >
+                    {item.is_active ? "Active" : "Inactive"}
+                  </span>
+                </div>
               </div>
               <div className="text-muted d-flex gap-4 mb-1" style={{ fontSize: "13px" }}>
                 <span>ID: {item.pharmacist?.employee_number || "—"}</span>
@@ -133,8 +147,8 @@ export function PharmacistsTable({
               <th style={{ width: "20%" }}>Pharmacist Name</th>
               <th style={{ width: "15%" }}>Mobile Number</th>
               <th className="text-center" style={{ width: "10%" }}>Age</th>
-              <th className="text-center" style={{ width: "15%" }}>Status</th>
-              <th className="text-center" style={{ width: "25%" }}>Action</th>
+              <th className="text-center" style={{ width: "18%" }}>Status</th>
+              <th className="text-center" style={{ width: "22%" }}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -164,9 +178,23 @@ export function PharmacistsTable({
                   <td>{item.mobile_number || "—"}</td>
                   <td className="text-center">{item.date_of_birth ? calculateAge(item.date_of_birth) : "N/A"}</td>
                   <td className="text-center">
-                    <span className={`pharmacists-status-badge pharmacists-status-${item.is_active ? "active" : "inactive"}`}>
-                      {item.is_active ? "Active" : "Inactive"}
-                    </span>
+                    <div className="d-inline-flex align-items-center justify-content-center gap-2 flex-wrap">
+                      <span className={`pharmacists-status-badge pharmacists-status-${item.is_active ? "active" : "inactive"}`}>
+                        {item.is_active ? "Active" : "Inactive"}
+                      </span>
+                      <span
+                        className="badge rounded-pill"
+                        style={{
+                          fontSize: "11px",
+                          padding: "3px 9px",
+                          backgroundColor: (item.pharmacist?.is_on_duty ?? true) ? "#e0f2fe" : "#f1f5f9",
+                          color: (item.pharmacist?.is_on_duty ?? true) ? "#0369a1" : "#64748b",
+                          fontWeight: 600,
+                        }}
+                      >
+                        {(item.pharmacist?.is_on_duty ?? true) ? "In Duty" : "Out of Duty"}
+                      </span>
+                    </div>
                   </td>
                   <td>
                     <div className="d-flex justify-content-center align-items-center gap-2">

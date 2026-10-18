@@ -31,7 +31,8 @@ class PharmacySettingsService
                 'logo_url'               => $pharmacy->logo_url,
                 'opening_hour'           => $pharmacy->opening_hour,
                 'closing_hour'           => $pharmacy->closing_hour,
-                'is_active'              => $pharmacy->is_active,
+                'is_active'              => (bool) ($pharmacy->is_active ?? true),
+                'is_manually_closed'     => (bool) ($pharmacy->is_manually_closed ?? false),
             ],
             'alert_thresholds' => [
                 'low_stock'      => $pharmacy->low_stock_threshold,
@@ -74,6 +75,7 @@ class PharmacySettingsService
             'opening_hour',
             'closing_hour',
             'is_active',
+            'is_manually_closed',
             'low_stock_threshold',
             'shortage_days_threshold',
             'expiry_days_threshold',

@@ -19,6 +19,17 @@ export const updatePharmacySettings = async (payload) => {
 };
 
 /**
+ * PATCH /pharmacy/settings/store-status
+ * Toggle manual store close / reopen (holiday or temporary closure) without deactivating the branch.
+ */
+export const updateStoreStatus = async (isManuallyClosed) => {
+  const response = await apiRequest.patch("/pharmacy/settings/store-status", {
+    is_manually_closed: Boolean(isManuallyClosed),
+  });
+  return response;
+};
+
+/**
  * POST /pharmacy/settings/logo
  * Upload a new pharmacy logo image file.
  */

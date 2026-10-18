@@ -90,6 +90,8 @@ function mapCartApiItem(item) {
         ? `${formatTimeToAmPm(item?.pharmacy?.opening_hour)} – ${formatTimeToAmPm(item?.pharmacy?.closing_hour)}`
         : null,
       isActive: item?.pharmacy?.is_active ?? true,
+      isManuallyClosed: Boolean(item?.pharmacy?.is_manually_closed),
+      is_manually_closed: Boolean(item?.pharmacy?.is_manually_closed),
     },
     product: item?.product || {},
     category: item?.category || {},
@@ -296,6 +298,8 @@ export function buildCartViewState(items, selectedPharmacyFallback = null) {
     formattedOpeningHour: selectedPharmacyFallback.formattedOpeningHour,
     formattedClosingHour: selectedPharmacyFallback.formattedClosingHour,
     isActive: selectedPharmacyFallback.isActive ?? selectedPharmacyFallback.is_active ?? selectedPharmacyFallback.isOperating,
+    isManuallyClosed: Boolean(selectedPharmacyFallback.isManuallyClosed ?? selectedPharmacyFallback.is_manually_closed),
+    is_manually_closed: Boolean(selectedPharmacyFallback.isManuallyClosed ?? selectedPharmacyFallback.is_manually_closed),
     isOpen: selectedPharmacyFallback.isOpen,
     hours: selectedPharmacyFallback.hours,
   } : null);
@@ -315,6 +319,12 @@ export function buildCartViewState(items, selectedPharmacyFallback = null) {
   if (activeSource) {
     const rawIsActive = activeSource.isActive ?? activeSource.is_active ?? activeSource.isOperating;
     const isInactive = rawIsActive === false || rawIsActive === 0 || rawIsActive === '0';
+    const isManuallyClosed = Boolean(
+      activeSource.isManuallyClosed ??
+      activeSource.is_manually_closed ??
+      selectedPharmacyFallback?.isManuallyClosed ??
+      selectedPharmacyFallback?.is_manually_closed
+    );
 
     const effectiveOpenHour =
       targetPharmacy?.openingHour ||
@@ -332,6 +342,14 @@ export function buildCartViewState(items, selectedPharmacyFallback = null) {
       isPharmacyOpen = false;
       closedPharmacyName = activeSource.pharmacyName || activeSource.name || 'Pharmacy';
       pharmacyHoursLabel = hoursLabel || 'Temporarily Closed';
+    } else if (isManuallyClosed) {
+      isPharmacyOpen = false;
+      closedPharmacyName = activeSource.pharmacyName || activeSource.name || 'Pharmacy';
+      pharmacyHoursLabel =
+        hoursLabel ||
+        (effectiveOpenHour && effectiveCloseHour
+          ? `${formatTimeToAmPm(effectiveOpenHour)} – ${formatTimeToAmPm(effectiveCloseHour)}`
+          : '');
     } else if (effectiveOpenHour && effectiveCloseHour) {
       const open = isPharmacyOpenNow(effectiveOpenHour, effectiveCloseHour);
       if (!open) {

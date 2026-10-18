@@ -198,14 +198,25 @@ class ConversationRepository
     public function getPharmacyPharmacistsWithTokens(?int $pharmacyId): Collection
     {
         $query = User::query()
+            ->with('pharmacist')
             ->whereIn('role', ['pharmacist', 'pharmacy_admin'])
+            ->where('is_active', true)
             ->whereNotNull('fcm_token');
 
         if ($pharmacyId) {
             $query->where('pharmacy_id', $pharmacyId);
         }
 
-        return $query->get();
+        $all = $query->get();
+
+        $filtered = $all->filter(function (User $u) {
+            if ($u->role === 'pharmacy_admin') {
+                return true;
+            }
+            return (bool) ($u->pharmacist?->is_on_duty ?? true);
+        })->values();
+
+        return $filtered->isNotEmpty() ? $filtered : $all;
     }
 
     public function getCustomerUserWithToken(int $userId): ?User

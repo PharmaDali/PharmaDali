@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { checkUserPermission } from "./PermissionGuard";
-import { NavLink } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { logout } from "../../services/loginService";
+import { updateStoreStatus } from "../../services/pharmacySettingsService";
+import Modal from "./Modal";
+import infoIcon from "../../assets/icons/modal-icons/info.svg";
 import dashboardIcon from "../../assets/icons/sidebar-icons/dashboard.svg";
 import posIcon from "../../assets/icons/sidebar-icons/pos.svg";
 import pickupOrdersIcon from "../../assets/icons/sidebar-icons/pickup-orders.svg";
@@ -76,18 +79,33 @@ const MENU_SECTIONS = [
   },
 ];
 
-function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOrdersCount = 0, user = null }) {
-
+function SideBar({
+  isOpen,
+  onToggle,
+  unreadNotificationsCount = 0,
+  readyPickupOrdersCount = 0,
+  user = null,
+  onUserUpdate = null,
+}) {
   const navigate = useNavigate();
+  const [showStoreStatusModal, setShowStoreStatusModal] = useState(false);
+  const [isUpdatingStoreStatus, setIsUpdatingStoreStatus] = useState(false);
+  const [storeStatusError, setStoreStatusError] = useState("");
+
   const notificationsBadge = formatUnreadBadge(unreadNotificationsCount);
   const pickupBadge = formatUnreadBadge(readyPickupOrdersCount);
 
   const displayName = user ? `${user.first_name}` : "Admin";
   const pharmacyName = user?.pharmacy?.pharmacy_name || "PharmaDali Pharmacy";
-  const avatarUrl = user 
+  const isStoreManuallyClosed = Boolean(user?.pharmacy?.is_manually_closed);
+  const canManageStoreStatus = Boolean(
+    user?.pharmacy && checkUserPermission(user, "manage_settings")
+  );
+
+  const avatarUrl = user
     ? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.first_name)}+${encodeURIComponent(user.last_name)}&background=4A90E2&color=fff&size=45`
     : "https://ui-avatars.com/api/?name=Admin&background=4A90E2&color=fff&size=45";
-  
+
   const handleLogout = async (event) => {
     event.preventDefault();
 
@@ -96,6 +114,43 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOr
     } finally {
       localStorage.removeItem("isAuthenticated");
       navigate("/login", { replace: true });
+    }
+  };
+
+  const handleOpenStoreStatusModal = (event) => {
+    event.preventDefault();
+    setStoreStatusError("");
+    setShowStoreStatusModal(true);
+  };
+
+  const handleConfirmStoreStatusToggle = async () => {
+    const nextClosedState = !isStoreManuallyClosed;
+    setIsUpdatingStoreStatus(true);
+    setStoreStatusError("");
+
+    try {
+      const response = await updateStoreStatus(nextClosedState);
+      const updatedClosed = Boolean(
+        response?.data?.is_manually_closed ?? nextClosedState
+      );
+
+      if (onUserUpdate && user) {
+        onUserUpdate({
+          ...user,
+          pharmacy: {
+            ...user.pharmacy,
+            is_manually_closed: updatedClosed,
+          },
+        });
+      }
+
+      setShowStoreStatusModal(false);
+    } catch (err) {
+      setStoreStatusError(
+        err?.message || "Failed to update store status. Please try again."
+      );
+    } finally {
+      setIsUpdatingStoreStatus(false);
     }
   };
 
@@ -108,7 +163,6 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOr
 
       <div
         className={`sidebar position-fixed p-0 overflow-y-auto${isOpen ? " active" : ""}`}
-      // style={{ overflowX: "visible" }}
       >
         <div className="sidebar-profile">
           <div className="d-flex align-items-center justify-content-between">
@@ -119,7 +173,17 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOr
                   alt="Profile"
                   className="rounded-2 profile-avatar"
                 />
-                <span className="online-indicator position-absolute rounded-circle" />
+                <span
+                  className="online-indicator position-absolute rounded-circle"
+                  style={{
+                    backgroundColor: isStoreManuallyClosed ? "#94a3b8" : "#10b981",
+                  }}
+                  title={
+                    isStoreManuallyClosed
+                      ? "Store Closed for Today"
+                      : "Store Open"
+                  }
+                />
               </div>
               <div>
                 <p className="fw-semibold m-0 profile-name">{displayName}</p>
@@ -150,15 +214,39 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOr
 
               <ul className="dropdown-menu">
                 <li>
-                  <a className="dropdown-item" href="#" onClick={(e) => { e.preventDefault(); navigate("/profile"); }}>
+                  <a
+                    className="dropdown-item"
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate("/profile");
+                    }}
+                  >
                     <i className="bi bi-person text-black me-2" />
                     My profile
                   </a>
                 </li>
+                {canManageStoreStatus && (
+                  <li>
+                    <a
+                      className="dropdown-item"
+                      href="#"
+                      onClick={handleOpenStoreStatusModal}
+                    >
+                      <i
+                        className={`bi ${
+                          isStoreManuallyClosed ? "bi-shop-window" : "bi-shop"
+                        } text-black me-2`}
+                      />
+                      {isStoreManuallyClosed ? "Reopen store" : "Close store"}
+                    </a>
+                  </li>
+                )}
                 <li>
                   <a className="dropdown-item " href="#" onClick={handleLogout}>
-                    <i className="bi bi-box-arrow-right text-danger me-2">
-                    </i>Logout</a>
+                    <i className="bi bi-box-arrow-right text-danger me-2" />
+                    Logout
+                  </a>
                 </li>
               </ul>
             </div>
@@ -195,7 +283,11 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOr
                       }
                     >
                       <img src={item.icon} alt="" className="menu-icon" aria-hidden="true" />
-                      <span>{item.to === "/sales-reports" && user?.role === "pharmacist" ? "Transaction History" : item.label}</span>
+                      <span>
+                        {item.to === "/sales-reports" && user?.role === "pharmacist"
+                          ? "Transaction History"
+                          : item.label}
+                      </span>
                       {badgeValue && (
                         <span className="menu-badge position-absolute rounded-pill fw-semibold">
                           {badgeValue}
@@ -230,8 +322,65 @@ function SideBar({ isOpen, onToggle, unreadNotificationsCount = 0, readyPickupOr
           />
         </svg>
       </button>
+
+      <Modal
+        isOpen={showStoreStatusModal}
+        onClose={() => !isUpdatingStoreStatus && setShowStoreStatusModal(false)}
+        size="sm"
+        showCloseButton={false}
+        closeOnOverlay={!isUpdatingStoreStatus}
+        className="pos-confirm-modal"
+      >
+        <div className="pos-confirm-content">
+          <img src={infoIcon} alt="Information" className="pos-confirm-icon" />
+          <h3 className="pos-confirm-title">
+            {isStoreManuallyClosed ? "Reopen Store?" : "Close Store?"}
+          </h3>
+          <p className="pos-confirm-text">
+            {isStoreManuallyClosed
+              ? "Are you sure you want to reopen the store for today?"
+              : "Are you sure you want to close the store for today?"}
+          </p>
+          {storeStatusError && (
+            <div className="alert alert-danger py-2 px-3 mb-3 small">
+              {storeStatusError}
+            </div>
+          )}
+          <div className="pos-confirm-actions">
+            <button
+              type="button"
+              className="pos-confirm-primary d-flex align-items-center justify-content-center gap-2"
+              onClick={handleConfirmStoreStatusToggle}
+              disabled={isUpdatingStoreStatus}
+              style={{ minWidth: "120px" }}
+            >
+              {isUpdatingStoreStatus && (
+                <span
+                  className="spinner-border spinner-border-sm"
+                  role="status"
+                  aria-hidden="true"
+                />
+              )}
+              {isUpdatingStoreStatus
+                ? "Saving..."
+                : isStoreManuallyClosed
+                ? "Reopen Store"
+                : "Close Store"}
+            </button>
+            <button
+              type="button"
+              className="pos-confirm-secondary"
+              onClick={() => setShowStoreStatusModal(false)}
+              disabled={isUpdatingStoreStatus}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
     </>
   );
 }
 
 export default SideBar;
+

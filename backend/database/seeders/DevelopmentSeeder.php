@@ -16,10 +16,9 @@ class DevelopmentSeeder extends Seeder
     {
         $this->call([
             DatabaseSeeder::class,
+            PharmacyProductsImportSeeder::class,
             PharmacySeeder::class,
             PharmacyAdminSeeder::class,
-            ProductsSeeder::class,
-            PharmacyProductSeeder::class,
             AnalyticsAndAprioriSeeder::class,
         ]);
     }

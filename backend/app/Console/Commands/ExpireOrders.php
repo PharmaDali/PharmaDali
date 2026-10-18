@@ -173,6 +173,10 @@ class ExpireOrders extends Command
      */
     private function isPharmacyCurrentlyClosed(Pharmacy $pharmacy, Carbon $now): bool
     {
+        if ($pharmacy->is_manually_closed) {
+            return true;
+        }
+
         $closing = $pharmacy->closing_hour;
         $opening = $pharmacy->opening_hour;
 

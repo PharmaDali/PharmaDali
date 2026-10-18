@@ -139,7 +139,12 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
           const formattedOpeningHour = formatTimeToAmPm(rawOpening);
           const formattedClosingHour = formatTimeToAmPm(rawClosing);
           const isOperating = pData.is_active !== false && pData.is_active !== 0 && pData.is_active !== '0';
-          const isOpen = isOperating && isPharmacyOpenNow(rawOpening, rawClosing);
+          const isManuallyClosed =
+            pData.is_manually_closed === true ||
+            pData.is_manually_closed === 1 ||
+            pData.is_manually_closed === '1' ||
+            pData.isManuallyClosed === true;
+          const isOpen = isOperating && !isManuallyClosed && isPharmacyOpenNow(rawOpening, rawClosing);
 
           setSelectedPharmacy((prev) => ({
             ...prev,
@@ -161,6 +166,8 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
             is_active: isOperating,
             isActive: isOperating,
             isOperating,
+            is_manually_closed: isManuallyClosed,
+            isManuallyClosed,
           }));
         }
       }
@@ -257,6 +264,55 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
     }
   }, [recHasMore, selectedPharmacyId, loading, recPage]);
 
+  const refreshPharmacyStatus = useCallback(async () => {
+    if (!selectedPharmacyId || typeof setSelectedPharmacy !== 'function') return;
+    const targetPharmacyId = selectedPharmacyId;
+    try {
+      const pharmacyPayload = await getPharmacyById(targetPharmacyId);
+      if (selectedPharmacyIdRef.current !== targetPharmacyId || !pharmacyPayload) return;
+      const pData = pharmacyPayload?.data ?? pharmacyPayload;
+      if (pData && (pData.id || pData.pharmacy_id)) {
+        const rawOpening = pData.opening_hour || pData.openingHour;
+        const rawClosing = pData.closing_hour || pData.closingHour;
+        const formattedOpeningHour = formatTimeToAmPm(rawOpening);
+        const formattedClosingHour = formatTimeToAmPm(rawClosing);
+        const isOperating = pData.is_active !== false && pData.is_active !== 0 && pData.is_active !== '0';
+        const isManuallyClosed =
+          pData.is_manually_closed === true ||
+          pData.is_manually_closed === 1 ||
+          pData.is_manually_closed === '1' ||
+          pData.isManuallyClosed === true;
+        const isOpen = isOperating && !isManuallyClosed && isPharmacyOpenNow(rawOpening, rawClosing);
+
+        setSelectedPharmacy((prev) => ({
+          ...prev,
+          ...pData,
+          name: pData.pharmacy_name || prev?.name,
+          pharmacy_name: pData.pharmacy_name || prev?.pharmacy_name,
+          address: pData.location || prev?.address,
+          location: pData.location || prev?.location,
+          opening_hour: rawOpening,
+          closing_hour: rawClosing,
+          openingHour: rawOpening,
+          closingHour: rawClosing,
+          formattedOpeningHour,
+          formattedClosingHour,
+          hours: formattedOpeningHour && formattedClosingHour
+            ? `${formattedOpeningHour} - ${formattedClosingHour}`
+            : (prev?.hours || 'Store hours unavailable'),
+          isOpen,
+          is_active: isOperating,
+          isActive: isOperating,
+          isOperating,
+          is_manually_closed: isManuallyClosed,
+          isManuallyClosed,
+        }));
+      }
+    } catch {
+      // Ignore transient status refresh error
+    }
+  }, [selectedPharmacyId, setSelectedPharmacy]);
+
   useEffect(() => {
     if (!selectedPharmacyId) return;
 
@@ -267,15 +323,16 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
       (homeTabCache.categories.length > 0 || homeTabCache.pharmacyProducts.length > 0)
     );
 
-    // If data was fetched within the last 60 seconds for this pharmacy, do NOT re-fetch!
+    // If data was fetched within the last 60 seconds for this pharmacy, only refresh live store status
     if (isCacheFresh) {
       previousPharmacyIdRef.current = selectedPharmacyId;
+      refreshPharmacyStatus();
       return;
     }
 
     previousPharmacyIdRef.current = selectedPharmacyId;
     loadPharmacyData(false);
-  }, [selectedPharmacyId, loadPharmacyData]);
+  }, [selectedPharmacyId, loadPharmacyData, refreshPharmacyStatus]);
 
 
   const refetch = useCallback(() => {
@@ -283,15 +340,26 @@ export function useHomeTab(selectedPharmacy, setSelectedPharmacy) {
     return loadPharmacyData(true);
   }, [loadPharmacyData]);
 
-  const normalizeSelectedPharmacy = useCallback((pharmacy) => ({
-    ...pharmacy,
-    id: pharmacy?.id ?? pharmacy?.pharmacy_id ?? null,
-  }), []);
+  const normalizeSelectedPharmacy = useCallback((pharmacy) => {
+    const isManuallyClosed =
+      pharmacy?.is_manually_closed === true ||
+      pharmacy?.is_manually_closed === 1 ||
+      pharmacy?.is_manually_closed === '1' ||
+      pharmacy?.isManuallyClosed === true;
+    return {
+      ...pharmacy,
+      id: pharmacy?.id ?? pharmacy?.pharmacy_id ?? null,
+      is_manually_closed: isManuallyClosed,
+      isManuallyClosed,
+      isOpen: isManuallyClosed ? false : Boolean(pharmacy?.isOpen),
+    };
+  }, []);
 
   return {
     loading,
     refreshing,
     refetch,
+    refreshPharmacyStatus,
     categories,
     pharmacyProducts,
     heroRecommendations,

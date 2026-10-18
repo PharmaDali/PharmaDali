@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import NavBar from "../shared/components/NavBar";
 import SideBar from "../shared/components/SideBar";
@@ -54,7 +54,14 @@ function MainLayout() {
     <div className="layout-wrapper">
       <ToastNotification toast={notifications.activeToast} onClose={notifications.clearToast} />
       <NavBar onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} />
-      <SideBar isOpen={sidebarOpen} onToggle={toggleSidebar} readyPickupOrdersCount={readyPickupCount} unreadNotificationsCount={notifications.unreadCount} user={user} />
+      <SideBar
+        isOpen={sidebarOpen}
+        onToggle={toggleSidebar}
+        readyPickupOrdersCount={readyPickupCount}
+        unreadNotificationsCount={notifications.unreadCount}
+        user={user}
+        onUserUpdate={setUser}
+      />
       <main
         className={`main-content${sidebarOpen ? " sidebar-open" : ""}`}
       >
