@@ -39,9 +39,9 @@ use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::post('customer/register', [AuthController::class, 'customerRegister'])->middleware('throttle:auth-register');
-Route::post('login', [AuthController::class, 'login']);
-Route::post('pharmacist/login', [AuthController::class, 'pharmacistLogin']);
-Route::post('admin/login', [AuthController::class, 'adminLogin']);
+Route::post('login', [AuthController::class, 'login'])->middleware('throttle:auth-login');
+Route::post('pharmacist/login', [AuthController::class, 'pharmacistLogin'])->middleware('throttle:auth-login');
+Route::post('admin/login', [AuthController::class, 'adminLogin'])->middleware('throttle:auth-login');
 Route::post('admin/login/verify-2fa', [AuthController::class, 'adminVerifyTwoFactor'])->middleware('throttle:otp-verify');
 Route::post('admin/login/resend-2fa', [AuthController::class, 'adminResendTwoFactor'])->middleware('throttle:otp-verify');
 
@@ -57,24 +57,24 @@ Route::get('media/private/{path}', [PrivateMediaController::class, 'show'])
     ->name('media.private');
 
 // Customer Forgot Password routes (Email OTP stored in Redis)
-Route::post('customer/forgot-password/send-otp', [CustomerForgotPasswordController::class, 'sendOtp']);
+Route::post('customer/forgot-password/send-otp', [CustomerForgotPasswordController::class, 'sendOtp'])->middleware('throttle:otp-send');
 Route::post('customer/forgot-password/verify-otp', [CustomerForgotPasswordController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
-Route::post('customer/forgot-password/reset-password', [CustomerForgotPasswordController::class, 'resetPassword']);
+Route::post('customer/forgot-password/reset-password', [CustomerForgotPasswordController::class, 'resetPassword'])->middleware('throttle:otp-verify');
 
 // Customer Change Password routes (Email OTP stored in Redis)
-Route::post('customer/change-password/send-otp', [CustomerChangePasswordController::class, 'sendOtp']);
+Route::post('customer/change-password/send-otp', [CustomerChangePasswordController::class, 'sendOtp'])->middleware('throttle:otp-send');
 Route::post('customer/change-password/verify-otp', [CustomerChangePasswordController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
-Route::post('customer/change-password/reset-password', [CustomerChangePasswordController::class, 'changePassword']);
+Route::post('customer/change-password/reset-password', [CustomerChangePasswordController::class, 'changePassword'])->middleware('throttle:otp-verify');
 
 // Pharmacist Change Password routes (Email OTP stored in Redis)
-Route::post('pharmacist/change-password/send-otp', [PharmacistChangePasswordController::class, 'sendOtp']);
+Route::post('pharmacist/change-password/send-otp', [PharmacistChangePasswordController::class, 'sendOtp'])->middleware('throttle:otp-send');
 Route::post('pharmacist/change-password/verify-otp', [PharmacistChangePasswordController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
-Route::post('pharmacist/change-password/reset-password', [PharmacistChangePasswordController::class, 'changePassword']);
+Route::post('pharmacist/change-password/reset-password', [PharmacistChangePasswordController::class, 'changePassword'])->middleware('throttle:otp-verify');
 
 // Admin Change Password routes (Email OTP stored in Redis)
-Route::post('admin/change-password/send-otp', [AdminChangePasswordController::class, 'sendOtp']);
+Route::post('admin/change-password/send-otp', [AdminChangePasswordController::class, 'sendOtp'])->middleware('throttle:otp-send');
 Route::post('admin/change-password/verify-otp', [AdminChangePasswordController::class, 'verifyOtp'])->middleware('throttle:otp-verify');
-Route::post('admin/change-password/reset-password', [AdminChangePasswordController::class, 'changePassword']);
+Route::post('admin/change-password/reset-password', [AdminChangePasswordController::class, 'changePassword'])->middleware('throttle:otp-verify');
 
 Broadcast::routes(['middleware' => ['auth:sanctum', EnsureUserIsActive::class]]);
 

@@ -4,7 +4,7 @@ use App\Http\Controllers\Download\AppDownloadController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return response()->json(['message' => 'Not Found.'], 404);
 });
 
 // Direct APK Download for Mobile Applications
