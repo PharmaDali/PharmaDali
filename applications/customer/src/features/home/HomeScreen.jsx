@@ -35,6 +35,7 @@ export default function HomeScreen() {
     loading,
     refreshing,
     refetch,
+    refreshPharmacyStatus,
     categories,
     pharmacyProducts,
     heroRecommendations,
@@ -61,6 +62,7 @@ export default function HomeScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      refreshPharmacyStatus();
       AsyncStorage.getItem('@recent_searches')
         .then((stored) => {
           if (!stored) return;
@@ -72,14 +74,18 @@ export default function HomeScreen() {
           }
         })
         .catch(() => {});
-    }, [refetch])
+    }, [refetch, refreshPharmacyStatus])
   );
 
-
-  const pharmacyStatusLabel = selectedPharmacy?.isOpen
+  const isManuallyClosed =
+    selectedPharmacy?.is_manually_closed === true ||
+    selectedPharmacy?.is_manually_closed === 1 ||
+    selectedPharmacy?.is_manually_closed === '1' ||
+    selectedPharmacy?.isManuallyClosed === true;
+  const isPharmacyOpen = Boolean(selectedPharmacy?.isOpen) && !isManuallyClosed;
+  const pharmacyStatusLabel = isPharmacyOpen
     ? (selectedPharmacy?.formattedClosingHour ? `Open til ${selectedPharmacy.formattedClosingHour}` : 'Open now')
     : (selectedPharmacy?.formattedOpeningHour ? `Closed | Opens ${selectedPharmacy.formattedOpeningHour}` : 'Closed');
-  const isPharmacyOpen = !!selectedPharmacy?.isOpen;
 
   const handlePharmacySelect = (pharmacy) => {
     setSelectedPharmacy(normalizeSelectedPharmacy(pharmacy));

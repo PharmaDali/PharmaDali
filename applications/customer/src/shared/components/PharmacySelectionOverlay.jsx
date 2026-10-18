@@ -227,7 +227,8 @@ export default function PharmacySelectionOverlay({ visible, onSelect, onClose, c
           const formattedOpeningHour = formatTimeToAmPm(item.opening_hour);
           const formattedClosingHour = formatTimeToAmPm(item.closing_hour);
           const isOperating = item.is_active !== false && item.is_active !== 0 && item.is_active !== '0';
-          const isOpen = isOperating && isPharmacyOpenNow(item.opening_hour, item.closing_hour);
+          const isManuallyClosed = Boolean(item.is_manually_closed);
+          const isOpen = isOperating && !isManuallyClosed && isPharmacyOpenNow(item.opening_hour, item.closing_hour);
 
           return {
             id: item.id ?? item.pharmacy_id,
@@ -247,6 +248,8 @@ export default function PharmacySelectionOverlay({ visible, onSelect, onClose, c
                 ? `${formattedOpeningHour} - ${formattedClosingHour}`
                 : 'Store hours unavailable',
             isOpen,
+            is_manually_closed: isManuallyClosed,
+            isManuallyClosed,
             is_active: isOperating,
             isActive: isOperating,
             isOperating,

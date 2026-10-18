@@ -150,6 +150,7 @@ const PickupDetailsScreen = () => {
 
   const isPharmacyExplicitlyClosed = useMemo(() => {
     if (targetPharmacy?.isOpen === false) return true
+    if (targetPharmacy?.isManuallyClosed || targetPharmacy?.is_manually_closed) return true
     const activeVal = targetPharmacy?.isOperating ?? targetPharmacy?.isActive ?? targetPharmacy?.is_active
     if (activeVal === false || activeVal === 0 || activeVal === '0') return true
     if (draft?.isPharmacyOpen === false) return true
