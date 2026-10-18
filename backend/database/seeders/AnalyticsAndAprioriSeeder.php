@@ -25,7 +25,21 @@ class AnalyticsAndAprioriSeeder extends Seeder
         }
 
         $customer = Customer::first();
-        $customerId = $customer ? $customer->id : 1;
+        if (!$customer) {
+            $customerUser = \App\Models\User::firstOrCreate(
+                ['email' => 'customer@gmail.com'],
+                [
+                    'first_name'    => 'Sample',
+                    'last_name'     => 'Customer',
+                    'password'      => \Illuminate\Support\Facades\Hash::make('password1234'),
+                    'role'          => 'customer',
+                    'mobile_number' => '09123456780',
+                    'is_active'     => true,
+                ]
+            );
+            $customer = Customer::firstOrCreate(['user_id' => $customerUser->id]);
+        }
+        $customerId = $customer->id;
 
         foreach ($pharmacies as $pharmacy) {
             $products = PharmacyProduct::with('product')
