@@ -21,11 +21,15 @@ class Pharmacist extends Model
         'license_number',
         'permissions',
         'requires_password_change',
+        'is_on_duty',
+        'duty_updated_at',
     ];
 
     protected $casts = [
         'permissions' => 'array',
         'requires_password_change' => 'boolean',
+        'is_on_duty' => 'boolean',
+        'duty_updated_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

@@ -52,8 +52,44 @@ class PharmacySettingsController extends Controller
             'status'  => 'success',
             'message' => 'Settings updated successfully.',
             'data'    => [
-                'pharmacy_name' => $pharmacy->pharmacy_name,
-                'location'      => $pharmacy->location,
+                'pharmacy_name'      => $pharmacy->pharmacy_name,
+                'location'           => $pharmacy->location,
+                'is_manually_closed' => (bool) $pharmacy->is_manually_closed,
+            ],
+        ]);
+    }
+
+    /**
+     * PATCH /pharmacy/settings/store-status
+     * Toggle manual closing/reopening of the pharmacy branch (for holidays, emergencies, etc.).
+     */
+    public function updateStoreStatus(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'is_manually_closed' => 'required|boolean',
+        ]);
+
+        $pharmacy = $this->settingsService->updateSettings($request->user(), [
+            'is_manually_closed' => (bool) $validated['is_manually_closed'],
+        ]);
+
+        $pharmacyId = $request->user()->pharmacy_id;
+        Cache::forget("pharmacy_{$pharmacyId}_settings");
+        Cache::forget("pharmacy_{$pharmacyId}");
+        Cache::forget('pharmacies_all');
+
+        $isClosed = (bool) $pharmacy->is_manually_closed;
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => $isClosed
+                ? 'Pharmacy is now manually closed for today.'
+                : 'Pharmacy is now reopened and accepting today\'s orders.',
+            'data'    => [
+                'id'                 => $pharmacy->id,
+                'pharmacy_name'      => $pharmacy->pharmacy_name,
+                'is_active'          => (bool) $pharmacy->is_active,
+                'is_manually_closed' => $isClosed,
             ],
         ]);
     }

@@ -18,7 +18,7 @@ class DisplayPharmacistProfile
 
 		$pharmacist->load([
 			'user:id,first_name,last_name,email,role,pharmacy_id,mobile_number,address,date_of_birth',
-			'user.pharmacy:id,pharmacy_name,location',
+			'user.pharmacy:id,pharmacy_name,location,is_active,is_manually_closed,opening_hour,closing_hour',
 		]);
 
 		if (($pharmacist->user?->role ?? null) !== 'pharmacist') {
@@ -28,6 +28,16 @@ class DisplayPharmacistProfile
 			], 403);
 		}
 
+		$pharmacy = $pharmacist->user?->pharmacy;
+		$isPharmacyOpen = (bool) ($pharmacy?->isCurrentlyOpen() ?? false);
+
+		if (!$isPharmacyOpen && $pharmacist->is_on_duty) {
+			$pharmacist->update([
+				'is_on_duty'      => false,
+				'duty_updated_at' => now(),
+			]);
+		}
+
 		return response()->json([
 			'status' => 'success',
 			'data' => [
@@ -35,6 +45,9 @@ class DisplayPharmacistProfile
 				'employee_number' => $pharmacist->employee_number,
 				'license_number' => $pharmacist->license_number,
 				'requires_password_change' => (bool) $pharmacist->requires_password_change,
+				'is_on_duty' => $isPharmacyOpen && (bool) ($pharmacist->is_on_duty ?? true),
+				'is_pharmacy_open' => $isPharmacyOpen,
+				'duty_updated_at' => $pharmacist->duty_updated_at?->toIso8601String(),
 				'user' => [
 					'id' => $pharmacist->user?->id,
 					'first_name' => $pharmacist->user?->first_name,
@@ -47,9 +60,11 @@ class DisplayPharmacistProfile
 					'requires_password_change' => (bool) $pharmacist->requires_password_change,
 				],
 				'pharmacy' => [
-					'id' => $pharmacist->user?->pharmacy?->id,
-					'pharmacy_name' => $pharmacist->user?->pharmacy?->pharmacy_name,
-					'location' => $pharmacist->user?->pharmacy?->location,
+					'id' => $pharmacy?->id,
+					'pharmacy_name' => $pharmacy?->pharmacy_name,
+					'location' => $pharmacy?->location,
+					'is_open' => $isPharmacyOpen,
+					'is_manually_closed' => (bool) ($pharmacy?->is_manually_closed ?? false),
 				],
 			],
 		]);

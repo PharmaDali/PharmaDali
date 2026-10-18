@@ -21,6 +21,7 @@ class UpdatePharmacySettingsRequest extends FormRequest
             'opening_hour'            => 'sometimes|date_format:H:i',
             'closing_hour'            => 'sometimes|date_format:H:i|after:opening_hour',
             'is_active'               => 'sometimes|boolean',
+            'is_manually_closed'      => 'sometimes|boolean',
             'low_stock_threshold'     => 'sometimes|integer|min:1|max:100000',
             'shortage_days_threshold' => 'sometimes|integer|min:1|max:365',
             'expiry_days_threshold'   => 'sometimes|integer|min:1|max:365',

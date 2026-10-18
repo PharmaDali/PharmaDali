@@ -31,7 +31,7 @@ class ViewCustomerCart
 		$cartItems = CartItem::query()
 			->with([
 				'cart:id,customer_id,pharmacy_id,status',
-				'cart.pharmacy:id,pharmacy_name,location,opening_hour,closing_hour,is_active,allow_otc_discount',
+				'cart.pharmacy:id,pharmacy_name,location,opening_hour,closing_hour,is_active,is_manually_closed,allow_otc_discount',
 				'pharmacyProduct:id,pharmacy_id,product_id,category_id,stock,selling_price,is_available,is_discountable,is_out_of_stock',
 				'pharmacyProduct.batches:id,pharmacy_product_id,stock,expiry_date',
 				'pharmacyProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
@@ -68,6 +68,7 @@ class ViewCustomerCart
 					'opening_hour' => $item->cart?->pharmacy?->opening_hour,
 					'closing_hour' => $item->cart?->pharmacy?->closing_hour,
 					'is_active' => (bool) ($item->cart?->pharmacy?->is_active ?? true),
+					'is_manually_closed' => (bool) ($item->cart?->pharmacy?->is_manually_closed ?? false),
 				],
 				'product' => [
 					'id' => $item->pharmacyProduct?->product?->id,

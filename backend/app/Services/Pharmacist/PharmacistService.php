@@ -12,6 +12,17 @@ class PharmacistService
      */
     public function getPharmacists(User $admin)
     {
+        $admin->loadMissing('pharmacy');
+
+        if ($admin->pharmacy && !$admin->pharmacy->isCurrentlyOpen()) {
+            Pharmacist::whereHas('user', function ($query) use ($admin) {
+                $query->where('pharmacy_id', $admin->pharmacy_id);
+            })->where('is_on_duty', true)->update([
+                'is_on_duty'      => false,
+                'duty_updated_at' => now(),
+            ]);
+        }
+
         return User::where('pharmacy_id', $admin->pharmacy_id)
             ->where('role', 'pharmacist')
             ->with('pharmacist')

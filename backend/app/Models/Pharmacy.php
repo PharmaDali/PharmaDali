@@ -19,6 +19,7 @@ class Pharmacy extends Model
         'email',
         'logo_path',
         'is_active',
+        'is_manually_closed',
         'opening_hour',
         'closing_hour',
         'low_stock_threshold',
@@ -49,6 +50,8 @@ class Pharmacy extends Model
     ];
 
     protected $casts = [
+        'is_active'                     => 'boolean',
+        'is_manually_closed'            => 'boolean',
         'enable_vat_exemption_discount' => 'boolean',
         'allow_otc_discount'            => 'boolean',
         'allow_item_exchange'           => 'boolean',
@@ -135,4 +138,46 @@ class Pharmacy extends Model
     {
         return $this->hasMany(Conversation::class, 'pharmacy_id');
     }
+
+    /**
+     * Determine whether the pharmacy is currently open right now (Asia/Manila).
+     */
+    public function isCurrentlyOpen(): bool
+    {
+        if (!$this->is_active || $this->is_manually_closed) {
+            return false;
+        }
+
+        if (!$this->opening_hour || !$this->closing_hour) {
+            return false;
+        }
+
+        try {
+            $nowPht = now('Asia/Manila');
+            $currentMinutes = ($nowPht->hour * 60) + $nowPht->minute;
+
+            $openCarbon = \Carbon\Carbon::parse($this->opening_hour);
+            $closeCarbon = \Carbon\Carbon::parse($this->closing_hour);
+
+            $openingMinutes = ($openCarbon->hour * 60) + $openCarbon->minute;
+            $closingMinutes = ($closeCarbon->hour * 60) + $closeCarbon->minute;
+
+            if ($openingMinutes === $closingMinutes) {
+                return true;
+            }
+
+            if ($closingMinutes === 0) {
+                $closingMinutes = 1440;
+            }
+
+            if ($openingMinutes < $closingMinutes) {
+                return $currentMinutes >= $openingMinutes && $currentMinutes <= $closingMinutes;
+            }
+
+            return $currentMinutes >= $openingMinutes || $currentMinutes <= $closingMinutes;
+        } catch (\Throwable) {
+            return false;
+        }
+    }
 }
+
