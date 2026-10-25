@@ -32,15 +32,18 @@ class AppDownloadController extends Controller
      */
     private function serveApk(string $filename, string $downloadName): StreamedResponse
     {
-        $path = public_path("downloads/{$filename}");
+        $storagePath = storage_path("app/public/downloads/{$filename}");
+        $publicPath = public_path("downloads/{$filename}");
 
-        if (! file_exists($path)) {
-            $storagePath = storage_path("app/public/downloads/{$filename}");
-            if (file_exists($storagePath)) {
-                $path = $storagePath;
-            } else {
-                abort(404, "The {$downloadName} package is not currently hosted on this server. Please contact support.");
-            }
+        if (file_exists($storagePath) && file_exists($publicPath)) {
+            // Serve whichever copy has the newer modification timestamp
+            $path = filemtime($storagePath) >= filemtime($publicPath) ? $storagePath : $publicPath;
+        } elseif (file_exists($storagePath)) {
+            $path = $storagePath;
+        } elseif (file_exists($publicPath)) {
+            $path = $publicPath;
+        } else {
+            abort(404, "The {$downloadName} package is not currently hosted on this server. Please contact support.");
         }
 
         $fileSize = filesize($path);
