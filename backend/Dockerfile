@@ -1,5 +1,5 @@
 # ---- Stage 1: Build Vite Assets ----
-FROM node:20-alpine AS node-builder
+FROM node:22-alpine AS node-builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ RUN npm run build
 
 
 # ---- Stage 2: PHP-FPM Application ----
-FROM php:8.4-fpm-alpine AS php-fpm
+FROM php:8.4.27-fpm-alpine AS php-fpm
 
 # Install system dependencies and PHP extensions
 RUN apk add --no-cache --virtual .build-deps \
