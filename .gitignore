@@ -4,11 +4,14 @@
 
 .env*
 !.env.example
+!.env.staging.example
+!backend/.env.staging.example
 
 # Deployment and server setup files
 VPS_PURCHASE_AND_SETUP_GUIDE.md
 DOCKER_DEPLOYMENT_README.md
 EAS_OTA_UPDATE_TUTORIAL.md
+STAGING_DEPLOYMENT_GUIDE.md
 
 # Client data exports
 backend/database/seeders/data/
