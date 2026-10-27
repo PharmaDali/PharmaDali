@@ -9,6 +9,16 @@
       "developmentClient": true,
       "distribution": "internal"
     },
+    "staging": {
+      "distribution": "internal",
+      "channel": "staging",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://staging-api.pharmadali.com/api"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
