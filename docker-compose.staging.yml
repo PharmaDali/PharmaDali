@@ -1,0 +1,136 @@
+name: pharmadali-staging
+
+x-backend-common: &backend-common
+  build:
+    context: ./backend
+    target: php-fpm
+  restart: unless-stopped
+  environment:
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    MEILISEARCH_HOST: http://meilisearch:7700
+    MEILISEARCH_KEY: ${MEILISEARCH_KEY:-pharmadali_master_key}
+    REVERB_INTERNAL_HOST: staging-reverb-server
+    REVERB_INTERNAL_PORT: "8080"
+    REVERB_INTERNAL_SCHEME: http
+  env_file:
+    - ./backend/.env
+  volumes:
+    - staging_backend_storage:/var/www/storage
+    - staging_backend_bootstrap_cache:/var/www/bootstrap/cache
+  networks:
+    - pharmadali-production-network
+    - staging-network
+
+services:
+
+  # ------------------------------------------------------------------ #
+  # Staging Backend (Laravel PHP-FPM)                                   #
+  # ------------------------------------------------------------------ #
+
+  staging-backend-app:
+    <<: *backend-common
+    container_name: staging-backend-app
+
+  # ------------------------------------------------------------------ #
+  # Staging Backend Web (Nginx Reverse Proxy for PHP-FPM)               #
+  # ------------------------------------------------------------------ #
+
+  staging-backend-web:
+    build:
+      context: ./backend
+      target: web
+    container_name: staging-backend-web
+    restart: unless-stopped
+    volumes:
+      - staging_backend_storage:/var/www/storage:ro
+    depends_on:
+      - staging-backend-app
+    environment:
+      VIRTUAL_HOST: ${BACKEND_DOMAIN}
+      VIRTUAL_PORT: "80"
+      LETSENCRYPT_HOST: ${BACKEND_DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    networks:
+      - staging-network
+      - proxy-network
+
+  # ------------------------------------------------------------------ #
+  # Staging Queue Worker                                                #
+  # ------------------------------------------------------------------ #
+
+  staging-queue-worker:
+    <<: *backend-common
+    container_name: staging-queue-worker
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=90"]
+
+  # ------------------------------------------------------------------ #
+  # Staging Scheduler                                                   #
+  # ------------------------------------------------------------------ #
+
+  staging-scheduler:
+    <<: *backend-common
+    container_name: staging-scheduler
+    command: ["php", "artisan", "schedule:work"]
+
+  # ------------------------------------------------------------------ #
+  # Staging Laravel Reverb (WebSockets Server)                          #
+  # ------------------------------------------------------------------ #
+
+  staging-reverb-server:
+    <<: *backend-common
+    container_name: staging-reverb-server
+    command: ["php", "artisan", "reverb:start", "--host=0.0.0.0", "--port=8080", "--no-interaction"]
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REVERB_INTERNAL_HOST: staging-reverb-server
+      REVERB_INTERNAL_PORT: "8080"
+      REVERB_INTERNAL_SCHEME: http
+      VIRTUAL_HOST: ${REVERB_DOMAIN}
+      VIRTUAL_PORT: "8080"
+      LETSENCRYPT_HOST: ${REVERB_DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    networks:
+      - staging-network
+      - proxy-network
+
+  # ------------------------------------------------------------------ #
+  # Staging Admin Frontend (React + Vite)                               #
+  # ------------------------------------------------------------------ #
+
+  staging-admin-panel:
+    build:
+      context: ./applications/pharmadali-admin
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: https://${BACKEND_DOMAIN}/api
+        VITE_REVERB_HOST: ${REVERB_DOMAIN}
+        VITE_REVERB_PORT: "443"
+        VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-staging_key_capstone_2026}
+    container_name: staging-admin-panel
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: ${ADMIN_DOMAIN}
+      VIRTUAL_PORT: "80"
+      LETSENCRYPT_HOST: ${ADMIN_DOMAIN}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+    networks:
+      - proxy-network
+
+volumes:
+  staging_backend_storage:
+  staging_backend_bootstrap_cache:
+
+networks:
+  staging-network:
+    driver: bridge
+  # Attach to existing production shared data services (MySQL, Redis, Meilisearch)
+  pharmadali-production-network:
+    external: true
+    name: pharmadali_app-network
+  # Attach to existing production reverse proxy (nginx-proxy & acme-companion)
+  proxy-network:
+    external: true
+    name: pharmadali_proxy-network
+
