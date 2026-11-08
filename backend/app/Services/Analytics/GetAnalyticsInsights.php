@@ -185,7 +185,12 @@ class GetAnalyticsInsights
                     $details = $response->json('error.details', []);
                     foreach ($details as $detail) {
                         if (isset($detail['retryDelay'])) {
-                            $retryDelay = max((int) filter_var($detail['retryDelay'], FILTER_SANITIZE_NUMBER_INT), 3);
+                            $parsedDelay = (int) filter_var($detail['retryDelay'], FILTER_SANITIZE_NUMBER_INT);
+                            if ($parsedDelay > 5) {
+                                Log::warning("Gemini API rate limited (429). Delay too long ({$parsedDelay}s), falling back immediately.");
+                                break 2;
+                            }
+                            $retryDelay = max($parsedDelay, 3);
                             break;
                         }
                     }
