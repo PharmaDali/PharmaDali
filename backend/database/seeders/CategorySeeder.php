@@ -9,7 +9,7 @@ class CategorySeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     * Maps exact brand color tokens from the Customer App (ProductImage.jsx & CategoryUtils).
+     * Only categories that have corresponding icons in the Customer App are retained.
      */
     public function run(): void
     {
@@ -32,19 +32,13 @@ class CategorySeeder extends Seeder
                 'hero_title'             => 'Health & Recovery Recommendations',
                 'hero_subtitle_template' => 'Since you recently bought {product_name}, check out these health essentials and recovery boosters',
             ],
-            'Injectables'      => [
-                'background_color'       => '#1B6CA8',
-                'font_color'             => '#FFFFFF',
-                'hero_title'             => 'Health & Recovery Recommendations',
-                'hero_subtitle_template' => 'Since you recently bought {product_name}, check out these health essentials and recovery boosters',
-            ],
             'Eye Med'          => [
                 'background_color'       => '#67A1B4',
                 'font_color'             => '#FFFFFF',
                 'hero_title'             => 'Health & Recovery Recommendations',
                 'hero_subtitle_template' => 'Since you recently bought {product_name}, check out these health essentials and recovery boosters',
             ],
-            'Cream'            => [
+            'Cream/Ointment'   => [
                 'background_color'       => '#B059D0',
                 'font_color'             => '#FFFFFF',
                 'hero_title'             => 'Personal Care & Hygiene Essentials',
@@ -97,24 +91,6 @@ class CategorySeeder extends Seeder
                 'font_color'             => '#FFFFFF',
                 'hero_title'             => 'First Aid & Medical Supplies',
                 'hero_subtitle_template' => 'Since you bought {product_name}, keep your home prepared with these essential medical supplies',
-            ],
-            'CREAM/OINTMENT'   => [
-                'background_color'       => '#B059D0',
-                'font_color'             => '#FFFFFF',
-                'hero_title'             => 'Personal Care & Hygiene Essentials',
-                'hero_subtitle_template' => 'Complement your purchase of {product_name} with these daily personal care and grooming items',
-            ],
-            'Sanitary'         => [
-                'background_color'       => '#E83E8C',
-                'font_color'             => '#FFFFFF',
-                'hero_title'             => 'Feminine & Sanitary Care Essentials',
-                'hero_subtitle_template' => 'Recommended products for you in Sanitary',
-            ],
-            'Others'           => [
-                'background_color'       => '#6C757D',
-                'font_color'             => '#FFFFFF',
-                'hero_title'             => 'Daily Essentials & General Products',
-                'hero_subtitle_template' => 'Recommended products for you in Others',
             ],
         ];
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 
 class Pharmacist extends Model
 {
@@ -35,6 +36,18 @@ class Pharmacist extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function pharmacy(): HasOneThrough
+    {
+        return $this->hasOneThrough(
+            Pharmacy::class,
+            User::class,
+            'id',          // Foreign key on users table (matches pharmacist.user_id)
+            'id',          // Foreign key on pharmacies table (matches user.pharmacy_id)
+            'user_id',     // Local key on pharmacists table
+            'pharmacy_id'  // Local key on users table
+        );
     }
 
     /**

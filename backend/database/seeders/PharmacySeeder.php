@@ -9,19 +9,108 @@ class PharmacySeeder extends Seeder
 {
     /**
      * Run the database seeds.
+     * Preserves the 3 existing pharmacies with their exact configurations.
      */
     public function run(): void
     {
-        Pharmacy::updateOrCreate(
-            ['pharmacy_name' => 'Main Pharmacy'],
+        $pharmacies = [
             [
-                'location' => '123 Tinurik, Tanauan City, Batangas',
-                'contact_number' => '09987654321',
-                'opening_hour' => '09:00:00',
-                'closing_hour' => '21:00:00',
-                'low_stock_threshold' => 10,
-                'is_active' => true,
-            ]
-        );
+                'id'                            => 1,
+                'pharmacy_name'                 => 'Puremed Pharmacy',
+                'location'                      => 'Tanauan City, Batangas',
+                'contact_number'                => '09223828228',
+                'email'                         => 'dnmrrdnd@gmail.com',
+                'logo_path'                     => 'logos/pharmacy_1/D3xNRtU1S4qsDY3QHc9Uk1MXfbnLkSlQ2O57h0fq.jpg',
+                'tin'                           => null,
+                'vat_type'                      => 'vat',
+                'bir_permit_no'                 => null,
+                'printer_name'                  => 'POS Thermal Printer (USB)',
+                'print_after_payment'           => false,
+                'receipt_header'                => 'PureMed Pharmacy',
+                'receipt_footer'                => 'Thank you for choosing PharmaDali! Get well soon.',
+                'receipt_sort_by'               => 'By Added Order',
+                'show_discount_on_receipt'      => true,
+                'show_vat_breakdown_on_receipt' => false,
+                'is_active'                     => true,
+                'is_manually_closed'            => false,
+                'opening_hour'                  => '00:00:00',
+                'closing_hour'                  => '23:59:00',
+                'low_stock_threshold'           => 50,
+                'shortage_days_threshold'       => 7,
+                'expiry_days_threshold'         => 30,
+                'enable_vat_exemption_discount' => false,
+                'allow_otc_discount'            => true,
+                'item_exchange_window_days'     => 1,
+                'allow_item_exchange'           => true,
+                'allow_cash_refund'             => false,
+            ],
+            [
+                'id'                            => 2,
+                'pharmacy_name'                 => 'Landicho Drugstore',
+                'location'                      => 'Tanauan City, Batangas',
+                'contact_number'                => '09123456789',
+                'email'                         => null,
+                'logo_path'                     => 'logos/pharmacy_2/curkCypta1gTRCIaepQhDyIv2PrC5Qs6fVAJMb4x.jpg',
+                'tin'                           => null,
+                'vat_type'                      => 'vat',
+                'bir_permit_no'                 => null,
+                'printer_name'                  => 'POS Thermal Printer (USB)',
+                'print_after_payment'           => true,
+                'receipt_header'                => 'Landicho Drugstore',
+                'receipt_footer'                => 'Thank you for choosing Landicho Drugstore! Get well soon.',
+                'receipt_sort_by'               => 'By Added Order',
+                'show_discount_on_receipt'      => true,
+                'show_vat_breakdown_on_receipt' => true,
+                'is_active'                     => true,
+                'is_manually_closed'            => false,
+                'opening_hour'                  => '07:00:00',
+                'closing_hour'                  => '21:00:00',
+                'low_stock_threshold'           => 10,
+                'shortage_days_threshold'       => 7,
+                'expiry_days_threshold'         => 30,
+                'enable_vat_exemption_discount' => false,
+                'allow_otc_discount'            => true,
+                'item_exchange_window_days'     => 1,
+                'allow_item_exchange'           => true,
+                'allow_cash_refund'             => true,
+            ],
+            [
+                'id'                            => 3,
+                'pharmacy_name'                 => "Mishka's Pharmacy",
+                'location'                      => 'Tanauan City, Batangas',
+                'contact_number'                => '09123456789',
+                'email'                         => null,
+                'logo_path'                     => null,
+                'tin'                           => null,
+                'vat_type'                      => 'vat',
+                'bir_permit_no'                 => null,
+                'printer_name'                  => 'POS Thermal Printer (USB)',
+                'print_after_payment'           => true,
+                'receipt_header'                => "Mishka's Pharmacy",
+                'receipt_footer'                => "Thank you for choosing Mishka's Pharmacy! Get well soon.",
+                'receipt_sort_by'               => 'By Added Order',
+                'show_discount_on_receipt'      => true,
+                'show_vat_breakdown_on_receipt' => true,
+                'is_active'                     => true,
+                'is_manually_closed'            => false,
+                'opening_hour'                  => '09:00:00',
+                'closing_hour'                  => '21:00:00',
+                'low_stock_threshold'           => 10,
+                'shortage_days_threshold'       => 7,
+                'expiry_days_threshold'         => 30,
+                'enable_vat_exemption_discount' => false,
+                'allow_otc_discount'            => true,
+                'item_exchange_window_days'     => 1,
+                'allow_item_exchange'           => true,
+                'allow_cash_refund'             => false,
+            ],
+        ];
+
+        foreach ($pharmacies as $data) {
+            Pharmacy::updateOrCreate(
+                ['id' => $data['id']],
+                $data
+            );
+        }
     }
 }
