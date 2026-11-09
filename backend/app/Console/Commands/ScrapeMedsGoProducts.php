@@ -49,31 +49,36 @@ class ScrapeMedsGoProducts extends Command
         $skipImages = (bool) $this->option('skip-images');
         $fresh = (bool) $this->option('fresh');
 
-        // Resolve Target Pharmacy
-        $pharmacy = $pharmacyIdOption 
-            ? Pharmacy::find($pharmacyIdOption) 
-            : (Pharmacy::where('is_active', true)->first() ?: Pharmacy::first());
+        // Resolve Target Pharmacies
+        $targetPharmacies = $pharmacyIdOption 
+            ? Pharmacy::where('id', $pharmacyIdOption)->get() 
+            : Pharmacy::where('is_active', true)->get();
 
-        if (!$pharmacy) {
-            $this->error('No active pharmacy found in database. Please run migrations and seeders first.');
+        if ($targetPharmacies->isEmpty()) {
+            $targetPharmacies = Pharmacy::all();
+        }
+
+        if ($targetPharmacies->isEmpty()) {
+            $this->error('No pharmacies found in database. Please run migrations and seeders first.');
             return Command::FAILURE;
         }
 
-        $pharmacyId = $pharmacy->id;
+        $pharmacyNames = $targetPharmacies->pluck('pharmacy_name')->implode(', ');
 
         $this->info('========================================================================');
-        $this->info("Target Pharmacy: {$pharmacy->pharmacy_name} (ID: {$pharmacyId})");
-        $this->info("Target Limit:    {$limit} products");
-        $this->info("Stock per Item:  {$defaultStock} units");
-        $this->info("Category Filter: " . ($categoryFilter ?: 'All / Balanced Selection'));
-        $this->info("Download Images: " . ($skipImages ? 'No' : 'Yes (storage/app/public/products)'));
+        $this->info("Target Pharmacies: {$pharmacyNames} (" . $targetPharmacies->count() . " branches)");
+        $this->info("Target Limit:      {$limit} products");
+        $this->info("Stock per Item:    {$defaultStock} units per branch");
+        $this->info("Category Filter:   " . ($categoryFilter ?: 'All / Balanced Selection'));
+        $this->info("Download Images:   " . ($skipImages ? 'No' : 'Yes (storage/app/public/products)'));
         $this->info($dryRun ? 'MODE: [DRY-RUN] (No database changes)' : 'MODE: [LIVE IMPORT]');
         $this->info('========================================================================');
 
         if ($fresh && !$dryRun) {
-            $this->warn("Clearing previously scraped MedsGo products for Pharmacy ID {$pharmacyId}...");
+            $this->warn("Clearing previously scraped MedsGo products across all target pharmacies...");
+            $pharmacyIds = $targetPharmacies->pluck('id')->toArray();
             $scrapedBatches = ProductBatch::where('batch_number', 'LIKE', 'MEDSGO-%')
-                ->whereHas('pharmacyProduct', fn($q) => $q->where('pharmacy_id', $pharmacyId))
+                ->whereHas('pharmacyProduct', fn($q) => $q->whereIn('pharmacy_id', $pharmacyIds))
                 ->get();
 
             foreach ($scrapedBatches as $batch) {
@@ -82,8 +87,7 @@ class ScrapeMedsGoProducts extends Command
                 if ($pp) {
                     $prod = $pp->product;
                     $pp->delete();
-                    if ($prod && $prod->pharmacy_id === $pharmacyId) {
-                        // Optionally delete image
+                    if ($prod && in_array($prod->pharmacy_id, $pharmacyIds, true)) {
                         if ($prod->image_path && Storage::disk('public')->exists($prod->image_path)) {
                             Storage::disk('public')->delete($prod->image_path);
                         }
@@ -159,7 +163,7 @@ class ScrapeMedsGoProducts extends Command
             // Save to database
             try {
                 $this->persistProduct(
-                    $pharmacyId,
+                    $targetPharmacies,
                     $productData,
                     $imagePath,
                     $defaultStock
@@ -533,7 +537,7 @@ class ScrapeMedsGoProducts extends Command
             return 'Vitamins';
         }
         if (str_contains($t, 'cream') || str_contains($t, 'ointment') || str_contains($t, 'gel')) {
-            return 'CREAM/OINTMENT';
+            return 'Cream/Ointment';
         }
         if (str_contains($u, 'hygiene') || str_contains($t, 'lotion') || str_contains($t, 'soap')) {
             return 'Hygiene';
@@ -549,6 +553,9 @@ class ScrapeMedsGoProducts extends Command
         }
         if (str_contains($u, 'milk')) {
             return 'Milk';
+        }
+        if (str_contains($u, 'drinks') || str_contains($t, 'drinks') || str_contains($t, 'beverage')) {
+            return 'Drinks';
         }
         if (str_contains($t, 'insulin') || str_contains($t, 'injection') || str_contains($t, 'vial')) {
             return 'Injectables/Vial';
@@ -566,87 +573,92 @@ class ScrapeMedsGoProducts extends Command
     }
 
     /**
-     * Persist Product, PharmacyProduct, and ProductBatch in database.
+     * Persist Product, PharmacyProduct, and ProductBatch in database across all target pharmacies.
      */
-    private function persistProduct(int $pharmacyId, array $data, ?string $imagePath, int $stock): void
+    private function persistProduct($targetPharmacies, array $data, ?string $imagePath, int $stock): void
     {
-        PharmacyProduct::withoutSyncingToSearch(function () use ($pharmacyId, $data, $imagePath, $stock) {
+        PharmacyProduct::withoutSyncingToSearch(function () use ($targetPharmacies, $data, $imagePath, $stock) {
             // 1. Resolve or create category
             $categoryName = $data['category'];
-            $category = Category::firstOrCreate(
-                ['category_name' => $categoryName],
-                [
-                    'description' => "Category for {$categoryName}",
-                    'is_enabled' => true,
-                    'background_color' => '#48AAD9',
-                    'font_color' => '#FFFFFF',
-                    'hero_title' => "{$categoryName} Essentials",
-                    'hero_subtitle_template' => "Explore our recommended {$categoryName} products",
-                ]
-            );
+            $category = Category::where('category_name', $categoryName)->first()
+                ?? Category::firstOrCreate(
+                    ['category_name' => $categoryName],
+                    [
+                        'description' => "Category for {$categoryName}",
+                        'is_enabled' => true,
+                        'background_color' => '#48AAD9',
+                        'font_color' => '#FFFFFF',
+                        'hero_title' => "{$categoryName} Essentials",
+                        'hero_subtitle_template' => "Explore our recommended {$categoryName} products",
+                    ]
+                );
 
-            // Ensure pharmacy has this category enabled
-            DB::table('pharmacy_categories')->updateOrInsert(
-                ['pharmacy_id' => $pharmacyId, 'category_id' => $category->id],
-                ['is_enabled' => true, 'updated_at' => now(), 'created_at' => now()]
-            );
-
-            // 2. Create or update Products record
-            $product = Products::updateOrCreate(
-                [
-                    'pharmacy_id' => $pharmacyId,
-                    'product_name' => $data['name'],
-                ],
-                [
-                    'product_type' => 'medicine',
-                    'generic_name' => $data['generic_name'],
-                    'brand_name' => $data['brand'],
-                    'description' => $data['description'],
-                    'form' => $data['form'],
-                    'strength' => $data['strength'],
-                    'size' => null,
-                    'is_prescribed' => $data['is_prescribed'],
-                    'image_path' => $imagePath,
-                ]
-            );
-
-            // 3. Create or update PharmacyProduct record
             $unitCost = round($data['price'] * 0.70, 2); // 30% margin for staging
 
-            $pharmacyProduct = PharmacyProduct::updateOrCreate(
-                [
-                    'pharmacy_id' => $pharmacyId,
-                    'product_id' => $product->id,
-                ],
-                [
-                    'category_id' => $category->id,
-                    'stock' => $stock,
-                    'unit_cost' => $unitCost,
-                    'selling_price' => $data['price'],
-                    'is_discountable' => true,
-                    'is_available' => true,
-                    'is_out_of_stock' => false,
-                    'is_expired' => false,
-                    'lead_time_days' => 3,
-                ]
-            );
+            foreach ($targetPharmacies as $pharmacy) {
+                $pharmacyId = $pharmacy->id;
 
-            // 4. Create or update ProductBatch record for FEFO inventory
-            $batchNumber = 'MEDSGO-' . strtoupper(substr(md5($product->id . $product->product_name), 0, 8));
+                // Ensure category is enabled for this pharmacy
+                DB::table('pharmacy_categories')->updateOrInsert(
+                    ['pharmacy_id' => $pharmacyId, 'category_id' => $category->id],
+                    ['is_enabled' => true, 'updated_at' => now(), 'created_at' => now()]
+                );
 
-            ProductBatch::updateOrCreate(
-                [
-                    'pharmacy_product_id' => $pharmacyProduct->id,
-                    'batch_number' => $batchNumber,
-                ],
-                [
-                    'supplier_name' => 'MedsGo Staging Supplier',
-                    'stock' => $stock,
-                    'expiry_date' => now()->addMonths(18)->format('Y-m-d'),
-                    'manufactured_date' => now()->subMonths(2)->format('Y-m-d'),
-                    'received_at' => now(),
-                ]
-            );
+                // 2. Create or update Products record for this pharmacy
+                $product = Products::updateOrCreate(
+                    [
+                        'pharmacy_id' => $pharmacyId,
+                        'product_name' => $data['name'],
+                    ],
+                    [
+                        'product_type' => 'medicine',
+                        'generic_name' => $data['generic_name'],
+                        'brand_name' => $data['brand'],
+                        'description' => $data['description'],
+                        'form' => $data['form'],
+                        'strength' => $data['strength'],
+                        'size' => null,
+                        'is_prescribed' => $data['is_prescribed'],
+                        'image_path' => $imagePath,
+                    ]
+                );
+
+                // 3. Create or update PharmacyProduct record for this pharmacy
+                $pharmacyProduct = PharmacyProduct::updateOrCreate(
+                    [
+                        'pharmacy_id' => $pharmacyId,
+                        'product_id' => $product->id,
+                    ],
+                    [
+                        'category_id' => $category->id,
+                        'stock' => $stock,
+                        'unit_cost' => $unitCost,
+                        'selling_price' => $data['price'],
+                        'is_discountable' => true,
+                        'is_available' => true,
+                        'is_out_of_stock' => false,
+                        'is_expired' => false,
+                        'lead_time_days' => 3,
+                    ]
+                );
+
+                // 4. Create or update ProductBatch record for FEFO inventory
+                $batchNumber = 'MEDSGO-' . strtoupper(substr(md5($product->id . $product->product_name . $pharmacyId), 0, 8));
+
+                ProductBatch::updateOrCreate(
+                    [
+                        'pharmacy_product_id' => $pharmacyProduct->id,
+                        'batch_number' => $batchNumber,
+                    ],
+                    [
+                        'supplier_name' => 'MedsGo Staging Supplier',
+                        'stock' => $stock,
+                        'expiry_date' => now()->addMonths(18)->format('Y-m-d'),
+                        'manufactured_date' => now()->subMonths(2)->format('Y-m-d'),
+                        'received_at' => now(),
+                    ]
+                );
+            }
         });
     }
 }
