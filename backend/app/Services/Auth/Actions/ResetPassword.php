@@ -28,9 +28,10 @@ class ResetPassword
             return $this->errorResponse('Invalid reset token. Please start over.', 422);
         }
 
-        // Update password
+        // Update password and clear password change requirements
         $user->forceFill([
-            'password' => Hash::make($newPassword),
+            'password'                 => Hash::make($newPassword),
+            'requires_password_change' => false,
         ])->save();
 
         if ($user->pharmacist) {
@@ -57,7 +58,7 @@ class ResetPassword
             'token'      => $token,
             'token_type' => 'Bearer',
             'role'       => $user->role,
-            'user'       => $user->loadMissing(['customer', 'pharmacist.pharmacy']),
+            'user'       => $user->loadMissing(['customer', 'pharmacist', 'pharmacy']),
         ], $successMessage, 200);
     }
 }
