@@ -24,27 +24,14 @@ class PharmacistWelcomeNotification extends Notification
     {
         $downloadUrl = url('/download/pharmacist-app');
         $firstName   = $notifiable->first_name ?? 'Pharmacist';
-        $baseUrl     = rtrim(config('app.url'), '/');
-
-        $intentUrl = 'intent://'
-            . parse_url($downloadUrl, PHP_URL_HOST)
-            . parse_url($downloadUrl, PHP_URL_PATH)
-            . '#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url='
-            . rawurlencode($downloadUrl)
-            . ';end';
 
         return (new MailMessage)
             ->subject('Welcome to PharmaDali – Your Account & Mobile App are Ready')
-            ->view('emails.pharmacist_welcome', [
+            ->markdown('emails.pharmacist_welcome', [
                 'firstName'         => $firstName,
                 'employeeNumber'    => $this->employeeNumber,
                 'temporaryPassword' => $this->temporaryPassword,
                 'downloadUrl'       => $downloadUrl,
-                'intentUrl'         => $intentUrl,
-                'smartphoneIcon'    => $baseUrl . '/images/icons/smartphone_white.png',
-                'downloadIcon'      => $baseUrl . '/images/icons/download_white.png',
-                'idIcon'            => $baseUrl . '/images/icons/id_badge.png',
-                'keyIcon'           => $baseUrl . '/images/icons/key.png',
             ]);
     }
 
