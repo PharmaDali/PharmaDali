@@ -63,7 +63,7 @@ Along the top of the screen, you will see 5 color-coded cards:
 Use this module to ring up counter sales for walk-in customers and hand over pre-ordered medicines for pickup.
 
 ### 3.1 Selling Medicines to Walk-In Customers (POS)
-1. **Find the Product**: In the **Point of Sale** screen, type the brand name or generic name into the search bar (or scan the barcode on the box).
+1. **Find the Product**: In the **Point of Sale** screen, type the brand name or generic name into the search bar.
 2. **Add to Order**: Click on the product from the list, type the quantity the customer is buying, and click **Add to Order**.
 3. **Add Discounts (If Applicable)**:
    - If the customer is a **Senior Citizen** or **PWD**, select their discount from the dropdown (this applies the statutory 20% discount).
