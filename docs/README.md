@@ -98,6 +98,7 @@ Both mobile applications are built on **Expo SDK 54 / React Native 0.81**:
 
 | Guide | Description |
 | :--- | :--- |
+| **[Admin User Manual](ADMIN_USER_MANUAL.md)** | Step-by-step operational manual for Pharmacy Admin (Login OTP, BI Dashboard, POS/Pickups, FEFO Inventory) |
 | **[Restock Predictor](RESTOCK_PREDICTOR.md)** | Formula, mathematical models, and caching strategy for inventory forecasting |
 | **[Customer Recommendations](CUSTOMER_RECOMMENDATION.md)** | Apriori market basket analysis and cold-start patient safety rules |
 | **[Backend Setup](../backend/README.md)** | Local development environment setup for Laravel 12 API |
