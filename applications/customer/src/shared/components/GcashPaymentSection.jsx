@@ -12,7 +12,12 @@ export default function GcashPaymentSection({
   wrapperStyle = {},
   qrStyle = { width: 224, height: 224 },
   footer = null,
+  qrCodeUrl = null,
+  accountName = '',
+  accountNumber = '',
 }) {
+  const qrImageSource = qrCodeUrl ? { uri: qrCodeUrl } : QrCodeImage
+
   return (
     <>
       <View className="bg-white rounded-2xl border border-gray-200 mt-3 p-5 items-center justify-center relative" style={wrapperStyle}>
@@ -20,10 +25,32 @@ export default function GcashPaymentSection({
           <DownloadIcon width={24} height={24} />
         </TouchableOpacity>
         <Image
-          source={QrCodeImage}
+          source={qrImageSource}
           style={qrStyle}
           resizeMode="contain"
         />
+
+        {(Boolean(accountName) || Boolean(accountNumber)) && (
+          <View className="w-full mt-4 pt-3 border-t border-gray-100">
+            <Text className="text-[11px] text-gray-500 uppercase tracking-wider mb-2 text-center" style={styles.fontSemiBold}>
+              GCash Account Details
+            </Text>
+            <View className="bg-[#F4FAFD] border border-[#DCEFF9] rounded-xl p-3">
+              {Boolean(accountName) && (
+                <View className="flex-row items-center justify-between py-1">
+                  <Text className="text-xs text-gray-500" style={styles.fontMedium}>Account Name</Text>
+                  <Text className="text-xs text-gray-900" style={styles.fontSemiBold}>{accountName}</Text>
+                </View>
+              )}
+              {Boolean(accountNumber) && (
+                <View className={`flex-row items-center justify-between py-1 ${accountName ? 'border-t border-gray-100 mt-1' : ''}`}>
+                  <Text className="text-xs text-gray-500" style={styles.fontMedium}>Mobile / GCash No.</Text>
+                  <Text className="text-xs text-[#2AABE2]" style={styles.fontSemiBold}>{accountNumber}</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
       </View>
 
       <View className="bg-white rounded-2xl border border-gray-200 mt-3 p-4" style={wrapperStyle}>

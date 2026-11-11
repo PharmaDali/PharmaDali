@@ -7,6 +7,7 @@ import { GeneralSettings } from "../components/Settings/GeneralSettings";
 import { PasswordSettings } from "../components/Settings/PasswordSettings";
 import { CategoryManagement } from "../components/Settings/CategoryManagement";
 import DiscountSettings from "../components/Settings/DiscountSettings";
+import { PaymentSettings } from "../components/Settings/PaymentSettings";
 import HardwareAndReceipts from "../components/Settings/HardwareAndReceipts";
 import Operations from "../components/Settings/Operations";
 import ItemExchangeSettings from "../components/Settings/ItemExchangeSettings";
@@ -17,6 +18,7 @@ const settingsMap = {
   account: { component: PasswordSettings },
   category: { component: CategoryManagement },
   discount: { component: DiscountSettings },
+  payment: { component: PaymentSettings },
   hardware: { component: HardwareAndReceipts },
   receipt: { component: HardwareAndReceipts },
   devices: { component: HardwareAndReceipts },

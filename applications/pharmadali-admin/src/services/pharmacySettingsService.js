@@ -42,6 +42,27 @@ export const uploadPharmacyLogo = async (file) => {
 };
 
 /**
+ * POST /pharmacy/settings/payment-qr
+ * Upload a new payment QR code image file.
+ */
+export const uploadPaymentQrCode = async (file) => {
+  const formData = new FormData();
+  formData.append("payment_qr", file);
+
+  const response = await apiRequest.post("/pharmacy/settings/payment-qr", formData, { headers: { "Content-Type": "multipart/form-data" } });
+  return response;
+};
+
+/**
+ * DELETE /pharmacy/settings/payment-qr
+ * Remove the current payment QR code.
+ */
+export const deletePaymentQrCode = async () => {
+  const response = await apiRequest.delete("/pharmacy/settings/payment-qr");
+  return response;
+};
+
+/**
  * PATCH /pharmacy/settings/password
  * Update admin account password.
  */

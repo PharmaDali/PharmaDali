@@ -17,6 +17,7 @@ class ServePrivateMediaService
         'discount_ids/',
         'payment_receipts/',
         'prescriptions/',
+        'payment_qrs/',
     ];
 
     /**
@@ -114,6 +115,11 @@ class ServePrivateMediaService
 
         // Pharmacy staff and system administrators can view all operational order media
         if (in_array($user->role, ['pharmacy_admin', 'pharmacist', 'super_admin'], true)) {
+            return true;
+        }
+
+        // Allow authenticated users (e.g. customers) to view payment QR codes
+        if (str_starts_with($path, 'payment_qrs/')) {
             return true;
         }
 

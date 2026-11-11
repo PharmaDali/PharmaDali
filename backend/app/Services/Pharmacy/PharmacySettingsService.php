@@ -29,10 +29,18 @@ class PharmacySettingsService
                 'contact_number'         => $pharmacy->contact_number,
                 'email'                  => $pharmacy->email,
                 'logo_url'               => $pharmacy->logo_url,
+                'payment_qr_code_url'    => $pharmacy->payment_qr_code_url,
+                'gcash_name'             => $pharmacy->gcash_name,
+                'gcash_number'           => $pharmacy->gcash_number,
                 'opening_hour'           => $pharmacy->opening_hour,
                 'closing_hour'           => $pharmacy->closing_hour,
                 'is_active'              => (bool) ($pharmacy->is_active ?? true),
                 'is_manually_closed'     => (bool) ($pharmacy->is_manually_closed ?? false),
+            ],
+            'payment_settings' => [
+                'payment_qr_code_url'    => $pharmacy->payment_qr_code_url,
+                'gcash_name'             => $pharmacy->gcash_name,
+                'gcash_number'           => $pharmacy->gcash_number,
             ],
             'alert_thresholds' => [
                 'low_stock'      => $pharmacy->low_stock_threshold,
@@ -91,6 +99,8 @@ class PharmacySettingsService
             'receipt_sort_by',
             'show_discount_on_receipt',
             'show_vat_breakdown_on_receipt',
+            'gcash_name',
+            'gcash_number',
         ];
 
         $filteredData = array_intersect_key($data, array_flip($allowed));
@@ -115,5 +125,47 @@ class PharmacySettingsService
         $this->repository->updateLogo($pharmacy, $path);
 
         return Storage::disk('public')->url($path);
+    }
+
+    /**
+     * Store the uploaded payment QR code privately on the server disk, remove the old one, and persist the path.
+     */
+    public function uploadPaymentQrCode(User $admin, UploadedFile $file): string
+    {
+        $pharmacy = $this->repository->findByPharmacyId($admin->pharmacy_id);
+
+        if ($pharmacy->payment_qr_code_path) {
+            if (Storage::disk('local')->exists($pharmacy->payment_qr_code_path)) {
+                Storage::disk('local')->delete($pharmacy->payment_qr_code_path);
+            }
+            if (Storage::disk('public')->exists($pharmacy->payment_qr_code_path)) {
+                Storage::disk('public')->delete($pharmacy->payment_qr_code_path);
+            }
+        }
+
+        $path = $file->store("payment_qrs/pharmacy_{$pharmacy->id}", 'local');
+
+        $this->repository->updatePaymentQrCode($pharmacy, $path);
+
+        return app(\App\Services\Media\PrivateMediaUrlGenerator::class)->generateUrl($path);
+    }
+
+    /**
+     * Delete the uploaded payment QR code from the private server disk and clear the path on the pharmacy record.
+     */
+    public function deletePaymentQrCode(User $admin): void
+    {
+        $pharmacy = $this->repository->findByPharmacyId($admin->pharmacy_id);
+
+        if ($pharmacy->payment_qr_code_path) {
+            if (Storage::disk('local')->exists($pharmacy->payment_qr_code_path)) {
+                Storage::disk('local')->delete($pharmacy->payment_qr_code_path);
+            }
+            if (Storage::disk('public')->exists($pharmacy->payment_qr_code_path)) {
+                Storage::disk('public')->delete($pharmacy->payment_qr_code_path);
+            }
+        }
+
+        $this->repository->updatePaymentQrCode($pharmacy, null);
     }
 }

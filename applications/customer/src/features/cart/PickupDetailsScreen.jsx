@@ -1089,6 +1089,9 @@ const PickupDetailsScreen = () => {
             onRemoveReceipt={handleRemoveGcashReceipt}
             wrapperStyle={{ marginHorizontal: 16 }}
             qrStyle={{ width: 240, height: 240 }}
+            qrCodeUrl={targetPharmacy?.payment_qr_code_url || targetPharmacy?.paymentQrCodeUrl}
+            accountName={targetPharmacy?.gcash_name || targetPharmacy?.gcashName}
+            accountNumber={targetPharmacy?.gcash_number || targetPharmacy?.gcashNumber}
           />
         )}
       </ScrollView>

@@ -18,6 +18,9 @@ class Pharmacy extends Model
         'contact_number',
         'email',
         'logo_path',
+        'payment_qr_code_path',
+        'gcash_name',
+        'gcash_number',
         'is_active',
         'is_manually_closed',
         'opening_hour',
@@ -66,6 +69,7 @@ class Pharmacy extends Model
 
     protected $appends = [
         'branch_name',
+        'payment_qr_code_url',
     ];
 
     /**
@@ -78,6 +82,18 @@ class Pharmacy extends Model
         }
 
         return Storage::disk('public')->url($this->logo_path);
+    }
+
+    /**
+     * Get the secure signed URL for the privately stored payment QR code.
+     */
+    public function getPaymentQrCodeUrlAttribute(): ?string
+    {
+        if (!$this->payment_qr_code_path) {
+            return null;
+        }
+
+        return app(\App\Services\Media\PrivateMediaUrlGenerator::class)->generateUrl($this->payment_qr_code_path);
     }
 
     /**

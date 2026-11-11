@@ -121,6 +121,53 @@ class PharmacySettingsController extends Controller
     }
 
     /**
+     * POST /pharmacy/settings/payment-qr
+     * Upload a new payment QR code image (GCash scan-to-pay).
+     */
+    public function uploadPaymentQrCode(Request $request): JsonResponse
+    {
+        $request->validate([
+            'payment_qr' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'payment_qr.required' => 'Please select a QR code image to upload.',
+            'payment_qr.image'    => 'The file must be an image (JPEG, PNG, JPG, or WebP).',
+            'payment_qr.max'      => 'The QR code image must be smaller than 2MB.',
+        ]);
+
+        $qrUrl = $this->settingsService->uploadPaymentQrCode($request->user(), $request->file('payment_qr'));
+
+        $pharmacyId = $request->user()->pharmacy_id;
+        Cache::forget("pharmacy_{$pharmacyId}_settings");
+        Cache::forget("pharmacy_{$pharmacyId}");
+        Cache::forget('pharmacies_all');
+
+        return response()->json([
+            'status'              => 'success',
+            'message'             => 'Payment QR code uploaded successfully.',
+            'payment_qr_code_url' => $qrUrl,
+        ]);
+    }
+
+    /**
+     * DELETE /pharmacy/settings/payment-qr
+     * Delete the current payment QR code.
+     */
+    public function deletePaymentQrCode(Request $request): JsonResponse
+    {
+        $this->settingsService->deletePaymentQrCode($request->user());
+
+        $pharmacyId = $request->user()->pharmacy_id;
+        Cache::forget("pharmacy_{$pharmacyId}_settings");
+        Cache::forget("pharmacy_{$pharmacyId}");
+        Cache::forget('pharmacies_all');
+
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Payment QR code removed successfully.',
+        ]);
+    }
+
+    /**
      * PATCH /pharmacy/settings/password
      * Change the admin account password after verifying the current one.
      */

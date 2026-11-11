@@ -31,7 +31,7 @@ class ViewCustomerCart
 		$cartItems = CartItem::query()
 			->with([
 				'cart:id,customer_id,pharmacy_id,status',
-				'cart.pharmacy:id,pharmacy_name,location,opening_hour,closing_hour,is_active,is_manually_closed,allow_otc_discount',
+				'cart.pharmacy:id,pharmacy_name,location,opening_hour,closing_hour,is_active,is_manually_closed,allow_otc_discount,payment_qr_code_path,gcash_name,gcash_number',
 				'pharmacyProduct:id,pharmacy_id,product_id,category_id,stock,selling_price,is_available,is_discountable,is_out_of_stock',
 				'pharmacyProduct.batches:id,pharmacy_product_id,stock,expiry_date',
 				'pharmacyProduct.product:id,product_type,product_name,generic_name,brand_name,description,form,strength,size,is_prescribed,image_path',
@@ -48,7 +48,8 @@ class ViewCustomerCart
 			->latest('id')
 			->get();
 
-		$items = $cartItems->map(function (CartItem $item) {
+		$items = $cartItems->map(function ($item) {
+			/** @var CartItem $item */
 			$quantity = (int) $item->quantity;
 			$unitPrice = (float) $item->price_snapshot;
 			$prescriptionRequired = (bool) ($item->pharmacyProduct?->product?->is_prescribed ?? false);
@@ -69,6 +70,9 @@ class ViewCustomerCart
 					'closing_hour' => $item->cart?->pharmacy?->closing_hour,
 					'is_active' => (bool) ($item->cart?->pharmacy?->is_active ?? true),
 					'is_manually_closed' => (bool) ($item->cart?->pharmacy?->is_manually_closed ?? false),
+					'payment_qr_code_url' => $item->cart?->pharmacy?->payment_qr_code_url,
+					'gcash_name' => $item->cart?->pharmacy?->gcash_name,
+					'gcash_number' => $item->cart?->pharmacy?->gcash_number,
 				],
 				'product' => [
 					'id' => $item->pharmacyProduct?->product?->id,

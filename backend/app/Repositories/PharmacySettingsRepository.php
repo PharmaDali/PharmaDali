@@ -53,4 +53,18 @@ class PharmacySettingsRepository
 
         return $pharmacy->fresh();
     }
+
+    /**
+     * Update the stored payment QR code path and persist.
+     */
+    public function updatePaymentQrCode(Pharmacy $pharmacy, ?string $path): Pharmacy
+    {
+        $pharmacy->payment_qr_code_path = $path;
+        $pharmacy->save();
+
+        Cache::forget('pharmacies_all');
+        Cache::forget("pharmacy_{$pharmacy->id}");
+
+        return $pharmacy->fresh();
+    }
 }
