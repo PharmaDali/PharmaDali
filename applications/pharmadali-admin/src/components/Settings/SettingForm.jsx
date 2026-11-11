@@ -13,42 +13,49 @@ export const SettingForm = ({
   onNavigate,
   showEditSave = true,
   noContainer = false,
+  actions = null,
 }) => {
-  const mobileButtons = showEditSave && onEditChange && (
-    <div className="settings-button-group d-flex d-lg-none justify-content-between mt-4">
-      {!isEditing ? (
-        <button
-          type="button"
-          className="btn btn-sm px-4 rounded-3 fw-semibold"
-          style={{ backgroundColor: "#e8f0fe", color: "var(--pd-primary, #2aabe2)", border: "none" }}
-          onClick={() => onEditChange(true)}
-        >
-          Edit
-        </button>
-      ) : (
-        <>
+  const mobileButtons = actions ? (
+    <div className="settings-button-group d-flex d-lg-none justify-content-end mt-4">
+      {actions}
+    </div>
+  ) : (
+    showEditSave && onEditChange && (
+      <div className="settings-button-group d-flex d-lg-none justify-content-between mt-4">
+        {!isEditing ? (
           <button
             type="button"
             className="btn btn-sm px-4 rounded-3 fw-semibold"
-            style={{ backgroundColor: "#f1f5f9", color: "#64748b", border: "none" }}
-            onClick={() => {
-              onEditChange(false);
-              if (onCancel) onCancel();
-            }}
+            style={{ backgroundColor: "#e8f0fe", color: "var(--pd-primary, #2aabe2)", border: "none" }}
+            onClick={() => onEditChange(true)}
           >
-            Cancel
+            Edit
           </button>
-          <button
-            type="button"
-            className="btn btn-sm px-4 rounded-3 fw-semibold text-white"
-            onClick={onSave}
-            style={{ backgroundColor: "var(--pd-primary, #2aabe2)", border: "none" }}
-          >
-            Save Changes
-          </button>
-        </>
-      )}
-    </div>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="btn btn-sm px-4 rounded-3 fw-semibold"
+              style={{ backgroundColor: "#f1f5f9", color: "#64748b", border: "none" }}
+              onClick={() => {
+                onEditChange(false);
+                if (onCancel) onCancel();
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn-sm px-4 rounded-3 fw-semibold text-white"
+              onClick={onSave}
+              style={{ backgroundColor: "var(--pd-primary, #2aabe2)", border: "none" }}
+            >
+              Save Changes
+            </button>
+          </>
+        )}
+      </div>
+    )
   );
 
   return (
@@ -61,39 +68,45 @@ export const SettingForm = ({
             <h5 className="fw-bold settings-detail-title">{title}</h5>
             <p className="settings-detail-subtitle">{description}</p>
           </div>
-          {showEditSave && onEditChange && (
-            <div className="settings-button-group d-none d-lg-flex gap-2">
-              {!isEditing ? (
-                <button
-                  type="button"
-                  className="btn btn-outline-primary btn-sm px-3 rounded-2"
-                  onClick={() => onEditChange(true)}
-                >
-                  Edit
-                </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary btn-sm px-3 rounded-2"
-                    onClick={() => {
-                      onEditChange(false);
-                      if (onCancel) onCancel();
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-sm px-3 rounded-2"
-                    onClick={onSave}
-                    style={{ backgroundColor: "var(--pd-primary, #2aabe2)", borderColor: "var(--pd-primary, #2aabe2)" }}
-                  >
-                    Save Changes
-                  </button>
-                </>
-              )}
+          {actions ? (
+            <div className="settings-button-group d-none d-lg-flex align-items-center gap-2">
+              {actions}
             </div>
+          ) : (
+            showEditSave && onEditChange ? (
+              <div className="settings-button-group d-none d-lg-flex gap-2">
+                {!isEditing ? (
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary btn-sm px-3 rounded-2"
+                    onClick={() => onEditChange(true)}
+                  >
+                    Edit
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-outline-secondary btn-sm px-3 rounded-2"
+                      onClick={() => {
+                        onEditChange(false);
+                        if (onCancel) onCancel();
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm px-3 rounded-2"
+                      onClick={onSave}
+                      style={{ backgroundColor: "var(--pd-primary, #2aabe2)", borderColor: "var(--pd-primary, #2aabe2)" }}
+                    >
+                      Save Changes
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : null
           )}
         </div>
       </header>

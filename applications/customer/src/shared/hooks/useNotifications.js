@@ -39,7 +39,7 @@ export function useNotifications() {
     try {
       await markAllNotificationsAsRead();
       setNotifications(prev => 
-        prev.map(notif => ({ ...notif, read_at: new Date() }))
+        prev.map(notif => ({ ...notif, read_at: notif.read_at || new Date().toISOString() }))
       );
     } catch (err) {
       console.error('Failed to mark all notifications as read:', err);

@@ -34,3 +34,21 @@ export const getStockStatusColor = (stock) => ({
   badgeBg: '#F3F4F6',
   badgeText: getStockTextColor(stock),
 });
+
+export const isPrescriptionRequired = (itemOrProduct) => {
+  if (!itemOrProduct) return false;
+  const val =
+    itemOrProduct.is_prescribed ??
+    itemOrProduct.product?.is_prescribed ??
+    itemOrProduct.prescription_required ??
+    itemOrProduct.prescriptionRequired ??
+    itemOrProduct.isPrescribed;
+
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'number') return val === 1;
+  if (typeof val === 'string') {
+    const clean = val.trim().toLowerCase();
+    return clean === '1' || clean === 'true';
+  }
+  return false;
+};

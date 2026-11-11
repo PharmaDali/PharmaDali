@@ -12,7 +12,7 @@ import { addPharmacyProductToCart } from '@shared/utils/cartUtils'
 import { useToast } from '@shared/hooks/useToast'
 import ToastMessage from '@shared/components/ToastMessage'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { toTitleCase } from '@shared/utils/stringUtils'
+import { toTitleCase, isPrescriptionRequired } from '@shared/utils/stringUtils'
 import SkeletonCategoryGrid from '@src/shared/components/SkeletonCategoryGrid'
 import { Modal, Pressable } from 'react-native'
 
@@ -231,7 +231,7 @@ const Categories = () => {
         description={item?.product?.product_name || 'Unnamed product'}
         category={item?.category?.category_name || 'Uncategorized'}
         price={formatPrice(item?.selling_price)}
-        isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
+        isPrescribed={isPrescriptionRequired(item)}
         isAvailable={
           item?.is_available == null
             ? true

@@ -30,7 +30,7 @@ class PrivateMediaUrlGenerator
             return Storage::disk('public')->url($normalizedPath);
         }
 
-        $expiresAt = $expiration ?? now()->addHours(self::DEFAULT_EXPIRATION_HOURS);
+        $expiresAt = $expiration ?? now()->startOfHour()->addHours(self::DEFAULT_EXPIRATION_HOURS);
 
         return URL::temporarySignedRoute(
             'media.private',

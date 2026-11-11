@@ -200,6 +200,9 @@ export function mapApiOrderToViewModel(order) {
     pharmacyName: rawPharmacyName,
     branchName: cleanBranch,
     location: rawLocation,
+    paymentQrCodeUrl: rawPharmacy?.payment_qr_code_url || null,
+    gcashName: rawPharmacy?.gcash_name || null,
+    gcashNumber: rawPharmacy?.gcash_number || null,
   }
 }
 

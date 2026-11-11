@@ -8,17 +8,7 @@ export function useUnreadChatCount() {
     try {
       const conversations = await getPharmacistConversations();
       const totalUnread = (Array.isArray(conversations) ? conversations : []).reduce((acc, c) => {
-        const orderStatus = String(c?.order?.status || '').toLowerCase();
-        const convStatus = String(c?.status || '').toLowerCase();
-        if (
-          orderStatus !== 'completed' &&
-          orderStatus !== 'cancelled' &&
-          orderStatus !== 'rejected' &&
-          convStatus !== 'closed'
-        ) {
-          return acc + (c.unread_count || 0);
-        }
-        return acc;
+        return acc + (Number(c?.unread_count) || 0);
       }, 0);
       setUnreadChatCount(totalUnread);
     } catch {

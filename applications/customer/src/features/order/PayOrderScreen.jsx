@@ -206,6 +206,9 @@ export default function PayOrderScreen() {
           onTakeImage={handleTakeGcashReceiptPhoto}
           receiptImage={gcashReceiptImage}
           onRemoveReceipt={handleRemoveGcashReceipt}
+          qrCodeUrl={order?.pharmacy?.payment_qr_code_url || order?.pharmacy?.paymentQrCodeUrl}
+          accountName={order?.pharmacy?.gcash_name || order?.pharmacy?.gcashName}
+          accountNumber={order?.pharmacy?.gcash_number || order?.pharmacy?.gcashNumber}
           wrapperStyle={{ marginHorizontal: 16, shadowColor: '#000', elevation: 2 }}
           footer={
             <TouchableOpacity

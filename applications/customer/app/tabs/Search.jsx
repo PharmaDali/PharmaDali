@@ -18,6 +18,7 @@ import { useSelectionPhase } from '@shared/context/SelectionPhaseContext';
 import { addPharmacyProductToCart } from '@shared/utils/cartUtils';
 import { useToast } from '@shared/hooks/useToast';
 import ToastMessage from '@shared/components/ToastMessage';
+import { isPrescriptionRequired } from '@shared/utils/stringUtils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSearchContext } from '@shared/context/SearchContext';
 import { useFontSize } from '@shared/context/FontSizeContext';
@@ -176,7 +177,7 @@ export default function SearchTab() {
           category={item.category?.category_name}
           price={formatProductPrice(item.selling_price || item.price)}
           onAddToCart={handleAddToCart}
-          isPrescribed={Boolean(item.product?.is_prescribed)}
+          isPrescribed={isPrescriptionRequired(item)}
           isAvailable={isAvailable}
           isOutOfStock={isOutOfStock}
           stock={item.stock}
@@ -252,7 +253,7 @@ export default function SearchTab() {
                           category={item.category?.category_name}
                           price={formatProductPrice(item.selling_price || item.price)}
                           onAddToCart={handleAddToCart}
-                          isPrescribed={Boolean(item.product?.is_prescribed)}
+                          isPrescribed={isPrescriptionRequired(item)}
                           isAvailable={isAvailable}
                           isOutOfStock={isOutOfStock}
                           stock={item.stock}

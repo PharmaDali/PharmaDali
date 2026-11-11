@@ -20,6 +20,11 @@ export const settingsList = [
     description: "Configure discount rates, auto-fill percentages, and ID requirements.",
   },
   {
+    id: "payment",
+    label: "Payment Settings",
+    description: "Manage GCash QR code, account details, and online payment methods for customer orders.",
+  },
+  {
     id: "hardware",
     label: "Hardware & Receipts",
     description: "Configure receipt printers, auto-printing options, and receipt layout.",

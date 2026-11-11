@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Animated,
   FlatList,
   Image,
   Keyboard,
+  Modal,
   Platform,
   Pressable,
   StyleSheet,
@@ -88,19 +90,82 @@ export default function CustomerConversationScreen() {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [selectedImage, setSelectedImage] = useState(null);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [previewImageUrl, setPreviewImageUrl] = useState(null);
+
+  const backScaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handleBackPressIn = useCallback(() => {
+    Animated.timing(backScaleAnim, {
+      toValue: 0.82,
+      duration: 80,
+      useNativeDriver: true,
+    }).start();
+  }, [backScaleAnim]);
+
+  const handleBackPressOut = useCallback(() => {
+    Animated.spring(backScaleAnim, {
+      toValue: 1,
+      friction: 3,
+      tension: 120,
+      useNativeDriver: true,
+    }).start();
+  }, [backScaleAnim]);
+
+  const handleBack = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(backScaleAnim, {
+        toValue: 0.82,
+        duration: 90,
+        useNativeDriver: true,
+      }),
+      Animated.spring(backScaleAnim, {
+        toValue: 1,
+        friction: 3,
+        tension: 120,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setTimeout(() => {
+      router.back();
+    }, 90);
+  }, [backScaleAnim, router]);
+
+  const scrollToBottom = useCallback((animated = true) => {
+    if (flatListRef.current) {
+      flatListRef.current.scrollToEnd({ animated });
+    }
+  }, []);
 
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
-      setKeyboardHeight(e.endCoordinates.height);
-    });
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+    const onKeyboardShow = (e) => {
+      const height = e?.endCoordinates?.height || 0;
+      setKeyboardHeight(height);
+      isNearBottomRef.current = true;
+      requestAnimationFrame(() => scrollToBottom(true));
+      setTimeout(() => scrollToBottom(true), 50);
+      setTimeout(() => scrollToBottom(true), 150);
+      setTimeout(() => scrollToBottom(true), 300);
+    };
+
+    const onKeyboardHide = () => {
       setKeyboardHeight(0);
-    });
+      setTimeout(() => scrollToBottom(false), 50);
+    };
+
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, onKeyboardShow);
+    const hideSub = Keyboard.addListener(hideEvent, onKeyboardHide);
+    const didShowSub = Platform.OS === 'ios' ? Keyboard.addListener('keyboardDidShow', onKeyboardShow) : null;
+
     return () => {
       showSub.remove();
       hideSub.remove();
+      didShowSub?.remove();
     };
-  }, []);
+  }, [scrollToBottom]);
 
   const pickFromGallery = async () => {
     try {
@@ -162,8 +227,28 @@ export default function CustomerConversationScreen() {
     try {
       setError('');
       const payload = await getCustomerConversation(conversationId);
-      setConversation(payload?.conversation ?? null);
-      setMessages(payload?.messages?.data ?? []);
+      const incomingConv = payload?.conversation ?? null;
+      const incomingMsgs = payload?.messages?.data ?? [];
+
+      setConversation(incomingConv);
+      setMessages((prev) => {
+        const pending = prev.filter((m) => m._status === 'sending' || m._status === 'error');
+        const confirmedPrev = prev.filter((m) => !m._status || m._status === 'sent');
+
+        if (
+          pending.length === 0 &&
+          confirmedPrev.length === incomingMsgs.length &&
+          confirmedPrev.length > 0 &&
+          confirmedPrev[confirmedPrev.length - 1]?.id === incomingMsgs[incomingMsgs.length - 1]?.id &&
+          confirmedPrev[confirmedPrev.length - 1]?.read_at === incomingMsgs[incomingMsgs.length - 1]?.read_at
+        ) {
+          return prev;
+        }
+
+        const incomingIds = new Set(incomingMsgs.map((m) => m.id));
+        const unresolvedPending = pending.filter((p) => !incomingIds.has(p.id));
+        return [...incomingMsgs, ...unresolvedPending];
+      });
     } catch (e) {
       setError(e?.message || 'Failed to load conversation.');
     } finally {
@@ -185,6 +270,7 @@ export default function CustomerConversationScreen() {
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
+      initialScrollDoneRef.current = false;
       setLoading(true);
 
       const refresh = async () => {
@@ -212,7 +298,10 @@ export default function CustomerConversationScreen() {
 
     if (!initialScrollDoneRef.current) {
       initialScrollDoneRef.current = true;
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 100);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 50);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 150);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 350);
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 600);
       return;
     }
 
@@ -221,26 +310,72 @@ export default function CustomerConversationScreen() {
     }
   }, [messages]);
 
-  const handleSend = useCallback(async () => {
-    const trimmed = draft.trim();
-    if ((!trimmed && !selectedImage) || !conversationId) return;
+  const handleSend = useCallback(async (retryMsg = null) => {
+    const textToSend = retryMsg ? (retryMsg.body || '') : draft.trim();
+    const imageToSend = retryMsg ? (retryMsg._imageFile || null) : selectedImage;
+
+    if ((!textToSend && !imageToSend) || !conversationId) return;
+
+    const tempId = retryMsg ? retryMsg.id : `temp-${Date.now()}`;
+    const optimisticMessage = {
+      id: tempId,
+      conversation_id: Number(conversationId),
+      sender_user_id: currentUserId,
+      message_type: imageToSend ? 'image' : 'user',
+      body: textToSend || null,
+      metadata: imageToSend ? {
+        image_url: imageToSend.uri,
+      } : null,
+      _imageFile: imageToSend,
+      _status: 'sending',
+      created_at: new Date().toISOString(),
+    };
+
+    if (!retryMsg) {
+      setDraft('');
+      setSelectedImage(null);
+      setMessages((prev) => [...prev, optimisticMessage]);
+    } else {
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, _status: 'sending' } : m)));
+    }
+
+    isNearBottomRef.current = true;
+    requestAnimationFrame(() => scrollToBottom(true));
+    setTimeout(() => scrollToBottom(true), 50);
+
     try {
       setSending(true);
-      setDraft('');
-      const img = selectedImage;
-      setSelectedImage(null);
-      isNearBottomRef.current = true;
-      await sendCustomerMessage(conversationId, trimmed || '', img);
-      await loadConversation(conversationId);
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      const res = await sendCustomerMessage(conversationId, textToSend || '', imageToSend);
+      setMessages((prev) => {
+        return prev.map((m) => {
+          if (m.id === tempId) {
+            return {
+              ...(res || m),
+              _status: 'sent',
+            };
+          }
+          return m;
+        });
+      });
+      loadConversation();
     } catch (e) {
-      setDraft(trimmed);
-      setSelectedImage(selectedImage);
+      setMessages((prev) => {
+        return prev.map((m) => {
+          if (m.id === tempId) {
+            return {
+              ...m,
+              _status: 'error',
+            };
+          }
+          return m;
+        });
+      });
       setError(e?.message || 'Failed to send message.');
     } finally {
       setSending(false);
+      setTimeout(() => scrollToBottom(true), 100);
     }
-  }, [conversationId, draft, selectedImage, loadConversation]);
+  }, [conversationId, draft, selectedImage, currentUserId, scrollToBottom, loadConversation]);
 
   const handleViewOrderDetails = useCallback(() => {
     if (conversation?.order?.id) {
@@ -293,11 +428,16 @@ export default function CustomerConversationScreen() {
             className="rounded-[18px] px-3.5 py-1.5"
           >
             {(item?.message_type === 'image' || item?.metadata?.image_url) && item?.metadata?.image_url ? (
-              <Image
-                source={{ uri: item.metadata.image_url }}
-                style={{ width: 200, height: 200, borderRadius: 8, marginBottom: item?.body ? 4 : 0 }}
-                resizeMode="cover"
-              />
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => setPreviewImageUrl(item.metadata.image_url)}
+              >
+                <Image
+                  source={{ uri: item.metadata.image_url }}
+                  style={{ width: 200, height: 200, borderRadius: 8, marginBottom: item?.body ? 4 : 0 }}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
             ) : null}
             {!!item?.body && (
               <Text
@@ -316,7 +456,20 @@ export default function CustomerConversationScreen() {
                 {formatTime(item?.created_at)}
               </Text>
               {isMine && (
-                <MaterialCommunityIcons name="check-all" size={12} color="rgba(255,255,255,0.65)" style={{ marginLeft: 2 }} />
+                <View style={{ marginLeft: 3, flexDirection: 'row', alignItems: 'center' }}>
+                  {item._status === 'sending' ? (
+                    <MaterialCommunityIcons name="clock-outline" size={12} color="rgba(255,255,255,0.7)" />
+                  ) : item._status === 'error' ? (
+                    <TouchableOpacity onPress={() => handleSend(item)} activeOpacity={0.7} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <MaterialCommunityIcons name="alert-circle" size={13} color="#FCA5A5" />
+                      <Text style={{ fontSize: 9, color: '#FCA5A5', fontFamily: 'Poppins-Medium', marginLeft: 2 }}>Retry</Text>
+                    </TouchableOpacity>
+                  ) : item.read_at ? (
+                    <MaterialCommunityIcons name="check-all" size={12} color="#6EE7B7" />
+                  ) : (
+                    <MaterialCommunityIcons name="check" size={12} color="rgba(255,255,255,0.75)" />
+                  )}
+                </View>
               )}
             </View>
           </View>
@@ -344,13 +497,24 @@ export default function CustomerConversationScreen() {
         className="px-4 pb-4"
       >
         <View className="flex-row items-center">
-          <Pressable
-            onPress={() => router.back()}
-            className="mr-2 h-[38px] w-[38px] rounded-full items-center justify-center"
-            style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-          >
-            <MaterialCommunityIcons name="chevron-left" size={28} color="#fff" />
-          </Pressable>
+          <Animated.View style={{ transform: [{ scale: backScaleAnim }] }}>
+            <Pressable
+              onPress={handleBack}
+              onPressIn={handleBackPressIn}
+              onPressOut={handleBackPressOut}
+              className="mr-2 h-[38px] w-[38px] rounded-full items-center justify-center"
+              style={({ pressed }) => [
+                {
+                  backgroundColor: pressed ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.2)',
+                },
+              ]}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+            >
+              <MaterialCommunityIcons name="chevron-left" size={28} color="#fff" />
+            </Pressable>
+          </Animated.View>
 
           <View
             className="h-10 w-10 rounded-full items-center justify-center mr-2.5 border-2"
@@ -405,6 +569,18 @@ export default function CustomerConversationScreen() {
           keyExtractor={(item) => String(item.id)}
           renderItem={renderItem}
           className="flex-1"
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          onContentSizeChange={() => {
+            if (isNearBottomRef.current || !initialScrollDoneRef.current) {
+              scrollToBottom(false);
+            }
+          }}
+          onLayout={() => {
+            if (isNearBottomRef.current || !initialScrollDoneRef.current) {
+              scrollToBottom(false);
+            }
+          }}
           onScroll={(event) => {
             const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
             const paddingToBottom = 80;
@@ -445,7 +621,7 @@ export default function CustomerConversationScreen() {
 
         <View
           className="flex-row items-end bg-white border-t border-slate-200 px-3 pt-2"
-          style={{ paddingBottom: keyboardHeight > 0 ? 10 : insets.bottom + 20 }}
+          style={{ paddingBottom: keyboardHeight > 0 ? 12 : Math.max(insets.bottom + 16, 24) }}
         >
           <TouchableOpacity onPress={pickFromGallery} className="h-11 w-9 items-center justify-center mb-0.5 mr-1" activeOpacity={0.7}>
             <MaterialCommunityIcons name="image-outline" size={24} color="#64748B" />
@@ -456,6 +632,12 @@ export default function CustomerConversationScreen() {
           <TextInput
             value={draft}
             onChangeText={setDraft}
+            onFocus={() => {
+              isNearBottomRef.current = true;
+              requestAnimationFrame(() => scrollToBottom(true));
+              setTimeout(() => scrollToBottom(true), 100);
+              setTimeout(() => scrollToBottom(true), 250);
+            }}
             placeholder="Type a message..."
             placeholderTextColor="#94A3B8"
             style={[s.input, { fontSize: scaleFontSize(14) }]}
@@ -475,6 +657,41 @@ export default function CustomerConversationScreen() {
           </Pressable>
         </View>
       </View>
+
+      {/* ── Fullscreen Image Preview Modal ── */}
+      <Modal
+        visible={!!previewImageUrl}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setPreviewImageUrl(null)}
+      >
+        <View style={s.imageModalOverlay}>
+          <TouchableOpacity
+            style={s.imageModalCloseBtn}
+            onPress={() => setPreviewImageUrl(null)}
+            activeOpacity={0.8}
+            accessibilityRole="button"
+            accessibilityLabel="Close image preview"
+          >
+            <MaterialCommunityIcons name="close" size={26} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={s.imageModalBackdrop}
+            activeOpacity={1}
+            onPress={() => setPreviewImageUrl(null)}
+          >
+            {!!previewImageUrl && (
+              <Image
+                source={{ uri: previewImageUrl }}
+                style={s.fullScreenImage}
+                resizeMode="contain"
+              />
+            )}
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -602,5 +819,34 @@ const s = StyleSheet.create({
     fontSize: 14, 
     color: '#1E293B', 
     marginRight: 8 
+  },
+  imageModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageModalBackdrop: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageModalCloseBtn: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 999,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenImage: {
+    width: '95%',
+    height: '85%',
   },
 });

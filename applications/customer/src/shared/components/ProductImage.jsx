@@ -99,9 +99,9 @@ export default function ProductImage({
   const strengthForm = [productData?.strength, productData?.form, productData?.size].filter(Boolean).join(' ');
   const unit = productData?.unit || productData?.packaging || productData?.unit_of_measure;
 
-  const prescribed = typeof isPrescribed === 'boolean'
-    ? isPrescribed
-    : Boolean(Number(productData?.is_prescribed ?? 0));
+  const prescribed = isPrescribed !== undefined
+    ? (typeof isPrescribed === 'boolean' ? isPrescribed : Boolean(isPrescribed && String(isPrescribed) !== '0' && String(isPrescribed).toLowerCase() !== 'false'))
+    : Boolean(productData?.is_prescribed && String(productData.is_prescribed) !== '0' && String(productData.is_prescribed).toLowerCase() !== 'false');
 
   const isActuallyOutOfStock =
     Boolean(isOutOfStock) ||

@@ -184,6 +184,8 @@ Route::middleware(['auth:sanctum', EnsureUserIsActive::class])->group(function (
         Route::put('pharmacy/settings', [PharmacySettingsController::class, 'update']);
         Route::patch('pharmacy/settings/store-status', [PharmacySettingsController::class, 'updateStoreStatus']);
         Route::post('pharmacy/settings/logo', [PharmacySettingsController::class, 'uploadLogo'])->middleware('throttle:file-upload');
+        Route::post('pharmacy/settings/payment-qr', [PharmacySettingsController::class, 'uploadPaymentQrCode'])->middleware('throttle:file-upload');
+        Route::delete('pharmacy/settings/payment-qr', [PharmacySettingsController::class, 'deletePaymentQrCode']);
         Route::patch('pharmacy/settings/password', [PharmacySettingsController::class, 'updatePassword']);
 
         // Category settings
