@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   FlatList,
+  Pressable,
   RefreshControl,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@src/shared/theme/colorPalette';
@@ -97,6 +99,45 @@ export default function CustomerChatScreen() {
   const [pendingDelete, setPendingDelete] = useState(null);
   const pendingDeleteRef = useRef(null);
 
+  const backScaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handleBackPressIn = useCallback(() => {
+    Animated.timing(backScaleAnim, {
+      toValue: 0.82,
+      duration: 80,
+      useNativeDriver: true,
+    }).start();
+  }, [backScaleAnim]);
+
+  const handleBackPressOut = useCallback(() => {
+    Animated.spring(backScaleAnim, {
+      toValue: 1,
+      friction: 3,
+      tension: 120,
+      useNativeDriver: true,
+    }).start();
+  }, [backScaleAnim]);
+
+  const handleBack = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(backScaleAnim, {
+        toValue: 0.82,
+        duration: 90,
+        useNativeDriver: true,
+      }),
+      Animated.spring(backScaleAnim, {
+        toValue: 1,
+        friction: 3,
+        tension: 120,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setTimeout(() => {
+      router.back();
+    }, 90);
+  }, [backScaleAnim, router]);
+
   useEffect(() => {
     pendingDeleteRef.current = pendingDelete;
   }, [pendingDelete]);
@@ -165,15 +206,7 @@ export default function CustomerChatScreen() {
       setError('');
       const result = await getCustomerConversations();
       const validConversations = (Array.isArray(result) ? result : [])
-        .filter(c => {
-          const orderStatus = String(c?.order?.status || '').toLowerCase();
-          const convStatus = String(c?.status || '').toLowerCase();
-          return c.latest_message !== null &&
-                 orderStatus !== 'completed' &&
-                 orderStatus !== 'cancelled' &&
-                 orderStatus !== 'rejected' &&
-                 convStatus !== 'closed';
-        });
+        .filter(c => c && c.latest_message !== null);
       setConversations(validConversations);
     } catch (e) {
       setError(e?.message || 'Failed to load chats.');
@@ -184,10 +217,11 @@ export default function CustomerChatScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    setLoading(true);
-    loadData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -205,7 +239,8 @@ export default function CustomerChatScreen() {
     const convStatus  = item?.status ?? null;
     const statusColor = getStatusColor(orderStatus, convStatus);
     const statusLabel = getStatusLabel(orderStatus, convStatus);
-    const hasUnread = item?.unread_count > 0;
+    const hasUnread = (Number(item?.unread_count) || 0) > 0 ||
+      (item?.latest_message && !item.latest_message.read_at && item.latest_message.sender_user_id !== item?.customer_user_id);
     const isSelected = selectedConversation?.id === item?.id;
 
     return (
@@ -279,9 +314,24 @@ export default function CustomerChatScreen() {
           paddingTop: insets.top + 12,
         }}
       >
-        <TouchableOpacity onPress={() => router.back()} className="mr-3" activeOpacity={0.7}>
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
-        </TouchableOpacity>
+        <Animated.View style={{ transform: [{ scale: backScaleAnim }] }}>
+          <Pressable
+            onPress={handleBack}
+            onPressIn={handleBackPressIn}
+            onPressOut={handleBackPressOut}
+            className="mr-3 h-[38px] w-[38px] rounded-full items-center justify-center"
+            style={({ pressed }) => [
+              {
+                backgroundColor: pressed ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.18)',
+              },
+            ]}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <MaterialCommunityIcons name="arrow-left" size={24} color="#fff" />
+          </Pressable>
+        </Animated.View>
         <Text className="text-2xl text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>
           Chats
         </Text>

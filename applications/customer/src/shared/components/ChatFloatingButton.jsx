@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, AppState, Animated } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getCustomerConversations } from '@shared/services/chatService';
@@ -10,9 +10,9 @@ export default function ChatFloatingButton() {
   const [hasUnreadMessage, setHasUnreadMessage] = useState(false);
   const lastCheckRef = useRef(0);
 
-  const checkUnread = useCallback(() => {
+  const checkUnread = useCallback((force = false) => {
     const now = Date.now();
-    if (now - lastCheckRef.current < 10000) {
+    if (!force && now - lastCheckRef.current < 5000) {
       return;
     }
     lastCheckRef.current = now;
@@ -21,18 +21,21 @@ export default function ChatFloatingButton() {
     getCustomerConversations()
       .then((result) => {
         if (!isMounted) return;
-        const validConversations = (Array.isArray(result) ? result : []).filter((c) => {
-          const orderStatus = String(c?.order?.status || '').toLowerCase();
-          const convStatus = String(c?.status || '').toLowerCase();
-          return (
-            c.latest_message !== null &&
-            orderStatus !== 'completed' &&
-            orderStatus !== 'cancelled' &&
-            orderStatus !== 'rejected' &&
-            convStatus !== 'closed'
-          );
+        const list = Array.isArray(result) ? result : (Array.isArray(result?.data) ? result.data : []);
+        const hasUnread = list.some((c) => {
+          const unreadCount = Number(c?.unread_count);
+          if (Number.isFinite(unreadCount) && unreadCount > 0) {
+            return true;
+          }
+          if (c?.latest_message && !c.latest_message.read_at) {
+            const senderId = c.latest_message.sender_user_id;
+            const customerId = c.customer_user_id;
+            if (senderId === null || (customerId && senderId !== customerId)) {
+              return true;
+            }
+          }
+          return false;
         });
-        const hasUnread = validConversations.some((c) => (Number(c?.unread_count) || 0) > 0);
         setHasUnreadMessage(hasUnread);
       })
       .catch(() => {
@@ -45,35 +48,87 @@ export default function ChatFloatingButton() {
   }, []);
 
   useEffect(() => {
-    checkUnread();
-    const interval = setInterval(checkUnread, 30000);
-    return () => clearInterval(interval);
+    checkUnread(true);
+    const interval = setInterval(() => checkUnread(false), 15000);
+
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        checkUnread(true);
+      }
+    });
+
+    return () => {
+      clearInterval(interval);
+      subscription.remove();
+    };
   }, [pathname, checkUnread]);
+
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.timing(scaleAnim, {
+      toValue: 0.84,
+      duration: 80,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      friction: 3,
+      tension: 120,
+      useNativeDriver: true,
+    }).start();
+  };
 
   const handlePress = () => {
     setHasUnreadMessage(false);
-    router.push('/tabs/chat/Chat');
+    Animated.sequence([
+      Animated.timing(scaleAnim, {
+        toValue: 0.82,
+        duration: 90,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 3,
+        tension: 120,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    setTimeout(() => {
+      router.push('/tabs/chat/Chat');
+    }, 90);
   };
 
   return (
-    <TouchableOpacity
-      onPress={handlePress}
-      activeOpacity={0.9}
-      style={styles.floatingButton}
-      accessibilityRole="button"
-      accessibilityLabel="Open Chat with Pharmacist"
-    >
-      <MaterialCommunityIcons name="message-text-outline" size={26} color="#FFFFFF" />
-      {hasUnreadMessage && <View style={styles.unreadBadge} />}
-    </TouchableOpacity>
+    <Animated.View style={[styles.floatingButtonContainer, { transform: [{ scale: scaleAnim }] }]}>
+      <TouchableOpacity
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.8}
+        style={styles.floatingButton}
+        accessibilityRole="button"
+        accessibilityLabel="Open Chat with Pharmacist"
+      >
+        <MaterialCommunityIcons name="message-text-outline" size={26} color="#FFFFFF" />
+        {hasUnreadMessage && <View style={styles.unreadBadge} />}
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  floatingButton: {
+  floatingButtonContainer: {
     position: 'absolute',
     right: 16,
     bottom: 16,
+    zIndex: 999,
+  },
+  floatingButton: {
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -85,17 +140,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
-    zIndex: 999,
   },
   unreadBadge: {
     position: 'absolute',
-    top: 3,
-    right: 3,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    top: 2,
+    right: 2,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
     backgroundColor: '#EF4444',
     borderWidth: 2,
-    borderColor: '#0EA5E9',
+    borderColor: '#FFFFFF',
+    zIndex: 10,
   },
 });

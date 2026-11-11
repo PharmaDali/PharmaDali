@@ -18,6 +18,15 @@ class ConversationRepository
     {
         return Conversation::query()
             ->forUser($user)
+            ->withCount([
+                'messages as unread_count' => fn ($q) => $q
+                    ->visibleTo($user)
+                    ->where(function ($inner) use ($user) {
+                        $inner->whereNull('sender_user_id')
+                              ->orWhere('sender_user_id', '!=', $user->id);
+                    })
+                    ->whereNull('read_at'),
+            ])
             ->with([
                 // Closure-based: string syntax bypasses withoutGlobalScopes() on the relation
                 'order' => fn ($q) => $q->withoutGlobalScopes()->select([
@@ -111,7 +120,10 @@ class ConversationRepository
     {
         $conversation->messages()
             ->visibleTo($user)
-            ->where('sender_user_id', '!=', $user->id)
+            ->where(function ($q) use ($user) {
+                $q->whereNull('sender_user_id')
+                  ->orWhere('sender_user_id', '!=', $user->id);
+            })
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
     }
@@ -209,7 +221,7 @@ class ConversationRepository
 
         $all = $query->get();
 
-        $filtered = $all->filter(function (User $u) {
+        $filtered = $all->filter(function ($u) {
             if ($u->role === 'pharmacy_admin') {
                 return true;
             }
