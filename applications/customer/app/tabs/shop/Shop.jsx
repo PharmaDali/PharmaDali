@@ -11,6 +11,7 @@ import { addPharmacyProductToCart } from '@shared/utils/cartUtils'
 import ToastMessage from '@shared/components/ToastMessage'
 import { useToast } from '@shared/hooks/useToast'
 import { CATEGORY_ICONS } from '@src/utils/categoryUtils'
+import { isPrescriptionRequired } from '@shared/utils/stringUtils'
 
 const PRODUCTS_PER_PAGE = 30
 
@@ -265,7 +266,7 @@ const Shop = () => {
         description={item?.product?.product_name || 'Unnamed product'}
         category={item?.category?.category_name || 'Uncategorized'}
         price={formatPrice(item?.selling_price)}
-        isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
+        isPrescribed={isPrescriptionRequired(item)}
         isAvailable={
           item?.is_available == null
             ? true

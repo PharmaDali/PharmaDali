@@ -16,6 +16,7 @@ import ProductCard from '@shared/components/ProductCard';
 import { formatProductPrice } from '@shared/hooks/useHomeTab';
 import { colors } from '@shared/theme/colorPalette';
 import { stripEmojis } from '@src/shared/utils/inputSanitizers';
+import { isPrescriptionRequired } from '@shared/utils/stringUtils';
 
 export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCart }) {
   const [query, setQuery] = useState('');
@@ -115,7 +116,7 @@ export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCar
           category={item.category?.category_name}
           price={formatProductPrice(item.selling_price || item.price)}
           onAddToCart={onAddToCart}
-          isPrescribed={Boolean(item.product?.is_prescribed)}
+          isPrescribed={isPrescriptionRequired(item)}
           isAvailable={isAvailable}
           isOutOfStock={isOutOfStock}
           stock={item.stock}
@@ -212,7 +213,7 @@ export default function SearchOverlay({ visible, onClose, pharmacyId, onAddToCar
                           category={item.category?.category_name}
                           price={formatProductPrice(item.selling_price || item.price)}
                           onAddToCart={onAddToCart}
-                          isPrescribed={Boolean(item.product?.is_prescribed)}
+                          isPrescribed={isPrescriptionRequired(item)}
                           isAvailable={isAvailable}
                           isOutOfStock={isOutOfStock}
                           stock={item.stock}

@@ -1,5 +1,6 @@
 import { apiRequest } from '@shared/api/client';
 import { getManilaMinutes, formatPharmacyHoursLabel } from '@src/utils/pickupScheduleUtils';
+import { isPrescriptionRequired } from '@shared/utils/stringUtils';
 
 function toPositiveInteger(value, fallback = 1) {
   const parsed = Number(value);
@@ -27,8 +28,8 @@ function normalizeCartItems(payload) {
   return [];
 }
 
-function hasRxMarker(value) {
-  return typeof value === 'string' && /prescription required|rx|prescription/i.test(value);
+function hasRxCategory(name) {
+  return typeof name === 'string' && /\b(prescription only|rx required|rx medicines?)\b/i.test(name);
 }
 
 function buildProductName(product, fallback) {
@@ -62,12 +63,7 @@ function mapCartApiItem(item) {
     price: safeUnitPrice,
     quantity: safeQuantity,
     selected: false,
-    prescriptionRequired:
-      Boolean(item?.prescription_required) ||
-      Boolean(item?.product?.is_prescribed) ||
-      hasRxMarker(categoryName) ||
-      hasRxMarker(description) ||
-      hasRxMarker(item?.product?.description),
+    prescriptionRequired: isPrescriptionRequired(item) || hasRxCategory(categoryName),
     isDiscountable: (() => {
       const val = item?.is_discountable ?? item?.pharmacy_product?.is_discountable ?? item?.pharmacyProduct?.is_discountable;
       if (val === undefined || val === null) return true;

@@ -19,7 +19,7 @@ import { addPharmacyProductToCart } from '@shared/utils/cartUtils';
 import ToastMessage from '@shared/components/ToastMessage';
 import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { toTitleCase } from '@shared/utils/stringUtils';
+import { toTitleCase, isPrescriptionRequired } from '@shared/utils/stringUtils';
 import { formatBranchName } from '@shared/utils/notificationUtils';
 import { getTimeBasedGreeting } from '@src/utils/pickupScheduleUtils';
 import { useFontSize } from '@shared/context/FontSizeContext';
@@ -134,7 +134,7 @@ export default function HomeScreen() {
           description={item?.product?.product_name || 'Unnamed product'}
           category={item?.category?.category_name || 'Uncategorized'}
           price={formatProductPrice(item?.selling_price)}
-          isPrescribed={Boolean(Number(item?.product?.is_prescribed))}
+          isPrescribed={isPrescriptionRequired(item)}
           isAvailable={
             (item?.is_available == null
               ? true

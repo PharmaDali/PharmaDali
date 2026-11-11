@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@src/shared/theme/colorPalette';
 import ArrowBackIcon from '@assets/icons/arrow_back_icon.svg';
+import RxIcon from '@assets/icons/rx_icon.svg';
 import ProductImage from '@src/shared/components/ProductImage';
 import ProductCard from '@src/shared/components/ProductCard';
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg';
@@ -14,7 +15,7 @@ import ToastMessage from '@shared/components/ToastMessage';
 import SkeletonProductView from '@src/shared/components/SkeletonProductView';
 import { useToast } from '@shared/hooks/useToast';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { formatStockLeft, getStockTextColor } from '@shared/utils/stringUtils';
+import { formatStockLeft, getStockTextColor, isPrescriptionRequired } from '@shared/utils/stringUtils';
 import { useFlyToCart } from '@shared/context/FlyToCartContext';
 import CartButton from '@shared/components/CartButton';
 import { useFontSize } from '@shared/context/FontSizeContext';
@@ -211,6 +212,7 @@ const ProductView = () => {
   const buttonText = isOutOfStock ? 'Out of Stock' : (!isAvailable ? 'Unavailable' : 'Add to cart');
   const stockLabel = formatStockLeft(stock);
   const stockTextColor = getStockTextColor(stock);
+  const isRx = isPrescriptionRequired(productData?.product || productData);
 
   return (
     <View className="flex-1 bg-white" style={{ paddingBottom: insets.bottom }}>
@@ -232,6 +234,7 @@ const ProductView = () => {
           <ProductImage
             product={product}
             categoryName={category?.category_name}
+            isPrescribed={isRx}
             isAvailable={isAvailable}
             isOutOfStock={isOutOfStock}
             stock={stock}
@@ -244,6 +247,14 @@ const ProductView = () => {
           <Text className="text-base" style={styles.productName}>
             {[name, product?.strength, product?.form, product?.size].filter(Boolean).join(' ')}
           </Text>
+          {isRx && (
+            <View className="flex-row items-center mt-1">
+              <RxIcon width={12} height={12} />
+              <Text className="text-[11px] ml-1 text-red-600" style={{ fontFamily: 'Poppins-Medium' }}>
+                Prescription Required
+              </Text>
+            </View>
+          )}
           <View className="flex-row items-center justify-between mt-2">
             <Text className="text-xl" style={styles.priceText}>
               PHP {Number(selling_price).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
@@ -309,7 +320,7 @@ const ProductView = () => {
                   productId={String(item.product_id)}
                   pharmacyProductId={String(item.id)}
                   pharmacyId={pharmacyId}
-                  isPrescribed={Boolean(item.product?.is_prescribed)}
+                  isPrescribed={isPrescriptionRequired(item)}
                   isAvailable={item.is_available}
                   isOutOfStock={Boolean(item.is_out_of_stock) || (item.stock !== undefined && Number(item.stock) <= 0)}
                   stock={item.stock}

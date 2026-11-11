@@ -6,7 +6,7 @@ import AddToCartIcon from '@assets/icons/add_to_cart_icon.svg';
 import RxIcon from '@assets/icons/rx_icon.svg';
 import ProductImage from '@shared/components/ProductImage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { formatStockLeft, getStockTextColor } from '@shared/utils/stringUtils';
+import { formatStockLeft, getStockTextColor, isPrescriptionRequired } from '@shared/utils/stringUtils';
 
 import { useFlyToCart } from '@shared/context/FlyToCartContext';
 import { useFontSize } from '@shared/context/FontSizeContext';
@@ -23,7 +23,7 @@ const ProductCard = ({
   pharmacyProductId,
   pharmacyId,
   onAddToCart,
-  isPrescribed = false,
+  isPrescribed = undefined,
   isAvailable = true,
   isOutOfStock = false,
   stock = undefined,
@@ -35,6 +35,10 @@ const ProductCard = ({
   const [quantity, setQuantity] = useState(1);
   const [isAddedSuccess, setIsAddedSuccess] = useState(false);
   const [tapPos, setTapPos] = useState({ x: null, y: null });
+
+  const isRx = isPrescribed !== undefined
+    ? isPrescriptionRequired({ is_prescribed: isPrescribed })
+    : isPrescriptionRequired(product);
 
   const isOutOfStockComputed = Boolean(isOutOfStock) || (stock !== undefined && stock !== null && Number(stock) <= 0);
   const canAddToCart = isAvailable !== false && !isOutOfStockComputed;
@@ -150,6 +154,7 @@ const ProductCard = ({
             source={img}
             product={product}
             categoryName={categoryName}
+            isPrescribed={isRx}
             isAvailable={isAvailable}
             isOutOfStock={isOutOfStockComputed}
             stock={stock}
@@ -165,7 +170,7 @@ const ProductCard = ({
           >
             {category}
           </Text>
-          {Boolean(isPrescribed) && (
+          {Boolean(isRx) && (
             <View className="flex-row items-center mt-1">
               <RxIcon width={12} height={12} />
               <Text className="text-[10px] ml-1" style={styles.rxText}>Prescription Required</Text>
