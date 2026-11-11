@@ -1,7 +1,16 @@
-import { useState, useEffect } from 'react';
-import { BottomNavigation, Badge } from 'react-native-paper';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'expo-router';
-import { Text, View, Keyboard } from 'react-native';
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  Animated,
+  Keyboard,
+  StyleSheet,
+  useWindowDimensions,
+} from 'react-native';
+import { Badge } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '@shared/theme/colorPalette';
 import { useUnreadNotifications } from '@shared/hooks/useUnreadNotifications';
 import { useSearchContext } from '@shared/context/SearchContext';
@@ -27,85 +36,173 @@ const routes = [
   { key: 'profile', title: 'Account', focusedIcon: accountIconFocused, unfocusedIcon: accountIcon, path: '/tabs/account/Account' }
 ];
 
+const PILL_WIDTH = 58;
+const PILL_HEIGHT = 32;
+
 export default function BottomBar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { unreadCount } = useUnreadNotifications();
+  const insets = useSafeAreaInsets();
+  const { width: windowWidth } = useWindowDimensions();
+  const { unreadCount, markSeen } = useUnreadNotifications();
   const { setSearchQuery } = useSearchContext();
   const { scaleFontSize } = useFontSize();
-  const [optimisticRead, setOptimisticRead] = useState(false);
+  const [barWidth, setBarWidth] = useState(windowWidth);
 
-  // If new notifications arrive, reset the optimistic state
-  useEffect(() => {
-    if (unreadCount > 0) {
-      // Actually, if unreadCount > 0 it could just be the same old ones.
-      // But usually we just clear it when pressed. We'll leave it as is 
-      // or we can just rely on optimisticRead. 
-      // A better way is to track the last count, but let's keep it simple.
-    }
-  }, [unreadCount]);
-
-  const index = routes.findIndex(r => {
+  const rawIndex = routes.findIndex(r => {
     if (pathname === r.path) return true;
     if (r.key === 'notifications' && pathname.startsWith('/tabs/Notification')) return true;
     const dir = r.path.substring(0, r.path.lastIndexOf('/') + 1);
     return dir !== '/tabs/' && pathname.startsWith(dir);
   });
+  const activeIndex = Math.max(0, rawIndex);
+  const isNotificationActive = pathname.startsWith('/tabs/Notification') || activeIndex === 3;
+
+  const tabWidth = barWidth / routes.length;
+  const initialOffset = activeIndex * tabWidth + (tabWidth - PILL_WIDTH) / 2;
+  const slideAnim = useRef(new Animated.Value(initialOffset)).current;
+
+  useEffect(() => {
+    if (barWidth > 0) {
+      const currentTabWidth = barWidth / routes.length;
+      const targetX = activeIndex * currentTabWidth + (currentTabWidth - PILL_WIDTH) / 2;
+      Animated.spring(slideAnim, {
+        toValue: targetX,
+        useNativeDriver: true,
+        friction: 8,
+        tension: 65,
+      }).start();
+    }
+  }, [activeIndex, barWidth]);
+
+  const handleTabPress = (route) => {
+    Keyboard.dismiss();
+    if (route.key === 'notifications') {
+      markSeen();
+    }
+
+    // Clear search input when switching to ANY tab
+    setSearchQuery('');
+
+    if (pathname === route.path) return;
+    router.replace(route.path);
+  };
 
   return (
-    <BottomNavigation.Bar
-      navigationState={{ index: index >= 0 ? index : 0, routes }}
-      onTabPress={({ route }) => {
-        Keyboard.dismiss();
-        if (route.key === 'notifications') {
-          setOptimisticRead(true);
+    <View
+      style={[
+        styles.barContainer,
+        { paddingBottom: Math.max(insets.bottom, 6) }
+      ]}
+      onLayout={(e) => {
+        const w = e.nativeEvent.layout.width;
+        if (w > 0 && Math.abs(w - barWidth) > 1) {
+          setBarWidth(w);
         }
-        
-        // Clear search input when switching to ANY tab
-        setSearchQuery('');
-        
-        if (pathname === route.path) return;
-        router.replace(route.path);
       }}
-      style={{ backgroundColor: '#fff' }}
-      inactiveColor={colors.buttonColor}
-      activeColor="#fff"
-      activeIndicatorStyle={{
-        backgroundColor: colors.buttonColor, 
-      }}
-      renderIcon={({ route, focused }) => {
-        const Icon = focused ? route.focusedIcon : route.unfocusedIcon;
-        return (
-          <View>
-            <Icon width={24} height={24} />
-            {route.key === 'notifications' && unreadCount > 0 && !optimisticRead && (
-              <Badge 
-                size={10} 
-                style={{ 
-                  position: 'absolute', 
-                  top: -2, 
-                  right: -2, 
-                  backgroundColor: '#FF4D4D',
-                }}
-              />
-            )}
-          </View>
-        );
-      }}
-      renderLabel={({ route }) => (
-        <Text
-          className="text-center"
-          style={{ 
-            color: colors.buttonColor, 
-            fontFamily: 'Poppins-Medium',
-            fontSize: scaleFontSize(10),
-          }}
-          numberOfLines={1}
-        >
-          {route.title}
-        </Text>
-      )}
-      labeled={true}
-    />
+    >
+      {/* Sliding Active Pill Indicator */}
+      <Animated.View
+        style={[
+          styles.slidingPill,
+          {
+            width: PILL_WIDTH,
+            height: PILL_HEIGHT,
+            transform: [{ translateX: slideAnim }],
+          },
+        ]}
+      />
+
+      {/* Tab Buttons */}
+      <View style={styles.tabsRow}>
+        {routes.map((route, idx) => {
+          const isFocused = activeIndex === idx;
+          const Icon = isFocused ? route.focusedIcon : route.unfocusedIcon;
+
+          return (
+            <TouchableOpacity
+              key={route.key}
+              activeOpacity={0.8}
+              onPress={() => handleTabPress(route)}
+              style={styles.tabButton}
+            >
+              <View style={styles.iconContainer}>
+                <Icon width={24} height={24} />
+                {route.key === 'notifications' && unreadCount > 0 && !isNotificationActive && (
+                  <Badge
+                    size={10}
+                    style={styles.notificationBadge}
+                  />
+                )}
+              </View>
+
+              <Text
+                style={[
+                  styles.tabLabel,
+                  {
+                    fontSize: scaleFontSize(10),
+                    color: isFocused ? colors.buttonColor : '#64748B',
+                    fontFamily: isFocused ? 'Poppins-SemiBold' : 'Poppins-Medium',
+                  },
+                ]}
+                numberOfLines={1}
+              >
+                {route.title}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  barContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    paddingTop: 8,
+    position: 'relative',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+  },
+  slidingPill: {
+    position: 'absolute',
+    top: 8,
+    backgroundColor: colors.buttonColor,
+    borderRadius: 16,
+    zIndex: 1,
+  },
+  tabsRow: {
+    flexDirection: 'row',
+    width: '100%',
+    zIndex: 2,
+  },
+  tabButton: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconContainer: {
+    width: PILL_WIDTH,
+    height: PILL_HEIGHT,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 8,
+    backgroundColor: '#FF4D4D',
+  },
+  tabLabel: {
+    textAlign: 'center',
+    marginTop: 4,
+  },
+});
+
