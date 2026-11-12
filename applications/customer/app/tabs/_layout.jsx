@@ -22,7 +22,13 @@ configureForegroundNotifications();
 
 const detailHeaders = {
   '/tabs/orders/ViewOrderDetails': 'Order Details',
+  '/orders/ViewOrderDetails': 'Order Details',
+  'tabs/orders/ViewOrderDetails': 'Order Details',
+  'orders/ViewOrderDetails': 'Order Details',
   '/tabs/orders/PayOrder': 'Awaiting Payment',
+  '/orders/PayOrder': 'Awaiting Payment',
+  'tabs/orders/PayOrder': 'Awaiting Payment',
+  'orders/PayOrder': 'Awaiting Payment',
 }
 
 const fullScreenRoutes = [
@@ -51,7 +57,10 @@ function DetailTopBar({ title }) {
 function LayoutContent() {
   const pathname = usePathname()
   const router = useRouter()
-  const detailTitle = detailHeaders[pathname]
+  const detailTitle =
+    detailHeaders[pathname] ||
+    (pathname?.includes('PayOrder') ? 'Awaiting Payment' : null) ||
+    (pathname?.includes('ViewOrderDetails') ? 'Order Details' : null)
   const isFullScreen = fullScreenRoutes.includes(pathname)
   const { selectionPhase } = useSelectionPhase()
   const { fontSize } = useFontSize()
