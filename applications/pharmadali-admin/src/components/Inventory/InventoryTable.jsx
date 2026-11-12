@@ -113,10 +113,10 @@ export function InventoryTable({
                   <td className="text-center">{item.expiryLabel}</td>
                   <td className="text-center">
                     <div className="d-inline-flex flex-column align-items-center">
-                      <span className="fw-semibold">₱{Number(item.sellingPrice || 0).toFixed(2)}</span>
+                      <span className="fw-semibold">PHP {Number(item.sellingPrice || 0).toFixed(2)}</span>
                       {Number(item.unitCost || 0) > 0 ? (
                         <span className="text-muted" style={{ fontSize: "11px" }}>
-                          Cost: ₱{Number(item.unitCost).toFixed(2)}
+                          Cost: PHP {Number(item.unitCost).toFixed(2)}
                         </span>
                       ) : (
                         <span
