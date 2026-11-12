@@ -16,6 +16,7 @@ class DevelopmentSeeder extends Seeder
     {
         $this->call([
             DatabaseSeeder::class,
+            SuperAdminSeeder::class,
             PharmacyProductsImportSeeder::class,
             PharmacySeeder::class,
             PharmacyAdminSeeder::class,

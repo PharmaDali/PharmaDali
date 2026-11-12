@@ -44,9 +44,11 @@ class PharmacyAdminSeeder extends Seeder
             ['user_id' => $pharmacistUser->id],
             [
                 'employee_number'          => 'EMP-' . str_pad((string) $pharmacistUser->id, 4, '0', STR_PAD_LEFT),
-                'license_number'           => 'PRC-0123456',
+                'license_number'           => 'PRC-0654321',
                 'permissions'              => \App\Models\Pharmacist::DEFAULT_PERMISSIONS,
                 'requires_password_change' => false,
+                'is_on_duty'               => true,
+                'duty_updated_at'          => now(),
             ]
         );
     }
