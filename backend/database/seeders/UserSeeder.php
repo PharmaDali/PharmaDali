@@ -52,7 +52,7 @@ class UserSeeder extends Seeder
         $tempPassword = 'PharmaDali#2026';
 
         $pharmacistUser = User::updateOrCreate(
-            ['email' => 'thisis.acadpurposesonly@gmail.com'],
+            ['email' => 'pharmadalipharmacist@gmail.com'],
             [
                 'first_name'               => 'Angelo',
                 'last_name'                => 'Reyes',
