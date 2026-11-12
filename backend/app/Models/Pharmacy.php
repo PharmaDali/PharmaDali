@@ -21,6 +21,7 @@ class Pharmacy extends Model
         'payment_qr_code_path',
         'gcash_name',
         'gcash_number',
+        'enable_online_payment',
         'is_active',
         'is_manually_closed',
         'opening_hour',
@@ -55,6 +56,7 @@ class Pharmacy extends Model
     protected $casts = [
         'is_active'                     => 'boolean',
         'is_manually_closed'            => 'boolean',
+        'enable_online_payment'         => 'boolean',
         'enable_vat_exemption_discount' => 'boolean',
         'allow_otc_discount'            => 'boolean',
         'allow_item_exchange'           => 'boolean',
@@ -94,6 +96,28 @@ class Pharmacy extends Model
         }
 
         return app(\App\Services\Media\PrivateMediaUrlGenerator::class)->generateUrl($this->payment_qr_code_path);
+    }
+
+    /**
+     * Check whether all required online payment details (QR code, account name, mobile number) are filled.
+     */
+    public function hasCompleteOnlinePaymentInfo(): bool
+    {
+        return !empty($this->payment_qr_code_path)
+            && trim((string) $this->gcash_name) !== ''
+            && trim((string) $this->gcash_number) !== '';
+    }
+
+    /**
+     * Online payment is automatically disabled whenever any required payment info is empty.
+     */
+    public function getEnableOnlinePaymentAttribute($value): bool
+    {
+        if (!$this->hasCompleteOnlinePaymentInfo()) {
+            return false;
+        }
+
+        return (bool) ($value ?? false);
     }
 
     /**

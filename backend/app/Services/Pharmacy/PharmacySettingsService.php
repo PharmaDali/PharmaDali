@@ -32,12 +32,14 @@ class PharmacySettingsService
                 'payment_qr_code_url'    => $pharmacy->payment_qr_code_url,
                 'gcash_name'             => $pharmacy->gcash_name,
                 'gcash_number'           => $pharmacy->gcash_number,
+                'enable_online_payment'  => (bool) $pharmacy->enable_online_payment,
                 'opening_hour'           => $pharmacy->opening_hour,
                 'closing_hour'           => $pharmacy->closing_hour,
                 'is_active'              => (bool) ($pharmacy->is_active ?? true),
                 'is_manually_closed'     => (bool) ($pharmacy->is_manually_closed ?? false),
             ],
             'payment_settings' => [
+                'enable_online_payment'  => (bool) $pharmacy->enable_online_payment,
                 'payment_qr_code_url'    => $pharmacy->payment_qr_code_url,
                 'gcash_name'             => $pharmacy->gcash_name,
                 'gcash_number'           => $pharmacy->gcash_number,
@@ -101,6 +103,7 @@ class PharmacySettingsService
             'show_vat_breakdown_on_receipt',
             'gcash_name',
             'gcash_number',
+            'enable_online_payment',
         ];
 
         $filteredData = array_intersect_key($data, array_flip($allowed));

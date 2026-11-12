@@ -23,6 +23,9 @@ class PharmacySettingsRepository
     public function update(Pharmacy $pharmacy, array $data): Pharmacy
     {
         $pharmacy->fill($data);
+        if (!$pharmacy->hasCompleteOnlinePaymentInfo()) {
+            $pharmacy->enable_online_payment = false;
+        }
         $pharmacy->save();
 
         if (!$pharmacy->isCurrentlyOpen()) {
@@ -60,6 +63,9 @@ class PharmacySettingsRepository
     public function updatePaymentQrCode(Pharmacy $pharmacy, ?string $path): Pharmacy
     {
         $pharmacy->payment_qr_code_path = $path;
+        if (empty($path)) {
+            $pharmacy->enable_online_payment = false;
+        }
         $pharmacy->save();
 
         Cache::forget('pharmacies_all');
