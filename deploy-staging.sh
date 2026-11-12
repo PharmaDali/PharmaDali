@@ -46,6 +46,7 @@ fi
 
 # 3. Pull latest code
 echo -e "${YELLOW}>>> Fetching latest changes from origin/${TARGET_BRANCH}...${NC}"
+git config core.fileMode false
 git fetch origin "$TARGET_BRANCH"
 git checkout "$TARGET_BRANCH"
 git pull origin "$TARGET_BRANCH"

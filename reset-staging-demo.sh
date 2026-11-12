@@ -44,7 +44,7 @@ fi
 
 # 1. Fresh migrate and seed
 echo -e "${BLUE}>>> [1/4] Fresh migrating staging database & seeding demo records...${NC}"
-docker compose -f "$COMPOSE_FILE" exec -T staging-backend-app php artisan migrate:fresh --seed --class=DevelopmentSeeder --force
+docker compose -f "$COMPOSE_FILE" exec -T staging-backend-app php artisan migrate:fresh --seed --seeder=DevelopmentSeeder --force
 
 # 2. Re-index search engine (Meilisearch)
 echo -e "${BLUE}>>> [2/4] Syncing & re-indexing products into Meilisearch...${NC}"
