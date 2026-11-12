@@ -9,12 +9,13 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useLocalSearchParams } from 'expo-router'
 import * as ImagePicker from 'expo-image-picker'
 import GcashIcon from '@assets/icons/gcash_icon.svg'
 import { fetchCustomerOrderDetails, uploadCustomerPaymentReceipt } from '@shared/services/orderService'
+import { getPharmacyById } from '@shared/services/selectionPhaseService'
 import GcashPaymentSection from '@shared/components/GcashPaymentSection'
+import PaymentSuccessModal from '@shared/components/PaymentSuccessModal'
 
 export default function PayOrderScreen() {
   const router = useRouter()
@@ -26,13 +27,28 @@ export default function PayOrderScreen() {
   const [order, setOrder] = useState(null)
   const [error, setError] = useState('')
   const [gcashReceiptImage, setGcashReceiptImage] = useState(null)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   useEffect(() => {
     const loadOrder = async () => {
       try {
         setLoading(true)
         const payload = await fetchCustomerOrderDetails(resolvedOrderId)
-        setOrder(payload?.data || null)
+        const orderData = (payload && payload.id) ? payload : (payload?.data || payload || null)
+
+        if (orderData && (!orderData.pharmacy || !orderData.pharmacy.payment_qr_code_url) && orderData.pharmacy_id) {
+          try {
+            const pharmacyRes = await getPharmacyById(orderData.pharmacy_id)
+            const pharmacyData = pharmacyRes?.data ? pharmacyRes.data : pharmacyRes
+            if (pharmacyData) {
+              orderData.pharmacy = { ...(orderData.pharmacy || {}), ...pharmacyData }
+            }
+          } catch (pErr) {
+            console.warn('[PayOrderScreen] Could not fetch extra pharmacy details:', pErr)
+          }
+        }
+
+        setOrder(orderData || null)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load order.')
       } finally {
@@ -98,17 +114,17 @@ export default function PayOrderScreen() {
     setSubmitting(true)
     try {
       await uploadCustomerPaymentReceipt(resolvedOrderId, gcashReceiptImage)
-      Alert.alert('Success', 'Payment receipt uploaded successfully!', [
-        {
-          text: 'OK',
-          onPress: () => router.back()
-        }
-      ])
+      setShowSuccessModal(true)
     } catch (err) {
       Alert.alert('Upload Failed', err instanceof Error ? err.message : 'Something went wrong.')
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false)
+    router.back()
   }
 
   if (loading) {
@@ -138,9 +154,9 @@ export default function PayOrderScreen() {
   const discountAmount = Number(order?.discount_amount ?? 0)
 
   return (
-    <SafeAreaView className="flex-1 bg-[#F1F4FF]">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <View className="bg-white rounded-2xl border border-gray-200 mx-4 mt-2 px-4 py-4 elevation-2 shadow-sm">
+    <View className="flex-1 bg-[#F1F4FF]">
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingTop: 16, paddingBottom: 28 }}>
+        <View className="bg-white rounded-2xl border border-gray-200 mx-4 px-4 py-4 elevation-2 shadow-sm">
           <View className="flex-row justify-between items-center mb-1">
             <Text className="text-sm" style={styles.textColorBold}>Order #{order?.order_number || orderNumber}</Text>
             <View className="flex-row items-center">
@@ -206,9 +222,9 @@ export default function PayOrderScreen() {
           onTakeImage={handleTakeGcashReceiptPhoto}
           receiptImage={gcashReceiptImage}
           onRemoveReceipt={handleRemoveGcashReceipt}
-          qrCodeUrl={order?.pharmacy?.payment_qr_code_url || order?.pharmacy?.paymentQrCodeUrl}
-          accountName={order?.pharmacy?.gcash_name || order?.pharmacy?.gcashName}
-          accountNumber={order?.pharmacy?.gcash_number || order?.pharmacy?.gcashNumber}
+          qrCodeUrl={order?.pharmacy?.payment_qr_code_url || order?.pharmacy?.paymentQrCodeUrl || order?.pharmacy?.payment_qr_code_path || order?.pharmacy?.paymentQrCodePath}
+          accountName={order?.pharmacy?.gcash_name || order?.pharmacy?.gcashName || order?.pharmacy?.pharmacy_name || order?.pharmacy?.pharmacyName}
+          accountNumber={order?.pharmacy?.gcash_number || order?.pharmacy?.gcashNumber || order?.pharmacy?.contact_number || order?.pharmacy?.contactNumber}
           wrapperStyle={{ marginHorizontal: 16, shadowColor: '#000', elevation: 2 }}
           footer={
             <TouchableOpacity
@@ -227,7 +243,12 @@ export default function PayOrderScreen() {
           }
         />
       </ScrollView>
-    </SafeAreaView>
+
+      <PaymentSuccessModal
+        visible={showSuccessModal}
+        onClose={handleSuccessModalClose}
+      />
+    </View>
   )
 }
 

@@ -37,12 +37,16 @@ class ApiError extends Error {
 
 const PROD_API_URL = 'https://api.pharmadali.com/api';
 
-const getBaseUrl = () => {
+export const getBaseUrl = () => {
   const envUrl = process.env.EXPO_PUBLIC_API_URL;
   if (envUrl && typeof envUrl === 'string' && envUrl.trim() !== '') {
     return envUrl.trim().replace(/\/+$/, '');
   }
   return PROD_API_URL;
+};
+
+export const getServerRoot = () => {
+  return getBaseUrl().replace(/\/api\/?$/, '');
 };
 
 const getErrorMessage = (data, fallback) => {
@@ -53,7 +57,7 @@ const getErrorMessage = (data, fallback) => {
   return data?.message?.trim() || fallback;
 };
 
-const getStoredToken = async () => {
+export const getStoredToken = async () => {
   const raw = await SecureStore.getItemAsync('customer_token');
 
   if (!raw) {
