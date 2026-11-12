@@ -7,6 +7,7 @@ import { formatDateToMMDDYYYY, formatShortDateTime12h } from '@shared/utils/date
 import { getPharmacyOrders } from '@shared/services/orderToPharmacistService';
 
 import { useFocusEffect } from 'expo-router';
+import { getCachedToken } from '@shared/api/client';
 
 const readyTabs = ['For Pickup', 'Completed', 'Expired'];
 
@@ -24,12 +25,107 @@ const mapApiStatusToTabStatus = (status) => {
   return null;
 };
 
+const resolveMediaUriRaw = (urlOrPath, baseUrl) => {
+  if (!urlOrPath) return null;
+  const target = typeof urlOrPath === 'string' ? urlOrPath : (urlOrPath.uri || '');
+  if (!target || typeof target !== 'string') return null;
+
+  const cleanBase = String(baseUrl || '').replace(/\/+$/, '').replace(/\/api$/, '');
+
+  // If it's a signed private media url
+  if (target.includes('/api/media/private/')) {
+    const pathAndQuery = target.substring(target.indexOf('/api/media/private/'));
+    return { uri: `${cleanBase}${pathAndQuery}` };
+  }
+
+  // If it's a relative path starting with /
+  if (target.startsWith('/')) {
+    return { uri: `${cleanBase}${target}` };
+  }
+
+  // If it's a full URL, rebase to the active base if the host differs
+  if (target.startsWith('http://') || target.startsWith('https://')) {
+    try {
+      const parsed = new URL(target);
+      if (cleanBase) {
+        const baseParsed = new URL(cleanBase.startsWith('http') ? cleanBase : `http://${cleanBase}`);
+        if (parsed.host !== baseParsed.host) {
+          return { uri: `${cleanBase}${parsed.pathname}${parsed.search}` };
+        }
+      }
+      return { uri: target };
+    } catch {
+      return { uri: target };
+    }
+  }
+
+  // If it's a private media relative storage path
+  const clean = target.replace(/^\/?storage\//, '').replace(/^\/+/, '');
+  if (
+    clean.startsWith('prescriptions/') ||
+    clean.startsWith('discount_ids/') ||
+    clean.startsWith('payment_receipts/') ||
+    clean.startsWith('chat_images/') ||
+    clean.startsWith('payment_qrs/')
+  ) {
+    return { uri: `${cleanBase}/api/media/private/${clean}` };
+  }
+
+  return { uri: `${cleanBase}/storage/${clean}` };
+};
+
+// Attach the pharmacist token so private media loads even if the signed URL is invalid for this host.
+const resolveMediaUri = (urlOrPath, baseUrl) => {
+  const source = resolveMediaUriRaw(urlOrPath, baseUrl);
+  const token = getCachedToken();
+  if (source?.uri && token && source.uri.includes('/api/media/private/')) {
+    return { ...source, headers: { Authorization: `Bearer ${token}`, Accept: 'image/*' } };
+  }
+  return source;
+};
+
 const mapApiOrdersToUiOrders = (apiOrders) => {
   if (!Array.isArray(apiOrders)) return [];
 
   return apiOrders.map((order) => {
     const customer = order?.customer?.user;
     const baseUrl = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/+$/, '').replace(/\/api$/, '');
+
+    const discountIdUri = resolveMediaUri(order?.discount_id_image_url || order?.discount_id_image_path, baseUrl);
+    const paymentReceiptUri = resolveMediaUri(order?.payment_receipt_image_url || order?.payment_receipt_image_path, baseUrl);
+
+    const items = (order?.items || []).map((item) => {
+      const product = item?.pharmacy_product?.product;
+      const categoryName = item?.pharmacy_product?.category?.category_name || '';
+      const prescription = item?.order_item_prescription || item?.orderItemPrescription;
+      const rxUrl = prescription?.prescription_image_url || prescription?.image_url;
+      const rxPath = prescription?.prescription_image_path || prescription?.image_path;
+      const prescriptionImage = resolveMediaUri(rxUrl || rxPath, baseUrl);
+      const hasPrescriptionImage = Boolean(prescriptionImage);
+      const prescriptionRequired = Boolean(product?.is_prescribed) || hasPrescriptionImage;
+      const baseName = item?.product_name
+        || product?.product_name
+        || product?.brand_name
+        || product?.generic_name
+        || 'Medicine item';
+      const strengthForm = [product?.strength, product?.form, product?.size].filter(Boolean).join(' ');
+      const description = strengthForm ? `${baseName} (${strengthForm})` : baseName;
+
+      return {
+        img: product?.image_url || null,
+        product,
+        categoryName,
+        description,
+        price: Number(item?.unit_price_snapshot ?? 0).toFixed(2),
+        quantity: item?.quantity ?? 0,
+        sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
+        size: product?.size || product?.strength || '-',
+        prescriptionRequired,
+        prescriptionImage,
+      };
+    });
+
+    const orderPrescriptionImage = items.find((i) => i.prescriptionImage)?.prescriptionImage || null;
 
     return {
       id: order.id,
@@ -46,44 +142,17 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       submittedAgo: formatShortDateTime12h(order?.placed_at || order?.created_at) || 'Recently',
       orderTotal: Number(order?.total_amount ?? 0).toFixed(2),
       status: mapApiStatusToTabStatus(order?.status),
-      discountIdImagePath: order?.discount_id_image_url || (order.discount_id_image_path ? `${baseUrl}/storage/${String(order.discount_id_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null),
+      discountIdImage: discountIdUri || null,
+      discountIdImagePath: discountIdUri?.uri || null,
       discountType: order.discount_type,
       discountRemarks: order.discount_remarks,
-      paymentReceiptImagePath: order?.payment_receipt_image_url || (order.payment_receipt_image_path ? `${baseUrl}/storage/${String(order.payment_receipt_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null),
+      paymentReceiptImage: paymentReceiptUri || null,
+      paymentReceiptImagePath: paymentReceiptUri?.uri || null,
       paymentStatus: order.payment_status,
       paymentMethod: order.payment_method,
       note: order?.note || null,
-      items: (order?.items || []).map((item) => {
-        const product = item?.pharmacy_product?.product;
-        const categoryName = item?.pharmacy_product?.category?.category_name || '';
-        const prescription = item?.order_item_prescription;
-        const rxUrl = prescription?.prescription_image_url || prescription?.image_url;
-        const hasPrescriptionImage = Boolean(rxUrl || prescription?.prescription_image_path);
-        const prescriptionRequired = Boolean(product?.is_prescribed) || hasPrescriptionImage;
-        const cleanRxPath = prescription?.prescription_image_path
-          ? String(prescription.prescription_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')
-          : null;
-        const baseName = item?.product_name
-          || product?.product_name
-          || product?.brand_name
-          || product?.generic_name
-          || 'Medicine item';
-        const strengthForm = [product?.strength, product?.form, product?.size].filter(Boolean).join(' ');
-        const description = strengthForm ? `${baseName} (${strengthForm})` : baseName;
-
-        return {
-          img: product?.image_url || null,
-          product,
-          categoryName,
-          description,
-          price: Number(item?.unit_price_snapshot ?? 0).toFixed(2),
-          quantity: item?.quantity ?? 0,
-          sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
-          size: product?.size || product?.strength || '-',
-          prescriptionRequired,
-          prescriptionImage: rxUrl ? { uri: rxUrl } : (cleanRxPath ? { uri: `${baseUrl}/storage/${cleanRxPath}` } : null),
-        };
-      }),
+      prescriptionImage: orderPrescriptionImage,
+      items,
     };
   }).filter(order => order.status !== null);
 };

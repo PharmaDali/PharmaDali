@@ -92,7 +92,7 @@ export default function IssueOrderCard({ order, onOutPending }) {
       </View>
 
       {!expanded ? (
-        <View className="items-end px-4 pb-4">
+        <View key="collapsed-content" className="items-end px-4 pb-4">
           <TouchableOpacity
             className="flex-row items-center rounded-xl px-5 py-2"
             style={{ backgroundColor: colors.buttonColor }}
@@ -107,7 +107,7 @@ export default function IssueOrderCard({ order, onOutPending }) {
           </TouchableOpacity>
         </View>
       ) : (
-        <View>
+        <View key="expanded-content" collapsable={false}>
           {/* Rejection / On Hold / Cancellation Reason (Only displayed when card expands) */}
           {Boolean(displayReason) && (
             <View

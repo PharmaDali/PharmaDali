@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Dimensions } from 'react-native';
-import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Dimensions, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '@shared/theme/colorPalette';
 import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg';
@@ -35,7 +35,7 @@ const DISCOUNT_TYPE_LABELS = {
   pwd: 'PWD',
 };
 
-export default function ReadyOrderCard({ order }) {
+export default function ReadyOrderCard({ order, onMarkAsCompleted }) {
   const [expanded, setExpanded] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const isForPickup = order.status === 'For Pickup';
@@ -55,7 +55,7 @@ export default function ReadyOrderCard({ order }) {
   return (
     <OrderCard order={order} statusBadge={statusBadge}>
       {!expanded ? (
-        <View>
+        <View key="collapsed-content" collapsable={false}>
           <View className="items-center pb-4 pt-1">
             <TouchableOpacity
               className="flex-row items-center rounded-xl px-5 py-2 border"
@@ -70,8 +70,8 @@ export default function ReadyOrderCard({ order }) {
           </View>
 
           {isForPickup && (
-            <View className="px-4 pb-4 pt-1">
-              <View 
+            <View key="pickup-info-banner" className="px-4 pb-4 pt-1">
+              <View
                 className="bg-blue-50 border border-blue-100 p-3 rounded-xl flex-row items-start"
               >
                 <Text className="text-[9.5px] flex-1 leading-3.5" style={{ fontFamily: 'Poppins-Medium', color: '#2aabe2', includeFontPadding: false }}>
@@ -82,8 +82,8 @@ export default function ReadyOrderCard({ order }) {
           )}
         </View>
       ) : (
-        <View>
-          <View className="px-4 border-t border-gray-100">
+        <View key="expanded-content" collapsable={false}>
+          <View key="order-items-section" className="px-4 border-t border-gray-100">
             <Text className="text-sm mt-3" style={styles.sectionTitle}>Order Items</Text>
             {order.items.map((item, idx) => (
               <OrderItemRow key={idx} item={item} />
@@ -92,33 +92,19 @@ export default function ReadyOrderCard({ order }) {
 
           {/* Prescription Document Section */}
           {(() => {
-            const rxItems = order.items.filter(item => item.prescriptionRequired);
-            const prescriptionImage = rxItems.find(item => item.prescriptionImage)?.prescriptionImage;
+            const rxItem = order.items?.find((item) => item.prescriptionImage);
+            const prescriptionImage = rxItem?.prescriptionImage || (order.prescriptionImage ? (typeof order.prescriptionImage === 'string' ? { uri: order.prescriptionImage } : order.prescriptionImage) : null);
             if (!prescriptionImage) return null;
 
-            return (
-              <View className="mx-2 mb-4 mt-2">
-                <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
-                  <Text className="text-sm mb-3" style={styles.sectionTitle}>Prescription</Text>
+            const resolvedSource = typeof prescriptionImage === 'string' ? { uri: prescriptionImage } : prescriptionImage;
+            if (!resolvedSource?.uri && typeof resolvedSource !== 'number') return null;
 
-                  <TouchableOpacity
-                    className="w-full rounded-xl overflow-hidden border border-gray-300 relative bg-white"
-                    style={{ width: '100%', height: 130 }}
-                    activeOpacity={0.85}
-                    onPress={() => setPreviewImage(prescriptionImage)}
-                  >
-                    <Image
-                      source={prescriptionImage}
-                      style={{ width: '100%', height: 130 }}
-                      resizeMode="cover"
-                    />
-                    <View className="absolute bottom-2 right-2 bg-black/60 px-2.5 py-1 rounded-lg flex-row items-center">
-                      <Ionicons name="scan-outline" size={12} color="#fff" />
-                      <Text className="text-white text-[10px] ml-1" style={{ fontFamily: 'Poppins-Medium', includeFontPadding: false }}>
-                        Tap to enlarge
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+            return (
+              <View key="prescription-section" collapsable={false} style={styles.attachmentOuter}>
+                <View collapsable={false} style={styles.attachmentBox}>
+                  <Text style={[styles.sectionTitle, styles.attachmentHeading]}>Prescription</Text>
+
+                  <ImageThumb source={resolvedSource} onPress={() => setPreviewImage(resolvedSource)} />
                 </View>
               </View>
             );
@@ -127,84 +113,48 @@ export default function ReadyOrderCard({ order }) {
           {/* Discount ID Approval Section */}
           {order.discountIdImagePath && (() => {
             const isDiscountRejected = order.discountRemarks?.toLowerCase().includes('rejected');
+            const discountSource = order.discountIdImage || { uri: order.discountIdImagePath };
             return (
-            <View className="mx-2 mb-4 mt-2">
-              <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
-                <Text className="text-sm mb-3" style={styles.sectionTitle}>
-                  {order.discountType ? `Discount (${DISCOUNT_TYPE_LABELS[order.discountType] ?? order.discountType})` : 'Discount ID'}
-                </Text>
+              <View key="discount-section" collapsable={false} style={styles.attachmentOuter}>
+                <View collapsable={false} style={styles.attachmentBox}>
+                  <Text style={[styles.sectionTitle, styles.attachmentHeading]}>
+                    {order.discountType ? `Discount (${DISCOUNT_TYPE_LABELS[order.discountType] ?? order.discountType})` : 'Discount ID'}
+                  </Text>
 
-                <TouchableOpacity
-                  className="w-full rounded-xl overflow-hidden border border-gray-300 relative bg-white"
-                  style={{ width: '100%', height: 130 }}
-                  activeOpacity={0.85}
-                  onPress={() => setPreviewImage({ uri: order.discountIdImagePath })}
-                >
-                  <Image
-                    source={{ uri: order.discountIdImagePath }}
-                    style={{ width: '100%', height: 130 }}
-                    resizeMode="cover"
-                  />
-
-                  {isDiscountRejected ? (
-                    <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
-                      <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>ID Rejected</Text>
-                      <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
-                        Customer has been notified to bring physical ID.
-                      </Text>
-                    </View>
-                  ) : (
-                    <View className="absolute bottom-2 right-2 bg-black/60 px-2.5 py-1 rounded-lg flex-row items-center">
-                      <Ionicons name="scan-outline" size={12} color="#fff" />
-                      <Text className="text-white text-[10px] ml-1" style={{ fontFamily: 'Poppins-Medium', includeFontPadding: false }}>
-                        Tap to enlarge
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
+                  <View style={{ position: 'relative' }}>
+                    <ImageThumb source={discountSource} onPress={() => setPreviewImage(discountSource)} />
+                    {isDiscountRejected && (
+                      <View pointerEvents="none" className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 12 }}>
+                        <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>ID Rejected</Text>
+                        <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>Customer has been notified to bring physical ID.</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
               </View>
-            </View>
             );
           })()}
 
           {/* Payment Receipt Section */}
           {order.paymentReceiptImagePath && (() => {
             const isReceiptRejected = order.paymentStatus === 'failed';
+            const receiptSource = order.paymentReceiptImage || { uri: order.paymentReceiptImagePath };
             return (
-            <View className="mx-2 mb-4 mt-2">
-              <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
-                <Text className="text-sm mb-3" style={styles.sectionTitle}>Payment Receipt</Text>
+              <View key="receipt-section" collapsable={false} style={styles.attachmentOuter}>
+                <View collapsable={false} style={styles.attachmentBox}>
+                  <Text style={[styles.sectionTitle, styles.attachmentHeading]}>Payment Receipt</Text>
 
-                <TouchableOpacity
-                  className="w-full rounded-xl overflow-hidden border border-gray-300 relative bg-white"
-                  style={{ width: '100%', height: 130 }}
-                  activeOpacity={0.85}
-                  onPress={() => setPreviewImage({ uri: order.paymentReceiptImagePath })}
-                >
-                  <Image
-                    source={{ uri: order.paymentReceiptImagePath }}
-                    style={{ width: '100%', height: 130 }}
-                    resizeMode="cover"
-                  />
-
-                  {isReceiptRejected ? (
-                    <View className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)' }}>
-                      <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>Receipt Rejected</Text>
-                      <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>
-                        Customer notified to pay upon pickup.
-                      </Text>
-                    </View>
-                  ) : (
-                    <View className="absolute bottom-2 right-2 bg-black/60 px-2.5 py-1 rounded-lg flex-row items-center">
-                      <Ionicons name="scan-outline" size={12} color="#fff" />
-                      <Text className="text-white text-[10px] ml-1" style={{ fontFamily: 'Poppins-Medium', includeFontPadding: false }}>
-                        Tap to enlarge
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
+                  <View style={{ position: 'relative' }}>
+                    <ImageThumb source={receiptSource} onPress={() => setPreviewImage(receiptSource)} />
+                    {isReceiptRejected && (
+                      <View pointerEvents="none" className="absolute inset-0 z-10 items-center justify-center px-4" style={{ backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 12 }}>
+                        <Text className="text-[#DC3545] text-base mb-1" style={{ fontFamily: 'Poppins-Bold' }}>Receipt Rejected</Text>
+                        <Text className="text-gray-600 text-[10px] text-center" style={{ fontFamily: 'Poppins-Medium' }}>Customer notified to pay upon pickup.</Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
               </View>
-            </View>
             );
           })()}
 
@@ -260,9 +210,105 @@ export default function ReadyOrderCard({ order }) {
   );
 }
 
+function ImageThumb({ source, onPress }) {
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+
+  const uriKey = typeof source === 'string' ? source : source?.uri;
+
+  useEffect(() => {
+    setFailed(false);
+  }, [uriKey]);
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={onPress}
+      style={thumbStyles.container}
+    >
+      {!failed && (
+        <Image
+          source={source}
+          style={thumbStyles.image}
+          resizeMode="cover"
+          onLoad={() => setLoading(false)}
+          onLoadEnd={() => setLoading(false)}
+          onError={() => { setFailed(true); setLoading(false); }}
+        />
+      )}
+      {loading && !failed && (
+        <View style={thumbStyles.center} pointerEvents="none">
+          <ActivityIndicator size="small" color={colors.buttonColor} />
+        </View>
+      )}
+      {failed && (
+        <View style={thumbStyles.center} pointerEvents="none">
+          <Ionicons name="image-outline" size={22} color="#9CA3AF" />
+          <Text style={thumbStyles.failText}>Tap to view image</Text>
+        </View>
+      )}
+      <View style={thumbStyles.badge} pointerEvents="none">
+        <Ionicons name="scan-outline" size={12} color="#fff" />
+        <Text style={thumbStyles.badgeText}>Tap to enlarge</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+const thumbStyles = StyleSheet.create({
+  container: {
+    width: '100%',
+    height: 130,
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: '#FFFFFF',
+    position: 'relative',
+  },
+  image: {
+    width: '100%',
+    height: 130,
+  },
+  center: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  failText: { fontFamily: 'Poppins-Medium', fontSize: 10, color: '#6B7280', marginTop: 4 },
+  badge: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  badgeText: { color: '#fff', fontSize: 10, marginLeft: 4, fontFamily: 'Poppins-Medium', includeFontPadding: false },
+});
+
 const styles = StyleSheet.create({
   modalOverlay: {
     backgroundColor: 'rgba(0, 0, 0, 0.85)',
+  },
+  attachmentOuter: {
+    marginHorizontal: 8,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  attachmentBox: {
+    backgroundColor: '#EBF3F7',
+    borderRadius: 16,
+    padding: 12,
+    flexDirection: 'column',
+    overflow: 'hidden',
+  },
+  attachmentHeading: {
+    fontSize: 14,
+    marginBottom: 12,
   },
   sectionTitle: {
     fontFamily: 'Poppins-Bold',
@@ -279,5 +325,8 @@ const styles = StyleSheet.create({
   viewMoreText: {
     fontFamily: 'Poppins-SemiBold',
     color: colors.buttonColor,
+  },
+  markCompletedButton: {
+    backgroundColor: colors.buttonColor,
   },
 });
