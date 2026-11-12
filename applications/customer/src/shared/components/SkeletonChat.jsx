@@ -49,7 +49,7 @@ function SkeletonChatItem() {
 
 export default function SkeletonChat({ count = 6 }) {
   return (
-    <View className="flex-1 bg-white pt-2">
+    <View className="flex-1 bg-white pt-3">
       {Array.from({ length: count }).map((_, index) => (
         <SkeletonChatItem key={index} />
       ))}

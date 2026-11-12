@@ -10,6 +10,7 @@ import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { getPharmacyOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
 import { formatDateToMMDDYYYY, formatShortDateTime12h } from '@shared/utils/dateUtils';
 import { colors } from '@shared/theme/colorPalette';
+import { getCachedToken } from '@shared/api/client';
 
 const orderTabs = ['For Review', 'Preparing', 'Issues'];
 
@@ -28,6 +29,65 @@ const mapApiStatusToTabStatus = (status) => {
   return 'Issues';
 };
 
+const resolveMediaUriRaw = (urlOrPath, baseUrl) => {
+  if (!urlOrPath) return null;
+  const target = typeof urlOrPath === 'string' ? urlOrPath : (urlOrPath.uri || '');
+  if (!target || typeof target !== 'string') return null;
+
+  const cleanBase = String(baseUrl || '').replace(/\/+$/, '').replace(/\/api$/, '');
+
+  // If it's a signed private media url
+  if (target.includes('/api/media/private/')) {
+    const pathAndQuery = target.substring(target.indexOf('/api/media/private/'));
+    return { uri: `${cleanBase}${pathAndQuery}` };
+  }
+
+  // If it's a relative path starting with /
+  if (target.startsWith('/')) {
+    return { uri: `${cleanBase}${target}` };
+  }
+
+  // If it's a full URL, rebase to the active base if the host differs
+  if (target.startsWith('http://') || target.startsWith('https://')) {
+    try {
+      const parsed = new URL(target);
+      if (cleanBase) {
+        const baseParsed = new URL(cleanBase.startsWith('http') ? cleanBase : `http://${cleanBase}`);
+        if (parsed.host !== baseParsed.host) {
+          return { uri: `${cleanBase}${parsed.pathname}${parsed.search}` };
+        }
+      }
+      return { uri: target };
+    } catch {
+      return { uri: target };
+    }
+  }
+
+  // If it's a private media relative storage path
+  const clean = target.replace(/^\/?storage\//, '').replace(/^\/+/, '');
+  if (
+    clean.startsWith('prescriptions/') ||
+    clean.startsWith('discount_ids/') ||
+    clean.startsWith('payment_receipts/') ||
+    clean.startsWith('chat_images/') ||
+    clean.startsWith('payment_qrs/')
+  ) {
+    return { uri: `${cleanBase}/api/media/private/${clean}` };
+  }
+
+  return { uri: `${cleanBase}/storage/${clean}` };
+};
+
+// Attach the pharmacist token so private media loads even if the signed URL is invalid for this host.
+const resolveMediaUri = (urlOrPath, baseUrl) => {
+  const source = resolveMediaUriRaw(urlOrPath, baseUrl);
+  const token = getCachedToken();
+  if (source?.uri && token && source.uri.includes('/api/media/private/')) {
+    return { ...source, headers: { Authorization: `Bearer ${token}`, Accept: 'image/*' } };
+  }
+  return source;
+};
+
 const mapApiOrdersToUiOrders = (apiOrders) => {
   if (!Array.isArray(apiOrders)) {
     return [];
@@ -36,6 +96,57 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
   return apiOrders.map((order) => {
     const customer = order?.customer?.user;
     const baseUrl = (process.env.EXPO_PUBLIC_API_URL || '').replace(/\/+$/, '').replace(/\/api$/, '');
+
+    const discountIdUri = resolveMediaUri(order?.discount_id_image_url || order?.discount_id_image_path, baseUrl);
+    const paymentReceiptUri = resolveMediaUri(order?.payment_receipt_image_url || order?.payment_receipt_image_path, baseUrl);
+
+    const items = (order?.items || []).map((item) => {
+      const product = item?.pharmacy_product?.product;
+      const prescription = item?.order_item_prescription || item?.orderItemPrescription;
+      const categoryName = item?.pharmacy_product?.category?.category_name
+        || product?.category?.category_name
+        || product?.category_name
+        || '';
+      const baseName = item?.product_name
+        || product?.product_name
+        || product?.brand_name
+        || product?.generic_name
+        || 'Medicine item';
+      const strengthForm = [product?.strength, product?.form, product?.size].filter(Boolean).join(' ');
+      const description = strengthForm ? `${baseName} (${strengthForm})` : baseName;
+      
+      const rxUrl = prescription?.prescription_image_url || prescription?.image_url;
+      const rxPath = prescription?.prescription_image_path || prescription?.image_path;
+      const prescriptionImage = resolveMediaUri(rxUrl || rxPath, baseUrl);
+      const hasPrescriptionImage = Boolean(prescriptionImage);
+      const prescriptionRequired = Boolean(product?.is_prescribed) || hasPrescriptionImage;
+
+      const apiStatus = String(order?.status || '').toLowerCase();
+      let itemDisplayStatus = 'For Review';
+      if (apiStatus === 'cancelled' || apiStatus === 'rejected') itemDisplayStatus = 'Rejected';
+      if (apiStatus === 'stand_by') itemDisplayStatus = 'Awaiting Customer Response';
+      if (apiStatus === 'awaiting_payment') itemDisplayStatus = 'Awaiting Payment';
+      if (apiStatus === 'preparing') itemDisplayStatus = 'Preparing';
+
+      return {
+        img: product?.image_url || null,
+        product,
+        categoryName,
+        description,
+        price: Number(item?.unit_price_snapshot ?? 0).toFixed(2),
+        quantity: item?.quantity ?? 0,
+        sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
+        size: product?.size || product?.strength || '-',
+        prescriptionRequired,
+        prescriptionImage,
+        prescriptionStatus: prescription?.status || null,
+        isReuploaded: Boolean(prescription?.is_reuploaded),
+        status: itemDisplayStatus,
+        rejectionReason: order?.cancellation_reason || 'Requires attention',
+      };
+    });
+
+    const orderPrescriptionImage = items.find((i) => i.prescriptionImage)?.prescriptionImage || null;
 
     return {
       id: order.id,
@@ -57,58 +168,14 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       discountType: order?.discount_type || null,
       discountIdNumber: order?.discount_id_number || null,
       discountRemarks: order?.discount_remarks || null,
-      discountIdImagePath: order?.discount_id_image_url || (order?.discount_id_image_path ? `${baseUrl}/storage/${String(order.discount_id_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null),
-      paymentReceiptImagePath: order?.payment_receipt_image_url || (order?.payment_receipt_image_path ? `${baseUrl}/storage/${String(order.payment_receipt_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')}` : null),
+      discountIdImagePath: discountIdUri?.uri || null,
+      paymentReceiptImagePath: paymentReceiptUri?.uri || null,
       paymentMethod: order?.payment_method || null,
       paymentStatus: order?.payment_status || null,
       note: order?.note || null,
+      prescriptionImage: orderPrescriptionImage,
       isPrescriptionReuploaded: Boolean(order?.is_prescription_reuploaded || (order?.items || []).some((item) => item?.order_item_prescription?.is_reuploaded)),
-      items: (order?.items || []).map((item) => {
-        const product = item?.pharmacy_product?.product;
-        const prescription = item?.order_item_prescription;
-        const categoryName = item?.pharmacy_product?.category?.category_name
-          || product?.category?.category_name
-          || product?.category_name
-          || '';
-        const baseName = item?.product_name
-          || product?.product_name
-          || product?.brand_name
-          || product?.generic_name
-          || 'Medicine item';
-        const strengthForm = [product?.strength, product?.form, product?.size].filter(Boolean).join(' ');
-        const description = strengthForm ? `${baseName} (${strengthForm})` : baseName;
-        
-        const rxUrl = prescription?.prescription_image_url || prescription?.image_url;
-        const hasPrescriptionImage = Boolean(rxUrl || prescription?.prescription_image_path);
-        const prescriptionRequired = Boolean(product?.is_prescribed) || hasPrescriptionImage;
-        const cleanRxPath = prescription?.prescription_image_path
-          ? String(prescription.prescription_image_path).replace(/^\/?storage\//, '').replace(/^\/+/, '')
-          : null;
-
-        const apiStatus = String(order?.status || '').toLowerCase();
-        let itemDisplayStatus = 'For Review';
-        if (apiStatus === 'cancelled' || apiStatus === 'rejected') itemDisplayStatus = 'Rejected';
-        if (apiStatus === 'stand_by') itemDisplayStatus = 'Awaiting Customer Response';
-        if (apiStatus === 'awaiting_payment') itemDisplayStatus = 'Awaiting Payment';
-        if (apiStatus === 'preparing') itemDisplayStatus = 'Preparing';
-
-        return {
-          img: product?.image_url || null,
-          product,
-          categoryName,
-          description,
-          price: Number(item?.unit_price_snapshot ?? 0).toFixed(2),
-          quantity: item?.quantity ?? 0,
-          sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
-          size: product?.size || product?.strength || '-',
-          prescriptionRequired,
-          prescriptionImage: rxUrl ? { uri: rxUrl } : (cleanRxPath ? { uri: `${baseUrl}/storage/${cleanRxPath}` } : null),
-          prescriptionStatus: prescription?.status || null,
-          isReuploaded: Boolean(prescription?.is_reuploaded),
-          status: itemDisplayStatus,
-          rejectionReason: order?.cancellation_reason || 'Requires attention',
-        };
-      }),
+      items,
     };
   }).filter(order => order.status !== null);
 };

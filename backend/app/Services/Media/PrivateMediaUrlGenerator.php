@@ -32,12 +32,18 @@ class PrivateMediaUrlGenerator
 
         $expiresAt = $expiration ?? now()->startOfHour()->addHours(self::DEFAULT_EXPIRATION_HOURS);
 
-        return URL::temporarySignedRoute(
+        $relativeUrl = URL::temporarySignedRoute(
             'media.private',
             $expiresAt,
             ['path' => $normalizedPath],
-            absolute: true
+            absolute: false
         );
+
+        $root = app()->has('request') && request()->getHttpHost()
+            ? request()->root()
+            : config('app.url');
+
+        return rtrim($root, '/') . $relativeUrl;
     }
 }
 

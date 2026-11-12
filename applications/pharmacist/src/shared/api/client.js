@@ -42,7 +42,12 @@ const getItem = async (key) => {
   }
 };
 
-const getStoredToken = async () => {
+let cachedToken = null;
+
+// Synchronous access to the last-known token (used for authenticated image requests).
+export const getCachedToken = () => cachedToken;
+
+const readStoredToken = async () => {
   const raw = await getItem('pharmacist_token');
 
   if (!raw) {
@@ -64,6 +69,12 @@ const getStoredToken = async () => {
   } catch {
     return raw;
   }
+};
+
+export const getStoredToken = async () => {
+  const token = await readStoredToken();
+  cachedToken = token;
+  return token;
 };
 
 const getStoredPharmacyId = async () => {

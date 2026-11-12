@@ -1,8 +1,59 @@
-import React from 'react'
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
+import React, { useState, useEffect } from 'react'
+import { View, Text, Image, TouchableOpacity, StyleSheet, Alert, Platform, ActivityIndicator } from 'react-native'
 import DownloadIcon from '@assets/icons/download_icon.svg'
 import GcashReceiptIcon from '@assets/icons/gcash_receipt_icon.svg'
 import QrCodeImage from '@assets/images/qrcode_dummy.png'
+import { getServerRoot, getStoredToken } from '@shared/api/client'
+import * as FileSystem from 'expo-file-system/legacy'
+import { Asset } from 'expo-asset'
+
+const resolveQrUrl = (urlOrPath) => {
+  if (!urlOrPath) return null;
+  const target = typeof urlOrPath === 'string' ? urlOrPath : (urlOrPath.uri || '');
+  if (!target || typeof target !== 'string') return null;
+
+  const baseUrl = getServerRoot();
+
+  // If it's a signed private media url
+  if (target.includes('/api/media/private/')) {
+    const pathAndQuery = target.substring(target.indexOf('/api/media/private/'));
+    return `${baseUrl}${pathAndQuery}`;
+  }
+
+  // If it's a relative path starting with /
+  if (target.startsWith('/')) {
+    return `${baseUrl}${target}`;
+  }
+
+  // If it's a full URL, rebase to baseUrl if host differs
+  if (target.startsWith('http://') || target.startsWith('https://')) {
+    try {
+      const parsed = new URL(target);
+      if (baseUrl) {
+        const baseParsed = new URL(baseUrl.startsWith('http') ? baseUrl : `http://${baseUrl}`);
+        if (parsed.host !== baseParsed.host) {
+          return `${baseUrl}${parsed.pathname}${parsed.search}`;
+        }
+      }
+      return target;
+    } catch {
+      return target;
+    }
+  }
+
+  // If it's a private media relative storage path (e.g. payment_qrs/...)
+  const clean = target.replace(/^\/?storage\//, '').replace(/^\/+/, '');
+  if (
+    clean.startsWith('payment_qrs/') ||
+    clean.startsWith('prescriptions/') ||
+    clean.startsWith('discount_ids/') ||
+    clean.startsWith('payment_receipts/')
+  ) {
+    return `${baseUrl}/api/media/private/${clean}`;
+  }
+
+  return `${baseUrl}/storage/${clean}`;
+};
 
 export default function GcashPaymentSection({
   onPickFromGallery,
@@ -16,18 +67,106 @@ export default function GcashPaymentSection({
   accountName = '',
   accountNumber = '',
 }) {
-  const qrImageSource = qrCodeUrl ? { uri: qrCodeUrl } : QrCodeImage
+  const [loadError, setLoadError] = useState(false)
+  const [authToken, setAuthToken] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    getStoredToken().then((token) => {
+      if (mounted && token) setAuthToken(token)
+    }).catch(() => {})
+    return () => { mounted = false }
+  }, [])
+
+  useEffect(() => {
+    setLoadError(false)
+  }, [qrCodeUrl])
+
+  const resolvedQr = resolveQrUrl(qrCodeUrl)
+  const imageHeaders = authToken ? { Authorization: `Bearer ${authToken}` } : undefined
+  const qrImageSource = (resolvedQr && !loadError)
+    ? { uri: resolvedQr, ...(imageHeaders ? { headers: imageHeaders } : {}) }
+    : QrCodeImage
+
+  const [downloading, setDownloading] = useState(false)
+
+  const handleDownloadQr = async () => {
+    if (downloading) return
+    try {
+      setDownloading(true)
+      let localUri = null
+
+      if (resolvedQr && !loadError) {
+        const filename = `gcash_qr_${Date.now()}.png`
+        const targetPath = `${FileSystem.cacheDirectory}${filename}`
+        const downloadResult = await FileSystem.downloadAsync(
+          resolvedQr,
+          targetPath,
+          imageHeaders ? { headers: imageHeaders } : {}
+        )
+        localUri = downloadResult?.uri || targetPath
+      } else {
+        const asset = Asset.fromModule(QrCodeImage)
+        await asset.downloadAsync()
+        localUri = asset.localUri || asset.uri
+      }
+
+      if (!localUri) {
+        throw new Error('Unable to prepare QR code image for saving.')
+      }
+
+      if (Platform.OS === 'android') {
+        const permissions = await FileSystem.StorageAccessFramework.requestDirectoryPermissionsAsync()
+        if (permissions.granted) {
+          const base64Data = await FileSystem.readAsStringAsync(localUri, {
+            encoding: FileSystem.EncodingType.Base64,
+          })
+          const fileName = `PharmaDali_GCash_QR_${Date.now()}`
+          const safUri = await FileSystem.StorageAccessFramework.createFileAsync(
+            permissions.directoryUri,
+            fileName,
+            'image/png'
+          )
+          await FileSystem.writeAsStringAsync(safUri, base64Data, {
+            encoding: FileSystem.EncodingType.Base64,
+          })
+          Alert.alert('Download Complete', 'GCash QR code has been saved to your selected folder.')
+        }
+      } else {
+        Alert.alert('Download Complete', 'GCash QR code is ready.')
+      }
+    } catch (err) {
+      console.warn('[GcashPaymentSection] Download error:', err)
+      Alert.alert('Download Failed', err?.message || 'Failed to download QR code image.')
+    } finally {
+      setDownloading(false)
+    }
+  }
 
   return (
     <>
       <View className="bg-white rounded-2xl border border-gray-200 mt-3 p-5 items-center justify-center relative" style={wrapperStyle}>
-        <TouchableOpacity className="absolute top-4 right-4 p-1 z-10" activeOpacity={0.7}>
-          <DownloadIcon width={24} height={24} />
+        <TouchableOpacity
+          className="absolute top-4 right-4 p-1 z-10"
+          activeOpacity={0.7}
+          onPress={handleDownloadQr}
+          disabled={downloading}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          {downloading ? (
+            <ActivityIndicator size="small" color="#2AABE2" />
+          ) : (
+            <DownloadIcon width={24} height={24} />
+          )}
         </TouchableOpacity>
         <Image
           source={qrImageSource}
           style={qrStyle}
           resizeMode="contain"
+          onError={(e) => {
+            console.warn('[GcashPaymentSection] Failed to load QR code image:', e?.nativeEvent?.error || e);
+            setLoadError(true);
+          }}
         />
 
         {(Boolean(accountName) || Boolean(accountNumber)) && (

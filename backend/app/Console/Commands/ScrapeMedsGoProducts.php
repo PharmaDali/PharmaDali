@@ -27,7 +27,9 @@ class ScrapeMedsGoProducts extends Command
                             {--stock=100 : Initial inventory stock per product for staging}
                             {--fresh : Remove previously scraped MedsGo products before importing}
                             {--skip-images : Skip downloading images}
-                            {--dry-run : Preview scraped data without saving to database}';
+                            {--dry-run : Preview scraped data without saving to database}
+                            {--sanitize-existing : Sanitize description, dosage/strength, and size for all existing products in database}
+                            {--sanitize-only : Only sanitize existing products in database without scraping new items}';
 
     /**
      * The console command description.
@@ -77,7 +79,10 @@ class ScrapeMedsGoProducts extends Command
         if ($fresh && !$dryRun) {
             $this->warn("Clearing previously scraped MedsGo products across all target pharmacies...");
             $pharmacyIds = $targetPharmacies->pluck('id')->toArray();
-            $scrapedBatches = ProductBatch::where('batch_number', 'LIKE', 'MEDSGO-%')
+            $scrapedBatches = ProductBatch::where(function ($q) {
+                    $q->where('batch_number', 'LIKE', 'MEDSGO-%')
+                      ->orWhere('batch_number', 'LIKE', 'STAGING-%');
+                })
                 ->whereHas('pharmacyProduct', fn($q) => $q->whereIn('pharmacy_id', $pharmacyIds))
                 ->get();
 
@@ -96,6 +101,16 @@ class ScrapeMedsGoProducts extends Command
                 }
             }
             $this->info('Previous MedsGo staging products cleaned.');
+        }
+
+        if ($this->option('sanitize-only') || $this->option('sanitize-existing')) {
+            $this->info("Sanitizing existing products in database (description, dosage/strength, and size)...");
+            $updated = $this->sanitizeExistingProducts();
+            $this->info("Successfully sanitized {$updated} existing products in database.");
+
+            if ($this->option('sanitize-only')) {
+                return Command::SUCCESS;
+            }
         }
 
         // Fetch Sitemap
@@ -148,7 +163,7 @@ class ScrapeMedsGoProducts extends Command
 
             if ($dryRun) {
                 $this->newLine();
-                $this->line(" [PREVIEW] {$productData['name']} | ₱{$productData['price']} | Rx: " . ($productData['is_prescribed'] ? 'Yes' : 'No') . " | Cat: {$productData['category']}");
+                $this->line(" [PREVIEW] {$productData['name']} | PHP " . number_format($productData['price'], 2) . " | Strength: " . ($productData['strength'] ?? 'N/A') . " | Size: " . ($productData['size'] ?? 'N/A') . " | Rx: " . ($productData['is_prescribed'] ? 'Yes' : 'No') . " | Cat: {$productData['category']}");
                 $savedCount++;
                 $bar->advance();
                 continue;
@@ -349,7 +364,7 @@ class ScrapeMedsGoProducts extends Command
                 return null;
             }
 
-            $name = trim($productData['name'] ?? '');
+            $name = trim(preg_replace('/\bmedsgo(\.ph)?\b/i', '', (string) ($productData['name'] ?? '')));
             if ($name === '') {
                 return null;
             }
@@ -358,16 +373,23 @@ class ScrapeMedsGoProducts extends Command
             $brand = is_array($productData['brand'] ?? null) 
                 ? ($productData['brand']['name'] ?? '') 
                 : (string) ($productData['brand'] ?? '');
+            if (strtolower(trim($brand)) === 'medsgo') {
+                $brand = 'Generic';
+            }
 
-            $description = trim($productData['description'] ?? '');
+            $description = $this->sanitizeDescription(trim($productData['description'] ?? ''));
 
-            // Price extraction
+            // Price extraction (strip any currency signs such as ₱ or PHP, or commas)
             $price = 0.0;
             if (!empty($productData['offers'])) {
                 $offer = is_array($productData['offers']) && isset($productData['offers'][0]) 
                     ? $productData['offers'][0] 
                     : $productData['offers'];
-                $price = (float) ($offer['price'] ?? 0);
+                $rawPrice = $offer['price'] ?? 0;
+                if (is_string($rawPrice)) {
+                    $rawPrice = preg_replace('/[^\d.]/', '', str_replace(['₱', 'PHP', 'Php', ','], '', $rawPrice));
+                }
+                $price = (float) $rawPrice;
             }
 
             if ($price <= 0) {
@@ -385,9 +407,10 @@ class ScrapeMedsGoProducts extends Command
 
             $isPrescribed = str_contains(strtolower($url), 'prescription-medicines') ? 1 : 0;
 
-            // Extract dosage form, strength, and generic name
+            // Extract dosage form, strength (dosage), size, and generic name
             $form = $this->extractForm($name, $description);
-            $strength = $this->extractStrength($name);
+            $strength = $this->extractStrength($name, $description);
+            $size = $this->extractSize($name, $description);
             $genericName = $this->extractGenericName($name, $brand);
 
             // Determine PharmaDali Category
@@ -403,6 +426,7 @@ class ScrapeMedsGoProducts extends Command
                 'is_prescribed' => $isPrescribed,
                 'form' => $form,
                 'strength' => $strength,
+                'size' => $size,
                 'generic_name' => $genericName,
                 'category' => $categoryName,
             ];
@@ -439,7 +463,7 @@ class ScrapeMedsGoProducts extends Command
             }
 
             $safeSlug = Str::slug(substr($identifier, 0, 40));
-            $filename = "medsgo_{$safeSlug}_" . substr(md5($imageUrl), 0, 8) . ".{$ext}";
+            $filename = "product_{$safeSlug}_" . substr(md5($imageUrl), 0, 8) . ".{$ext}";
             $relativePath = "products/{$filename}";
 
             Storage::disk('public')->put($relativePath, $body);
@@ -488,14 +512,170 @@ class ScrapeMedsGoProducts extends Command
     }
 
     /**
-     * Extract strength metric from title (e.g. 500mg, 100mcg, 3mg/ml, etc.).
+     * Extract dosage / strength metric from title or description (e.g. 20mg, 500mg, 100mcg, 400IU, 3%, 250mg / 5mL).
      */
-    private function extractStrength(string $title): ?string
+    private function extractStrength(string $title, string $desc = ''): ?string
     {
-        if (preg_match('/\b(\d+(\.\d+)?\s*(mg|g|mcg|iu|ml|%|mg\/ml))\b/i', $title, $m)) {
-            return $m[1];
+        // 1. Percentage dosages: e.g. "30% / 70%", "3%", "0.05%"
+        if (preg_match('/\b\d+(?:\.\d+)?%\s*(?:\/\s*\d+(?:\.\d+)?%|\s*per\s+ml)?/i', $title, $m)) {
+            return trim($m[0]);
         }
+
+        // 2. Compound or concentration dosages in title:
+        // E.g. "100mg / 5mg / 50mcg", "500mg / 267mg / 160mg", "250mg / 5mL", "100mg / mL", "10mg / 1000mg", "325mg / 37.5mg", "2.5mg / 500mcg", "1mg / 3mg per mL"
+        if (preg_match('/\b\d+(?:\.\d+)?\s*(?:mg|mcg|g|iu)\s*(?:\/\s*\d*(?:\.\d+)?\s*(?:mg|mcg|g|iu|ml|l|per\s+ml)\s*)+(?:per\s+ml)?/i', $title, $m)) {
+            return trim($m[0]);
+        }
+
+        // 3. Single dosage metric: e.g. "500mg", "20mg", "100mcg", "400IU", "100IU"
+        // Note: Never match standalone "ml" or "l" as strength!
+        if (preg_match('/\b(\d+(?:\.\d+)?\s*(?:mg|mcg|iu))\b/i', $title, $m)) {
+            return trim($m[1]);
+        }
+
+        // 4. Fallback to Formulation / Ingredients in description if title doesn't specify strength
+        if (!empty($desc) && !str_contains(strtolower($title), 'herbal')) {
+            if (preg_match('/Formulation\s*\/\s*Ingredients[^\n:]*[:\n]\s*([^\n\r]+)/i', $desc, $dm)) {
+                $ing = $dm[1];
+                if (!str_contains($ing, 'teleconsultation') && !str_contains($ing, 'prescription')) {
+                    if (preg_match_all('/\b\d+(?:\.\d+)?\s*(?:mg|mcg|iu|%)(?:\s*\/\s*\d*(?:\.\d+)?\s*(?:mg|mcg|g|iu|ml))?/i', $ing, $im)) {
+                        if (!empty($im[0])) {
+                            $strengths = array_filter($im[0], fn($s) => !preg_match('/^\d+\s*ml$/i', trim($s)));
+                            if (!empty($strengths)) {
+                                return implode(' / ', array_slice(array_map('trim', $strengths), 0, 3));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         return null;
+    }
+
+    /**
+     * Extract package / container size (e.g. 5mL, 60mL, 10ml, 1 Tablet, 1 Sachet x 10ml, 200act.).
+     */
+    private function extractSize(string $title, string $desc = ''): ?string
+    {
+        // 1. Pack + volume combinations: "1 Sachet x 10ml", "1 Sachet 10ml", "3ml - 1 Pre-Filled Pen"
+        if (preg_match('/\b(\d+\s*ml\s*-\s*\d+\s*(?:pre-filled\s+pen|pen|bottle|vial))\b/i', $title, $m)) {
+            return trim($m[1]);
+        }
+        if (preg_match('/\b(\d+\s*sachets?(?:\s*[xX]\s*\d+\s*ml|\s+\d+\s*ml))\b/i', $title, $m)) {
+            return trim($m[1]);
+        }
+
+        // 2. Look for standalone container volumes: e.g. "60mL", "10mL", "7.5mL", "15ml", "1L"
+        // Negative lookbehind ensures it's NOT a concentration denominator like "per mL", "per 5mL", "/ mL", "/ 5mL"
+        $volume = null;
+        if (preg_match_all('/(?<!\/|per|\/5|\/10|\/15|\/20|\/25)\s*(\b\d+(?:\.\d+)?\s*(?:ml|l|liter|liters)\b)(?!\s*\/|\s*per)/i', $title, $allVolumes)) {
+            $volumes = $allVolumes[1];
+            if (!empty($volumes)) {
+                $volume = trim(end($volumes));
+            }
+        }
+
+        // 3. Piece count / packaging: e.g. "1 Tablet", "1 Capsule", "200act.", "30's", "1 Pre-Filled Pen"
+        $pieces = null;
+        if (preg_match('/\b(\d+\s*(?:chewable tablet|sustained release tablet|film[- ]coated tablet|tablet|tablets|capsule|capsules|cap|tab|piece|pieces|pcs|sachet|sachets|pre-filled pen|pen|act\.?|doses?|\'s))\b/i', $title, $m)) {
+            $pieces = trim($m[1]);
+        }
+
+        if ($volume && $pieces) {
+            return "{$volume} ({$pieces})";
+        }
+        if ($volume) {
+            return $volume;
+        }
+        if ($pieces) {
+            return $pieces;
+        }
+
+        return null;
+    }
+
+    /**
+     * Sanitize product description by removing MedsGo-specific teleconsultation,
+     * ordering text, branding, and phrases.
+     */
+    private function sanitizeDescription(?string $desc): ?string
+    {
+        if (empty($desc)) {
+            return $desc;
+        }
+
+        $sanitized = $desc;
+
+        // 1. Remove MedsGo teleconsultation / ordering sentences
+        $sanitized = preg_replace(
+            '/\s*But if you don\'t have one, you can get a free teleconsultation from (?:a\s+)?MedsGo Physician\.[^\.\n]*\./i',
+            '',
+            $sanitized
+        );
+
+        $sanitized = preg_replace(
+            '/\s*You can order it right now on our website\./i',
+            '',
+            $sanitized
+        );
+
+        // 2. Replace "MedsGo Class" with "Drug Class"
+        $sanitized = preg_replace('/\bMedsGo\s+Class\b/i', 'Drug Class', $sanitized);
+
+        // 3. Clean any remaining occurrences of "MedsGo Physician" -> "Licensed Physician"
+        $sanitized = preg_replace('/\bMedsGo\s+Physician\b/i', 'Licensed Physician', $sanitized);
+
+        // 4. Any standalone MedsGo / medsgo.ph
+        $sanitized = preg_replace('/\bmedsgo(\.ph)?\b/i', 'PharmaDali', $sanitized);
+
+        // Clean up excessive blank lines
+        $sanitized = preg_replace("/(\r?\n){3,}/", "\n\n", trim($sanitized));
+
+        return $sanitized;
+    }
+
+    /**
+     * Sanitize description, strength (dosage), and size for all existing products in the database.
+     */
+    public function sanitizeExistingProducts(): int
+    {
+        $products = Products::all();
+        $updated = 0;
+
+        foreach ($products as $product) {
+            $cleanedDesc = $this->sanitizeDescription($product->description);
+            $cleanedStrength = $this->extractStrength($product->product_name, $cleanedDesc);
+            $cleanedSize = $this->extractSize($product->product_name, $cleanedDesc);
+
+            $needsUpdate = false;
+            $data = [];
+
+            if ($cleanedDesc !== $product->description) {
+                $data['description'] = $cleanedDesc;
+                $needsUpdate = true;
+            }
+
+            if ($cleanedStrength !== $product->strength) {
+                $data['strength'] = $cleanedStrength;
+                $needsUpdate = true;
+            }
+
+            if ($cleanedSize !== $product->size) {
+                $data['size'] = $cleanedSize;
+                $needsUpdate = true;
+            }
+
+            if ($needsUpdate) {
+                $product->update($data);
+                $updated++;
+            }
+        }
+
+        ProductBatch::where('supplier_name', 'LIKE', '%medsgo%')
+            ->update(['supplier_name' => 'PharmaDali Staging Supplier']);
+
+        return $updated;
     }
 
     /**
@@ -617,7 +797,7 @@ class ScrapeMedsGoProducts extends Command
                         'description' => $data['description'],
                         'form' => $data['form'],
                         'strength' => $data['strength'],
-                        'size' => null,
+                        'size' => $data['size'] ?? null,
                         'is_prescribed' => $data['is_prescribed'],
                         'image_path' => $imagePath,
                     ]
@@ -643,7 +823,8 @@ class ScrapeMedsGoProducts extends Command
                 );
 
                 // 4. Create or update ProductBatch record for FEFO inventory
-                $batchNumber = 'MEDSGO-' . strtoupper(substr(md5($product->id . $product->product_name . $pharmacyId), 0, 8));
+                $existingBatch = ProductBatch::where('pharmacy_product_id', $pharmacyProduct->id)->first();
+                $batchNumber = $existingBatch?->batch_number ?: ('STAGING-' . strtoupper(substr(md5($product->id . $product->product_name . $pharmacyId), 0, 8)));
 
                 ProductBatch::updateOrCreate(
                     [
@@ -651,7 +832,7 @@ class ScrapeMedsGoProducts extends Command
                         'batch_number' => $batchNumber,
                     ],
                     [
-                        'supplier_name' => 'MedsGo Staging Supplier',
+                        'supplier_name' => 'PharmaDali Staging Supplier',
                         'stock' => $stock,
                         'expiry_date' => now()->addMonths(18)->format('Y-m-d'),
                         'manufactured_date' => now()->subMonths(2)->format('Y-m-d'),

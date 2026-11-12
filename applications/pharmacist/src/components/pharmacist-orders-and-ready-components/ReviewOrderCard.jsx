@@ -27,7 +27,8 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
   const hasPrescription = order.items.some((item) => item.prescriptionRequired);
   const otcItems = order.items.filter((item) => !item.prescriptionRequired);
   const rxItems = order.items.filter((item) => item.prescriptionRequired);
-  const prescriptionImage = rxItems.find(item => item.prescriptionImage)?.prescriptionImage;
+  const rawPrescriptionImage = rxItems.find(item => item.prescriptionImage)?.prescriptionImage || order.items.find(item => item.prescriptionImage)?.prescriptionImage || order.prescriptionImage;
+  const prescriptionImage = typeof rawPrescriptionImage === 'string' ? { uri: rawPrescriptionImage } : rawPrescriptionImage;
 
   const hasAcknowledgedDiscount = order.discountRemarks?.toLowerCase()?.startsWith('acknowledged_rejected:');
 
@@ -72,7 +73,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
   return (
     <OrderCard order={order} statusBadge={statusBadge}>
       {!expanded ? (
-        <View className="flex-row items-center justify-between px-4 pb-4 pt-2">
+        <View key="collapsed-content" className="flex-row items-center justify-between px-4 pb-4 pt-2">
           {hasPrescription && (
             <View className="flex-row items-center border rounded-full px-3 py-1.5" style={order.isPrescriptionReuploaded ? styles.rxReuploadedBadge : styles.rxBadge}>
               <RxIcon width={16} height={16} />
@@ -95,7 +96,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
           </TouchableOpacity>
         </View>
       ) : (
-        <View>
+        <View key="expanded-content" collapsable={false}>
           {/* OTC Items and Summary for Non-RX orders when expanded */}
           {rxItems.length === 0 && (
             <View className="px-4 border-t border-gray-100 mb-3">

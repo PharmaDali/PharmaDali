@@ -360,7 +360,7 @@ export default function CustomerChatScreen() {
           contentContainerStyle={
             conversations.length === 0
               ? { flexGrow: 1, justifyContent: 'center' }
-              : { paddingBottom: insets.bottom + 96 }
+              : { paddingTop: 12, paddingBottom: insets.bottom + 96 }
           }
           ListEmptyComponent={
             error ? (

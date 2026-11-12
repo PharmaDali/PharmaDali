@@ -253,6 +253,16 @@ export default function PharmacySelectionOverlay({ visible, onSelect, onClose, c
             is_active: isOperating,
             isActive: isOperating,
             isOperating,
+            payment_qr_code_url: item.payment_qr_code_url || null,
+            paymentQrCodeUrl: item.payment_qr_code_url || null,
+            payment_qr_code_path: item.payment_qr_code_path || null,
+            paymentQrCodePath: item.payment_qr_code_path || null,
+            gcash_name: item.gcash_name || null,
+            gcashName: item.gcash_name || null,
+            gcash_number: item.gcash_number || null,
+            gcashNumber: item.gcash_number || null,
+            enable_online_payment: item.enable_online_payment ?? undefined,
+            enableOnlinePayment: item.enable_online_payment ?? undefined,
           };
         });
 

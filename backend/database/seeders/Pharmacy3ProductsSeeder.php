@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 class Pharmacy3ProductsSeeder extends Seeder
 {
     /**
-     * Run the database seeds for Client 3 (Mishka's Pharmacy).
+     * Run the database seeds for Client 3 (Calloway Pharmacy).
      */
     public function run(): void
     {

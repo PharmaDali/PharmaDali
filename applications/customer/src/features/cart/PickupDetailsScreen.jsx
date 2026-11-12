@@ -241,6 +241,31 @@ const PickupDetailsScreen = () => {
     openingMinutes,
   ])
 
+  const isOnlinePaymentAvailable = useMemo(() => {
+    const hasQr = Boolean(
+      targetPharmacy?.payment_qr_code_url ||
+      targetPharmacy?.paymentQrCodeUrl ||
+      targetPharmacy?.payment_qr_code_path ||
+      targetPharmacy?.paymentQrCodePath
+    )
+    const hasName = Boolean((targetPharmacy?.gcash_name || targetPharmacy?.gcashName || '').trim())
+    const hasNumber = Boolean((targetPharmacy?.gcash_number || targetPharmacy?.gcashNumber || '').trim())
+    const hasInfo = hasQr && hasName && hasNumber
+    if (!hasInfo) return false
+
+    const rawEnabled = targetPharmacy?.enable_online_payment ?? targetPharmacy?.enableOnlinePayment
+    if (rawEnabled === false || rawEnabled === 0 || rawEnabled === '0') {
+      return false
+    }
+    return true
+  }, [targetPharmacy])
+
+  useEffect(() => {
+    if (!isOnlinePaymentAvailable && paymentMethod === 'gcash') {
+      setPaymentMethod('cash')
+    }
+  }, [isOnlinePaymentAvailable, paymentMethod])
+
   const isOnlinePaymentReceiptMissing = Boolean(
     !hasPrescription && !discountIdImage && paymentMethod === 'gcash' && !gcashReceiptImage
   )
@@ -1035,8 +1060,10 @@ const PickupDetailsScreen = () => {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  className="flex-row items-center justify-between py-1"
+                  className={`flex-row items-center justify-between py-1 ${!isOnlinePaymentAvailable ? 'opacity-50' : ''}`}
+                  disabled={!isOnlinePaymentAvailable}
                   onPress={() => {
+                    if (!isOnlinePaymentAvailable) return
                     setPaymentMethod('gcash')
                     if (submitError?.toLowerCase().includes('receipt') || submitError?.toLowerCase().includes('gcash')) {
                       setSubmitError('')
@@ -1046,9 +1073,16 @@ const PickupDetailsScreen = () => {
                 >
                   <View className="flex-row items-center flex-1">
                     <GcashIcon width={22} height={22} />
-                    <Text className="text-xs ml-3" style={styles.fontMedium}>
-                      GCash QR / Scan to Pay
-                    </Text>
+                    <View className="ml-3 flex-1">
+                      <Text className="text-xs" style={styles.fontMedium}>
+                        GCash QR / Scan to Pay
+                      </Text>
+                      {!isOnlinePaymentAvailable && (
+                        <Text className="text-[10px] text-gray-400" style={styles.fontRegular}>
+                          Unavailable for this pharmacy
+                        </Text>
+                      )}
+                    </View>
                   </View>
                   <View className={`w-5 h-5 rounded-full border-2 items-center justify-center ${paymentMethod === 'gcash' ? 'border-[#48AAD9]' : 'border-gray-400'}`}>
                     {paymentMethod === 'gcash' && (
@@ -1089,7 +1123,7 @@ const PickupDetailsScreen = () => {
             onRemoveReceipt={handleRemoveGcashReceipt}
             wrapperStyle={{ marginHorizontal: 16 }}
             qrStyle={{ width: 240, height: 240 }}
-            qrCodeUrl={targetPharmacy?.payment_qr_code_url || targetPharmacy?.paymentQrCodeUrl}
+            qrCodeUrl={targetPharmacy?.payment_qr_code_url || targetPharmacy?.paymentQrCodeUrl || targetPharmacy?.payment_qr_code_path || targetPharmacy?.paymentQrCodePath}
             accountName={targetPharmacy?.gcash_name || targetPharmacy?.gcashName}
             accountNumber={targetPharmacy?.gcash_number || targetPharmacy?.gcashNumber}
           />

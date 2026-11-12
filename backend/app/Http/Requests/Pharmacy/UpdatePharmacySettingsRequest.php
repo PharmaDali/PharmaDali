@@ -37,8 +37,9 @@ class UpdatePharmacySettingsRequest extends FormRequest
             'receipt_sort_by'               => 'sometimes|nullable|string|max:100',
             'show_discount_on_receipt'      => 'sometimes|boolean',
             'show_vat_breakdown_on_receipt' => 'sometimes|boolean',
-            'gcash_name'                    => ['sometimes', 'nullable', 'string', 'max:100', 'regex:/^[a-zA-Z0-9\s.\-&\'\(\)]+$/'],
-            'gcash_number'                  => ['sometimes', 'nullable', 'string', 'max:25', 'regex:/^(\+639|09)[\d\s\-]{9,15}$/'],
+            'enable_online_payment'         => 'sometimes|boolean',
+            'gcash_name'                    => ['sometimes', 'required', 'string', 'max:100', 'regex:/^[a-zA-Z0-9\s.\-&\'\(\)]+$/'],
+            'gcash_number'                  => ['sometimes', 'required', 'string', 'max:25', 'regex:/^(\+639|09)[\d\s\-]{9,15}$/'],
         ];
     }
 
@@ -49,7 +50,9 @@ class UpdatePharmacySettingsRequest extends FormRequest
             'low_stock_threshold.min'            => 'The low stock threshold must be at least 1 unit.',
             'shortage_days_threshold.min'        => 'The shortage days threshold must be at least 1 day.',
             'expiry_days_threshold.min'          => 'The expiry days threshold must be at least 1 day.',
+            'gcash_name.required'                => 'The GCash account name is required.',
             'gcash_name.regex'                   => 'The GCash account name contains invalid characters.',
+            'gcash_number.required'              => 'The GCash mobile or merchant number is required.',
             'gcash_number.regex'                 => 'Please enter a valid 11-digit mobile number starting with 09 (e.g. 09171234567 or +639171234567).',
         ];
     }
