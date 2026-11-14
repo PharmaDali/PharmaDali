@@ -53,6 +53,7 @@ services:
       LETSENCRYPT_HOST: ${BACKEND_DOMAIN}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
     networks:
+      - pharmadali-production-network
       - staging-network
       - proxy-network
 
@@ -93,6 +94,7 @@ services:
       LETSENCRYPT_HOST: ${REVERB_DOMAIN}
       LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
     networks:
+      - pharmadali-production-network
       - staging-network
       - proxy-network
 
@@ -108,7 +110,7 @@ services:
         VITE_API_BASE_URL: https://${BACKEND_DOMAIN}/api
         VITE_REVERB_HOST: ${REVERB_DOMAIN}
         VITE_REVERB_PORT: "443"
-        VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-staging_key_capstone_2026}
+        VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-pharmadali-app-key}
     container_name: staging-admin-panel
     restart: unless-stopped
     volumes:

@@ -135,9 +135,44 @@ class ScrapeMedsGoProducts extends Command
         $sitemapItems = $this->parseSitemapUrls($xmlContent);
         $this->info("Found " . count($sitemapItems) . " total product URLs in sitemap.");
 
+        // Collect existing scraped image hashes & product names so we only scrape NEW unique products
+        $existingImageHashes = [];
+        $existingProductNames = [];
+        if (!$fresh) {
+            $existingPaths = Products::withoutGlobalScopes()
+                ->whereNotNull('image_path')
+                ->pluck('image_path');
+
+            foreach ($existingPaths as $path) {
+                if (preg_match('/_([a-f0-9]{8})\.[a-z0-9]+$/i', (string) $path, $m)) {
+                    $existingImageHashes[strtolower($m[1])] = true;
+                }
+            }
+
+            $existingNames = Products::withoutGlobalScopes()->pluck('product_name');
+            foreach ($existingNames as $name) {
+                $existingProductNames[strtolower(trim((string) $name))] = true;
+            }
+
+            if (!empty($existingImageHashes)) {
+                $beforeCount = count($sitemapItems);
+                $sitemapItems = array_values(array_filter($sitemapItems, function (array $item) use ($existingImageHashes) {
+                    if (empty($item['image'])) {
+                        return true;
+                    }
+                    $hash = strtolower(substr(md5($item['image']), 0, 8));
+                    return !isset($existingImageHashes[$hash]);
+                }));
+                $skippedCount = $beforeCount - count($sitemapItems);
+                if ($skippedCount > 0) {
+                    $this->info("Skipped {$skippedCount} already-scraped products found in database.");
+                }
+            }
+        }
+
         // Filter URLs
         $candidates = $this->filterSitemapCandidates($sitemapItems, $categoryFilter, $limit);
-        $this->info("Selected " . count($candidates) . " candidate products to scrape.");
+        $this->info("Selected " . count($candidates) . " new candidate products to scrape.");
 
         if (empty($candidates)) {
             $this->warn('No products matched the given criteria.');
