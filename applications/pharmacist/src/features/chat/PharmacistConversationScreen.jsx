@@ -310,12 +310,18 @@ export default function PharmacistConversationScreen() {
   }, [messages]);
 
   const handleSend = useCallback(async (retryMsg = null) => {
-    const textToSend = retryMsg ? (retryMsg.body || '') : draft.trim();
-    const imageToSend = retryMsg ? (retryMsg._imageFile || null) : selectedImage;
+    const isRetry = Boolean(
+      retryMsg &&
+      typeof retryMsg === 'object' &&
+      !retryMsg.nativeEvent &&
+      ('body' in retryMsg || '_imageFile' in retryMsg || '_status' in retryMsg)
+    );
+    const textToSend = isRetry ? (retryMsg.body || '') : draft.trim();
+    const imageToSend = isRetry ? (retryMsg._imageFile || null) : selectedImage;
 
     if ((!textToSend && !imageToSend) || !conversationId) return;
 
-    const tempId = retryMsg ? retryMsg.id : `temp-${Date.now()}`;
+    const tempId = isRetry ? retryMsg.id : `temp-${Date.now()}`;
     const optimisticMessage = {
       id: tempId,
       conversation_id: Number(conversationId),
@@ -330,7 +336,7 @@ export default function PharmacistConversationScreen() {
       created_at: new Date().toISOString(),
     };
 
-    if (!retryMsg) {
+    if (!isRetry) {
       setDraft('');
       setSelectedImage(null);
       setMessages((prev) => [...prev, optimisticMessage]);
@@ -647,7 +653,7 @@ export default function PharmacistConversationScreen() {
             blurOnSubmit={false}
           />
           <Pressable
-            onPress={handleSend}
+            onPress={() => handleSend(null)}
             disabled={(!draft.trim() && !selectedImage) || sending}
             style={[styles.sendBtn, ((!draft.trim() && !selectedImage) || sending) && { opacity: 0.45 }]}
           >
