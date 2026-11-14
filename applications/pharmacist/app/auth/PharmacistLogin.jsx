@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Link, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
 import theme from '@src/shared/theme/inputTheme';
@@ -52,6 +53,7 @@ const PharmacistLogin = () => {
 
   return (
     <View className="flex-1 bg-white px-4" style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}>
+      <StatusBar style="dark" backgroundColor="#ffffff" />
       <View className="flex-row items-center justify-between px-4 pb-2">
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color="#48AAD9" />

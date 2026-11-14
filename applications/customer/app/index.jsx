@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 import { TextInput, Button } from 'react-native-paper';
 import theme from '@src/shared/theme/inputTheme';
@@ -103,6 +104,7 @@ export default function LoginScreen() {
   if (isCheckingSession) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' }}>
+        <StatusBar style="dark" backgroundColor="#ffffff" />
         <ActivityIndicator size="large" color="#48AAD9" />
       </View>
     );
@@ -110,6 +112,7 @@ export default function LoginScreen() {
 
   return (
     <AnimatedSplashLayout>
+      <StatusBar style="dark" backgroundColor="#ffffff" />
       <TextInput
         label="Email"
         mode="outlined"
