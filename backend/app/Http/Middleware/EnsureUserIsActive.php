@@ -19,11 +19,17 @@ class EnsureUserIsActive
         $user = $request->user();
 
         if ($user && !$user->is_active) {
+            foreach ($user->tokens()->pluck('token') as $hashedToken) {
+                if (!empty($hashedToken)) {
+                    \Illuminate\Support\Facades\Cache::put("deactivated_token:{$hashedToken}", $user->id, now()->addDays(30));
+                }
+            }
             $user->tokens()->delete();
             $user->updateQuietly(['fcm_token' => null]);
 
             return response()->json([
                 'message' => 'Your account has been deactivated. Please contact support.',
+                'deactivated' => true,
             ], 401);
         }
 
