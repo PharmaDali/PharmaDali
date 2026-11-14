@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import * as SecureStore from 'expo-secure-store';
 import CircularLogo from '@assets/circular_logo.svg';
 import { colors } from '@src/shared/theme/colorPalette';
@@ -36,7 +37,12 @@ export default function LoginScreen() {
               }
             } catch (authErr) {
               await SecureStore.deleteItemAsync('pharmacist_token');
-              triggerAccountDeactivatedModal('Your pharmacist account has been deactivated. Please contact your pharmacy administrator.');
+              if (
+                authErr?.data?.deactivated === true ||
+                authErr?.message?.toLowerCase().includes('deactivated')
+              ) {
+                triggerAccountDeactivatedModal(authErr.message);
+              }
             }
           }
         }
@@ -59,6 +65,7 @@ export default function LoginScreen() {
   if (isCheckingSession) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#ffffff' }}>
+        <StatusBar style="dark" backgroundColor="#ffffff" />
         <ActivityIndicator size="large" color="#48AAD9" />
       </View>
     );
@@ -66,6 +73,7 @@ export default function LoginScreen() {
 
   return (
     <AnimatedSplashLayout>
+      <StatusBar style="dark" backgroundColor="#ffffff" />
       <View className="items-center mt-10">
         <CircularLogo width={80} height={80} />
         <Text className="text-2xl mt-2 text-center w-full px-2" style={styles.greetingsText}>

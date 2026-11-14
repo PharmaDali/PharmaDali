@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { View, ActivityIndicator } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import UpdateNoticeModal from "@shared/components/UpdateNoticeModal";
 import AccountDeactivatedModal from "@shared/components/AccountDeactivatedModal";
 import { FontSizeProvider } from "@shared/context/FontSizeContext";
@@ -25,6 +26,7 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#ffffff" }}>
+        <StatusBar style="dark" backgroundColor="#ffffff" />
         <ActivityIndicator size="large" color="#48AAD9" />
       </View>
     );
@@ -33,6 +35,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <FontSizeProvider>
+        <StatusBar style="dark" backgroundColor="#ffffff" />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="auth/CreateNewPasswordFPW" />

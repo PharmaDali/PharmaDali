@@ -47,6 +47,16 @@ class DisabledUserTokenExpirationTest extends TestCase
 
         // Tokens should be deleted by UserObserver
         $this->assertEquals(0, $user->fresh()->tokens()->count());
+
+        // Subsequent request with the revoked token must indicate account deactivation
+        $response = $this->withHeader('Authorization', "Bearer {$token1}")
+            ->getJson('/api/user');
+
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'Your account has been deactivated. Please contact support.',
+                'deactivated' => true,
+            ]);
     }
 
     public function test_request_with_token_from_deactivated_user_is_rejected_and_token_is_deleted(): void
@@ -63,7 +73,11 @@ class DisabledUserTokenExpirationTest extends TestCase
         $response = $this->withHeader('Authorization', "Bearer {$plainToken}")
             ->getJson('/api/user');
 
-        $response->assertStatus(401);
+        $response->assertStatus(401)
+            ->assertJson([
+                'message' => 'Your account has been deactivated. Please contact support.',
+                'deactivated' => true,
+            ]);
 
         // Token must be purged from database
         $this->assertEquals(0, PersonalAccessToken::where('tokenable_id', $user->id)->count());

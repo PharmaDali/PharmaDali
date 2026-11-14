@@ -34,4 +34,24 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(function ($request, $e) {
             return $request->is('api/*') || $request->expectsJson();
         });
+
+        $exceptions->render(function (\Illuminate\Auth\AuthenticationException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                $bearer = $request->bearerToken();
+                if ($bearer) {
+                    $rawToken = str_contains($bearer, '|') ? explode('|', $bearer, 2)[1] : $bearer;
+                    $hashedToken = hash('sha256', $rawToken);
+                    $deactivatedUserId = \Illuminate\Support\Facades\Cache::get("deactivated_token:{$hashedToken}");
+
+                    if ($deactivatedUserId && \App\Models\User::where('id', $deactivatedUserId)->where('is_active', false)->exists()) {
+                        return response()->json([
+                            'message' => 'Your account has been deactivated. Please contact support.',
+                            'deactivated' => true,
+                        ], 401);
+                    }
+                }
+            }
+
+            return null;
+        });
     })->create();

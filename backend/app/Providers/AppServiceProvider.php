@@ -46,6 +46,9 @@ class AppServiceProvider extends ServiceProvider
 
             $user = $accessToken->tokenable;
             if ($user instanceof User && !$user->is_active) {
+                if (!empty($accessToken->token)) {
+                    \Illuminate\Support\Facades\Cache::put("deactivated_token:{$accessToken->token}", $user->id, now()->addDays(30));
+                }
                 $accessToken->delete();
                 return false;
             }

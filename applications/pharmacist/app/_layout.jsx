@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { View } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import UpdateNoticeModal from "@shared/components/UpdateNoticeModal";
 import AccountDeactivatedModal from "@shared/components/AccountDeactivatedModal";
 
@@ -19,6 +20,7 @@ export default function RootLayout() {
   if (!fontsLoaded && !fontError) {
     return (
       <SafeAreaProvider>
+        <StatusBar style="dark" backgroundColor="#ffffff" />
         <View style={{ flex: 1, backgroundColor: "#ffffff" }} />
       </SafeAreaProvider>
     );
@@ -26,6 +28,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <StatusBar style="dark" backgroundColor="#ffffff" />
       <Stack screenOptions={{ headerShown: false }} />
       <UpdateNoticeModal />
       <AccountDeactivatedModal />
