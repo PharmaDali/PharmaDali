@@ -36,7 +36,12 @@ export default function LoginScreen() {
               }
             } catch (authErr) {
               await SecureStore.deleteItemAsync('pharmacist_token');
-              triggerAccountDeactivatedModal('Your pharmacist account has been deactivated. Please contact your pharmacy administrator.');
+              if (
+                authErr?.data?.deactivated === true ||
+                authErr?.message?.toLowerCase().includes('deactivated')
+              ) {
+                triggerAccountDeactivatedModal(authErr.message);
+              }
             }
           }
         }

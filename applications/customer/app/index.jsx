@@ -47,7 +47,12 @@ export default function LoginScreen() {
               }
             } catch (authErr) {
               await SecureStore.deleteItemAsync('customer_token');
-              triggerAccountDeactivatedModal('Your account has been deactivated. Please contact customer support.');
+              if (
+                authErr?.data?.deactivated === true ||
+                authErr?.message?.toLowerCase().includes('deactivated')
+              ) {
+                triggerAccountDeactivatedModal(authErr.message);
+              }
             }
           }
         }

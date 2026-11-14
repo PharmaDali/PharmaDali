@@ -107,11 +107,21 @@ const clearAuthStorage = async () => {
   }
 };
 
-const handleUnauthorized = async (message) => {
+export const isAccountDeactivated = (data, message) => {
+  if (data?.deactivated === true) {
+    return true;
+  }
+  const text = String(message || data?.message || '').toLowerCase();
+  return text.includes('deactivated');
+};
+
+const handleUnauthorized = async (message, data) => {
   await clearAuthStorage();
-  triggerAccountDeactivatedModal(
-    message || 'Your pharmacist account has been deactivated. Please contact your pharmacy administrator.'
-  );
+  if (isAccountDeactivated(data, message)) {
+    triggerAccountDeactivatedModal(
+      message || 'Your pharmacist account has been deactivated. Please contact your pharmacy administrator.'
+    );
+  }
   if (!isRedirectingToLogin) {
     isRedirectingToLogin = true;
     try {
@@ -167,10 +177,24 @@ export async function apiRequest(path, options = {}) {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    if (response.status === 401 && authToken && !path.includes('/login')) {
-      await handleUnauthorized(data?.message);
+    const errorMessage = getErrorMessage(data, 'Request failed.');
+    const isDeactivated = isAccountDeactivated(data, errorMessage);
+    const isAuthLifecycleRoute =
+      path.includes('/login') ||
+      path.includes('/logout') ||
+      path.includes('/fcm-token');
+
+    if (
+      authToken &&
+      !isAuthLifecycleRoute &&
+      (response.status === 401 || (response.status === 403 && isDeactivated))
+    ) {
+      const currentToken = await getStoredToken();
+      if (currentToken && currentToken === authToken) {
+        await handleUnauthorized(errorMessage, data);
+      }
     }
-    throw new ApiError(getErrorMessage(data, 'Request failed.'), response.status, data);
+    throw new ApiError(errorMessage, response.status, data);
   }
 
   return data;
