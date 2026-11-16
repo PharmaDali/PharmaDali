@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { fetchPickupOrders, completePickupOrder } from "../services/posService";
+import { fetchPickupOrders, completePickupOrder, fetchPosReceipt } from "../services/posService";
+import { getPharmacySettings } from "../services/pharmacySettingsService";
 
 export function usePickupOrdersCount() {
   const [readyPickupCount, setReadyPickupCount] = useState(0);
@@ -44,6 +45,30 @@ export function usePickupOrders() {
   const [discountType, setDiscountType] = useState("none");
   const [discountPercentage, setDiscountPercentage] = useState("");
   const [discountIdNumber, setDiscountIdNumber] = useState("");
+
+  // Hardware & Receipt print settings
+  const [printAfterPayment, setPrintAfterPayment] = useState(false);
+  const [shouldPrintReceipt, setShouldPrintReceipt] = useState(false);
+  const [receiptData, setReceiptData] = useState(null);
+  const [loadingReceipt, setLoadingReceipt] = useState(false);
+
+  // Fetch pharmacy hardware settings on mount
+  useEffect(() => {
+    let mounted = true;
+    getPharmacySettings()
+      .then((res) => {
+        if (mounted) {
+          const hardware = res?.data?.hardware_settings || {};
+          const autoPrint = Boolean(hardware.print_after_payment);
+          setPrintAfterPayment(autoPrint);
+          setShouldPrintReceipt(autoPrint);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load pickup hardware settings:", err);
+      });
+    return () => { mounted = false; };
+  }, []);
 
   const [newCompletedCount, setNewCompletedCount] = useState(0);
 
@@ -255,6 +280,7 @@ export function usePickupOrders() {
         }
       }
 
+      const completedOrderId = activeOrder?.id;
       await completePickupOrder(activeOrder.id, payload);
 
       setPaymentResult("success");
@@ -262,6 +288,22 @@ export function usePickupOrders() {
       if (statusFilter !== "Completed") {
         setNewCompletedCount((prev) => prev + 1);
       }
+
+      if (shouldPrintReceipt && completedOrderId) {
+        setLoadingReceipt(true);
+        fetchPosReceipt(completedOrderId)
+          .then((res) => {
+            setReceiptData(res?.data || res);
+          })
+          .catch((err) => {
+            console.error("Failed to fetch receipt for pickup order:", err);
+          })
+          .finally(() => {
+            setLoadingReceipt(false);
+          });
+      }
+
+      setShouldPrintReceipt(printAfterPayment);
       await loadOrders(false);
       setActiveOrder(null);
     } catch (err) {
@@ -277,6 +319,20 @@ export function usePickupOrders() {
       setErrorMessage(backendMsg);
       setPaymentResult("error");
       setIsPaymentResultModalOpen(true);
+    }
+  };
+
+  const handlePrintReceipt = async (orderId) => {
+    const id = orderId || activeOrder?.id;
+    if (!id) return;
+    try {
+      setLoadingReceipt(true);
+      const res = await fetchPosReceipt(id);
+      setReceiptData(res?.data || res);
+    } catch (err) {
+      console.error("Failed to print receipt for pickup order:", err);
+    } finally {
+      setLoadingReceipt(false);
     }
   };
 
@@ -309,6 +365,13 @@ export function usePickupOrders() {
     setDiscountPercentage,
     discountIdNumber,
     setDiscountIdNumber,
+    printAfterPayment,
+    shouldPrintReceipt,
+    setShouldPrintReceipt,
+    receiptData,
+    setReceiptData,
+    loadingReceipt,
+    handlePrintReceipt,
     tabCounts,
     filteredOrders,
     paginatedOrders,

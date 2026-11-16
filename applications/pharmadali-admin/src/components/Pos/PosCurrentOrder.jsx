@@ -302,21 +302,19 @@ export default function PosCurrentOrder() {
       </div>
 
       <div className="mt-auto w-100 flex-shrink-0">
-        {!printAfterPayment && (
-          <div className="d-none d-md-flex align-items-center gap-2 mt-3 mb-1 px-1 text-secondary" style={{ fontSize: "12px" }}>
-            <input
-              type="checkbox"
-              id="posDesktopPrintReceipt"
-              className="form-check-input mt-0"
-              style={{ width: "15px", height: "15px", cursor: "pointer" }}
-              checked={shouldPrintReceipt}
-              onChange={(e) => setShouldPrintReceipt(e.target.checked)}
-            />
-            <label htmlFor="posDesktopPrintReceipt" className="user-select-none mb-0 fw-medium text-dark" style={{ cursor: "pointer" }}>
-              Print thermal receipt after sale
-            </label>
-          </div>
-        )}
+        <div className="d-none d-md-flex align-items-center gap-2 mt-3 mb-1 px-1 text-secondary" style={{ fontSize: "12px" }}>
+          <input
+            type="checkbox"
+            id="posDesktopPrintReceipt"
+            className="form-check-input mt-0"
+            style={{ width: "15px", height: "15px", cursor: "pointer" }}
+            checked={shouldPrintReceipt}
+            onChange={(e) => setShouldPrintReceipt(e.target.checked)}
+          />
+          <label htmlFor="posDesktopPrintReceipt" className="user-select-none mb-0 fw-medium text-dark" style={{ cursor: "pointer" }}>
+            Print thermal receipt after sale
+          </label>
+        </div>
 
         <button
           type="button"

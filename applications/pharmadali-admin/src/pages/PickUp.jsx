@@ -6,6 +6,7 @@ import "../assets/css/pospage.css";
 import "../assets/css/inventory.css";
 import SearchBar from "../shared/components/SearchBar";
 import { ReceivePaymentModal, ConfirmOrderModal, PaymentResultModal } from "../shared/components/PaymentModals";
+import PosReceiptModal from "../components/Pos/PosReceiptModal";
 
 export function PickUp() {
   const {
@@ -37,6 +38,12 @@ export function PickUp() {
     setDiscountPercentage,
     discountIdNumber,
     setDiscountIdNumber,
+    shouldPrintReceipt,
+    setShouldPrintReceipt,
+    receiptData,
+    setReceiptData,
+    loadingReceipt,
+    handlePrintReceipt,
     tabCounts,
     filteredOrders,
     paginatedOrders,
@@ -159,6 +166,7 @@ export function PickUp() {
                 onPageChange={handlePageChange}
                 onSelectOrder={setActiveOrder}
                 activeOrder={activeOrder}
+                onPrintReceipt={handlePrintReceipt}
               />
             </div>
           </div>
@@ -185,6 +193,10 @@ export function PickUp() {
               cashReceived={cashReceived}
               changeAmount={changeAmount}
               onCompleteSale={handleCompleteOrderClick}
+              shouldPrintReceipt={shouldPrintReceipt}
+              setShouldPrintReceipt={setShouldPrintReceipt}
+              onPrintReceipt={handlePrintReceipt}
+              loadingReceipt={loadingReceipt}
             />
           </div>
         )}
@@ -215,6 +227,11 @@ export function PickUp() {
         isOpen={isPaymentResultModalOpen}
         onClose={() => setIsPaymentResultModalOpen(false)}
         result={paymentResult}
+      />
+
+      <PosReceiptModal
+        receiptData={receiptData}
+        onPrintCompleted={() => setReceiptData(null)}
       />
     </section>
   );
