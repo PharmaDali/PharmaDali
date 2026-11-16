@@ -38,13 +38,6 @@ const ACTION_CONFIG = {
     bgColor: '#FEF2F2',
     instruction: 'Order has been rejected and the customer has been notified.',
   },
-  complete: {
-    title: 'Pickup Completed',
-    icon: 'checkmark-done-circle-outline',
-    iconColor: '#10B981',
-    bgColor: '#ECFDF5',
-    instruction: 'Order completed successfully! Stock and customer pickup records have been updated.',
-  },
 };
 
 export default function StatusFeedbackModal({ visible, onClose, actionType }) {
