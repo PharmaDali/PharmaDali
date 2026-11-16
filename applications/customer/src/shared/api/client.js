@@ -3,9 +3,14 @@ import { router } from 'expo-router';
 import { triggerAccountDeactivatedModal } from '@shared/components/AccountDeactivatedModal';
 
 let isRedirectingToLogin = false;
+let cachedToken = null;
+
+// Synchronous access to the last-known token (used for authenticated image requests).
+export const getCachedToken = () => cachedToken;
 
 const clearCustomerStorage = async () => {
   try {
+    cachedToken = null;
     await SecureStore.deleteItemAsync('customer_token');
   } catch {}
 };
@@ -73,25 +78,29 @@ export const getStoredToken = async () => {
   const raw = await SecureStore.getItemAsync('customer_token');
 
   if (!raw) {
+    cachedToken = null;
     return null;
   }
 
+  let token = null;
   try {
     const parsed = JSON.parse(raw);
 
     if (typeof parsed === 'string') {
-      return parsed;
+      token = parsed;
+    } else if (parsed?.token) {
+      token = parsed.token;
     }
-
-    if (parsed?.token) {
-      return parsed.token;
-    }
-
-    return null;
   } catch {
-    return raw;
+    token = raw;
   }
+
+  cachedToken = token;
+  return token;
 };
+
+// Eagerly populate cached token in background
+getStoredToken().catch(() => {});
 
 export async function apiRequest(path, options = {}) {
   const baseUrl = getBaseUrl();

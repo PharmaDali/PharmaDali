@@ -4,56 +4,11 @@ import DownloadIcon from '@assets/icons/download_icon.svg'
 import GcashReceiptIcon from '@assets/icons/gcash_receipt_icon.svg'
 import QrCodeImage from '@assets/images/qrcode_dummy.png'
 import { getServerRoot, getStoredToken } from '@shared/api/client'
+import { resolveMediaUrl } from '@shared/utils/mediaUtils'
 import * as FileSystem from 'expo-file-system/legacy'
 import { Asset } from 'expo-asset'
 
-const resolveQrUrl = (urlOrPath) => {
-  if (!urlOrPath) return null;
-  const target = typeof urlOrPath === 'string' ? urlOrPath : (urlOrPath.uri || '');
-  if (!target || typeof target !== 'string') return null;
-
-  const baseUrl = getServerRoot();
-
-  // If it's a signed private media url
-  if (target.includes('/api/media/private/')) {
-    const pathAndQuery = target.substring(target.indexOf('/api/media/private/'));
-    return `${baseUrl}${pathAndQuery}`;
-  }
-
-  // If it's a relative path starting with /
-  if (target.startsWith('/')) {
-    return `${baseUrl}${target}`;
-  }
-
-  // If it's a full URL, rebase to baseUrl if host differs
-  if (target.startsWith('http://') || target.startsWith('https://')) {
-    try {
-      const parsed = new URL(target);
-      if (baseUrl) {
-        const baseParsed = new URL(baseUrl.startsWith('http') ? baseUrl : `http://${baseUrl}`);
-        if (parsed.host !== baseParsed.host) {
-          return `${baseUrl}${parsed.pathname}${parsed.search}`;
-        }
-      }
-      return target;
-    } catch {
-      return target;
-    }
-  }
-
-  // If it's a private media relative storage path (e.g. payment_qrs/...)
-  const clean = target.replace(/^\/?storage\//, '').replace(/^\/+/, '');
-  if (
-    clean.startsWith('payment_qrs/') ||
-    clean.startsWith('prescriptions/') ||
-    clean.startsWith('discount_ids/') ||
-    clean.startsWith('payment_receipts/')
-  ) {
-    return `${baseUrl}/api/media/private/${clean}`;
-  }
-
-  return `${baseUrl}/storage/${clean}`;
-};
+const resolveQrUrl = (urlOrPath) => resolveMediaUrl(urlOrPath, getServerRoot());
 
 export default function GcashPaymentSection({
   onPickFromGallery,

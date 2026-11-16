@@ -17,6 +17,7 @@ import {
   removeRxItemsAndProceed,
 } from '@shared/services/orderService'
 import { uploadOrderItemPrescription } from '@shared/services/prescriptionService'
+import { getStoredToken, getCachedToken } from '@shared/api/client'
 import { mapApiOrderToViewModel } from './orderMappers'
 
 export default function ViewOrderDetailsScreen() {
@@ -28,6 +29,12 @@ export default function ViewOrderDetailsScreen() {
   const [loading, setLoading] = useState(true)
   const [errorMessage, setErrorMessage] = useState('')
   const [modalImage, setModalImage] = useState(null)
+  const [authToken, setAuthToken] = useState(getCachedToken())
+
+  // Image loading error states
+  const [prescriptionImageError, setPrescriptionImageError] = useState(false)
+  const [discountImageError, setDiscountImageError] = useState(false)
+  const [receiptImageError, setReceiptImageError] = useState(false)
 
   // Standby Action State
   const [actionLoading, setActionLoading] = useState(false)
@@ -48,14 +55,36 @@ export default function ViewOrderDetailsScreen() {
   const [reuploadError, setReuploadError] = useState('')
   const [prescriptionConfirmed, setPrescriptionConfirmed] = useState(false)
 
+  useEffect(() => {
+    let mounted = true
+    getStoredToken().then((token) => {
+      if (mounted && token) setAuthToken(token)
+    }).catch(() => {})
+    return () => { mounted = false }
+  }, [])
+
+  useEffect(() => {
+    setPrescriptionImageError(false)
+  }, [order?.prescriptionImagePath])
+
+  useEffect(() => {
+    setDiscountImageError(false)
+  }, [order?.discountIdImagePath])
+
+  useEffect(() => {
+    setReceiptImageError(false)
+  }, [order?.paymentReceiptImagePath])
+
   const loadOrder = async () => {
     if (!resolvedOrderId) return
     setLoading(true)
     setErrorMessage('')
 
     try {
+      const token = authToken || (await getStoredToken())
+      if (token && !authToken) setAuthToken(token)
       const payload = await fetchCustomerOrderDetails(resolvedOrderId)
-      setOrder(mapApiOrderToViewModel(payload))
+      setOrder(mapApiOrderToViewModel(payload, token))
     } catch (error) {
       setOrder(null)
       setErrorMessage(error instanceof Error ? error.message : 'Unable to load order details.')
@@ -70,13 +99,14 @@ export default function ViewOrderDetailsScreen() {
 
       const intervalId = setInterval(() => {
         if (!resolvedOrderId) return
+        const activeToken = authToken || getCachedToken()
         fetchCustomerOrderDetails(resolvedOrderId)
-          .then(payload => setOrder(mapApiOrderToViewModel(payload)))
+          .then(payload => setOrder(mapApiOrderToViewModel(payload, activeToken)))
           .catch(console.error)
       }, 10000)
 
       return () => clearInterval(intervalId)
-    }, [resolvedOrderId])
+    }, [resolvedOrderId, authToken])
   )
 
   const handleConfirmReceipt = async () => {
@@ -313,7 +343,7 @@ export default function ViewOrderDetailsScreen() {
           <Text className="text-sm" style={styles.primarySemiBold}>{order.orderSummary}</Text>
         </View>
 
-        {order.prescriptionImagePath && (
+        {Boolean(order.prescriptionImagePath || order.prescriptionImageSource) && (
           <View className="mt-4 pt-3 border-t border-gray-200">
             <View className="flex-row justify-between items-center mb-2">
               <Text className="text-xs" style={styles.textBold}>Submitted Prescription</Text>
@@ -333,20 +363,36 @@ export default function ViewOrderDetailsScreen() {
                 </View>
               )}
             </View>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => setModalImage({ uri: order.prescriptionImagePath })}
-            >
-              <Image
-                source={{ uri: order.prescriptionImagePath }}
-                className="w-full h-44 rounded-xl border border-gray-200"
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
+            {prescriptionImageError ? (
+              <View className="w-full h-44 rounded-xl border border-gray-200 bg-gray-50 items-center justify-center p-4">
+                <MaterialCommunityIcons name="image-off-outline" size={32} color="#9CA3AF" />
+                <Text className="text-xs text-gray-500 mt-2 text-center" style={styles.fontMedium}>
+                  Unable to display prescription image
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setPrescriptionImageError(false)}
+                  className="mt-2 px-3 py-1 bg-sky-50 rounded-lg border border-sky-200"
+                >
+                  <Text className="text-[11px] text-sky-700" style={styles.primarySemiBold}>Tap to retry</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setModalImage(order.prescriptionImageSource || { uri: order.prescriptionImagePath })}
+              >
+                <Image
+                  source={order.prescriptionImageSource || { uri: order.prescriptionImagePath }}
+                  className="w-full h-44 rounded-xl border border-gray-200"
+                  resizeMode="cover"
+                  onError={() => setPrescriptionImageError(true)}
+                />
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
-        {order.discountIdImagePath && (
+        {Boolean(order.discountIdImagePath || order.discountIdImageSource) && (
           <View className="mt-4 pt-3 border-t border-gray-200">
             <View className="flex-row justify-between items-center mb-2">
               <Text className="text-xs" style={styles.textBold}>Submitted Discount ID</Text>
@@ -364,20 +410,36 @@ export default function ViewOrderDetailsScreen() {
                 </View>
               )}
             </View>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => setModalImage({ uri: order.discountIdImagePath })}
-            >
-              <Image
-                source={{ uri: order.discountIdImagePath }}
-                className="w-full h-32 rounded-xl border border-gray-200"
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
+            {discountImageError ? (
+              <View className="w-full h-32 rounded-xl border border-gray-200 bg-gray-50 items-center justify-center p-4">
+                <MaterialCommunityIcons name="image-off-outline" size={28} color="#9CA3AF" />
+                <Text className="text-xs text-gray-500 mt-2 text-center" style={styles.fontMedium}>
+                  Unable to display discount ID
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setDiscountImageError(false)}
+                  className="mt-2 px-3 py-1 bg-sky-50 rounded-lg border border-sky-200"
+                >
+                  <Text className="text-[11px] text-sky-700" style={styles.primarySemiBold}>Tap to retry</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setModalImage(order.discountIdImageSource || { uri: order.discountIdImagePath })}
+              >
+                <Image
+                  source={order.discountIdImageSource || { uri: order.discountIdImagePath }}
+                  className="w-full h-32 rounded-xl border border-gray-200"
+                  resizeMode="cover"
+                  onError={() => setDiscountImageError(true)}
+                />
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
-        {order.paymentReceiptImagePath && (
+        {Boolean(order.paymentReceiptImagePath || order.paymentReceiptImageSource) && (
           <View className="mt-4 pt-3 border-t border-gray-200">
             <View className="flex-row justify-between items-center mb-2">
               <Text className="text-xs" style={styles.textBold}>Submitted Receipt</Text>
@@ -395,16 +457,32 @@ export default function ViewOrderDetailsScreen() {
                 </View>
               )}
             </View>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => setModalImage({ uri: order.paymentReceiptImagePath })}
-            >
-              <Image
-                source={{ uri: order.paymentReceiptImagePath }}
-                className="w-full h-32 rounded-xl border border-gray-200"
-                resizeMode="cover"
-              />
-            </TouchableOpacity>
+            {receiptImageError ? (
+              <View className="w-full h-32 rounded-xl border border-gray-200 bg-gray-50 items-center justify-center p-4">
+                <MaterialCommunityIcons name="image-off-outline" size={28} color="#9CA3AF" />
+                <Text className="text-xs text-gray-500 mt-2 text-center" style={styles.fontMedium}>
+                  Unable to display receipt image
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setReceiptImageError(false)}
+                  className="mt-2 px-3 py-1 bg-sky-50 rounded-lg border border-sky-200"
+                >
+                  <Text className="text-[11px] text-sky-700" style={styles.primarySemiBold}>Tap to retry</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setModalImage(order.paymentReceiptImageSource || { uri: order.paymentReceiptImagePath })}
+              >
+                <Image
+                  source={order.paymentReceiptImageSource || { uri: order.paymentReceiptImagePath }}
+                  className="w-full h-32 rounded-xl border border-gray-200"
+                  resizeMode="cover"
+                  onError={() => setReceiptImageError(true)}
+                />
+              </TouchableOpacity>
+            )}
           </View>
         )}
 
