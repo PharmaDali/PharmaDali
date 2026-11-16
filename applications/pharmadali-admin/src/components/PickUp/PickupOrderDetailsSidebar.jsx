@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { DiscountSelect, DiscountControl } from "../../shared/components/DiscountSelect";
 import PaymentMethodSelect from "../../shared/components/PaymentMethodSelect";
 import { formatCustomerName, formatCustomerPhone, formatDateTime } from "../../utils/formatUtils";
+import ZoomableImageModal from "../../shared/components/ZoomableImageModal";
 
 export function PickupOrderDetailsSidebar({
   activeOrder,
@@ -22,7 +23,14 @@ export function PickupOrderDetailsSidebar({
   cashReceived,
   changeAmount,
   onCompleteSale,
+  shouldPrintReceipt = false,
+  setShouldPrintReceipt = () => {},
+  onPrintReceipt,
+  loadingReceipt = false,
 }) {
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(0);
+
   const isReady = activeOrder && activeOrder.status === 'ready_for_pickup';
 
   const requiresPaymentInput = paymentMethod === 'cash' || (activeOrder?.payment_method === 'gcash' && activeOrder?.payment_status === 'unpaid');
@@ -196,40 +204,81 @@ export function PickupOrderDetailsSidebar({
         if (rxItem) {
           const rx = rxItem.order_item_prescription;
           const rxUrl = rx.prescription_image_url || rx.image_url || resolveImageUrl(rx.prescription_image_path || rx.image_path);
-          if (rxUrl) attachments.push(rxUrl);
+          if (rxUrl) {
+            attachments.push({
+              url: rxUrl,
+              title: "Prescription",
+              type: "prescription",
+            });
+          }
         }
         
-        // Discount ID and Payment Receipt
+        // Discount ID
         if (activeOrder.discount_id_image_url || activeOrder.discount_id_image_path) {
-          attachments.push(activeOrder.discount_id_image_url || resolveImageUrl(activeOrder.discount_id_image_path));
-        }
-        if (activeOrder.payment_receipt_image_url || activeOrder.payment_receipt_image_path) {
-          attachments.push(activeOrder.payment_receipt_image_url || resolveImageUrl(activeOrder.payment_receipt_image_path));
+          const discUrl = activeOrder.discount_id_image_url || resolveImageUrl(activeOrder.discount_id_image_path);
+          if (discUrl) {
+            attachments.push({
+              url: discUrl,
+              title: "Discount ID",
+              type: "discount_id",
+            });
+          }
         }
 
-        const validAttachments = attachments.filter(Boolean);
+        // Payment Receipt
+        if (activeOrder.payment_receipt_image_url || activeOrder.payment_receipt_image_path) {
+          const receiptUrl = activeOrder.payment_receipt_image_url || resolveImageUrl(activeOrder.payment_receipt_image_path);
+          if (receiptUrl) {
+            attachments.push({
+              url: receiptUrl,
+              title: "Payment Receipt",
+              type: "payment_receipt",
+            });
+          }
+        }
+
+        const validAttachments = attachments.filter(a => Boolean(a?.url));
         if (validAttachments.length === 0) return null;
 
         return (
-          <div className="p-3 mb-3 rounded-4 border" style={{ backgroundColor: "var(--pd-bg-main)", borderColor: "var(--pd-border)" }}>
-            <h6 className="fw-bold mb-3" style={{ fontSize: 14, color: "var(--pd-text-muted)" }}>Attachments</h6>
-            <div className={`d-flex gap-2 ${validAttachments.length === 1 ? 'justify-content-center' : 'justify-content-start overflow-x-auto'}`}>
-              {validAttachments.map((url, idx) => (
-                <a 
-                  key={idx} 
-                  href={url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className={`d-block flex-shrink-0 ${validAttachments.length === 1 ? 'w-75' : 'flex-fill'}`}
-                  style={{ maxWidth: validAttachments.length === 1 ? '80%' : 'calc(50% - 4px)' }}
-                >
-                  <div className="border overflow-hidden bg-white" style={{ borderColor: "var(--pd-primary)", borderWidth: 1.5, borderRadius: 12, height: 90 }}>
-                    <img src={url} alt="Attachment" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  </div>
-                </a>
-              ))}
+          <>
+            <div className="p-3 mb-3 rounded-4 border" style={{ backgroundColor: "var(--pd-bg-main)", borderColor: "var(--pd-border)" }}>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h6 className="fw-bold m-0" style={{ fontSize: 13.5, color: "var(--pd-text-muted)" }}>Attachments</h6>
+                <span className="text-muted small" style={{ fontSize: "11px" }}>Click to zoom</span>
+              </div>
+              <div className={`d-flex gap-2 ${validAttachments.length === 1 ? 'justify-content-center' : 'justify-content-start overflow-x-auto'}`}>
+                {validAttachments.map((item, idx) => (
+                  <button 
+                    key={idx} 
+                    type="button" 
+                    className={`d-block flex-shrink-0 p-0 border-0 bg-transparent text-start ${validAttachments.length === 1 ? 'w-75' : 'flex-fill'}`}
+                    style={{ maxWidth: validAttachments.length === 1 ? '80%' : 'calc(50% - 4px)', cursor: 'pointer' }}
+                    onClick={() => {
+                      setPreviewIndex(idx);
+                      setPreviewModalOpen(true);
+                    }}
+                    title={`View ${item.title}`}
+                  >
+                    <div className="border overflow-hidden bg-white position-relative rounded-3 shadow-sm hover-shadow transition-all" style={{ borderColor: "var(--pd-primary)", borderWidth: 1.5, height: 90 }}>
+                      <img src={item.url} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <div className="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-75 text-white px-2 py-0.5 d-flex align-items-center justify-content-between" style={{ fontSize: "10px" }}>
+                        <span className="text-truncate fw-medium">{item.title}</span>
+                        <i className="fa-solid fa-magnifying-glass-plus ms-1" style={{ fontSize: "9px" }} />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+
+            <ZoomableImageModal
+              isOpen={previewModalOpen}
+              onClose={() => setPreviewModalOpen(false)}
+              images={validAttachments}
+              initialIndex={previewIndex}
+            />
+          </>
         );
       })()}
 
@@ -249,17 +298,46 @@ export function PickupOrderDetailsSidebar({
         </div>
       )}
 
-      {/* Bottom Action Button (Only shown when Ready) */}
-      {isReady && (
-        <button
-          type="button"
-          className="btn w-100 py-2 text-white fw-bold rounded-3 mt-auto"
-          style={{ backgroundColor: "var(--pd-primary)", borderColor: "var(--pd-primary)", fontSize: 15 }}
-          onClick={showEnterPayment ? onOpenPaymentModal : onCompleteSale}
-        >
-          {showEnterPayment ? "Enter Payment" : "Complete Sale"}
-        </button>
-      )}
+      {/* Bottom Action Area */}
+      {isReady ? (
+        <div className="mt-auto pt-2">
+          <div className="d-flex align-items-center gap-2 mb-2 px-1 text-secondary" style={{ fontSize: "12px" }}>
+            <input
+              type="checkbox"
+              id="pickupPrintReceipt"
+              className="form-check-input mt-0"
+              style={{ width: "15px", height: "15px", cursor: "pointer" }}
+              checked={shouldPrintReceipt}
+              onChange={(e) => setShouldPrintReceipt(e.target.checked)}
+            />
+            <label htmlFor="pickupPrintReceipt" className="user-select-none mb-0 fw-medium text-dark" style={{ cursor: "pointer" }}>
+              Print thermal receipt after completion
+            </label>
+          </div>
+
+          <button
+            type="button"
+            className="btn w-100 py-2 text-white fw-bold rounded-3"
+            style={{ backgroundColor: "var(--pd-primary)", borderColor: "var(--pd-primary)", fontSize: 15 }}
+            onClick={showEnterPayment ? onOpenPaymentModal : onCompleteSale}
+          >
+            {showEnterPayment ? "Enter Payment" : "Complete Sale"}
+          </button>
+        </div>
+      ) : activeOrder && (activeOrder.status === 'completed' || activeOrder.status === 'Completed') ? (
+        <div className="mt-auto pt-2">
+          <button
+            type="button"
+            className="btn w-100 py-2 btn-outline-secondary fw-semibold rounded-3 d-flex align-items-center justify-content-center gap-2"
+            style={{ fontSize: 14 }}
+            onClick={() => onPrintReceipt && onPrintReceipt(activeOrder.id)}
+            disabled={loadingReceipt}
+          >
+            <i className="fa-solid fa-print" />
+            <span>{loadingReceipt ? "Generating Receipt..." : "Print Receipt"}</span>
+          </button>
+        </div>
+      ) : null}
     </aside>
   );
 }
