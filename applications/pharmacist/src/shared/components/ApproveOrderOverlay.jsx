@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  TouchableWithoutFeedback,
   ScrollView,
   Image,
   ActivityIndicator,
@@ -70,40 +69,45 @@ export default function ApproveOrderOverlay({
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <TouchableWithoutFeedback
-            onPress={() => {
-              if (!submitting) onClose();
-            }}
-          >
-            <View style={styles.backdrop}>
-              <TouchableWithoutFeedback>
-                <View style={styles.modalCard}>
-                  {/* Header matching app modal design */}
-                  <View className="flex-row justify-between items-center px-5 py-4 border-b border-gray-100">
-                    <View className="flex-1 mr-3">
-                      <Text className="text-base text-[#48AAD9]" style={styles.titleFont} numberOfLines={1}>
-                        {modalTitle}
-                      </Text>
-                      <Text className="text-xs text-gray-500 mt-0.5" style={styles.metaFont}>
-                        Order #{order.orderNumber}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      onPress={onClose}
-                      disabled={submitting}
-                      activeOpacity={0.7}
-                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    >
-                      <Ionicons name="close" size={22} color="#666" />
-                    </TouchableOpacity>
-                  </View>
+          <View style={styles.backdrop}>
+            {/* Backdrop click to dismiss */}
+            <Pressable
+              style={StyleSheet.absoluteFill}
+              onPress={() => {
+                if (!submitting) onClose();
+              }}
+            />
 
-                  {/* Scrollable Content */}
-                  <ScrollView
-                    showsVerticalScrollIndicator={true}
-                    contentContainerStyle={{ paddingHorizontal: 20, paddingVertical: 14 }}
-                    className="w-full flex-grow-0"
-                  >
+            <View style={styles.modalCard}>
+              {/* Header matching app modal design */}
+              <View className="flex-row justify-between items-center px-5 py-4 border-b border-gray-100">
+                <View className="flex-1 mr-3">
+                  <Text className="text-base text-[#48AAD9]" style={styles.titleFont} numberOfLines={1}>
+                    {modalTitle}
+                  </Text>
+                  <Text className="text-xs text-gray-500 mt-0.5" style={styles.metaFont}>
+                    Order #{order.orderNumber}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={onClose}
+                  disabled={submitting}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="close" size={22} color="#666" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Scrollable Content */}
+              <ScrollView
+                showsVerticalScrollIndicator={true}
+                contentContainerStyle={styles.scrollContent}
+                style={styles.scrollView}
+                nestedScrollEnabled={true}
+                keyboardShouldPersistTaps="handled"
+                bounces={true}
+              >
                     {/* Re-uploaded Prescription Alert Banner */}
                     {isReuploaded && (
                       <View className="bg-[#F0F9FF] border border-[#BAE6FD] rounded-2xl p-3.5 mb-3.5">
@@ -312,11 +316,9 @@ export default function ApproveOrderOverlay({
                     </TouchableOpacity>
                   </View>
                 </View>
-              </TouchableWithoutFeedback>
-            </View>
-          </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
-      </View>
+              </View>
+            </KeyboardAvoidingView>
+          </View>
 
       {/* Fullscreen Photo Modal */}
       {fullscreenImage && (
@@ -353,11 +355,22 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     overflow: 'hidden',
     maxHeight: '82%',
+    flexDirection: 'column',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
     shadowRadius: 12,
     elevation: 8,
+    zIndex: 10,
+  },
+  scrollView: {
+    flexGrow: 0,
+    flexShrink: 1,
+    width: '100%',
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingVertical: 14,
   },
   titleFont: {
     fontFamily: 'Poppins-Bold',
