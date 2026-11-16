@@ -29,7 +29,7 @@ class UpdateOrderStatusByPharmacistService
         'approve'     => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::AWAITING_PAYMENT],
         'ready'       => [OrderStatus::PREPARING],
         'pending'     => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP],
-        'out_pending' => [OrderStatus::STAND_BY, OrderStatus::PENDING],
+        'out_pending' => [OrderStatus::STAND_BY],
         'reject'      => [OrderStatus::PENDING, OrderStatus::REVIEWING, OrderStatus::PREPARING, OrderStatus::READY_FOR_PICKUP, OrderStatus::AWAITING_PAYMENT],
     ];
 
@@ -70,6 +70,13 @@ class UpdateOrderStatusByPharmacistService
 
         return DB::transaction(function () use ($user, $order, $action, $reason, $section) {
             $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first() ?? $order;
+
+            if ($action === 'out_pending' && $this->isRejectedOrder($lockedOrder)) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Rejected orders cannot be moved out of pending. Only orders marked as on hold can be moved out of pending.',
+                ], 422);
+            }
 
             $allowedCurrentStatuses = self::ACTION_ALLOWED_CURRENT_STATUSES[$action];
             if (!in_array($lockedOrder->status, $allowedCurrentStatuses, true)) {
@@ -323,5 +330,24 @@ class UpdateOrderStatusByPharmacistService
             'message' => 'Section approval processed successfully.',
             'data'    => $order,
         ]);
+    }
+
+    private function isRejectedOrder(Order $order): bool
+    {
+        if ($order->status === OrderStatus::CANCELLED) {
+            $reason = strtolower(trim((string) ($order->cancellation_reason ?? '')));
+            return str_contains($reason, 'rejected by pharmacist');
+        }
+
+        $reason = strtolower(trim((string) ($order->cancellation_reason ?? '')));
+        if (str_starts_with($reason, 'prescription rejected:')) {
+            return true;
+        }
+
+        $order->loadMissing('items.orderItemPrescription');
+
+        return $order->items->contains(function ($item) {
+            return $item->orderItemPrescription?->status === PrescriptionStatus::REJECTED;
+        });
     }
 }

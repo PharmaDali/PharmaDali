@@ -9,6 +9,7 @@ import ApproveOrderOverlay from '@shared/components/ApproveOrderOverlay';
 import MaleIcon from '@assets/icons/person-icons/male_icon.svg';
 import { getPharmacyOrders, updateOrderStatusByPharmacist } from '@shared/services/orderToPharmacistService';
 import { formatDateToMMDDYYYY, formatShortDateTime12h } from '@shared/utils/dateUtils';
+import { isOrderOnHold } from '@shared/utils/orderStatusUtils';
 import { colors } from '@shared/theme/colorPalette';
 import { getCachedToken } from '@shared/api/client';
 
@@ -123,10 +124,15 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
 
       const apiStatus = String(order?.status || '').toLowerCase();
       let itemDisplayStatus = 'For Review';
-      if (apiStatus === 'cancelled' || apiStatus === 'rejected') itemDisplayStatus = 'Rejected';
-      if (apiStatus === 'stand_by') itemDisplayStatus = 'Awaiting Customer Response';
-      if (apiStatus === 'awaiting_payment') itemDisplayStatus = 'Awaiting Payment';
-      if (apiStatus === 'preparing') itemDisplayStatus = 'Preparing';
+      if (apiStatus === 'cancelled' || apiStatus === 'rejected' || prescription?.status === 'rejected') {
+        itemDisplayStatus = 'Rejected';
+      } else if (apiStatus === 'stand_by') {
+        itemDisplayStatus = 'Awaiting Customer Response';
+      } else if (apiStatus === 'awaiting_payment') {
+        itemDisplayStatus = 'Awaiting Payment';
+      } else if (apiStatus === 'preparing') {
+        itemDisplayStatus = 'Preparing';
+      }
 
       return {
         img: product?.image_url || null,
@@ -449,6 +455,11 @@ export default function Orders() {
   const handleOutPending = async (order) => {
     const orderId = order?.id ?? order?.orderId ?? order?.orderNumber;
     if (!orderId) return;
+
+    if (!isOrderOnHold(order)) {
+      setError('Only orders marked as on hold can be moved out of pending.');
+      return;
+    }
 
     setError('');
     const previousTabStates = JSON.parse(JSON.stringify(tabStates));

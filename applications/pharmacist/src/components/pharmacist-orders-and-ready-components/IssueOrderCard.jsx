@@ -5,6 +5,7 @@ import ArrowDownIcon from '@assets/icons/arrow_down_icon.svg';
 import ArrowUpIcon from '@assets/icons/arrow_up_icon.svg';
 import OrderCard from './OrderCard';
 import OrderItemRow from './OrderItemRow';
+import { isOrderOnHold, isOrderRejected } from '@shared/utils/orderStatusUtils';
 
 export default function IssueOrderCard({ order, onOutPending }) {
   const [expanded, setExpanded] = useState(false);
@@ -31,21 +32,20 @@ export default function IssueOrderCard({ order, onOutPending }) {
 
   const issueCount = issueItems.length;
 
-  const isRejectedByPharmacist = order.apiStatus === 'cancelled' && order.cancellationReason?.toLowerCase().includes('rejected by pharmacist');
-  const isRejected = isRejectedByPharmacist || order.apiStatus === 'rejected';
-  const isStandBy = order.apiStatus === 'stand_by' || order.apiStatus === 'pending';
+  const isRejected = isOrderRejected(order);
+  const isStandBy = isOrderOnHold(order);
 
   let issueSummary = '';
-  if (issueCount === 1) {
+  if (isRejected) {
+    issueSummary = 'Order rejected';
+  } else if (order.apiStatus === 'cancelled') {
+    issueSummary = 'Order cancelled';
+  } else if (isStandBy) {
+    issueSummary = 'Order on hold';
+  } else if (issueCount === 1) {
     issueSummary = '1 item has issues';
   } else if (issueCount > 1) {
     issueSummary = `${issueCount} items have issues`;
-  } else if (isRejected) {
-    issueSummary = 'Order rejected';
-  } else if (isStandBy) {
-    issueSummary = 'Order on hold';
-  } else if (order.apiStatus === 'cancelled') {
-    issueSummary = 'Order cancelled';
   } else {
     issueSummary = 'Order requires attention';
   }
@@ -60,7 +60,7 @@ export default function IssueOrderCard({ order, onOutPending }) {
     .trim();
   const displayReason = cleanReason || rawReason;
 
-  const statusBadge = order.apiStatus === 'cancelled' || order.apiStatus === 'rejected' ? (
+  const statusBadge = isRejected || order.apiStatus === 'cancelled' ? (
     <View className="px-3 py-1 rounded-lg border" style={isRejected ? styles.rejectedBadge : styles.cancelledBadge}>
       <Text className="text-xs" style={isRejected ? styles.rejectedText : styles.cancelledText}>
         {isRejected ? 'Rejected' : 'Cancelled'}
