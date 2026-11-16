@@ -16,6 +16,7 @@ export function PickupOrdersTable({
   onSelectOrder,
   activeOrder,
   statusFilter,
+  onPrintReceipt,
 }) {
   return (
     <article className="h-100 d-flex flex-column flex-grow-1" style={{ backgroundColor: "transparent", minHeight: 0 }}>
@@ -124,13 +125,29 @@ export function PickupOrdersTable({
                       </span>
                     </td>
                     <td className="px-2 px-md-3 py-2 py-md-3 text-center text-nowrap" onClick={(e) => e.stopPropagation()} style={{ borderBottom: bottomBorder, borderTopRightRadius: topRightRadius, borderBottomRightRadius: bottomRightRadius, backgroundColor: cellBgColor, borderRight: "none" }}>
-                      <button
-                        type="button"
-                        className="admin-btn-primary btn-sm rounded-pill pickup-view-details-btn text-nowrap"
-                        onClick={() => onSelectOrder(order)}
-                      >
-                        View Details
-                      </button>
+                      <div className="d-flex align-items-center justify-content-center gap-1">
+                        <button
+                          type="button"
+                          className="admin-btn-primary btn-sm rounded-pill pickup-view-details-btn text-nowrap"
+                          onClick={() => onSelectOrder(order)}
+                        >
+                          View Details
+                        </button>
+                        {(!isReady || order.status === "completed" || order.status === "Completed") && onPrintReceipt && (
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0"
+                            style={{ width: "30px", height: "30px" }}
+                            title="Print Receipt"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onPrintReceipt(order.id);
+                            }}
+                          >
+                            <i className="fa-solid fa-print" style={{ fontSize: "12px" }} />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

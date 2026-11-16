@@ -34,7 +34,9 @@ export function usePos() {
     getPharmacySettings()
       .then((res) => {
         const hardware = res?.data?.hardware_settings || {};
-        setPrintAfterPayment(Boolean(hardware.print_after_payment));
+        const autoPrint = Boolean(hardware.print_after_payment);
+        setPrintAfterPayment(autoPrint);
+        setShouldPrintReceipt(autoPrint);
       })
       .catch((err) => {
         console.error("Failed to load POS hardware settings:", err);
@@ -219,7 +221,7 @@ export function usePos() {
         const createdOrder = response.data || response;
         const orderId = createdOrder?.id;
 
-        if ((printAfterPayment || shouldPrintReceipt) && orderId) {
+        if (shouldPrintReceipt && orderId) {
           setLoadingReceipt(true);
           fetchPosReceipt(orderId)
             .then((res) => {
@@ -233,7 +235,7 @@ export function usePos() {
             });
         }
 
-        setShouldPrintReceipt(false);
+        setShouldPrintReceipt(printAfterPayment);
         setOrderItems([]);
         setSelectedProduct(null);
         setPaymentMethod("");
