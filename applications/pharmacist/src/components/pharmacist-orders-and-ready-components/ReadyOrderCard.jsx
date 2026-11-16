@@ -35,7 +35,7 @@ const DISCOUNT_TYPE_LABELS = {
   pwd: 'PWD',
 };
 
-export default function ReadyOrderCard({ order, onMarkAsCompleted }) {
+export default function ReadyOrderCard({ order }) {
   const [expanded, setExpanded] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const isForPickup = order.status === 'For Pickup';
@@ -175,20 +175,6 @@ export default function ReadyOrderCard({ order, onMarkAsCompleted }) {
               </View>
             </TouchableOpacity>
           </View>
-
-          {isForPickup && (
-            <View className="border-t border-gray-100 pb-4 pt-3 items-center">
-              <TouchableOpacity
-                className="rounded-xl px-6 py-2"
-                style={styles.markCompletedButton}
-                onPress={() => onMarkAsCompleted?.(order)}
-              >
-                <Text className="text-sm text-white" style={{ fontFamily: 'Poppins-SemiBold' }}>
-                  Mark as Completed
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
       )}
 
@@ -325,8 +311,5 @@ const styles = StyleSheet.create({
   viewMoreText: {
     fontFamily: 'Poppins-SemiBold',
     color: colors.buttonColor,
-  },
-  markCompletedButton: {
-    backgroundColor: colors.buttonColor,
   },
 });
