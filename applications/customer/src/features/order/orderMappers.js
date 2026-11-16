@@ -1,4 +1,5 @@
 import { formatBranchName } from '@shared/utils/notificationUtils';
+import { resolveMediaUrl, resolveMediaSource } from '@shared/utils/mediaUtils';
 
 const COMPLETED_STATUSES = new Set(['completed', 'cancelled', 'overdue'])
 
@@ -102,7 +103,7 @@ function mapOrderProduct(item) {
   }
 }
 
-export function mapApiOrderToViewModel(order) {
+export function mapApiOrderToViewModel(order, token) {
   const rawStatusFromApi = String(order?.status || '').toLowerCase()
   const items = Array.isArray(order?.items) ? order.items : []
   const reason = order?.cancellation_reason || ''
@@ -113,7 +114,17 @@ export function mapApiOrderToViewModel(order) {
     return rx?.prescription_image_url || rx?.image_url || rx?.prescription_image_path
   })
   const rxRecord = prescriptionItem?.order_item_prescription || prescriptionItem?.orderItemPrescription
-  const prescriptionImagePath = rxRecord?.prescription_image_url || rxRecord?.image_url || (rxRecord?.prescription_image_path ? `${baseUrl}/storage/${rxRecord.prescription_image_path}` : null)
+  const rawPrescriptionTarget = rxRecord?.prescription_image_url || rxRecord?.image_url || rxRecord?.prescription_image_path || null
+  const prescriptionImagePath = resolveMediaUrl(rawPrescriptionTarget, baseUrl)
+  const prescriptionImageSource = resolveMediaSource(rawPrescriptionTarget, baseUrl, token)
+
+  const rawDiscountTarget = order?.discount_id_image_url || order?.discount_id_image_path || null
+  const discountIdImagePath = resolveMediaUrl(rawDiscountTarget, baseUrl)
+  const discountIdImageSource = resolveMediaSource(rawDiscountTarget, baseUrl, token)
+
+  const rawReceiptTarget = order?.payment_receipt_image_url || order?.payment_receipt_image_path || null
+  const paymentReceiptImagePath = resolveMediaUrl(rawReceiptTarget, baseUrl)
+  const paymentReceiptImageSource = resolveMediaSource(rawReceiptTarget, baseUrl, token)
 
   // Logic to distinguish between Rejected (by Pharmacist) and Cancelled (by Customer)
   let rawStatus = rawStatusFromApi
@@ -194,8 +205,11 @@ export function mapApiOrderToViewModel(order) {
     paymentStatus: order?.payment_status || '',
     paymentMethod: order?.payment_method || '',
     prescriptionImagePath,
-    discountIdImagePath: order?.discount_id_image_url || (order?.discount_id_image_path ? `${baseUrl}/storage/${order.discount_id_image_path}` : null),
-    paymentReceiptImagePath: order?.payment_receipt_image_url || (order?.payment_receipt_image_path ? `${baseUrl}/storage/${order.payment_receipt_image_path}` : null),
+    prescriptionImageSource,
+    discountIdImagePath,
+    discountIdImageSource,
+    paymentReceiptImagePath,
+    paymentReceiptImageSource,
     pharmacy: rawPharmacy,
     pharmacyName: rawPharmacyName,
     branchName: cleanBranch,

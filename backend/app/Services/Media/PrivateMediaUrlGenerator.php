@@ -43,6 +43,14 @@ class PrivateMediaUrlGenerator
             ? request()->root()
             : config('app.url');
 
+        $configuredUrl = (string) config('app.url');
+        $isHttps = str_starts_with($configuredUrl, 'https://')
+            || (app()->has('request') && (request()->isSecure() || request()->header('x-forwarded-proto') === 'https'));
+
+        if ($isHttps && str_starts_with($root, 'http://')) {
+            $root = 'https://' . substr($root, 7);
+        }
+
         return rtrim($root, '/') . $relativeUrl;
     }
 }
