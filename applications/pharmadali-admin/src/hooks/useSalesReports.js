@@ -26,13 +26,17 @@ export function useSalesReports() {
   // Settings
   const [allowCashRefund, setAllowCashRefund] = useState(false);
 
-  // Load summary cards on mount
-  useEffect(() => {
+  // Load summary cards
+  const loadSummary = useCallback(() => {
     setSummaryLoading(true);
     fetchSalesSummary()
       .then((data) => setSummary(data))
       .catch(() => setSummary(null))
       .finally(() => setSummaryLoading(false));
+  }, []);
+
+  useEffect(() => {
+    loadSummary();
 
     getPharmacySettings()
       .then((res) => {
@@ -40,7 +44,7 @@ export function useSalesReports() {
         setAllowCashRefund(Boolean(exchangeSettings.allow_cash_refund));
       })
       .catch((err) => console.error("Failed to load pharmacy settings:", err));
-  }, []);
+  }, [loadSummary]);
 
   // Load sales list
   const loadSales = useCallback((filters = {}) => {
@@ -126,6 +130,7 @@ export function useSalesReports() {
     summary,
     summaryLoading,
     SUMMARY_CARDS,
+    loadSummary,
     // Sales list
     salesRows,
     salesMeta,

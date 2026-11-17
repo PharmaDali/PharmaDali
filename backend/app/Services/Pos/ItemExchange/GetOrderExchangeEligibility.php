@@ -58,6 +58,9 @@ class GetOrderExchangeEligibility
             ];
         }
 
-        return $this->calculateReturnableItems->execute($order, $windowDays);
+        $result = $this->calculateReturnableItems->execute($order, $windowDays);
+        $result['enable_online_payment'] = (bool) ($pharmacy?->enable_online_payment ?? false);
+
+        return $result;
     }
 }

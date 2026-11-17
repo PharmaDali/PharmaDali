@@ -14,6 +14,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
     replacementCart,
     paymentMethod,
     setPaymentMethod,
+    allowGcashPayment,
     amountReceived,
     setAmountReceived,
     setExactPayment,
@@ -185,13 +186,27 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                               : (item.max_returnable_quantity ?? item.purchased_quantity ?? 0);
                             const condition = returnConditions[item.order_item_id] || "resalable";
                             const numReturnQty = Number(returnQty) || 0;
-                            const subtotal = numReturnQty * Number(item.unit_price_snapshot);
+                            const unitPrice = Number(item.unit_price_snapshot || 0);
+                            const originalUnitPrice = Number(item.original_unit_price || unitPrice);
+                            const isDiscounted = Boolean(item.is_discounted || originalUnitPrice > unitPrice);
+                            const subtotal = numReturnQty * unitPrice;
+                            const originalSubtotal = numReturnQty * originalUnitPrice;
 
                             return (
                               <tr key={item.order_item_id}>
                                 <td>
                                   <div className="fw-semibold text-dark">{item.product_name}</div>
-                                  <div className="text-muted" style={{ fontSize: "11px" }}>Purchased: {item.purchased_quantity}</div>
+                                  <div className="text-muted" style={{ fontSize: "11px" }}>
+                                    Purchased: {item.purchased_quantity} •{" "}
+                                    {isDiscounted ? (
+                                      <>
+                                        <span className="text-decoration-line-through me-1">Php {originalUnitPrice.toFixed(2)}</span>
+                                        <span className="text-success fw-semibold">Php {unitPrice.toFixed(2)}/unit</span>
+                                      </>
+                                    ) : (
+                                      <span>Php {unitPrice.toFixed(2)}/unit</span>
+                                    )}
+                                  </div>
                                 </td>
                                 <td className="text-center" style={{ width: "90px" }}>
                                   <input
@@ -215,7 +230,14 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                                     ]}
                                   />
                                 </td>
-                                <td className="text-end fw-semibold text-dark">Php {subtotal.toFixed(2)}</td>
+                                <td className="text-end fw-semibold text-dark">
+                                  {isDiscounted && numReturnQty > 0 && (
+                                    <div className="text-muted text-decoration-line-through fw-normal" style={{ fontSize: "11px" }}>
+                                      Php {originalSubtotal.toFixed(2)}
+                                    </div>
+                                  )}
+                                  <div>Php {subtotal.toFixed(2)}</div>
+                                </td>
                               </tr>
                             );
                           })}
@@ -404,6 +426,8 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                                   .map((item) => {
                                     const qty = Number(selectedReturns[item.order_item_id]) || 0;
                                     const price = Number(item.unit_price_snapshot || 0);
+                                    const originalPrice = Number(item.original_unit_price || price);
+                                    const isDiscounted = Boolean(item.is_discounted || originalPrice > price);
                                     const sub = qty * price;
                                     const cond = returnConditions[item.order_item_id] || "resalable";
 
@@ -421,7 +445,14 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                                           </span>
                                         </td>
                                         <td className="text-center fw-semibold">{qty}</td>
-                                        <td className="text-end text-muted">PHP {price.toFixed(2)}</td>
+                                        <td className="text-end text-muted">
+                                          {isDiscounted && (
+                                            <div className="text-decoration-line-through" style={{ fontSize: "10px" }}>
+                                              PHP {originalPrice.toFixed(2)}
+                                            </div>
+                                          )}
+                                          <div>PHP {price.toFixed(2)}</div>
+                                        </td>
                                         <td className="text-end fw-bold text-danger">-PHP {sub.toFixed(2)}</td>
                                       </tr>
                                     );
@@ -522,7 +553,7 @@ export function ItemExchangeModal({ order, onClose, onSuccess }) {
                           <div className="mb-3">
                             <label className="form-label small fw-semibold text-dark mb-1">Payment Method</label>
                             <div className="d-flex gap-2">
-                              {["cash", "gcash", "card"].map((method) => (
+                              {(allowGcashPayment ? ["cash", "gcash"] : ["cash"]).map((method) => (
                                 <button
                                   key={method}
                                   type="button"

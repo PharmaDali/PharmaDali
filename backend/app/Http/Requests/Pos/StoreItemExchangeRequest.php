@@ -28,7 +28,7 @@ class StoreItemExchangeRequest extends FormRequest
             'replacement_items' => 'required|array|min:1',
             'replacement_items.*.pharmacy_product_id' => 'required|exists:pharmacy_products,id',
             'replacement_items.*.quantity' => 'required|integer|min:1',
-            'payment_method' => 'nullable|string',
+            'payment_method' => 'nullable|string|in:cash,gcash',
             'amount_received' => 'nullable|numeric|min:0',
             'reason' => 'required|string|max:255',
             'notes' => 'nullable|string',
