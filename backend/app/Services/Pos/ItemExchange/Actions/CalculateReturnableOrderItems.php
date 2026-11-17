@@ -6,6 +6,10 @@ use App\Models\Order;
 
 class CalculateReturnableOrderItems
 {
+    public function __construct(
+        private readonly ResolveOrderItemReturnPrice $resolveOrderItemReturnPrice,
+    ) {}
+
     /**
      * Build returnable items payload with quantity limits.
      */
@@ -18,6 +22,8 @@ class CalculateReturnableOrderItems
             }
         }
 
+        $resolvedPrices = $this->resolveOrderItemReturnPrice->execute($order);
+
         $items = [];
         $hasReturnableItems = false;
 
@@ -29,6 +35,15 @@ class CalculateReturnableOrderItems
                 $hasReturnableItems = true;
             }
 
+            $priceInfo = $resolvedPrices[$item->id] ?? [
+                'original_unit_price'  => (float) $item->unit_price_snapshot,
+                'effective_unit_price' => (float) $item->unit_price_snapshot,
+                'is_discounted'        => false,
+                'discount_percentage'  => 0.0,
+            ];
+
+            $effectiveUnitPrice = $priceInfo['effective_unit_price'];
+
             $items[] = [
                 'order_item_id' => $item->id,
                 'pharmacy_product_id' => $item->pharmacy_product_id,
@@ -36,8 +51,11 @@ class CalculateReturnableOrderItems
                 'purchased_quantity' => $item->quantity,
                 'already_returned_quantity' => $alreadyReturned,
                 'max_returnable_quantity' => $maxReturnable,
-                'unit_price_snapshot' => (float) $item->unit_price_snapshot,
-                'line_total' => (float) $item->line_total,
+                'original_unit_price' => $priceInfo['original_unit_price'],
+                'unit_price_snapshot' => $effectiveUnitPrice,
+                'line_total' => round($effectiveUnitPrice * $item->quantity, 2),
+                'is_discounted' => $priceInfo['is_discounted'],
+                'discount_percentage' => $priceInfo['discount_percentage'],
             ];
         }
 

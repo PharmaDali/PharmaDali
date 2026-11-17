@@ -95,6 +95,15 @@ class PosPickupOrderService
                 ? (float) $discountData['discount_amount'] 
                 : ($order->discount_amount > 0 ? (float) $order->discount_amount : null);
 
+            if (
+                $discountPercentageInput === null
+                && $discountAmountInput === null
+                && $discountType !== 'none'
+                && strtolower(trim((string) $order->discount_remarks)) === 'approved'
+            ) {
+                $discountPercentageInput = strtolower($discountType) === 'employee' ? 10.0 : 20.0;
+            }
+
             [$discountAmount, $discountPercentage] = $this->discountCalculator->calculateDiscount(
                 subtotal: $subtotal,
                 discountType: $discountType,

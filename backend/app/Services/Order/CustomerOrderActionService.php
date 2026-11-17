@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Enums\OrderStatus;
 use App\Services\Messaging\ConversationService;
+use App\Services\Order\Actions\RecalculateOrderDiscount;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -14,6 +15,7 @@ class CustomerOrderActionService
 {
     public function __construct(
         private readonly ConversationService $conversationService,
+        private readonly RecalculateOrderDiscount $recalculateOrderDiscount,
     ) {}
 
     /**
@@ -127,22 +129,11 @@ class CustomerOrderActionService
                 ]);
             }
 
-            // Recalculate totals
-            $newSubtotal = $remainingItems->sum('line_total');
-            $discountAmount = (float) ($order->discount_amount ?? 0);
-
-            if (!empty($order->discount_percentage) && $order->discount_percentage > 0) {
-                $discountAmount = round($newSubtotal * ($order->discount_percentage / 100), 2);
-            } else {
-                $discountAmount = min($discountAmount, $newSubtotal);
-            }
-
-            $newTotal = max(0, $newSubtotal - $discountAmount);
+            // Recalculate totals via loosely-coupled action
+            $order->setRelation('items', $remainingItems);
+            $order = $this->recalculateOrderDiscount->recalculateAfterItemsChanged($order);
 
             $order->update([
-                'subtotal'            => $newSubtotal,
-                'discount_amount'     => $discountAmount,
-                'total_amount'        => $newTotal,
                 'status'              => OrderStatus::REVIEWING,
                 'cancellation_reason' => null,
             ]);
