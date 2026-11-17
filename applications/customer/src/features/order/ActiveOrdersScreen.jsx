@@ -91,7 +91,14 @@ function ActiveOrderCard({ order, onViewDetails, onPay, onCancel }) {
       {/* Order Summary row */}
       <View className="flex-row justify-between items-center">
         <Text className="text-sm" style={styles.textColorBold}>Order Summary</Text>
-        <Text className="text-sm" style={styles.primaryLabelBold}>{order.orderSummary}</Text>
+        <View className="flex-row items-center">
+          {order.discountAmount > 0 && (
+            <Text className="text-xs text-gray-400 mr-2 line-through" style={styles.fontMedium}>
+              {order.subtotalFormatted}
+            </Text>
+          )}
+          <Text className="text-sm" style={styles.primaryLabelBold}>{order.orderSummary}</Text>
+        </View>
       </View>
 
       {/* Action buttons */}
@@ -132,10 +139,52 @@ function ActiveOrderCard({ order, onViewDetails, onPay, onCancel }) {
   )
 }
 
+function doesOptimisticOrderMatchServerOrder(optOrder, serverOrder) {
+  if (!optOrder || !serverOrder) return false
+
+  if (optOrder.serverOrderId && Number(optOrder.serverOrderId) === Number(serverOrder.id)) {
+    return true
+  }
+
+  if (optOrder.orderNumber && optOrder.orderNumber === serverOrder.orderNumber) {
+    return true
+  }
+
+  const submittedAt = Number(optOrder.submittedAt || optOrder.id || 0)
+  const placedAt = Number(serverOrder.placedAtMs || 0)
+  if (submittedAt > 0 && placedAt > 0) {
+    const timeDiff = placedAt - submittedAt
+    if (timeDiff < -30000 || timeDiff > 120000) {
+      return false
+    }
+  }
+
+  const optProducts = Array.isArray(optOrder.products) ? optOrder.products : []
+  const srvProducts = Array.isArray(serverOrder.products) ? serverOrder.products : []
+  if (!optProducts.length || optProducts.length !== srvProducts.length) {
+    return false
+  }
+
+  return optProducts.every((optItem) =>
+    srvProducts.some((srvItem) => {
+      const sameQty = Number(optItem.quantity || 0) === Number(srvItem.quantity || 0)
+      if (!sameQty) return false
+      if (optItem.pharmacyProductId && srvItem.pharmacyProductId) {
+        return Number(optItem.pharmacyProductId) === Number(srvItem.pharmacyProductId)
+      }
+      return String(optItem.description || '').trim().toLowerCase() === String(srvItem.description || '').trim().toLowerCase()
+    }),
+  )
+}
+
 export default function ActiveOrdersScreen({ orders = [], onOrderCancelled, refreshing, onRefresh }) {
   const router = useRouter()
   const { optimisticOrders } = useOrderSubmission()
-  const allOrders = [...optimisticOrders, ...orders]
+  const visibleOptimisticOrders = optimisticOrders.filter((optOrder) => {
+    if (optOrder.status === 'error') return true
+    return !orders.some((serverOrder) => doesOptimisticOrderMatchServerOrder(optOrder, serverOrder))
+  })
+  const allOrders = [...visibleOptimisticOrders, ...orders]
   
   const [cancelVisible, setCancelVisible] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)

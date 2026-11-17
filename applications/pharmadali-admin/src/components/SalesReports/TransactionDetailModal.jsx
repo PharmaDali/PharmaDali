@@ -107,6 +107,7 @@ function TransactionDetailModal({ row, onClose, onOpenExchange, onViewExchange, 
         : Number(row.total || 0) + discountAmount);
 
   const netTotal = Number(row.total || 0);
+  const additionalExchangePayment = Number(row.additionalExchangePayment || 0);
 
   return (
     <div
@@ -190,16 +191,37 @@ function TransactionDetailModal({ row, onClose, onOpenExchange, onViewExchange, 
               </div>
             )}
 
+            {additionalExchangePayment > 0 && (
+              <div className="d-flex justify-content-between text-primary mb-1" style={{ fontSize: "13px" }}>
+                <span>EXCHANGE ADDITIONAL PAYMENT</span>
+                <span>+PHP {additionalExchangePayment.toFixed(2)}</span>
+              </div>
+            )}
+
             <div className="d-flex justify-content-between fw-bold my-2 pt-2 border-top" style={{ fontSize: "16px", color: "#2aabe2" }}>
-              <span>DISCOUNTED PRICE</span>
+              <span>{additionalExchangePayment > 0 ? "NET TOTAL PAID" : "DISCOUNTED PRICE"}</span>
               <span>PHP {netTotal.toFixed(2)}</span>
             </div>
           </>
         ) : (
-          <div className="d-flex justify-content-between fw-bold my-2" style={{ fontSize: "16px", color: "#2aabe2" }}>
-            <span>TOTAL AMOUNT</span>
-            <span>PHP {netTotal.toFixed(2)}</span>
-          </div>
+          <>
+            {additionalExchangePayment > 0 && (
+              <>
+                <div className="d-flex justify-content-between text-secondary mb-1" style={{ fontSize: "13px" }}>
+                  <span>ORIGINAL ORDER TOTAL</span>
+                  <span>PHP {Number(row.originalTotal ?? (netTotal - additionalExchangePayment)).toFixed(2)}</span>
+                </div>
+                <div className="d-flex justify-content-between text-primary mb-1" style={{ fontSize: "13px" }}>
+                  <span>EXCHANGE ADDITIONAL PAYMENT</span>
+                  <span>+PHP {additionalExchangePayment.toFixed(2)}</span>
+                </div>
+              </>
+            )}
+            <div className="d-flex justify-content-between fw-bold my-2" style={{ fontSize: "16px", color: "#2aabe2" }}>
+              <span>TOTAL AMOUNT</span>
+              <span>PHP {netTotal.toFixed(2)}</span>
+            </div>
+          </>
         )}
         <hr />
 

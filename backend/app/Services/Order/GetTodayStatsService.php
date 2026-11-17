@@ -2,6 +2,7 @@
 
 namespace App\Services\Order;
 
+use App\Models\ItemExchange;
 use App\Models\Order;
 use Illuminate\Support\Facades\Auth;
 
@@ -27,14 +28,20 @@ class GetTodayStatsService
 
         $totalOrders = (clone $query)->count();
         
-        // Sales are typically orders that are completed or picked up
-        $totalSales = (clone $query)
+        // Sales are typically orders that are completed or picked up + today's item exchange additional payments
+        $totalSales = (float) (clone $query)
             ->whereIn('status', ['completed', 'picked_up'])
             ->sum('total_amount');
 
+        $exchangeQuery = ItemExchange::whereDate('created_at', today());
+        if ($targetPharmacyId) {
+            $exchangeQuery->where('pharmacy_id', $targetPharmacyId);
+        }
+        $exchangeSales = (float) $exchangeQuery->sum('additional_payment');
+
         return [
             'total_orders' => $totalOrders,
-            'total_sales' => (float) $totalSales,
+            'total_sales' => round($totalSales + $exchangeSales, 2),
         ];
     }
 }

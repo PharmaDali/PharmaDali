@@ -219,37 +219,43 @@ export default function HomeScreen() {
       </View>
 
       {/* ── Hero Section ── */}
-      <View className="mx-4 mt-3.5 rounded-2xl overflow-hidden">
+      <View className="mx-4 mt-3.5 rounded-2xl overflow-hidden" style={{ minHeight: 190 }}>
         <HeroImage
           width="100%"
-          height={200}
+          height="100%"
           preserveAspectRatio="xMidYMid slice"
-          style={{ position: 'absolute', top: 0, left: 0 }}
+          style={StyleSheet.absoluteFillObject}
         />
-        <View className="px-5 pt-3 pb-5">
+        <View className="px-5 pt-3.5 pb-4">
           <View className="flex-1 pr-4">
             <Text
               className="text-2xl text-gray-800"
-              style={{ fontFamily: 'Poppins-Bold'}}
+              style={{ fontFamily: 'Poppins-Bold' }}
+              numberOfLines={2}
             >
               {heroRecommendations?.hero_title || 'Welcome to PharmaDali!'}
             </Text>
             <Text
-              className="mt-3 text-xs text-gray-700 leading-5"
+              className="mt-2.5 text-xs text-gray-700 leading-5"
               style={{ fontFamily: 'Poppins-Regular' }}
+              numberOfLines={3}
+              ellipsizeMode="tail"
             >
-              {heroRecommendations?.hero_subtitle || 'Find the medicines and healthcare essentials you need in one place.'}
+              {(heroRecommendations?.hero_subtitle || 'Find the medicines and healthcare essentials you need in one place.')
+                .replace(/\s+-\s+[^,]+(?=,)/, '')
+                .replace(/\s*\([^)]*\)(?=,)/g, '')}
             </Text>
             {!heroRecommendations && (
               <Text
                 className="mt-2 text-xs text-gray-700 leading-5"
                 style={{ fontFamily: 'Poppins-Regular' }}
+                numberOfLines={2}
               >
                 Order ahead with ease and pick up your items when they're ready.
               </Text>
             )}
             <TouchableOpacity
-              className="mt-5 flex-row items-center justify-center self-start rounded-xl bg-sky-500 px-4 py-2"
+              className="mt-4 flex-row items-center justify-center self-start rounded-xl bg-sky-500 px-4 py-2"
               onPress={() => route.push('/tabs/shop/Shop')}
               activeOpacity={0.8}
             >

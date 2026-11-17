@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchOrderExchangeEligibility, processItemExchange } from "../services/itemExchangeService";
+import { getPharmacySettings } from "../services/pharmacySettingsService";
 import {
   calculateReturnedTotal,
   calculateReplacementTotal,
@@ -11,6 +12,7 @@ export const useItemExchange = (order, show, onExchangeSuccess) => {
   const [step, setStep] = useState(1); // 1: Return Selection, 2: Replacement Selection, 3: Review & Payment
   const [loadingEligibility, setLoadingEligibility] = useState(false);
   const [eligibilityData, setEligibilityData] = useState(null);
+  const [allowGcashPayment, setAllowGcashPayment] = useState(false);
 
   const [selectedReturns, setSelectedReturns] = useState({}); // { [order_item_id]: returnQty }
   const [returnConditions, setReturnConditions] = useState({}); // { [order_item_id]: "resalable" | "damaged" | "expired" }
@@ -52,6 +54,30 @@ export const useItemExchange = (order, show, onExchangeSuccess) => {
       const res = await fetchOrderExchangeEligibility(order.id || order.order_number);
       const data = res.data || res;
       setEligibilityData(data);
+
+      if (data?.enable_online_payment !== undefined) {
+        const gcashAllowed = Boolean(data.enable_online_payment);
+        setAllowGcashPayment(gcashAllowed);
+        if (!gcashAllowed) {
+          setPaymentMethod("cash");
+        }
+      } else {
+        getPharmacySettings()
+          .then((settingsRes) => {
+            const paymentSettings = settingsRes?.data?.payment_settings || {};
+            const pharmacy = settingsRes?.data?.pharmacy || {};
+            const gcashAllowed = Boolean(
+              paymentSettings.enable_online_payment !== undefined
+                ? paymentSettings.enable_online_payment
+                : pharmacy.enable_online_payment
+            );
+            setAllowGcashPayment(gcashAllowed);
+            if (!gcashAllowed) {
+              setPaymentMethod("cash");
+            }
+          })
+          .catch(() => setAllowGcashPayment(false));
+      }
 
       if (data?.items) {
         const initialReturns = {};
@@ -223,6 +249,7 @@ export const useItemExchange = (order, show, onExchangeSuccess) => {
     replacementCart,
     paymentMethod,
     setPaymentMethod,
+    allowGcashPayment,
     amountReceived,
     setAmountReceived,
     setExactPayment,

@@ -11,6 +11,7 @@ use App\Notifications\OrderStatusNotification;
 use App\Notifications\DiscountIdVerifiedNotification;
 use App\Notifications\PaymentReceiptVerifiedNotification;
 use App\Services\Messaging\ConversationService;
+use App\Services\Order\Actions\RecalculateOrderDiscount;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -34,7 +35,8 @@ class UpdateOrderStatusByPharmacistService
     ];
 
     public function __construct(
-        private readonly ConversationService $conversationService
+        private readonly ConversationService $conversationService,
+        private readonly RecalculateOrderDiscount $recalculateOrderDiscount,
     ) {}
 
     public function handle(?User $user, Order $order, string $action, ?string $reason = null, ?string $section = null): JsonResponse
@@ -223,6 +225,7 @@ class UpdateOrderStatusByPharmacistService
                 $order->update([
                     'discount_remarks' => 'rejected: ' . ($cleanReason ?: 'Online ID verification rejected. Present physical ID upon pickup.'),
                 ]);
+                $order = $this->recalculateOrderDiscount->clear($order);
                 $systemMsg = 'Discount ID rejected: Please present physical ID upon pickup.';
                 break;
 
@@ -274,8 +277,8 @@ class UpdateOrderStatusByPharmacistService
                 $order->update([
                     'discount_remarks' => 'approved',
                 ]);
+                $order = $this->recalculateOrderDiscount->apply($order)->load(['items.orderItemPrescription']);
                 $systemMsg = 'Discount ID approved by pharmacist.';
-                $order = $order->fresh()->load(['items.orderItemPrescription']);
 
                 // Auto-transition to awaiting_payment for GCash orders if no unverified prescriptions remain
                 if ($order->payment_method === 'gcash' && $order->payment_status === \App\Enums\PaymentStatus::UNPAID) {

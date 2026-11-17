@@ -28,7 +28,7 @@ function SalesReports() {
 
   const {
     selectedRow, setSelectedRow, handleRowClick,
-    summaryLoading, SUMMARY_CARDS,
+    summaryLoading, SUMMARY_CARDS, loadSummary,
     salesRows, salesMeta, salesLoading, salesError, totalAmount, loadSales,
     startDate, endDate, dateError,
     handleStartDateChange, handleEndDateChange,
@@ -49,7 +49,8 @@ function SalesReports() {
   const handleExchangeSuccess = (exchangeData) => {
     setExchangeOrder(null);
     setCompletedExchange(exchangeData);
-    // Reload sales report table
+    // Reload both sales summary metric cards and sales report table
+    loadSummary();
     loadSales({ start_date: startDate || undefined, end_date: endDate || undefined, page: salesMeta?.currentPage || 1 });
   };
 

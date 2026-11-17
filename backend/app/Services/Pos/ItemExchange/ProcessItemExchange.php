@@ -34,7 +34,7 @@ class ProcessItemExchange
         }
 
         $orderId = $data['order_id'] ?? null;
-        $order = Order::with(['items', 'exchanges.returnedItems'])
+        $order = Order::with(['items.pharmacyProduct', 'exchanges.returnedItems'])
             ->where('id', $orderId)
             ->orWhere('order_number', $orderId)
             ->firstOrFail();
@@ -55,6 +55,14 @@ class ProcessItemExchange
             $returns = $this->validateReturnItems->execute($order, $data['returned_items'] ?? []);
             $replacements = $this->validateReplacementItems->execute($pharmacyId, $data['replacement_items'] ?? []);
             $payment = $this->calculateExchangeBalance->execute($returns['totalValue'], $replacements['totalValue'], $data);
+
+            $paymentMethod = strtolower((string) ($data['payment_method'] ?? 'cash'));
+            if ($payment['additionalPayment'] > 0 && $paymentMethod === 'gcash') {
+                $pharmacy = \App\Models\Pharmacy::find($pharmacyId);
+                if (!($pharmacy?->enable_online_payment ?? false)) {
+                    throw new \Exception('GCash payment is not enabled for this pharmacy.');
+                }
+            }
 
             $exchangeNumber = 'EXC-' . strtoupper(Str::random(10));
 

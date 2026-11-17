@@ -2,6 +2,7 @@
 
 namespace App\Services\Dashboard;
 
+use App\Models\ItemExchange;
 use App\Models\Order;
 use App\Repositories\DashboardRepository;
 use App\Services\Analytics\AnalyticsService;
@@ -49,12 +50,18 @@ class GetQuickInsights
         $current7DaysSales = (float) Order::where('pharmacy_id', $pharmacyId)
             ->where('status', 'completed')
             ->where('completed_at', '>=', $sevenDaysAgo)
-            ->sum('total_amount');
+            ->sum('total_amount')
+            + (float) ItemExchange::where('pharmacy_id', $pharmacyId)
+                ->where('created_at', '>=', $sevenDaysAgo)
+                ->sum('additional_payment');
 
         $prior7DaysSales = (float) Order::where('pharmacy_id', $pharmacyId)
             ->where('status', 'completed')
             ->whereBetween('completed_at', [$thirteenDaysAgo, $sixDaysAgoEnd])
-            ->sum('total_amount');
+            ->sum('total_amount')
+            + (float) ItemExchange::where('pharmacy_id', $pharmacyId)
+                ->whereBetween('created_at', [$thirteenDaysAgo, $sixDaysAgoEnd])
+                ->sum('additional_payment');
 
         if ($current7DaysSales == 0 && $prior7DaysSales == 0) {
             $growth = 0;
@@ -83,7 +90,10 @@ class GetQuickInsights
             ->with(['items.pharmacyProduct'])
             ->get();
 
-        $salesToday = (float) $todayOrders->sum('total_amount');
+        $exchangeToday = (float) ItemExchange::where('pharmacy_id', $pharmacyId)
+            ->whereBetween('created_at', [$todayStart, $todayEnd])
+            ->sum('additional_payment');
+        $salesToday = (float) $todayOrders->sum('total_amount') + $exchangeToday;
         $cogsToday = 0.0;
         $costedItemsCount = 0;
 

@@ -6,6 +6,10 @@ use App\Models\Order;
 
 class ValidateReturnItems
 {
+    public function __construct(
+        private readonly ResolveOrderItemReturnPrice $resolveOrderItemReturnPrice,
+    ) {}
+
     /**
      * Validate returned items against order history and prepare subtotal values.
      */
@@ -16,6 +20,7 @@ class ValidateReturnItems
         }
 
         $orderItemsMap = $order->items->keyBy('id');
+        $resolvedPrices = $this->resolveOrderItemReturnPrice->execute($order);
 
         $exchangedQuantities = [];
         foreach ($order->exchanges as $exchangeRecord) {
@@ -48,7 +53,9 @@ class ValidateReturnItems
                 throw new \Exception("Cannot return {$returnQty} units of {$orderItem->product_name}. Only {$maxReturnable} units are eligible.");
             }
 
-            $unitPrice = (float) $orderItem->unit_price_snapshot;
+            $unitPrice = isset($resolvedPrices[$orderItemId]['effective_unit_price'])
+                ? (float) $resolvedPrices[$orderItemId]['effective_unit_price']
+                : (float) $orderItem->unit_price_snapshot;
             $subtotal = round($unitPrice * $returnQty, 2);
             $totalReturnedValue += $subtotal;
 

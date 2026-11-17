@@ -41,6 +41,8 @@ class ExportSalesCsvService
 
             $subtotal = (float) ($order->subtotal > 0 ? $order->subtotal : $order->items->sum('line_total'));
             $discountAmount = (float) ($order->discount_amount ?? 0);
+            $additionalPayment = $order->exchanges ? (float) $order->exchanges->sum('additional_payment') : 0.0;
+            $effectiveTotal = round((float) $order->total_amount + $additionalPayment, 2);
 
             return [
                 'order_number'    => $order->order_number,
@@ -51,7 +53,7 @@ class ExportSalesCsvService
                 'subtotal'        => number_format($subtotal, 2, '.', ''),
                 'discount_type'   => $order->discount_type ?? 'none',
                 'discount_amount' => number_format($discountAmount, 2, '.', ''),
-                'total_amount'    => number_format($order->total_amount, 2, '.', ''),
+                'total_amount'    => number_format($effectiveTotal, 2, '.', ''),
                 'completed_at'    => $order->completed_at
                     ? $order->completed_at->format('Y-m-d H:i')
                     : 'N/A',
@@ -59,9 +61,14 @@ class ExportSalesCsvService
             ];
         })->values()->toArray();
 
+        $grandTotal = $orders->sum(function ($order) {
+            $additionalPayment = $order->exchanges ? (float) $order->exchanges->sum('additional_payment') : 0.0;
+            return (float) $order->total_amount + $additionalPayment;
+        });
+
         return [
             'date_range'   => $dateRange,
-            'total_amount' => number_format($orders->sum('total_amount'), 2, '.', ''),
+            'total_amount' => number_format($grandTotal, 2, '.', ''),
             'orders'       => $rows,
         ];
     }
