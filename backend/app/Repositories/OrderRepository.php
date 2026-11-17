@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Models\ItemExchange;
 use App\Models\Order;
 use Carbon\Carbon;
 
@@ -22,24 +23,41 @@ class OrderRepository
             return $q;
         };
 
-        $dailySales = $baseQuery()
+        $exchangeQuery = function () use ($pharmacyId, $user) {
+            $q = ItemExchange::where('pharmacy_id', $pharmacyId);
+            if ($user && $user->role === 'pharmacist') {
+                $q->where('processed_by', $user->id);
+            }
+            return $q;
+        };
+
+        $dailyOrdersSales = (float) $baseQuery()
             ->whereDate('completed_at', $now->toDateString())
             ->sum('total_amount');
+        $dailyExchangeSales = (float) $exchangeQuery()
+            ->whereDate('created_at', $now->toDateString())
+            ->sum('additional_payment');
 
-        $weeklySales = $baseQuery()
+        $weeklyOrdersSales = (float) $baseQuery()
             ->whereBetween('completed_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])
             ->sum('total_amount');
+        $weeklyExchangeSales = (float) $exchangeQuery()
+            ->whereBetween('created_at', [$now->copy()->startOfWeek(), $now->copy()->endOfWeek()])
+            ->sum('additional_payment');
 
-        $monthlySales = $baseQuery()
+        $monthlyOrdersSales = (float) $baseQuery()
             ->whereBetween('completed_at', [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()])
             ->sum('total_amount');
+        $monthlyExchangeSales = (float) $exchangeQuery()
+            ->whereBetween('created_at', [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()])
+            ->sum('additional_payment');
 
         $totalTransactions = $baseQuery()->count();
 
         return [
-            'daily_sales' => (float) $dailySales,
-            'weekly_sales' => (float) $weeklySales,
-            'monthly_sales' => (float) $monthlySales,
+            'daily_sales' => round($dailyOrdersSales + $dailyExchangeSales, 2),
+            'weekly_sales' => round($weeklyOrdersSales + $weeklyExchangeSales, 2),
+            'monthly_sales' => round($monthlyOrdersSales + $monthlyExchangeSales, 2),
             'total_transactions' => $totalTransactions,
         ];
     }

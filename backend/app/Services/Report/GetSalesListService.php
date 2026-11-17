@@ -34,6 +34,10 @@ class GetSalesListService
 
             $hasExchange = $order->exchanges && $order->exchanges->isNotEmpty();
             $status = $hasExchange ? 'exchanged' : strtolower($order->status?->value ?? 'completed');
+            $additionalExchangePayment = $hasExchange
+                ? (float) $order->exchanges->sum('additional_payment')
+                : 0.0;
+            $effectiveTotal = round((float) $order->total_amount + $additionalExchangePayment, 2);
 
             return [
                 'id' => $order->order_number,
@@ -47,7 +51,9 @@ class GetSalesListService
                 'discountAmount' => $discountAmount,
                 'discountIdNumber' => $order->discount_id_number,
                 'discountRemarks' => $order->discount_remarks,
-                'total' => (float) $order->total_amount,
+                'originalTotal' => (float) $order->total_amount,
+                'additionalExchangePayment' => $additionalExchangePayment,
+                'total' => $effectiveTotal,
                 'status' => $status,
                 'has_exchange' => $hasExchange,
                 'exchange_count' => $order->exchanges ? $order->exchanges->count() : 0,
