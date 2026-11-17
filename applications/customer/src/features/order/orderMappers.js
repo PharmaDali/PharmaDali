@@ -17,6 +17,15 @@ const STATUS_LABELS = {
   awaiting_payment: 'Awaiting Payment',
 }
 
+const DISCOUNT_TYPE_LABELS = {
+  senior_citizen: 'Senior Citizen',
+  senior: 'Senior Citizen',
+  pwd: 'PWD',
+  employee: 'Employee',
+  student: 'Student',
+  diplomat: 'Diplomat',
+}
+
 export function formatCurrency(value) {
   const amount = Number(value)
   if (!Number.isFinite(amount)) {
@@ -85,9 +94,14 @@ function mapOrderProduct(item) {
   const unitPrice = Number(item?.unit_price_snapshot || 0)
   const quantity = Number(item?.quantity || 0)
   const lineTotal = Number(item?.line_total ?? (unitPrice * quantity))
+  const rawIsDiscountable = pharmacyProduct?.is_discountable ?? product?.is_discountable
+  const isDiscountable = rawIsDiscountable === undefined || rawIsDiscountable === null
+    ? true
+    : Boolean(Number.isNaN(Number(rawIsDiscountable)) ? rawIsDiscountable : Number(rawIsDiscountable))
 
   return {
     id: Number(item?.id || 0),
+    pharmacyProductId: Number(item?.pharmacy_product_id || pharmacyProduct?.id || 0) || null,
     img: product?.image_url || null,
     product,
     categoryName,
@@ -96,6 +110,7 @@ function mapOrderProduct(item) {
     unitPrice,
     lineTotal,
     quantity,
+    isDiscountable,
     sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
     size: product?.size || product?.strength || 'N/A',
     prescriptionRequired,
@@ -187,16 +202,39 @@ export function mapApiOrderToViewModel(order, token) {
   const rawLocation = rawPharmacy?.location || ''
   const cleanBranch = rawPharmacy?.branch_name || formatBranchName(rawPharmacyName, rawLocation) || rawPharmacyName || rawLocation || ''
 
+  const mappedProducts = items.map(mapOrderProduct)
+  const computedItemsSubtotal = mappedProducts.reduce((sum, p) => sum + (p.lineTotal || 0), 0)
+  const subtotalAmount = Number(order?.subtotal) > 0 ? Number(order.subtotal) : computedItemsSubtotal
+  const discountAmount = Number(order?.discount_amount || 0)
+  const discountPercentage = Number(order?.discount_percentage || 0)
+  const totalAmount = order?.total_amount !== undefined && order?.total_amount !== null
+    ? Number(order.total_amount)
+    : Math.max(0, subtotalAmount - discountAmount)
+  const rawDiscountType = String(order?.discount_type || '').toLowerCase()
+  const discountTypeLabel = (rawDiscountType && rawDiscountType !== 'none')
+    ? (DISCOUNT_TYPE_LABELS[rawDiscountType] || order.discount_type)
+    : ''
+
+  const placedRaw = order?.placed_at || order?.created_at
+  const placedAtMs = placedRaw ? (new Date(placedRaw).getTime() || 0) : 0
+
   return {
     id: Number(order?.id || 0),
     rawStatus: customRawStatus,
     status: displayStatus,
     orderNumber: order?.order_number || String(order?.id || '-'),
-    date: formatOrderDate(order?.placed_at || order?.created_at),
-    products: items.map(mapOrderProduct),
-    orderSummary: formatCurrency(order?.total_amount ?? order?.subtotal ?? 0),
-    discountAmount: Number(order?.discount_amount || 0),
-    discountPercentage: Number(order?.discount_percentage || 0),
+    date: formatOrderDate(placedRaw),
+    placedAtMs,
+    products: mappedProducts,
+    subtotalAmount,
+    subtotalFormatted: formatCurrency(subtotalAmount),
+    totalAmount,
+    orderSummary: formatCurrency(totalAmount),
+    discountAmount,
+    discountAmountFormatted: formatCurrency(discountAmount),
+    discountPercentage,
+    discountType: order?.discount_type || null,
+    discountTypeLabel,
     reason: reason || null,
     onHoldReason: onHoldReason || 'Your order is currently on hold by the pharmacist.',
     cancellationReason: order?.cancellation_reason || '',

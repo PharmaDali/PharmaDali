@@ -19,6 +19,7 @@ import {
 import { uploadOrderItemPrescription } from '@shared/services/prescriptionService'
 import { getStoredToken, getCachedToken } from '@shared/api/client'
 import { mapApiOrderToViewModel } from './orderMappers'
+import { upsertCachedCustomerOrder } from './useCustomerOrders'
 
 export default function ViewOrderDetailsScreen() {
   const router = useRouter()
@@ -84,7 +85,9 @@ export default function ViewOrderDetailsScreen() {
       const token = authToken || (await getStoredToken())
       if (token && !authToken) setAuthToken(token)
       const payload = await fetchCustomerOrderDetails(resolvedOrderId)
-      setOrder(mapApiOrderToViewModel(payload, token))
+      const mapped = mapApiOrderToViewModel(payload, token)
+      upsertCachedCustomerOrder(mapped)
+      setOrder(mapped)
     } catch (error) {
       setOrder(null)
       setErrorMessage(error instanceof Error ? error.message : 'Unable to load order details.')
@@ -101,7 +104,11 @@ export default function ViewOrderDetailsScreen() {
         if (!resolvedOrderId) return
         const activeToken = authToken || getCachedToken()
         fetchCustomerOrderDetails(resolvedOrderId)
-          .then(payload => setOrder(mapApiOrderToViewModel(payload, activeToken)))
+          .then(payload => {
+            const mapped = mapApiOrderToViewModel(payload, activeToken)
+            upsertCachedCustomerOrder(mapped)
+            setOrder(mapped)
+          })
           .catch(console.error)
       }, 10000)
 
@@ -296,11 +303,15 @@ export default function ViewOrderDetailsScreen() {
     && (hasPrescription || order.reason?.toLowerCase().includes('prescription') || order.cancellationReason?.toLowerCase().includes('prescription'))
 
   const rawOtcTotal = otcItems.reduce((sum, item) => sum + (item.lineTotal || (item.unitPrice * item.quantity) || 0), 0)
+  const discountableOtcTotal = otcItems.reduce(
+    (sum, item) => sum + (item.isDiscountable !== false ? (item.lineTotal || (item.unitPrice * item.quantity) || 0) : 0),
+    0
+  )
   let discountedOtcTotal = rawOtcTotal
   if (order.discountPercentage > 0) {
-    discountedOtcTotal = Math.max(0, rawOtcTotal - (rawOtcTotal * (order.discountPercentage / 100)))
+    discountedOtcTotal = Math.max(0, rawOtcTotal - (discountableOtcTotal * (order.discountPercentage / 100)))
   } else if (order.discountAmount > 0) {
-    discountedOtcTotal = Math.max(0, rawOtcTotal - Math.min(order.discountAmount, rawOtcTotal))
+    discountedOtcTotal = Math.max(0, rawOtcTotal - Math.min(order.discountAmount, discountableOtcTotal))
   }
 
   const isDiscountApproved = order.discountRemarks?.toLowerCase() === 'approved'
@@ -337,6 +348,21 @@ export default function ViewOrderDetailsScreen() {
         ))}
 
         <View className="border-b border-gray-200 my-3" />
+
+        {order.discountAmount > 0 && (
+          <View className="mb-2">
+            <View className="flex-row justify-between items-center mb-1">
+              <Text className="text-xs text-gray-500" style={styles.fontMedium}>Subtotal</Text>
+              <Text className="text-xs text-gray-600" style={styles.fontMedium}>{order.subtotalFormatted}</Text>
+            </View>
+            <View className="flex-row justify-between items-center mb-1">
+              <Text className="text-xs text-green-700" style={styles.fontMedium}>
+                Discount{order.discountTypeLabel ? ` (${order.discountTypeLabel}${order.discountPercentage > 0 ? ` ${order.discountPercentage}%` : ''})` : ''}
+              </Text>
+              <Text className="text-xs text-green-700" style={styles.fontSemiBold}>-{order.discountAmountFormatted}</Text>
+            </View>
+          </View>
+        )}
 
         <View className="flex-row justify-between items-center">
           <Text className="text-sm" style={styles.textBold}>Order Summary</Text>

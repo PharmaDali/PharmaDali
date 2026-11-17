@@ -18,6 +18,7 @@ import StepIndicator from '@src/shared/components/StepIndicator'
 import PickupTimePickerModal from '@shared/components/PickupTimePickerModal'
 import { getCheckoutDraft, setCheckoutDraft } from '@shared/services/checkoutDraft'
 import { useOrderSubmission } from '@shared/context/OrderSubmissionContext'
+import { refreshCachedCustomerOrders } from '@features/order/useCustomerOrders'
 import { useSelectionPhase } from '@shared/context/SelectionPhaseContext'
 import {
   buildEffectivePickupBounds,
@@ -590,8 +591,9 @@ const PickupDetailsScreen = () => {
       total: effectiveTotal
     }
 
-    // Submit optimistically in the background
+    // Submit optimistically in the background and refresh cached orders so stale completed orders are cleared
     const localOrderId = submitOptimisticOrder(payload)
+    refreshCachedCustomerOrders()
 
     // Instantly navigate with summary and orderId params
     router.replace({

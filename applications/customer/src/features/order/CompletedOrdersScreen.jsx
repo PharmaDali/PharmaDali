@@ -76,7 +76,14 @@ function CompletedOrderCard({ order, onViewDetails }) {
 
       <View className="flex-row justify-between items-center">
         <Text className="text-sm" style={styles.textColorBold}>Order Summary</Text>
-        <Text className="text-sm" style={styles.primaryLabelBold}>{order.orderSummary}</Text>
+        <View className="flex-row items-center">
+          {order.discountAmount > 0 && (
+            <Text className="text-xs text-gray-400 mr-2 line-through" style={styles.fontMedium}>
+              {order.subtotalFormatted}
+            </Text>
+          )}
+          <Text className="text-sm" style={styles.primaryLabelBold}>{order.orderSummary}</Text>
+        </View>
       </View>
 
       <View className="items-center mt-4 mb-1">

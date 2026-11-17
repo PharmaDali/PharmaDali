@@ -1,12 +1,20 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { submitCheckoutOrder } from '@shared/services/checkoutSubmissionService';
+import { formatCurrency } from '@features/order/orderMappers';
+import { formatBranchName } from '@shared/utils/notificationUtils';
 
 const OrderSubmissionContext = createContext();
 
 export function useOrderSubmission() {
   const context = useContext(OrderSubmissionContext);
   if (!context) {
-    return { submitOptimisticOrder: () => {}, optimisticOrders: [], lastSubmissionError: null };
+    return {
+      submitOptimisticOrder: () => {},
+      clearLastSubmittedOrder: () => {},
+      optimisticOrders: [],
+      lastSubmittedOrder: null,
+      lastSubmissionError: null,
+    };
   }
   return context;
 }
@@ -21,35 +29,51 @@ export function OrderSubmissionProvider({ children }) {
     const orderNumber = `OPT-${localId.substring(localId.length - 6)}`;
     
     // Format date similar to backend
-    const date = new Date().toLocaleDateString('en-US', {
+    const date = new Date().toLocaleString('en-PH', {
+      month: 'long',
+      day: '2-digit',
       year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
     });
 
     // Format products for ActiveOrdersScreen
-    const products = (payload.items || []).map(item => ({
-      description: item.description || item.product?.name || 'Product',
-      price: item.price,
-      quantity: item.quantity,
-      img: item.img || null,
-      prescriptionRequired: item.prescriptionRequired || false,
-      product: item.product || null,
-      categoryName: item.category?.category_name || item.product?.category_name || ''
-    }));
+    const products = (payload.items || []).map(item => {
+      const unitPrice = Number(item.price) || 0;
+      const product = item.product || null;
+      return {
+        pharmacyProductId: Number(item.pharmacyProductId || item.pharmacy_product_id || 0) || null,
+        description: item.description || product?.product_name || product?.name || 'Product',
+        price: formatCurrency(unitPrice),
+        unitPrice,
+        quantity: Number(item.quantity) || 1,
+        img: item.img || product?.image_url || null,
+        prescriptionRequired: Boolean(item.prescriptionRequired),
+        product,
+        categoryName: item.category?.category_name || product?.category_name || '',
+        sizeLabel: product?.size ? 'Size' : (product?.strength ? 'Dosage' : 'Size'),
+        size: item.size || product?.size || product?.strength || 'N/A',
+      };
+    });
 
     // Calculate total summary
-    const totalItems = products.reduce((sum, p) => sum + (Number(p.quantity) || 0), 0);
-    const totalPrice = products.reduce((sum, p) => sum + ((Number(p.price) || 0) * (Number(p.quantity) || 0)), 0);
-    const orderSummary = `${totalItems} Items - PHP ${totalPrice.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
+    const totalPrice = products.reduce((sum, p) => sum + ((Number(p.unitPrice) || 0) * (Number(p.quantity) || 0)), 0);
+    const orderSummary = formatCurrency(totalPrice);
+    const rawBranch = payload.selectedPharmacyLabel || '';
+    const branchName = formatBranchName(rawBranch, '') || rawBranch;
 
     return {
       id: localId,
+      serverOrderId: null,
       orderNumber,
       date,
+      branchName,
+      pharmacyName: rawBranch,
       status: 'submitting', // custom status for optimistic order
       products,
       orderSummary,
+      submittedAt: Number(localId) || Date.now(),
       _isOptimistic: true,
       _payload: payload // keep payload for retries
     };
@@ -59,8 +83,9 @@ export function OrderSubmissionProvider({ children }) {
     const localId = Date.now().toString();
     const mockOrder = buildMockOrderForActiveOrders(localId, payload);
     
-    // Clear previous error on new submission attempt
+    // Clear previous error and stale lastSubmittedOrder on new submission attempt
     setLastSubmissionError(null);
+    setLastSubmittedOrder(null);
 
     // Add to state
     setOptimisticOrders(prev => [mockOrder, ...prev]);
@@ -74,7 +99,21 @@ export function OrderSubmissionProvider({ children }) {
   const processSubmission = async (localId, payload) => {
     try {
       // Attempt API submission
-      const result = await submitCheckoutOrder(payload);
+      const result = await submitCheckoutOrder(payload, {
+        onOrderCreated: (createdOrder) => {
+          const createdId = Number(createdOrder?.id || 0) || null;
+          if (!createdId) return;
+          setOptimisticOrders(prev => prev.map(o =>
+            o.id === localId
+              ? {
+                  ...o,
+                  serverOrderId: createdId,
+                  orderNumber: createdOrder?.order_number || o.orderNumber,
+                }
+              : o
+          ));
+        },
+      });
       if (result?.order) {
         setLastSubmittedOrder(result.order);
       }
@@ -119,12 +158,17 @@ export function OrderSubmissionProvider({ children }) {
     setLastSubmissionError(null);
   }, []);
 
+  const clearLastSubmittedOrder = useCallback(() => {
+    setLastSubmittedOrder(null);
+  }, []);
+
   return (
     <OrderSubmissionContext.Provider value={{ 
       optimisticOrders, 
       lastSubmittedOrder,
       lastSubmissionError,
       clearSubmissionError,
+      clearLastSubmittedOrder,
       submitOptimisticOrder, 
       retrySubmission,
       removeOptimisticOrder
