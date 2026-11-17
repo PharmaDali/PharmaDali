@@ -51,7 +51,8 @@ class CustomerRecommendationService
                 return $item->pharmacyProduct?->category || $item->pharmacyProduct?->category_id;
             }) ?? $lastOrder->items->first();
 
-            $primaryProductName = $firstItem->product_name ?? $firstItem->pharmacyProduct?->product?->product_name ?? 'your recent purchase';
+            $rawProductName = $firstItem->product_name ?? $firstItem->pharmacyProduct?->product?->product_name ?? 'your recent purchase';
+            $primaryProductName = $this->formatHeroProductName((string) $rawProductName);
             $category = $firstItem->pharmacyProduct?->category
                 ?? ($firstItem->pharmacyProduct?->category_id ? Category::find($firstItem->pharmacyProduct->category_id) : null);
 
@@ -386,6 +387,36 @@ class CustomerRecommendationService
         }
 
         return $vitamins;
+    }
+
+    /**
+     * Shorten verbose SKU product names (stripping chemical composition suffixes and parenthetical dosages)
+     * so the hero banner subtitle stays concise and readable.
+     */
+    private function formatHeroProductName(string $rawName): string
+    {
+        $name = trim($rawName);
+        if ($name === '') {
+            return 'your recent purchase';
+        }
+
+        // Strip verbose generic/chemical breakdown after " - "
+        if (str_contains($name, ' - ')) {
+            $parts = explode(' - ', $name, 2);
+            if (trim($parts[0]) !== '') {
+                $name = trim($parts[0]);
+            }
+        }
+
+        // Strip parenthetical dosage/composition details, e.g. "(500mg / 10mg / 2mg Tablet 1 Tablet)"
+        $stripped = preg_replace('/\s*\([^)]*\)/', '', $name);
+        if (is_string($stripped) && trim($stripped) !== '') {
+            $name = trim($stripped);
+        }
+
+        $name = preg_replace('/\s+/', ' ', $name) ?? $name;
+
+        return \Illuminate\Support\Str::limit($name, 32, '...');
     }
 
     /**
