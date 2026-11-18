@@ -8,6 +8,7 @@ use App\Models\PharmacyProduct;
 use App\Models\ProductBatch;
 use App\Models\Products;
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\Pool;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
@@ -133,7 +134,7 @@ class ScrapeMedsGoProducts extends Command
         }
 
         $sitemapItems = $this->parseSitemapUrls($xmlContent);
-        $this->info("Found " . count($sitemapItems) . " total product URLs in sitemap.");
+        $this->info("Found " . count($sitemapItems) . " unique product URLs in sitemap.");
 
         // Collect existing scraped image hashes & product names so we only scrape NEW unique products
         $existingImageHashes = [];
@@ -157,11 +158,14 @@ class ScrapeMedsGoProducts extends Command
             if (!empty($existingImageHashes)) {
                 $beforeCount = count($sitemapItems);
                 $sitemapItems = array_values(array_filter($sitemapItems, function (array $item) use ($existingImageHashes) {
-                    if (empty($item['image'])) {
-                        return true;
+                    $allImages = $item['images'] ?? (!empty($item['image']) ? [$item['image']] : []);
+                    foreach ($allImages as $imgUrl) {
+                        $hash = strtolower(substr(md5($imgUrl), 0, 8));
+                        if (isset($existingImageHashes[$hash])) {
+                            return false;
+                        }
                     }
-                    $hash = strtolower(substr(md5($item['image']), 0, 8));
-                    return !isset($existingImageHashes[$hash]);
+                    return true;
                 }));
                 $skippedCount = $beforeCount - count($sitemapItems);
                 if ($skippedCount > 0) {
@@ -170,63 +174,137 @@ class ScrapeMedsGoProducts extends Command
             }
         }
 
-        // Filter URLs
-        $candidates = $this->filterSitemapCandidates($sitemapItems, $categoryFilter, $limit);
-        $this->info("Selected " . count($candidates) . " new candidate products to scrape.");
+        // Filter URLs (include buffer candidates in case a page fails or duplicates an existing name)
+        $candidates = $this->filterSitemapCandidates($sitemapItems, $categoryFilter, $limit + 150);
+        $targetToScrape = min($limit, count($candidates));
+        $this->info("Targeting {$targetToScrape} new unique products to scrape (" . count($candidates) . " candidates queued).");
 
         if (empty($candidates)) {
             $this->warn('No products matched the given criteria.');
             return Command::SUCCESS;
         }
 
-        $bar = $this->output->createProgressBar(count($candidates));
+        $bar = $this->output->createProgressBar($targetToScrape);
         $bar->start();
 
         $savedCount = 0;
         $failedCount = 0;
+        $concurrency = 25;
 
-        foreach ($candidates as $item) {
-            $url = $item['url'];
-            $sitemapImage = $item['image'];
+        foreach (array_chunk($candidates, $concurrency) as $chunk) {
+            if ($savedCount >= $limit) {
+                break;
+            }
 
-            $productData = $this->scrapeProductPage($url, $sitemapImage);
-            if (!$productData) {
-                $failedCount++;
-                $bar->advance();
+            // 1. Concurrently fetch product HTML pages
+            $pageResponses = Http::pool(function (Pool $pool) use ($chunk) {
+                foreach ($chunk as $idx => $item) {
+                    $pool->as((string) $idx)
+                        ->withOptions(['verify' => false])
+                        ->timeout(20)
+                        ->withHeaders([
+                            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                            'Accept'     => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        ])
+                        ->get($item['url']);
+                }
+            });
+
+            $validProductsInChunk = [];
+            foreach ($chunk as $idx => $item) {
+                if ($savedCount + count($validProductsInChunk) >= $limit) {
+                    break;
+                }
+
+                $res = $pageResponses[(string) $idx] ?? null;
+                if (!$res instanceof \Illuminate\Http\Client\Response || !$res->successful()) {
+                    $failedCount++;
+                    continue;
+                }
+
+                $productData = $this->parseProductHtml($res->body(), $item['url'], $item['image']);
+                if (!$productData) {
+                    $failedCount++;
+                    continue;
+                }
+
+                $normalizedName = strtolower(trim($productData['name']));
+                $imgHash = !empty($productData['image_url'])
+                    ? strtolower(substr(md5($productData['image_url']), 0, 8))
+                    : null;
+
+                // Strictly skip if product name or image hash already exists in DB or current run
+                if (!$fresh) {
+                    if (isset($existingProductNames[$normalizedName])) {
+                        continue;
+                    }
+                    if ($imgHash && isset($existingImageHashes[$imgHash])) {
+                        continue;
+                    }
+                }
+
+                $existingProductNames[$normalizedName] = true;
+                if ($imgHash) {
+                    $existingImageHashes[$imgHash] = true;
+                }
+
+                if ($dryRun) {
+                    $this->newLine();
+                    $this->line(" [PREVIEW] {$productData['name']} | PHP " . number_format($productData['price'], 2) . " | Strength: " . ($productData['strength'] ?? 'N/A') . " | Size: " . ($productData['size'] ?? 'N/A') . " | Rx: " . ($productData['is_prescribed'] ? 'Yes' : 'No') . " | Cat: {$productData['category']}");
+                    $savedCount++;
+                    $bar->advance();
+                    continue;
+                }
+
+                $validProductsInChunk[] = $productData;
+            }
+
+            if ($dryRun || empty($validProductsInChunk)) {
                 continue;
             }
 
-            if ($dryRun) {
-                $this->newLine();
-                $this->line(" [PREVIEW] {$productData['name']} | PHP " . number_format($productData['price'], 2) . " | Strength: " . ($productData['strength'] ?? 'N/A') . " | Size: " . ($productData['size'] ?? 'N/A') . " | Rx: " . ($productData['is_prescribed'] ? 'Yes' : 'No') . " | Cat: {$productData['category']}");
-                $savedCount++;
-                $bar->advance();
-                continue;
+            // 2. Concurrently download product images for this chunk
+            $imagePaths = [];
+            if (!$skipImages) {
+                $imgResponses = Http::pool(function (Pool $pool) use ($validProductsInChunk) {
+                    foreach ($validProductsInChunk as $pIdx => $pData) {
+                        if (!empty($pData['image_url'])) {
+                            $pool->as((string) $pIdx)
+                                ->withOptions(['verify' => false])
+                                ->timeout(20)
+                                ->withHeaders(['User-Agent' => 'Mozilla/5.0'])
+                                ->get($pData['image_url']);
+                        }
+                    }
+                });
+
+                foreach ($validProductsInChunk as $pIdx => $pData) {
+                    $imgRes = $imgResponses[(string) $pIdx] ?? null;
+                    if ($imgRes instanceof \Illuminate\Http\Client\Response && $imgRes->successful()) {
+                        $identifier = $pData['sku'] ?: Str::slug($pData['name']);
+                        $imagePaths[$pIdx] = $this->saveProductImageBody($imgRes->body(), $pData['image_url'], $identifier);
+                    }
+                }
             }
 
-            // Download image
-            $imagePath = null;
-            if (!$skipImages && !empty($productData['image_url'])) {
-                $imagePath = $this->downloadProductImage($productData['image_url'], $productData['sku'] ?: Str::slug($productData['name']));
-            }
-
-            // Save to database
-            try {
-                $this->persistProduct(
-                    $targetPharmacies,
-                    $productData,
-                    $imagePath,
-                    $defaultStock
-                );
-                $savedCount++;
-            } catch (\Throwable $e) {
-                $this->error("Error saving '{$productData['name']}': " . $e->getMessage());
-                $failedCount++;
-            }
-
-            $bar->advance();
-            // Respectful throttle
-            usleep(150000); // 150ms
+            // 3. Persist valid products in this chunk inside a transaction
+            DB::transaction(function () use ($validProductsInChunk, $imagePaths, $targetPharmacies, $defaultStock, &$savedCount, &$failedCount, $bar) {
+                foreach ($validProductsInChunk as $pIdx => $productData) {
+                    try {
+                        $this->persistProduct(
+                            $targetPharmacies,
+                            $productData,
+                            $imagePaths[$pIdx] ?? null,
+                            $defaultStock
+                        );
+                        $savedCount++;
+                        $bar->advance();
+                    } catch (\Throwable $e) {
+                        $this->error("Error saving '{$productData['name']}': " . $e->getMessage());
+                        $failedCount++;
+                    }
+                }
+            });
         }
 
         $bar->finish();
@@ -234,21 +312,31 @@ class ScrapeMedsGoProducts extends Command
 
         $this->info('========================================================================');
         $this->info("Scraping Completed!");
-        $this->info("Successfully processed: {$savedCount} products");
+        $this->info("Successfully processed: {$savedCount} new products");
         if ($failedCount > 0) {
             $this->warn("Failed / Skipped:        {$failedCount} products");
         }
         $this->info('========================================================================');
 
+        if (!$dryRun && $savedCount > 0) {
+            $this->newLine();
+            $this->info('Exporting updated pharmacy product JSON files for VPS import...');
+            foreach ($targetPharmacies as $pharmacy) {
+                $this->call('pharmacy:export-products', [
+                    'pharmacy_id' => $pharmacy->id,
+                ]);
+            }
+        }
+
         return Command::SUCCESS;
     }
 
     /**
-     * Parse URLs and primary images from XML sitemap.
+     * Parse unique URLs and all associated images from XML sitemap.
      */
     private function parseSitemapUrls(string $xmlContent): array
     {
-        $items = [];
+        $byBaseUrl = [];
         try {
             $xml = simplexml_load_string($xmlContent);
             if (!$xml) {
@@ -259,17 +347,33 @@ class ScrapeMedsGoProducts extends Command
             $xml->registerXPathNamespace('image', 'http://www.google.com/schemas/sitemap-image/1.1');
 
             foreach ($xml->url as $urlNode) {
-                $loc = (string) $urlNode->loc;
-                $imgLoc = null;
-                if (isset($urlNode->children('image', true)->image)) {
-                    $imgLoc = (string) $urlNode->children('image', true)->image->loc;
+                $loc = trim((string) $urlNode->loc);
+                if (empty($loc)) {
+                    continue;
                 }
 
-                if (!empty($loc)) {
-                    $items[] = [
-                        'url' => $loc,
-                        'image' => $imgLoc,
+                $baseUrl = strtolower(strtok($loc, '?'));
+                $images = [];
+                if (isset($urlNode->children('image', true)->image)) {
+                    foreach ($urlNode->children('image', true)->image as $imgNode) {
+                        $imgLoc = trim((string) $imgNode->loc);
+                        if ($imgLoc !== '') {
+                            $images[] = $imgLoc;
+                        }
+                    }
+                }
+
+                if (!isset($byBaseUrl[$baseUrl])) {
+                    $byBaseUrl[$baseUrl] = [
+                        'url'    => $loc,
+                        'image'  => !empty($images) ? end($images) : null,
+                        'images' => $images,
                     ];
+                } else {
+                    $byBaseUrl[$baseUrl]['images'] = array_values(array_unique(array_merge($byBaseUrl[$baseUrl]['images'], $images)));
+                    if (empty($byBaseUrl[$baseUrl]['image']) && !empty($images)) {
+                        $byBaseUrl[$baseUrl]['image'] = end($images);
+                    }
                 }
             }
         } catch (\Throwable) {
@@ -280,14 +384,20 @@ class ScrapeMedsGoProducts extends Command
             $imgs = $imgMatches[1] ?? [];
 
             for ($i = 0; $i < count($locs); $i++) {
-                $items[] = [
-                    'url' => trim($locs[$i]),
-                    'image' => isset($imgs[$i]) ? trim($imgs[$i]) : null,
-                ];
+                $loc = trim($locs[$i]);
+                $baseUrl = strtolower(strtok($loc, '?'));
+                $img = isset($imgs[$i]) ? trim($imgs[$i]) : null;
+                if (!isset($byBaseUrl[$baseUrl])) {
+                    $byBaseUrl[$baseUrl] = [
+                        'url'    => $loc,
+                        'image'  => $img,
+                        'images' => $img ? [$img] : [],
+                    ];
+                }
             }
         }
 
-        return $items;
+        return array_values($byBaseUrl);
     }
 
     /**
@@ -379,8 +489,18 @@ class ScrapeMedsGoProducts extends Command
                 return null;
             }
 
-            $html = $response->body();
+            return $this->parseProductHtml($response->body(), $url, $sitemapImage);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
 
+    /**
+     * Parse product HTML body and extract structured JSON-LD product details.
+     */
+    private function parseProductHtml(string $html, string $url, ?string $sitemapImage): ?array
+    {
+        try {
             // Match JSON-LD Product schema
             if (!preg_match_all('/<script[^>]*type=["\']application\/ld\+json["\'][^>]*>(.*?)<\/script>/is', $html, $matches)) {
                 return null;
@@ -485,7 +605,18 @@ class ScrapeMedsGoProducts extends Command
                 return null;
             }
 
-            $body = $res->body();
+            return $this->saveProductImageBody($res->body(), $imageUrl, $identifier);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Save downloaded raw image bytes to storage/app/public/products.
+     */
+    private function saveProductImageBody(string $body, string $imageUrl, string $identifier): ?string
+    {
+        try {
             if (strlen($body) < 100) {
                 return null;
             }
@@ -793,88 +924,89 @@ class ScrapeMedsGoProducts extends Command
     private function persistProduct($targetPharmacies, array $data, ?string $imagePath, int $stock): void
     {
         PharmacyProduct::withoutSyncingToSearch(function () use ($targetPharmacies, $data, $imagePath, $stock) {
-            // 1. Resolve or create category
-            $categoryName = $data['category'];
-            $category = Category::where('category_name', $categoryName)->first()
-                ?? Category::firstOrCreate(
-                    ['category_name' => $categoryName],
-                    [
-                        'description' => "Category for {$categoryName}",
-                        'is_enabled' => true,
-                        'background_color' => '#48AAD9',
-                        'font_color' => '#FFFFFF',
-                        'hero_title' => "{$categoryName} Essentials",
-                        'hero_subtitle_template' => "Explore our recommended {$categoryName} products",
-                    ]
-                );
+            PharmacyProduct::withoutEvents(function () use ($targetPharmacies, $data, $imagePath, $stock) {
+                ProductBatch::withoutEvents(function () use ($targetPharmacies, $data, $imagePath, $stock) {
+                    // 1. Resolve or create category
+                    $categoryName = $data['category'];
+                    $category = Category::where('category_name', $categoryName)->first()
+                        ?? Category::firstOrCreate(
+                            ['category_name' => $categoryName],
+                            [
+                                'description' => "Category for {$categoryName}",
+                                'is_enabled' => true,
+                                'background_color' => '#48AAD9',
+                                'font_color' => '#FFFFFF',
+                                'hero_title' => "{$categoryName} Essentials",
+                                'hero_subtitle_template' => "Explore our recommended {$categoryName} products",
+                            ]
+                        );
 
-            $unitCost = round($data['price'] * 0.70, 2); // 30% margin for staging
+                    $unitCost = round($data['price'] * 0.70, 2); // 30% margin for staging
 
-            foreach ($targetPharmacies as $pharmacy) {
-                $pharmacyId = $pharmacy->id;
+                    foreach ($targetPharmacies as $pharmacy) {
+                        $pharmacyId = $pharmacy->id;
 
-                // Ensure category is enabled for this pharmacy
-                DB::table('pharmacy_categories')->updateOrInsert(
-                    ['pharmacy_id' => $pharmacyId, 'category_id' => $category->id],
-                    ['is_enabled' => true, 'updated_at' => now(), 'created_at' => now()]
-                );
+                        // Strictly skip if this product already exists for this pharmacy
+                        $alreadyExists = Products::withoutGlobalScopes()
+                            ->where('pharmacy_id', $pharmacyId)
+                            ->whereRaw('LOWER(TRIM(product_name)) = ?', [strtolower(trim($data['name']))])
+                            ->exists();
 
-                // 2. Create or update Products record for this pharmacy
-                $product = Products::updateOrCreate(
-                    [
-                        'pharmacy_id' => $pharmacyId,
-                        'product_name' => $data['name'],
-                    ],
-                    [
-                        'product_type' => 'medicine',
-                        'generic_name' => $data['generic_name'],
-                        'brand_name' => $data['brand'],
-                        'description' => $data['description'],
-                        'form' => $data['form'],
-                        'strength' => $data['strength'],
-                        'size' => $data['size'] ?? null,
-                        'is_prescribed' => $data['is_prescribed'],
-                        'image_path' => $imagePath,
-                    ]
-                );
+                        if ($alreadyExists) {
+                            continue;
+                        }
 
-                // 3. Create or update PharmacyProduct record for this pharmacy
-                $pharmacyProduct = PharmacyProduct::updateOrCreate(
-                    [
-                        'pharmacy_id' => $pharmacyId,
-                        'product_id' => $product->id,
-                    ],
-                    [
-                        'category_id' => $category->id,
-                        'stock' => $stock,
-                        'unit_cost' => $unitCost,
-                        'selling_price' => $data['price'],
-                        'is_discountable' => true,
-                        'is_available' => true,
-                        'is_out_of_stock' => false,
-                        'is_expired' => false,
-                        'lead_time_days' => 3,
-                    ]
-                );
+                        // Ensure category is enabled for this pharmacy
+                        DB::table('pharmacy_categories')->updateOrInsert(
+                            ['pharmacy_id' => $pharmacyId, 'category_id' => $category->id],
+                            ['is_enabled' => true, 'updated_at' => now(), 'created_at' => now()]
+                        );
 
-                // 4. Create or update ProductBatch record for FEFO inventory
-                $existingBatch = ProductBatch::where('pharmacy_product_id', $pharmacyProduct->id)->first();
-                $batchNumber = $existingBatch?->batch_number ?: ('STAGING-' . strtoupper(substr(md5($product->id . $product->product_name . $pharmacyId), 0, 8)));
+                        // 2. Create Products record for this pharmacy
+                        $product = Products::create([
+                            'pharmacy_id'   => $pharmacyId,
+                            'product_name'  => $data['name'],
+                            'product_type'  => 'medicine',
+                            'generic_name'  => $data['generic_name'],
+                            'brand_name'    => $data['brand'],
+                            'description'   => $data['description'],
+                            'form'          => $data['form'],
+                            'strength'      => $data['strength'],
+                            'size'          => $data['size'] ?? null,
+                            'is_prescribed' => $data['is_prescribed'],
+                            'image_path'    => $imagePath,
+                        ]);
 
-                ProductBatch::updateOrCreate(
-                    [
-                        'pharmacy_product_id' => $pharmacyProduct->id,
-                        'batch_number' => $batchNumber,
-                    ],
-                    [
-                        'supplier_name' => 'PharmaDali Staging Supplier',
-                        'stock' => $stock,
-                        'expiry_date' => now()->addMonths(18)->format('Y-m-d'),
-                        'manufactured_date' => now()->subMonths(2)->format('Y-m-d'),
-                        'received_at' => now(),
-                    ]
-                );
-            }
+                        // 3. Create PharmacyProduct record for this pharmacy
+                        $pharmacyProduct = PharmacyProduct::create([
+                            'pharmacy_id'     => $pharmacyId,
+                            'product_id'      => $product->id,
+                            'category_id'     => $category->id,
+                            'stock'           => $stock,
+                            'unit_cost'       => $unitCost,
+                            'selling_price'   => $data['price'],
+                            'is_discountable' => true,
+                            'is_available'    => true,
+                            'is_out_of_stock' => false,
+                            'is_expired'      => false,
+                            'lead_time_days'  => 3,
+                        ]);
+
+                        // 4. Create ProductBatch record for FEFO inventory
+                        $batchNumber = 'STAGING-' . strtoupper(substr(md5($product->id . $product->product_name . $pharmacyId), 0, 8));
+
+                        ProductBatch::create([
+                            'pharmacy_product_id' => $pharmacyProduct->id,
+                            'batch_number'        => $batchNumber,
+                            'supplier_name'       => 'PharmaDali Staging Supplier',
+                            'stock'               => $stock,
+                            'expiry_date'         => now()->addMonths(18)->format('Y-m-d'),
+                            'manufactured_date'   => now()->subMonths(2)->format('Y-m-d'),
+                            'received_at'         => now(),
+                        ]);
+                    }
+                });
+            });
         });
     }
 }

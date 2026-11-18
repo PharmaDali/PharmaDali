@@ -81,7 +81,7 @@ class PharmacistService
         if (!$pharmacistProfile) {
             $pharmacistProfile = Pharmacist::create([
                 'user_id' => $user->id,
-                'employee_number' => 'EMP-' . str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),
+                'employee_number' => 'PHAR-' . $user->id . '-' . ($user->pharmacy_id ?? '0'),
             ]);
         }
 

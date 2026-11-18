@@ -93,117 +93,127 @@ class PharmacyProductsImportSeeder extends Seeder
                 );
             }
 
-            // 3. Upsert Base Products
-            $productColumns = [
-                'id', 'pharmacy_id', 'product_type', 'product_name', 'generic_name',
-                'brand_name', 'description', 'form', 'strength', 'size',
-                'is_prescribed', 'image_path', 'created_at', 'updated_at'
-            ];
-            $productsToInsert = [];
+            // 3. Index source pharmacy_products and batches by their local IDs for lookup
+            $localPpByProductId = [];
+            foreach ($data['pharmacy_products'] ?? [] as $pp) {
+                $localPpByProductId[$pp['product_id']] = $pp;
+            }
+
+            $localBatchesByPpId = [];
+            foreach ($data['batches'] ?? [] as $b) {
+                $localBatchesByPpId[$b['pharmacy_product_id']][] = $b;
+            }
+
+            // Load existing products on this server for this pharmacy to avoid overwriting anything
+            $existingProducts = DB::table('products')
+                ->where('pharmacy_id', $pharmacyId)
+                ->select('id', 'product_name', 'image_path')
+                ->get();
+
+            $existingNamesMap = [];
+            $existingImageHashesMap = [];
+            foreach ($existingProducts as $ep) {
+                $existingNamesMap[strtolower(trim((string) $ep->product_name))] = $ep->id;
+                if (!empty($ep->image_path) && preg_match('/_([a-f0-9]{8})\.[a-z0-9]+$/i', (string) $ep->image_path, $m)) {
+                    $existingImageHashesMap[strtolower($m[1])] = $ep->id;
+                }
+            }
+
+            $insertedProductsCount = 0;
+            $skippedExistingCount = 0;
+            $insertedPpCount = 0;
+            $insertedBatchesCount = 0;
+            $now = now();
+
             foreach ($data['products'] as $p) {
-                $row = [];
-                foreach ($productColumns as $col) {
-                    $row[$col] = $p[$col] ?? null;
+                $localProductId = $p['id'];
+                $normName = strtolower(trim((string) ($p['product_name'] ?? '')));
+                if ($normName === '') {
+                    continue;
                 }
-                $productsToInsert[] = $row;
-            }
 
-            $this->command->info("Importing " . count($productsToInsert) . " base products...");
-            foreach (array_chunk($productsToInsert, 250) as $chunk) {
-                DB::table('products')->upsert(
-                    $chunk,
-                    ['id'],
-                    ['pharmacy_id', 'product_type', 'product_name', 'generic_name', 'brand_name', 'description', 'form', 'strength', 'size', 'is_prescribed', 'image_path', 'updated_at']
-                );
-            }
+                $imgHash = null;
+                if (!empty($p['image_path']) && preg_match('/_([a-f0-9]{8})\.[a-z0-9]+$/i', (string) $p['image_path'], $m)) {
+                    $imgHash = strtolower($m[1]);
+                }
 
-            // 4. Upsert Pharmacy Products (Inventory)
-            $ppColumns = [
-                'id', 'pharmacy_id', 'product_id', 'category_id', 'stock',
-                'unit_cost', 'selling_price', 'is_discountable', 'is_available',
-                'is_out_of_stock', 'is_expired', 'lead_time_days', 'ordered_at',
-                'created_at', 'updated_at'
-            ];
-            $pharmacyProductsToInsert = [];
-            foreach ($data['pharmacy_products'] as $pp) {
-                $row = [];
-                $originalCatId = $pp['category_id'] ?? null;
-                $mappedCatId   = $categoryMap[$originalCatId] ?? $originalCatId;
+                // If product already exists on the server (by name or image hash), DO NOT overwrite it
+                if (isset($existingNamesMap[$normName]) || ($imgHash && isset($existingImageHashesMap[$imgHash]))) {
+                    $skippedExistingCount++;
+                    continue;
+                }
 
-                foreach ($ppColumns as $col) {
-                    if ($col === 'category_id') {
-                        $row[$col] = $mappedCatId;
-                    } else {
-                        $row[$col] = $pp[$col] ?? null;
+                // Insert NEW Base Product (letting the server assign a safe auto-increment ID)
+                $newProductId = DB::table('products')->insertGetId([
+                    'pharmacy_id'   => $pharmacyId,
+                    'product_type'  => $p['product_type'] ?? 'medicine',
+                    'product_name'  => $p['product_name'],
+                    'generic_name'  => $p['generic_name'] ?? null,
+                    'brand_name'    => $p['brand_name'] ?? null,
+                    'description'   => $p['description'] ?? null,
+                    'form'          => $p['form'] ?? null,
+                    'strength'      => $p['strength'] ?? null,
+                    'size'          => $p['size'] ?? null,
+                    'is_prescribed' => $p['is_prescribed'] ?? 0,
+                    'image_path'    => $p['image_path'] ?? null,
+                    'created_at'    => $p['created_at'] ?? $now,
+                    'updated_at'    => $p['updated_at'] ?? $now,
+                ]);
+
+                $existingNamesMap[$normName] = $newProductId;
+                if ($imgHash) {
+                    $existingImageHashesMap[$imgHash] = $newProductId;
+                }
+                $insertedProductsCount++;
+
+                // Insert corresponding PharmacyProduct (Inventory)
+                $localPp = $localPpByProductId[$localProductId] ?? null;
+                if ($localPp) {
+                    $localPpId     = $localPp['id'];
+                    $originalCatId = $localPp['category_id'] ?? null;
+                    $mappedCatId   = $categoryMap[$originalCatId] ?? $originalCatId;
+
+                    $newPpId = DB::table('pharmacy_products')->insertGetId([
+                        'pharmacy_id'     => $pharmacyId,
+                        'product_id'      => $newProductId,
+                        'category_id'     => $mappedCatId,
+                        'stock'           => $localPp['stock'] ?? 100,
+                        'unit_cost'       => $localPp['unit_cost'] ?? 0,
+                        'selling_price'   => $localPp['selling_price'] ?? 0,
+                        'is_discountable' => $localPp['is_discountable'] ?? 1,
+                        'is_available'    => $localPp['is_available'] ?? 1,
+                        'is_out_of_stock' => $localPp['is_out_of_stock'] ?? 0,
+                        'is_expired'      => $localPp['is_expired'] ?? 0,
+                        'lead_time_days'  => $localPp['lead_time_days'] ?? 3,
+                        'ordered_at'      => $localPp['ordered_at'] ?? null,
+                        'created_at'      => $localPp['created_at'] ?? $now,
+                        'updated_at'      => $localPp['updated_at'] ?? $now,
+                    ]);
+                    $insertedPpCount++;
+
+                    // Insert corresponding ProductBatches
+                    foreach ($localBatchesByPpId[$localPpId] ?? [] as $b) {
+                        DB::table('product_batches')->insert([
+                            'pharmacy_product_id' => $newPpId,
+                            'batch_number'        => $b['batch_number'] ?? ('STAGING-' . strtoupper(substr(md5($newProductId . '-' . $pharmacyId), 0, 8))),
+                            'supplier_name'       => $b['supplier_name'] ?? 'PharmaDali Staging Supplier',
+                            'stock'               => $b['stock'] ?? ($localPp['stock'] ?? 100),
+                            'expiry_date'         => $b['expiry_date'] ?? now()->addMonths(18)->toDateString(),
+                            'manufactured_date'   => $b['manufactured_date'] ?? now()->subMonths(2)->toDateString(),
+                            'received_at'         => $b['received_at'] ?? $now,
+                            'created_at'          => $b['created_at'] ?? $now,
+                            'updated_at'          => $b['updated_at'] ?? $now,
+                        ]);
+                        $insertedBatchesCount++;
                     }
                 }
-                $pharmacyProductsToInsert[] = $row;
             }
 
-            $this->command->info("Importing " . count($pharmacyProductsToInsert) . " pharmacy products...");
-            foreach (array_chunk($pharmacyProductsToInsert, 250) as $chunk) {
-                DB::table('pharmacy_products')->upsert(
-                    $chunk,
-                    ['id'],
-                    ['pharmacy_id', 'product_id', 'category_id', 'stock', 'unit_cost', 'selling_price', 'is_discountable', 'is_available', 'is_out_of_stock', 'is_expired', 'lead_time_days', 'ordered_at', 'updated_at']
-                );
-            }
-
-            // 5. Clean up any stale products for this pharmacy that were removed in the master export
-            $exportedProductIds = array_column($productsToInsert, 'id');
-            if (!empty($exportedProductIds)) {
-                $stalePpIds = DB::table('pharmacy_products')
-                    ->where('pharmacy_id', $pharmacyId)
-                    ->whereNotIn('product_id', $exportedProductIds)
-                    ->pluck('id');
-
-                if ($stalePpIds->isNotEmpty()) {
-                    DB::table('product_batches')->whereIn('pharmacy_product_id', $stalePpIds)->delete();
-                    DB::table('inventory_logs')->whereIn('pharmacy_product_id', $stalePpIds)->delete();
-                    DB::table('pharmacy_products')->whereIn('id', $stalePpIds)->delete();
-                    DB::table('products')->where('pharmacy_id', $pharmacyId)->whereNotIn('id', $exportedProductIds)->delete();
-                    $this->command?->info("Removed " . $stalePpIds->count() . " stale dummy products for Pharmacy ID {$pharmacyId}.");
-                }
-            }
-
-            // 6. Upsert Product Batches
-            if (!empty($data['batches'])) {
-                $batchColumns = [
-                    'id', 'pharmacy_product_id', 'batch_number', 'supplier_name',
-                    'stock', 'expiry_date', 'manufactured_date', 'received_at',
-                    'created_at', 'updated_at'
-                ];
-                $batchesToInsert = [];
-                foreach ($data['batches'] as $b) {
-                    $row = [];
-                    foreach ($batchColumns as $col) {
-                        $row[$col] = $b[$col] ?? null;
-                    }
-                    $batchesToInsert[] = $row;
-                }
-
-                $this->command->info("Importing " . count($batchesToInsert) . " product batches...");
-                foreach (array_chunk($batchesToInsert, 250) as $chunk) {
-                    DB::table('product_batches')->upsert(
-                        $chunk,
-                        ['id'],
-                        ['pharmacy_product_id', 'batch_number', 'supplier_name', 'stock', 'expiry_date', 'manufactured_date', 'received_at', 'updated_at']
-                    );
-                }
-            }
+            $this->command?->info("  -> Added {$insertedProductsCount} new products (skipped {$skippedExistingCount} already-existing products).");
         });
 
             $this->command?->newLine();
             $this->command?->info("Import completed successfully for Pharmacy ID {$pharmacyId}!");
-            $this->command?->table(
-                ['Entity', 'Imported Count'],
-                [
-                    ['Categories Synced', count($data['categories'] ?? [])],
-                    ['Base Products', count($data['products'] ?? [])],
-                    ['Pharmacy Products', count($data['pharmacy_products'] ?? [])],
-                    ['Product Batches', count($data['batches'] ?? [])],
-                ]
-            );
         }
 
         // Reset AUTO_INCREMENT and restore FOREIGN_KEY_CHECKS outside the loop
