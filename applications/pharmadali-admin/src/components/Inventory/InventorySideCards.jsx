@@ -114,7 +114,14 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                       )}
                     </td>
                     <td>
-                      <span className="inventory-side-sub">{item.quantity} left</span>
+                      <span className="inventory-side-sub">
+                        {item.batches && item.batches.length > 0
+                          ? item.batches
+                              .filter((b) => b.status === "Expiring soon")
+                              .reduce((sum, b) => sum + (Number(b.stock) || 0), 0)
+                          : (item.expiringQuantity ?? item.quantity)}{" "}
+                        left
+                      </span>
                     </td>
                     <td className="text-center">
                       <span className="inventory-side-pill inventory-side-pill-danger">
@@ -164,8 +171,10 @@ export function InventorySideCards({ lowStockItems, expiringItems, expiredItems,
                     <td>
                       <span className="inventory-side-sub">
                         {item.batches && item.batches.length > 0
-                          ? item.batches.filter(b => b.status === "Expired").reduce((sum, b) => sum + (Number(b.stock) || 0), 0)
-                          : item.quantity}
+                          ? item.batches
+                              .filter((b) => b.status === "Expired")
+                              .reduce((sum, b) => sum + (Number(b.stock) || 0), 0)
+                          : (item.expiredQuantity ?? item.quantity)}
                       </span>
                     </td>
                     <td className="text-center">

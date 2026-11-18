@@ -1,7 +1,12 @@
 import { formatDateTime } from "../../utils/formatUtils";
 import { Skeleton } from "../../shared/components/loading";
 
-const TIMEFRAME_OPTIONS = [
+const DEMAND_TIMEFRAME_OPTIONS = [
+  { label: "Weekly", value: "weekly" },
+  { label: "Monthly", value: "monthly" },
+];
+
+const SALES_TIMEFRAME_OPTIONS = [
   { label: "Daily", value: "daily" },
   { label: "Weekly", value: "weekly" },
   { label: "Monthly", value: "monthly" },
@@ -11,11 +16,14 @@ export default function InsightsBox({
   text,
   loading = false,
   source = "gemini",
-  timeframe = "daily",
+  timeframe = "weekly",
   onTimeframeChange,
   generatedAt = null,
   activeTab = "demand",
 }) {
+  const timeframeOptions =
+    activeTab === "demand" ? DEMAND_TIMEFRAME_OPTIONS : SALES_TIMEFRAME_OPTIONS;
+
   return (
     <div className="analytics-insight-card h-100 d-flex flex-column">
       <div className="analytics-table-header d-flex align-items-center justify-content-between mb-3">
@@ -30,7 +38,7 @@ export default function InsightsBox({
       </div>
 
       <div className="analytics-insight-timeframe-pills d-flex align-items-center gap-1 mb-3">
-        {TIMEFRAME_OPTIONS.map((opt) => {
+        {timeframeOptions.map((opt) => {
           const isActive = timeframe === opt.value;
           return (
             <button

@@ -7,6 +7,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Encoders\JpegEncoder;
 use Intervention\Image\Encoders\WebpEncoder;
 
 class UploadPaymentReceiptImageService
@@ -49,22 +50,40 @@ class UploadPaymentReceiptImageService
             }
         }
 
-        // Compress and convert to WebP using Intervention Image GD driver
-        $manager = new ImageManager(new Driver());
-        $image   = $manager->decodePath($file->getRealPath());
-
-        // Scale down proportionally only if larger than the maximum dimensions
-        $image->scaleDown(self::MAX_WIDTH, self::MAX_HEIGHT);
-
-        $filename = $order->id . '_' . time() . '.webp';
+        // Compress and convert to WebP (or fallback to JPEG if GD lacks WebP support)
+        $supportsWebp = function_exists('imagewebp') && function_exists('imagecreatefromwebp');
+        $extension    = $supportsWebp ? 'webp' : 'jpg';
+        $filename     = $order->id . '_' . time() . '.' . $extension;
         $relativePath = self::STORAGE_DIR . '/' . $order->pharmacy_id . '/' . $filename;
 
-        $encodedImage = $image->encode(new WebpEncoder(self::QUALITY));
+        try {
+            $manager = new ImageManager(new Driver());
+            $image   = $manager->decodePath($file->getRealPath());
 
-        Storage::disk(self::DISK)->put(
-            $relativePath,
-            $encodedImage->toString()
-        );
+            // Scale down proportionally only if larger than the maximum dimensions
+            $image->scaleDown(self::MAX_WIDTH, self::MAX_HEIGHT);
+
+            $encoder = $supportsWebp
+                ? new WebpEncoder(self::QUALITY)
+                : new JpegEncoder(self::QUALITY);
+
+            $encodedImage = $image->encode($encoder);
+
+            Storage::disk(self::DISK)->put(
+                $relativePath,
+                $encodedImage->toString()
+            );
+        } catch (\Throwable $e) {
+            $fallbackExt  = $file->getClientOriginalExtension() ?: 'jpg';
+            $filename     = $order->id . '_' . time() . '.' . $fallbackExt;
+            $relativePath = self::STORAGE_DIR . '/' . $order->pharmacy_id . '/' . $filename;
+
+            Storage::disk(self::DISK)->putFileAs(
+                self::STORAGE_DIR . '/' . $order->pharmacy_id,
+                $file,
+                $filename
+            );
+        }
 
         // Update and save order (instantiating Eloquent model save so observers fire)
         $order->payment_receipt_image_path = $relativePath;

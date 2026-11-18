@@ -273,13 +273,59 @@ export function useInventory() {
 
   const expiringItems = useMemo(() => {
     return decoratedItems
-      .filter((item) => item.expiringInDays > 0 && item.expiringInDays <= 30)
+      .filter((item) => {
+        if (item.batches && item.batches.length > 0) {
+          return item.batches.some((b) => b.status === "Expiring soon" && (Number(b.stock) || 0) > 0);
+        }
+        return item.expiringInDays > 0 && item.expiringInDays <= 30;
+      })
+      .map((item) => {
+        if (item.batches && item.batches.length > 0) {
+          const expiringBatches = item.batches.filter(
+            (b) => b.status === "Expiring soon" && (Number(b.stock) || 0) > 0
+          );
+          const expiringStock = expiringBatches.reduce((sum, b) => sum + (Number(b.stock) || 0), 0);
+          const minDays = expiringBatches.reduce((min, b) => {
+            const days = Number(b.expiring_in_days);
+            return !isNaN(days) && days < min ? days : min;
+          }, Infinity);
+          return {
+            ...item,
+            expiringQuantity: expiringStock,
+            expiringInDays: Number.isFinite(minDays) ? minDays : item.expiringInDays,
+          };
+        }
+        return item;
+      })
       .sort((a, b) => a.expiringInDays - b.expiringInDays);
   }, [decoratedItems]);
 
   const expiredItems = useMemo(() => {
     return decoratedItems
-      .filter((item) => item.expiringInDays <= 0 && item.expiryDate)
+      .filter((item) => {
+        if (item.batches && item.batches.length > 0) {
+          return item.batches.some((b) => b.status === "Expired" && (Number(b.stock) || 0) > 0);
+        }
+        return item.expiringInDays <= 0 && item.expiryDate;
+      })
+      .map((item) => {
+        if (item.batches && item.batches.length > 0) {
+          const expiredBatches = item.batches.filter(
+            (b) => b.status === "Expired" && (Number(b.stock) || 0) > 0
+          );
+          const expiredStock = expiredBatches.reduce((sum, b) => sum + (Number(b.stock) || 0), 0);
+          const minDays = expiredBatches.reduce((min, b) => {
+            const days = Number(b.expiring_in_days);
+            return !isNaN(days) && days < min ? days : min;
+          }, Infinity);
+          return {
+            ...item,
+            expiredQuantity: expiredStock,
+            expiringInDays: Number.isFinite(minDays) ? minDays : item.expiringInDays,
+          };
+        }
+        return item;
+      })
       .sort((a, b) => a.expiringInDays - b.expiringInDays);
   }, [decoratedItems]);
 
@@ -799,10 +845,11 @@ export function useInventory() {
       setInventoryItems((prev) =>
         prev.map((item) =>
           item.id === selectedItem.id
-            ? { ...item, quantity: result.remaining_stock }
+            ? { ...item, quantity: result.remaining_stock, batches: refreshedBatches }
             : item
         )
       );
+      loadData();
       setStockOutForm({ quantity: "" });
       setShowStockOutModal(false);
       

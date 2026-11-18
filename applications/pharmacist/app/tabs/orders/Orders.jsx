@@ -48,13 +48,13 @@ const resolveMediaUriRaw = (urlOrPath, baseUrl) => {
     return { uri: `${cleanBase}${target}` };
   }
 
-  // If it's a full URL, rebase to the active base if the host differs
+  // If it's a full URL, rebase to the active base if the host differs or protocol is http while base is https
   if (target.startsWith('http://') || target.startsWith('https://')) {
     try {
       const parsed = new URL(target);
       if (cleanBase) {
         const baseParsed = new URL(cleanBase.startsWith('http') ? cleanBase : `http://${cleanBase}`);
-        if (parsed.host !== baseParsed.host) {
+        if (parsed.host !== baseParsed.host || (parsed.protocol === 'http:' && baseParsed.protocol === 'https:')) {
           return { uri: `${cleanBase}${parsed.pathname}${parsed.search}` };
         }
       }
@@ -174,7 +174,9 @@ const mapApiOrdersToUiOrders = (apiOrders) => {
       discountType: order?.discount_type || null,
       discountIdNumber: order?.discount_id_number || null,
       discountRemarks: order?.discount_remarks || null,
+      discountIdImage: discountIdUri || null,
       discountIdImagePath: discountIdUri?.uri || null,
+      paymentReceiptImage: paymentReceiptUri || null,
       paymentReceiptImagePath: paymentReceiptUri?.uri || null,
       paymentMethod: order?.payment_method || null,
       paymentStatus: order?.payment_status || null,

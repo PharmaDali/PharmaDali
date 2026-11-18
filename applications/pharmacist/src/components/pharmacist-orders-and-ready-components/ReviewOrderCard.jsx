@@ -257,6 +257,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
           {order.discountIdImagePath && (() => {
             const isDiscountRejected = order.discountRemarks?.toLowerCase().includes('rejected');
             const isDiscountApproved = order.discountRemarks?.toLowerCase() === 'approved';
+            const discountImageSource = order.discountIdImage || { uri: order.discountIdImagePath };
             return (
             <View className="mx-2 mb-4 mt-2">
               <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
@@ -268,10 +269,10 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                   <TouchableOpacity
                     className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative bg-white"
                     activeOpacity={0.8}
-                    onPress={() => setPreviewImage({ uri: order.discountIdImagePath })}
+                    onPress={() => setPreviewImage(discountImageSource)}
                   >
                     <Image
-                      source={{ uri: order.discountIdImagePath }}
+                      source={discountImageSource}
                       style={{ width: '100%', height: 110 }}
                       resizeMode="cover"
                     />
@@ -338,6 +339,7 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
           {order.paymentReceiptImagePath && (() => {
             const isReceiptRejected = order.paymentStatus === 'failed';
             const isReceiptApproved = order.paymentStatus === 'paid';
+            const receiptImageSource = order.paymentReceiptImage || { uri: order.paymentReceiptImagePath };
             return (
             <View className="mx-2 mb-4 mt-2">
               <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
@@ -347,10 +349,10 @@ export default function ReviewOrderCard({ order, onApprove, onReject, onPending,
                   <TouchableOpacity
                     className="flex-1 rounded-lg overflow-hidden border border-gray-300 relative bg-white"
                     activeOpacity={0.8}
-                    onPress={() => setPreviewImage({ uri: order.paymentReceiptImagePath })}
+                    onPress={() => setPreviewImage(receiptImageSource)}
                   >
                     <Image
-                      source={{ uri: order.paymentReceiptImagePath }}
+                      source={receiptImageSource}
                       style={{ width: '100%', height: 110 }}
                       resizeMode="cover"
                     />

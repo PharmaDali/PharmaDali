@@ -74,13 +74,22 @@ export function useAnalyticsData() {
   const [chartLoading, setChartLoading] = useState(false);
 
   // Gemini AI Insight state
-  const [insightTimeframe, setInsightTimeframe] = useState("daily");
+  const [insightDemandTimeframe, setInsightDemandTimeframe] = useState("weekly");
+  const [insightSalesTimeframe, setInsightSalesTimeframe] = useState("daily");
   const [insightText, setInsightText] = useState("");
   const [insightLoading, setInsightLoading] = useState(false);
   const [insightSource, setInsightSource] = useState("gemini");
   const [insightGeneratedAt, setInsightGeneratedAt] = useState(null);
 
   const isDemand = activeTab === "demand";
+  const insightTimeframe = isDemand ? insightDemandTimeframe : insightSalesTimeframe;
+  const setInsightTimeframe = (tf) => {
+    if (isDemand) {
+      setInsightDemandTimeframe(tf);
+    } else {
+      setInsightSalesTimeframe(tf);
+    }
+  };
 
   // Active table calculations
   const activeTableTimeframe = isDemand ? tableDemandTimeframe : tableSalesTimeframe;
