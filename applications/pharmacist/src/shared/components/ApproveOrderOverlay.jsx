@@ -197,10 +197,10 @@ export default function ApproveOrderOverlay({
                         <TouchableOpacity
                           activeOpacity={0.85}
                           className="rounded-xl overflow-hidden border border-gray-200 relative mb-2"
-                          onPress={() => setFullscreenImage({ uri: order.discountIdImagePath })}
+                          onPress={() => setFullscreenImage(order.discountIdImage || { uri: order.discountIdImagePath })}
                         >
                           <Image
-                            source={{ uri: order.discountIdImagePath }}
+                            source={order.discountIdImage || { uri: order.discountIdImagePath }}
                             className="w-full h-36 bg-gray-100"
                             resizeMode="cover"
                           />
@@ -228,10 +228,10 @@ export default function ApproveOrderOverlay({
                         <TouchableOpacity
                           activeOpacity={0.85}
                           className="rounded-xl overflow-hidden border border-gray-200 relative mb-2"
-                          onPress={() => setFullscreenImage({ uri: order.paymentReceiptImagePath })}
+                          onPress={() => setFullscreenImage(order.paymentReceiptImage || { uri: order.paymentReceiptImagePath })}
                         >
                           <Image
-                            source={{ uri: order.paymentReceiptImagePath }}
+                            source={order.paymentReceiptImage || { uri: order.paymentReceiptImagePath }}
                             className="w-full h-36 bg-gray-100"
                             resizeMode="cover"
                           />

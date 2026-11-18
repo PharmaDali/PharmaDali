@@ -30,9 +30,10 @@ RUN apk add --no-cache --virtual .build-deps \
         icu-dev \
         freetype-dev \
         libjpeg-turbo-dev \
+        libwebp-dev \
         zip \
         unzip \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install \
         pdo_mysql \
         mbstring \
@@ -47,7 +48,8 @@ RUN apk add --no-cache --virtual .build-deps \
     && pecl install redis \
     && docker-php-ext-enable redis opcache \
     && apk del .build-deps \
-    && rm -rf /tmp/pear
+    && rm -rf /tmp/pear \
+    && printf "upload_max_filesize = 20M\npost_max_size = 25M\nmemory_limit = 256M\n" > /usr/local/etc/php/conf.d/uploads.ini
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

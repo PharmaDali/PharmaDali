@@ -16,6 +16,7 @@ class GetInventoryProductsService
     private Carbon $today;
     private array $restockMap = [];
     private array $dynamicLowStockIds = [];
+    private string $activeStatusFilter = 'All';
 
     public function handle(array $filters = [], ?Pharmacy $pharmacy = null): Collection
     {
@@ -24,6 +25,7 @@ class GetInventoryProductsService
         $this->today = Carbon::today();
         $this->restockMap = [];
         $this->dynamicLowStockIds = [];
+        $this->activeStatusFilter = !empty($filters['status']) ? (string) $filters['status'] : 'All';
 
         if ($pharmacy) {
             try {
@@ -151,15 +153,31 @@ class GetInventoryProductsService
             $bp->save();
         }
 
-        // Determine nearest active FEFO batch expiry
-        $earliestBatch = $bp->batches
+        // Determine nearest active FEFO batch expiry (respecting active status filter if set)
+        $activeBatchesWithExpiry = $bp->batches
             ->whereNotNull('expiry_date')
             ->where('stock', '>', 0)
-            ->sortBy('expiry_date')
-            ->first();
+            ->sortBy('expiry_date');
+
+        $earliestBatch = null;
+        if ($this->activeStatusFilter === 'Expiring soon') {
+            $earliestBatch = $activeBatchesWithExpiry->first(function ($b) {
+                $days = (int) $this->today->diffInDays(Carbon::parse($b->expiry_date), false);
+                return $days > 0 && $days <= $this->expiryDaysThreshold;
+            });
+        } elseif ($this->activeStatusFilter === 'Expired') {
+            $earliestBatch = $activeBatchesWithExpiry->first(function ($b) {
+                $days = (int) $this->today->diffInDays(Carbon::parse($b->expiry_date), false);
+                return $days <= 0;
+            });
+        }
+
+        if (!$earliestBatch) {
+            $earliestBatch = $activeBatchesWithExpiry->first();
+        }
 
         $earliestExpiryDate = $earliestBatch ? Carbon::parse($earliestBatch->expiry_date) : null;
-        $earliestManufacturedDate = $earliestBatch ? Carbon::parse($earliestBatch->manufactured_date) : null;
+        $earliestManufacturedDate = $earliestBatch && $earliestBatch->manufactured_date ? Carbon::parse($earliestBatch->manufactured_date) : null;
         $expiringInDays = $earliestExpiryDate ? (int) $this->today->diffInDays($earliestExpiryDate, false) : 365;
 
         $prediction = $this->restockMap[$bp->id] ?? null;
@@ -175,6 +193,14 @@ class GetInventoryProductsService
             default => 'Healthy',
         };
 
+        $formattedBatches = $this->formatBatches(collect($bp->batches));
+        $expiringQuantity = collect($formattedBatches)
+            ->where('status', 'Expiring soon')
+            ->sum('stock');
+        $expiredQuantity = collect($formattedBatches)
+            ->where('status', 'Expired')
+            ->sum('stock');
+
         $strengthFormParts = array_filter([$product->strength ?? '', $product->form ?? '', $product->size ?? '']);
 
         return [
@@ -187,6 +213,8 @@ class GetInventoryProductsService
             'size'             => $product->size ?? '',
             'category'         => $category->category_name ?? 'Uncategorized',
             'quantity'         => $realStock,
+            'expiringQuantity' => (int) $expiringQuantity,
+            'expiredQuantity'  => (int) $expiredQuantity,
             'reorderPoint'     => $prediction['reorderPoint'] ?? $this->lowStockThreshold,
             'daysOfStock'      => $prediction['daysOfStock'] ?? null,
             'averageDailySales'=> $prediction['averageDailySales'] ?? 0,
@@ -208,7 +236,7 @@ class GetInventoryProductsService
             'product_id'       => $product->id ?? null,
             'product_type'     => $product->product_type ?? 'medicine',
             'image_url'        => $product->image_url ?? null,
-            'batches'          => $this->formatBatches(collect($bp->batches)),
+            'batches'          => $formattedBatches,
         ];
     }
 
@@ -224,9 +252,9 @@ class GetInventoryProductsService
                 if ($batch->expiry_date) {
                     $expiringInDays = (int) $this->today->diffInDays($batch->expiry_date, false);
                     $status = match (true) {
-                        $expiringInDays <= 0  => 'Expired',
-                        $expiringInDays <= 30 => 'Expiring soon',
-                        default               => 'Healthy',
+                        $expiringInDays <= 0                           => 'Expired',
+                        $expiringInDays <= $this->expiryDaysThreshold => 'Expiring soon',
+                        default                                        => 'Healthy',
                     };
                 }
 

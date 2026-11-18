@@ -78,10 +78,13 @@ class AnalyticsController extends Controller
      */
     public function insights(GetAnalyticsInsightsRequest $request): JsonResponse
     {
+        $type = $request->input('type', 'demand');
+        $defaultTimeframe = $type === 'demand' ? 'weekly' : 'daily';
+
         $data = $this->analyticsService->getAnalyticsInsights(
             $request->getPharmacyId(),
-            $request->input('type', 'demand'),
-            $request->input('timeframe', 'daily')
+            $type,
+            $request->input('timeframe', $defaultTimeframe)
         );
 
         return $this->successResponse($data, 'Analytics insights retrieved successfully.');

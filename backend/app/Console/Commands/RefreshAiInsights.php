@@ -18,7 +18,6 @@ class RefreshAiInsights extends Command
      * The insight type and timeframe combinations to generate per pharmacy.
      */
     private const COMBINATIONS = [
-        ['type' => 'demand', 'timeframe' => 'daily'],
         ['type' => 'demand', 'timeframe' => 'weekly'],
         ['type' => 'demand', 'timeframe' => 'monthly'],
         ['type' => 'sales',  'timeframe' => 'daily'],

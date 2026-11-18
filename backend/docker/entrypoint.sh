@@ -25,6 +25,7 @@ mkdir -p /var/www/storage/framework/cache/data \
          /var/www/storage/framework/views \
          /var/www/storage/logs \
          /var/www/storage/app/public \
+         /var/www/storage/app/private \
          /var/www/bootstrap/cache
 
 # Only the main PHP-FPM process runs migrations and warms the cache.

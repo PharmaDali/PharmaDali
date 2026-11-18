@@ -27,6 +27,7 @@ export default function PreparingOrderCard({ order, onMarkAsReady }) {
       {/* Discount ID Approval Section */}
       {order.discountIdImagePath && (() => {
         const isDiscountRejected = order.discountRemarks?.toLowerCase().includes('rejected');
+        const discountImageSource = order.discountIdImage || { uri: order.discountIdImagePath };
         return (
         <View className="mx-2 mb-4 mt-2">
           <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
@@ -38,10 +39,10 @@ export default function PreparingOrderCard({ order, onMarkAsReady }) {
               className="w-full rounded-xl overflow-hidden border border-gray-300 relative bg-white"
               style={{ width: '100%', height: 130 }}
               activeOpacity={0.85}
-              onPress={() => setPreviewImage({ uri: order.discountIdImagePath })}
+              onPress={() => setPreviewImage(discountImageSource)}
             >
               <Image
-                source={{ uri: order.discountIdImagePath }}
+                source={discountImageSource}
                 style={{ width: '100%', height: 130 }}
                 resizeMode="cover"
               />
@@ -70,6 +71,7 @@ export default function PreparingOrderCard({ order, onMarkAsReady }) {
       {/* Payment Receipt Section */}
       {order.paymentReceiptImagePath && (() => {
         const isReceiptRejected = order.paymentStatus === 'failed';
+        const receiptImageSource = order.paymentReceiptImage || { uri: order.paymentReceiptImagePath };
         return (
         <View className="mx-2 mb-4 mt-2">
           <View className="p-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#EBF3F7' }}>
@@ -79,10 +81,10 @@ export default function PreparingOrderCard({ order, onMarkAsReady }) {
               className="w-full rounded-xl overflow-hidden border border-gray-300 relative bg-white"
               style={{ width: '100%', height: 130 }}
               activeOpacity={0.85}
-              onPress={() => setPreviewImage({ uri: order.paymentReceiptImagePath })}
+              onPress={() => setPreviewImage(receiptImageSource)}
             >
               <Image
-                source={{ uri: order.paymentReceiptImagePath }}
+                source={receiptImageSource}
                 style={{ width: '100%', height: 130 }}
                 resizeMode="cover"
               />

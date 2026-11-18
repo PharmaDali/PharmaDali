@@ -27,8 +27,8 @@ export default function IssueOrderCard({ order, onOutPending }) {
   const isDiscountIssue = Boolean(order.discountRemarks?.toLowerCase().includes('rejected') || (order.cancellationReason?.toLowerCase().includes('discount') && !order.cancellationReason?.toLowerCase().includes('prescription')));
   const isReceiptIssue = Boolean(order.note?.toLowerCase().includes('receipt') || order.paymentStatus === 'failed' || order.cancellationReason?.toLowerCase().includes('receipt'));
 
-  const discountIdImage = order.discountIdImagePath ? { uri: order.discountIdImagePath } : null;
-  const paymentReceiptImage = order.paymentReceiptImagePath ? { uri: order.paymentReceiptImagePath } : null;
+  const discountIdImage = order.discountIdImage || (order.discountIdImagePath ? { uri: order.discountIdImagePath } : null);
+  const paymentReceiptImage = order.paymentReceiptImage || (order.paymentReceiptImagePath ? { uri: order.paymentReceiptImagePath } : null);
 
   const issueCount = issueItems.length;
 
