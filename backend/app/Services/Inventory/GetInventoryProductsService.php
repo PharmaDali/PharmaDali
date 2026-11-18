@@ -44,10 +44,14 @@ class GetInventoryProductsService
             }
         }
 
-        $query = PharmacyProduct::with(['product', 'category', 'batches']);
+        /** @var Builder<PharmacyProduct> $query */
+        $query = PharmacyProduct::query()->with(['product', 'category', 'batches']);
         $this->applyFilters($query, $filters);
 
-        return $query->get()->map(fn (PharmacyProduct $bp) => $this->formatProduct($bp));
+        return $query->get()->map(function ($bp) {
+            /** @var PharmacyProduct $bp */
+            return $this->formatProduct($bp);
+        });
     }
 
     private function applyFilters(Builder $query, array $filters): void
