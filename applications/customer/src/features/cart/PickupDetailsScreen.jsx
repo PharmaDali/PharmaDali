@@ -999,11 +999,18 @@ const PickupDetailsScreen = () => {
             </View>
 
             {/* Info footer */}
-            <View className="bg-[#CFE7F3] px-4 py-3 flex-row items-center border-t border-[#B9DEEF]">
-              <BlueInfoIcon width={18} height={18} />
-              <Text className="text-xs ml-2.5 flex-1" style={styles.discountInfoText}>
-                Our pharmacist may ask you to present the original ID upon pickup.
-              </Text>
+            <View className="bg-[#CFE7F3] px-4 py-3 border-t border-[#B9DEEF]">
+              <View className="flex-row items-start">
+                <BlueInfoIcon width={18} height={18} style={{ marginTop: 1 }} />
+                <View className="ml-2.5 flex-1">
+                  <Text className="text-xs" style={styles.discountInfoText}>
+                    Our pharmacist may ask you to present the original ID upon pickup.
+                  </Text>
+                  <Text className="text-[10.5px] mt-1 leading-4" style={[styles.discountInfoText, { color: '#335C70' }]}>
+                    Data Privacy (RA 10173): Your uploaded ID photo is stored privately to verify eligibility only and is automatically deleted 7 days after order completion (3 days if cancelled), keeping only your ID type and number for mandatory BIR audit records.
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
         )}

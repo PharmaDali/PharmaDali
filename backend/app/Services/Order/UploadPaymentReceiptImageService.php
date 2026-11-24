@@ -87,6 +87,7 @@ class UploadPaymentReceiptImageService
 
         // Update and save order (instantiating Eloquent model save so observers fire)
         $order->payment_receipt_image_path = $relativePath;
+        $order->payment_receipt_purged_at = null;
         $order->payment_status = \App\Enums\PaymentStatus::UNPAID; // Reset to unpaid when a new receipt is uploaded
         
         if (in_array($order->status, [\App\Enums\OrderStatus::AWAITING_PAYMENT, \App\Enums\OrderStatus::STAND_BY, \App\Enums\OrderStatus::PENDING])) {

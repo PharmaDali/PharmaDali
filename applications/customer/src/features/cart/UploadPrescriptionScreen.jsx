@@ -252,6 +252,13 @@ const UploadPrescriptionScreen = () => {
             </Text>
           </View>
 
+          <View className="mt-2 rounded-lg bg-[#EFF8FF] border border-[#B2DDFF] px-3 py-2.5 flex-row items-start">
+            <BlueInfoIcon width={15} height={15} style={{ marginTop: 2 }} />
+            <Text className="text-[10.5px] text-[#344054] ml-2 flex-1 leading-4" style={styles.fontMedium}>
+              Data Privacy & Retention: Your prescription is stored privately for pharmacist verification. Dispensed prescriptions are retained for 2 years per FDA / RA 10918 rules, while unfulfilled or cancelled uploads are automatically deleted after 30 days.
+            </Text>
+          </View>
+
           {imageUri && (
             <View className="bg-white rounded-2xl border border-gray-200 mt-4 p-4">
               <View className="items-center">

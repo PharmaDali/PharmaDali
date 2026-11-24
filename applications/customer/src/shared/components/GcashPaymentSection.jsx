@@ -155,7 +155,7 @@ export default function GcashPaymentSection({
           Upload a screenshot or photo of your Gcash payment receipt. Make sure the payment details are visible.
         </Text>
 
-        <View className="flex-row items-center mb-4 py-1">
+        <View className="flex-row items-center mb-3 py-1">
           <GcashReceiptIcon width={28} height={28} />
           <View className="ml-3 flex-1">
             <Text className="text-xs" style={styles.fontMedium}>
@@ -165,6 +165,12 @@ export default function GcashPaymentSection({
               File Format: JPG PNG (Max. 5MB)
             </Text>
           </View>
+        </View>
+
+        <View className="mb-3 rounded-xl bg-[#F4FAFD] border border-[#DCEFF9] px-3 py-2">
+          <Text className="text-[10.5px] text-[#335C70] leading-4" style={styles.fontMedium}>
+            Data Privacy: Payment receipt images are stored privately for verification and automatically deleted 90 days after order completion (30 days if cancelled).
+          </Text>
         </View>
 
         <View className="flex-row justify-between gap-3 mb-4">

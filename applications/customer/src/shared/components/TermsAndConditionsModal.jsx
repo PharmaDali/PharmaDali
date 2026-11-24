@@ -60,7 +60,7 @@ export default function TermsAndConditionsModal({ visible, onClose }) {
                 1. Prescription & Dispensing Policy
               </Text>
               <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
-                Prescription (Rx) medicines require a valid doctor’s prescription uploaded during checkout or presented upon store pickup. All uploaded prescriptions undergo review and verification by a licensed PharmaDali pharmacist prior to dispensing.
+                Prescription (Rx) medicines require a valid doctor’s prescription uploaded during checkout and presented upon store pickup when required. All uploaded prescriptions undergo review and verification by a licensed pharmacist prior to dispensing and are retained for 2 years when dispensed in accordance with the Philippine Pharmacy Act (RA 10918) and FDA regulations.
               </Text>
             </View>
 
@@ -70,7 +70,7 @@ export default function TermsAndConditionsModal({ visible, onClose }) {
                 2. Senior Citizen & PWD Discount Terms
               </Text>
               <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
-                Senior Citizen (RA 9994) and Persons with Disability (RA 10754) discount eligibility depends on participating client pharmacy policies, as some client pharmacies already offer their products at discounted rates. In accordance with Philippine regulations, statutory discounts cannot be combined with existing promotional or pre-discounted prices. Where applicable, a valid OSCA/PWD ID and purchase booklet must be presented for pharmacist verification. Fake or altered IDs will result in order cancellation.
+                Senior Citizen (RA 9994) and Persons with Disability (RA 10754) discount eligibility depends on participating client pharmacy policies, as items already offered at promotional or pre-discounted rates cannot receive double discounts. Uploaded OSCA/PWD ID images are used strictly to verify remote eligibility; customers may still be asked to present their physical ID upon pickup. Fake or altered IDs will result in order cancellation.
               </Text>
             </View>
 
@@ -80,7 +80,7 @@ export default function TermsAndConditionsModal({ visible, onClose }) {
                 3. Order Pickup & Schedule Bounds
               </Text>
               <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
-                Customers must collect scheduled pickup orders within store operating hours. Uncollected orders past 24 hours may be cancelled, and reserved stock will be returned to inventory.
+                Customers must collect scheduled pickup orders within store operating hours. Uncollected orders past store closing or scheduled bounds may be marked overdue/cancelled, and reserved stock will be returned to inventory.
               </Text>
             </View>
 
@@ -95,12 +95,22 @@ export default function TermsAndConditionsModal({ visible, onClose }) {
             </View>
 
             {/* Section 5 */}
-            <View className="mb-6">
+            <View className="mb-4">
               <Text className="text-xs text-[#48AAD9] uppercase tracking-wider mb-1" style={styles.fontBold}>
-                5. Data Privacy & Confidentiality
+                5. Sensitive File Retention & Automated Deletion
               </Text>
               <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
-                Personal health data, prescription images, and ID documents collected are handled strictly in accordance with the Data Privacy Act of 2012 (RA 10173) and used solely for order processing and verification.
+                By uploading prescriptions, discount IDs, payment receipts, or chat photos, you acknowledge and agree to PharmaDali’s automated retention schedule: Senior/PWD ID photos are deleted 7 days after order completion (3 days if cancelled/overdue) while retaining your ID type and number for statutory BIR audit logs; unfulfilled prescriptions are deleted after 30 days; dispensed prescriptions are deleted after the mandatory 2-year FDA retention period; and payment receipts and chat images are deleted 90 days after completion or closure (30 days if cancelled).
+              </Text>
+            </View>
+
+            {/* Section 6 */}
+            <View className="mb-6">
+              <Text className="text-xs text-[#48AAD9] uppercase tracking-wider mb-1" style={styles.fontBold}>
+                6. Data Privacy & Confidentiality
+              </Text>
+              <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
+                Personal health data, prescription images, and identification documents are stored in private non-public storage and handled strictly in accordance with the Data Privacy Act of 2012 (RA 10173), accessible only to authorized pharmacy personnel.
               </Text>
             </View>
           </ScrollView>

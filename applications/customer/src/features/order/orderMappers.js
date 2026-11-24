@@ -128,18 +128,28 @@ export function mapApiOrderToViewModel(order, token) {
     const rx = item?.order_item_prescription || item?.orderItemPrescription
     return rx?.prescription_image_url || rx?.image_url || rx?.prescription_image_path
   })
-  const rxRecord = prescriptionItem?.order_item_prescription || prescriptionItem?.orderItemPrescription
+  const purgedPrescriptionItem = !prescriptionItem
+    ? items.find((item) => {
+        const rx = item?.order_item_prescription || item?.orderItemPrescription
+        return Boolean(rx?.prescription_purged_at)
+      })
+    : null
+  const rxRecord = (prescriptionItem || purgedPrescriptionItem)?.order_item_prescription
+    || (prescriptionItem || purgedPrescriptionItem)?.orderItemPrescription
   const rawPrescriptionTarget = rxRecord?.prescription_image_url || rxRecord?.image_url || rxRecord?.prescription_image_path || null
   const prescriptionImagePath = resolveMediaUrl(rawPrescriptionTarget, baseUrl)
   const prescriptionImageSource = resolveMediaSource(rawPrescriptionTarget, baseUrl, token)
+  const prescriptionPurgedAt = rxRecord?.prescription_purged_at || null
 
   const rawDiscountTarget = order?.discount_id_image_url || order?.discount_id_image_path || null
   const discountIdImagePath = resolveMediaUrl(rawDiscountTarget, baseUrl)
   const discountIdImageSource = resolveMediaSource(rawDiscountTarget, baseUrl, token)
+  const discountIdPurgedAt = order?.discount_id_purged_at || null
 
   const rawReceiptTarget = order?.payment_receipt_image_url || order?.payment_receipt_image_path || null
   const paymentReceiptImagePath = resolveMediaUrl(rawReceiptTarget, baseUrl)
   const paymentReceiptImageSource = resolveMediaSource(rawReceiptTarget, baseUrl, token)
+  const paymentReceiptPurgedAt = order?.payment_receipt_purged_at || null
 
   // Logic to distinguish between Rejected (by Pharmacist) and Cancelled (by Customer)
   let rawStatus = rawStatusFromApi
@@ -244,10 +254,13 @@ export function mapApiOrderToViewModel(order, token) {
     paymentMethod: order?.payment_method || '',
     prescriptionImagePath,
     prescriptionImageSource,
+    prescriptionPurgedAt,
     discountIdImagePath,
     discountIdImageSource,
+    discountIdPurgedAt,
     paymentReceiptImagePath,
     paymentReceiptImageSource,
+    paymentReceiptPurgedAt,
     pharmacy: rawPharmacy,
     pharmacyName: rawPharmacyName,
     branchName: cleanBranch,

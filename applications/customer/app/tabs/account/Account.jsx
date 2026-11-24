@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native'
 import React, { useState } from 'react'
 import { useRouter } from 'expo-router';
 import { colors } from '@src/shared/theme/colorPalette'
@@ -13,12 +13,16 @@ import LogoutIcon from '@assets/icons/account/logout.svg'
 import ChangePassIcon from '@assets/icons/account/change-password/change_pass.svg'
 import { useFontSize } from '@shared/context/FontSizeContext'
 import FontSizeModal from '@shared/components/FontSizeModal'
+import PrivacyPolicyModal from '@shared/components/PrivacyPolicyModal'
+import TermsAndConditionsModal from '@shared/components/TermsAndConditionsModal'
 
 const Account = () => {
   const router = useRouter();
   const { profile, loading } = useProfile();
   const { fontSize } = useFontSize();
   const [isFontSizeModalVisible, setIsFontSizeModalVisible] = useState(false);
+  const [isPrivacyModalVisible, setIsPrivacyModalVisible] = useState(false);
+  const [isTermsModalVisible, setIsTermsModalVisible] = useState(false);
   const [isLogoutOverlayVisible, setIsLogoutOverlayVisible] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -47,7 +51,7 @@ const Account = () => {
   const initials = first_name ? first_name.charAt(0).toUpperCase() : '';
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
       <View style={styles.card} className="mx-4 mt-4 mb-3 p-6 rounded-xl border border-gray-200 items-center">
         <Text style={styles.textSemiBold} className="text-2xl">My Profile</Text>
 
@@ -106,6 +110,30 @@ const Account = () => {
 
       <TouchableOpacity
         className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
+        onPress={() => setIsPrivacyModalVisible(true)}
+        activeOpacity={0.7}
+      >
+        <View className="w-[26px] h-[26px] items-center justify-center">
+          <MaterialCommunityIcons name="shield-lock-outline" size={22} color="#48AAD9" />
+        </View>
+        <Text style={styles.textMedium} className="flex-1 text-base ml-3.5">Privacy Policy</Text>
+        <Ionicons name="chevron-forward" size={20} color="#48AAD9" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
+        onPress={() => setIsTermsModalVisible(true)}
+        activeOpacity={0.7}
+      >
+        <View className="w-[26px] h-[26px] items-center justify-center">
+          <MaterialCommunityIcons name="file-document-outline" size={22} color="#48AAD9" />
+        </View>
+        <Text style={styles.textMedium} className="flex-1 text-base ml-3.5">Terms & Conditions</Text>
+        <Ionicons name="chevron-forward" size={20} color="#48AAD9" />
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="mx-4 mb-3 px-4 py-4 rounded-2xl border border-[#E2E8F0] flex-row items-center bg-white"
         onPress={() => setIsLogoutOverlayVisible(true)}
       >
         <LogoutIcon width={26} height={26} />
@@ -118,6 +146,16 @@ const Account = () => {
         onClose={() => setIsFontSizeModalVisible(false)}
       />
 
+      <PrivacyPolicyModal
+        visible={isPrivacyModalVisible}
+        onClose={() => setIsPrivacyModalVisible(false)}
+      />
+
+      <TermsAndConditionsModal
+        visible={isTermsModalVisible}
+        onClose={() => setIsTermsModalVisible(false)}
+      />
+
       <LogoutOverlay
         visible={isLogoutOverlayVisible}
         onClose={() => {
@@ -128,7 +166,7 @@ const Account = () => {
         onConfirm={handleLogout}
         submitting={isLoggingOut}
       />
-    </View>
+    </ScrollView>
   )
 }
 

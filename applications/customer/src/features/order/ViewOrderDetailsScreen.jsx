@@ -369,7 +369,7 @@ export default function ViewOrderDetailsScreen() {
           <Text className="text-sm" style={styles.primarySemiBold}>{order.orderSummary}</Text>
         </View>
 
-        {Boolean(order.prescriptionImagePath || order.prescriptionImageSource) && (
+        {Boolean(order.prescriptionImagePath || order.prescriptionImageSource || order.prescriptionPurgedAt) && (
           <View className="mt-4 pt-3 border-t border-gray-200">
             <View className="flex-row justify-between items-center mb-2">
               <Text className="text-xs" style={styles.textBold}>Submitted Prescription</Text>
@@ -389,7 +389,14 @@ export default function ViewOrderDetailsScreen() {
                 </View>
               )}
             </View>
-            {prescriptionImageError ? (
+            {!order.prescriptionImagePath && !order.prescriptionImageSource && order.prescriptionPurgedAt ? (
+              <View className="w-full rounded-xl border border-sky-200 bg-sky-50/70 p-3 flex-row items-center">
+                <MaterialCommunityIcons name="shield-check-outline" size={20} color="#0284C7" />
+                <Text className="text-[11px] text-slate-600 ml-2.5 flex-1 leading-4" style={styles.fontMedium}>
+                  Prescription image was automatically deleted after its retention period under our Data Privacy & FDA policy.
+                </Text>
+              </View>
+            ) : prescriptionImageError ? (
               <View className="w-full h-44 rounded-xl border border-gray-200 bg-gray-50 items-center justify-center p-4">
                 <MaterialCommunityIcons name="image-off-outline" size={32} color="#9CA3AF" />
                 <Text className="text-xs text-gray-500 mt-2 text-center" style={styles.fontMedium}>
@@ -418,7 +425,7 @@ export default function ViewOrderDetailsScreen() {
           </View>
         )}
 
-        {Boolean(order.discountIdImagePath || order.discountIdImageSource) && (
+        {Boolean(order.discountIdImagePath || order.discountIdImageSource || order.discountIdPurgedAt) && (
           <View className="mt-4 pt-3 border-t border-gray-200">
             <View className="flex-row justify-between items-center mb-2">
               <Text className="text-xs" style={styles.textBold}>Submitted Discount ID</Text>
@@ -436,7 +443,14 @@ export default function ViewOrderDetailsScreen() {
                 </View>
               )}
             </View>
-            {discountImageError ? (
+            {!order.discountIdImagePath && !order.discountIdImageSource && order.discountIdPurgedAt ? (
+              <View className="w-full rounded-xl border border-sky-200 bg-sky-50/70 p-3 flex-row items-center">
+                <MaterialCommunityIcons name="shield-check-outline" size={20} color="#0284C7" />
+                <Text className="text-[11px] text-slate-600 ml-2.5 flex-1 leading-4" style={styles.fontMedium}>
+                  ID photo was automatically deleted per Data Privacy (RA 10173) retention policy. Verified discount details remain on record.
+                </Text>
+              </View>
+            ) : discountImageError ? (
               <View className="w-full h-32 rounded-xl border border-gray-200 bg-gray-50 items-center justify-center p-4">
                 <MaterialCommunityIcons name="image-off-outline" size={28} color="#9CA3AF" />
                 <Text className="text-xs text-gray-500 mt-2 text-center" style={styles.fontMedium}>
@@ -465,7 +479,7 @@ export default function ViewOrderDetailsScreen() {
           </View>
         )}
 
-        {Boolean(order.paymentReceiptImagePath || order.paymentReceiptImageSource) && (
+        {Boolean(order.paymentReceiptImagePath || order.paymentReceiptImageSource || order.paymentReceiptPurgedAt) && (
           <View className="mt-4 pt-3 border-t border-gray-200">
             <View className="flex-row justify-between items-center mb-2">
               <Text className="text-xs" style={styles.textBold}>Submitted Receipt</Text>
@@ -483,7 +497,14 @@ export default function ViewOrderDetailsScreen() {
                 </View>
               )}
             </View>
-            {receiptImageError ? (
+            {!order.paymentReceiptImagePath && !order.paymentReceiptImageSource && order.paymentReceiptPurgedAt ? (
+              <View className="w-full rounded-xl border border-sky-200 bg-sky-50/70 p-3 flex-row items-center">
+                <MaterialCommunityIcons name="shield-check-outline" size={20} color="#0284C7" />
+                <Text className="text-[11px] text-slate-600 ml-2.5 flex-1 leading-4" style={styles.fontMedium}>
+                  Payment receipt image was automatically deleted after its retention period under our Data Privacy policy.
+                </Text>
+              </View>
+            ) : receiptImageError ? (
               <View className="w-full h-32 rounded-xl border border-gray-200 bg-gray-50 items-center justify-center p-4">
                 <MaterialCommunityIcons name="image-off-outline" size={28} color="#9CA3AF" />
                 <Text className="text-xs text-gray-500 mt-2 text-center" style={styles.fontMedium}>

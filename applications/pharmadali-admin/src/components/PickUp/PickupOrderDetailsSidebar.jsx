@@ -238,39 +238,67 @@ export function PickupOrderDetailsSidebar({
         }
 
         const validAttachments = attachments.filter(a => Boolean(a?.url));
-        if (validAttachments.length === 0) return null;
+
+        const purgedLabels = [];
+        const hasPurgedRx = activeOrder.items?.some(i =>
+          !i.order_item_prescription?.prescription_image_path &&
+          Boolean(i.order_item_prescription?.prescription_purged_at)
+        );
+        if (hasPurgedRx) {
+          purgedLabels.push("Prescription");
+        }
+        if (!activeOrder.discount_id_image_path && activeOrder.discount_id_purged_at) {
+          purgedLabels.push("Discount ID");
+        }
+        if (!activeOrder.payment_receipt_image_path && activeOrder.payment_receipt_purged_at) {
+          purgedLabels.push("Payment Receipt");
+        }
+
+        if (validAttachments.length === 0 && purgedLabels.length === 0) return null;
 
         return (
           <>
-            <div className="p-3 mb-3 rounded-4 border" style={{ backgroundColor: "var(--pd-bg-main)", borderColor: "var(--pd-border)" }}>
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h6 className="fw-bold m-0" style={{ fontSize: 13.5, color: "var(--pd-text-muted)" }}>Attachments</h6>
-                <span className="text-muted small" style={{ fontSize: "11px" }}>Click to zoom</span>
-              </div>
-              <div className={`d-flex gap-2 ${validAttachments.length === 1 ? 'justify-content-center' : 'justify-content-start overflow-x-auto'}`}>
-                {validAttachments.map((item, idx) => (
-                  <button 
-                    key={idx} 
-                    type="button" 
-                    className={`d-block flex-shrink-0 p-0 border-0 bg-transparent text-start ${validAttachments.length === 1 ? 'w-75' : 'flex-fill'}`}
-                    style={{ maxWidth: validAttachments.length === 1 ? '80%' : 'calc(50% - 4px)', cursor: 'pointer' }}
-                    onClick={() => {
-                      setPreviewIndex(idx);
-                      setPreviewModalOpen(true);
-                    }}
-                    title={`View ${item.title}`}
-                  >
-                    <div className="border overflow-hidden bg-white position-relative rounded-3 shadow-sm hover-shadow transition-all" style={{ borderColor: "var(--pd-primary)", borderWidth: 1.5, height: 90 }}>
-                      <img src={item.url} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      <div className="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-75 text-white px-2 py-0.5 d-flex align-items-center justify-content-between" style={{ fontSize: "10px" }}>
-                        <span className="text-truncate fw-medium">{item.title}</span>
-                        <i className="fa-solid fa-magnifying-glass-plus ms-1" style={{ fontSize: "9px" }} />
+            {validAttachments.length > 0 && (
+              <div className="p-3 mb-3 rounded-4 border" style={{ backgroundColor: "var(--pd-bg-main)", borderColor: "var(--pd-border)" }}>
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <h6 className="fw-bold m-0" style={{ fontSize: 13.5, color: "var(--pd-text-muted)" }}>Attachments</h6>
+                  <span className="text-muted small" style={{ fontSize: "11px" }}>Click to zoom</span>
+                </div>
+                <div className={`d-flex gap-2 ${validAttachments.length === 1 ? 'justify-content-center' : 'justify-content-start overflow-x-auto'}`}>
+                  {validAttachments.map((item, idx) => (
+                    <button 
+                      key={idx} 
+                      type="button" 
+                      className={`d-block flex-shrink-0 p-0 border-0 bg-transparent text-start ${validAttachments.length === 1 ? 'w-75' : 'flex-fill'}`}
+                      style={{ maxWidth: validAttachments.length === 1 ? '80%' : 'calc(50% - 4px)', cursor: 'pointer' }}
+                      onClick={() => {
+                        setPreviewIndex(idx);
+                        setPreviewModalOpen(true);
+                      }}
+                      title={`View ${item.title}`}
+                    >
+                      <div className="border overflow-hidden bg-white position-relative rounded-3 shadow-sm hover-shadow transition-all" style={{ borderColor: "var(--pd-primary)", borderWidth: 1.5, height: 90 }}>
+                        <img src={item.url} alt={item.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <div className="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-75 text-white px-2 py-0.5 d-flex align-items-center justify-content-between" style={{ fontSize: "10px" }}>
+                          <span className="text-truncate fw-medium">{item.title}</span>
+                          <i className="fa-solid fa-magnifying-glass-plus ms-1" style={{ fontSize: "9px" }} />
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
+
+            {purgedLabels.length > 0 && (
+              <div className="p-2.5 mb-3 rounded-3 border d-flex align-items-start gap-2" style={{ backgroundColor: "var(--pd-bg-main)", borderColor: "var(--pd-border)", fontSize: "12px" }}>
+                <i className="fa-solid fa-circle-info mt-1" style={{ color: "var(--pd-primary)" }} />
+                <div className="text-secondary">
+                  <strong className="text-dark">Data Privacy Retention:</strong>{" "}
+                  {purgedLabels.join(", ")} image{purgedLabels.length > 1 ? "s were" : " was"} automatically disposed of after the retention period. Verified order metadata remains on record.
+                </div>
+              </div>
+            )}
 
             <ZoomableImageModal
               isOpen={previewModalOpen}
