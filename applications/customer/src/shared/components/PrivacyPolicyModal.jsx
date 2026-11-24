@@ -60,7 +60,7 @@ export default function PrivacyPolicyModal({ visible, onClose }) {
                 1. Information We Collect
               </Text>
               <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
-                When registering and placing orders through PharmaDali, we collect personal information including your full name, date of birth, mobile number, delivery address, and account email. For prescription and discounted orders, we also collect uploaded medical prescriptions and statutory discount identification documents.
+                When registering and placing orders through PharmaDali, we collect personal information including your full name, date of birth, mobile number, address, and account email. When applicable to your order, we also collect uploaded medical prescriptions, Senior Citizen or PWD identification cards, online payment receipts, and pharmacist consultation images.
               </Text>
             </View>
 
@@ -70,7 +70,7 @@ export default function PrivacyPolicyModal({ visible, onClose }) {
                 2. Purpose of Data Processing
               </Text>
               <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
-                Collected information is utilized strictly to facilitate order fulfillment, verify medical prescriptions with licensed pharmacists, validate client pharmacy discount policies, ensure accurate branch pickup coordination, and provide critical customer service notifications.
+                Collected information is utilized strictly to facilitate order fulfillment, verify medical prescriptions with licensed pharmacists, validate statutory discount eligibility, confirm electronic payments, coordinate branch pickup, and send order notifications.
               </Text>
             </View>
 
@@ -80,7 +80,7 @@ export default function PrivacyPolicyModal({ visible, onClose }) {
                 3. Partner Pharmacy Disclosures & Pricing
               </Text>
               <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
-                Your order information, prescription copies, and discount documentation are shared directly with the specific client pharmacy fulfilling your order. Statutory discounts (Senior Citizen / PWD) are subject to each partner pharmacy's product pricing rules, as items that are already discounted cannot receive double discounts.
+                Your order information, prescription copies, and discount documentation are shared exclusively with the specific partner pharmacy fulfilling your order. Statutory discounts (Senior Citizen / PWD) are subject to each partner pharmacy's product pricing rules, as items that are already discounted cannot receive double discounts.
               </Text>
             </View>
 
@@ -90,17 +90,39 @@ export default function PrivacyPolicyModal({ visible, onClose }) {
                 4. Data Security & RA 10173 Protection
               </Text>
               <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
-                PharmaDali enforces administrative, organizational, and physical safeguards in full adherence with the Philippine Data Privacy Act of 2012 (RA 10173). Access to sensitive health records and prescription data is restricted exclusively to authorized pharmacists and pharmacy personnel.
+                PharmaDali enforces strict technical and organizational safeguards under the Data Privacy Act of 2012 (RA 10173). Sensitive uploads are isolated in non-public private storage, served only via short-lived cryptographically signed URLs with non-caching headers, restricted to authorized pharmacy personnel, and immediately overwritten and deleted on re-upload.
               </Text>
             </View>
 
             {/* Section 5 */}
-            <View className="mb-6">
+            <View className="mb-4">
               <Text className="text-xs text-[#48AAD9] uppercase tracking-wider mb-1" style={styles.fontBold}>
-                5. Data Subject Rights & Retention
+                5. Data Retention & Automated Disposal Schedule
+              </Text>
+              <Text className="text-xs text-slate-600 leading-5 mb-2" style={styles.fontMedium}>
+                In compliance with National Privacy Commission (NPC) proportionality principles and healthcare regulations, uploaded files follow an automated retention and deletion schedule once an order reaches a final status:
+              </Text>
+              <Text className="text-xs text-slate-600 leading-5 mb-1.5" style={styles.fontMedium}>
+                • Senior Citizen & PWD ID Photos: Automatically deleted 7 days after order completion (or 3 days if cancelled or overdue). Only textual audit details (discount type, ID number, and pharmacist verification timestamp) are kept for mandatory BIR tax compliance under RA 9994 and RA 10754.
+              </Text>
+              <Text className="text-xs text-slate-600 leading-5 mb-1.5" style={styles.fontMedium}>
+                • Dispensed Prescriptions: Retained for 2 years (730 days) from completion as mandated by the Philippine Pharmacy Act (RA 10918) and FDA inspection rules, then automatically purged.
+              </Text>
+              <Text className="text-xs text-slate-600 leading-5 mb-1.5" style={styles.fontMedium}>
+                • Unfulfilled Prescriptions: Automatically deleted 30 days after an order is cancelled or expires without dispensing.
               </Text>
               <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
-                You retain the right to access, rectify, or request deletion of your personal account information, subject to mandatory prescription and medical record retention requirements mandated by the Department of Health (DOH) and the Food and Drug Administration (FDA).
+                • Payment Receipts & Consultation Images: Automatically deleted 90 days after order completion or chat closure (30 days if cancelled or overdue).
+              </Text>
+            </View>
+
+            {/* Section 6 */}
+            <View className="mb-6">
+              <Text className="text-xs text-[#48AAD9] uppercase tracking-wider mb-1" style={styles.fontBold}>
+                6. Data Subject Rights
+              </Text>
+              <Text className="text-xs text-slate-600 leading-5" style={styles.fontMedium}>
+                Under RA 10173, you have the right to be informed, access, rectify, object to processing, or request deletion of your personal data, subject only to mandatory statutory record-keeping periods required by the FDA, DOH, and BIR.
               </Text>
             </View>
           </ScrollView>
