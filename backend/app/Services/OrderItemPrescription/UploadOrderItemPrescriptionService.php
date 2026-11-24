@@ -74,6 +74,7 @@ class UploadOrderItemPrescriptionService
                 ['order_item_id' => $orderItemId],
                 [
                     'prescription_image_path' => $storedPath,
+                    'prescription_purged_at' => null,
                     'status' => 'pending',
                     'verified_by' => null,
                     'verified_at' => null,

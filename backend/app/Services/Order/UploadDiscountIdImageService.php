@@ -99,6 +99,7 @@ class UploadDiscountIdImageService
 
         // Update and save order
         $order->discount_id_image_path = $relativePath;
+        $order->discount_id_purged_at = null;
         if ($discountType) {
             $order->discount_type = $discountType;
         }

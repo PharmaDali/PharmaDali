@@ -27,7 +27,9 @@ class Order extends Model
         'discount_percentage',
         'discount_id_number',
         'discount_id_image_path',
+        'discount_id_purged_at',
         'payment_receipt_image_path',
+        'payment_receipt_purged_at',
         'discount_remarks',
         'discount_amount',
         'total_amount',
@@ -60,6 +62,8 @@ class Order extends Model
         'cancelled_at' => 'datetime',
         'is_refunded' => 'boolean',
         'refunded_at' => 'datetime',
+        'discount_id_purged_at' => 'datetime',
+        'payment_receipt_purged_at' => 'datetime',
     ];
 
     protected $appends = [

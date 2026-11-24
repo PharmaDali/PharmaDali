@@ -15,6 +15,7 @@ class OrderItemPrescription extends Model
     protected $fillable = [
         'order_item_id',
         'prescription_image_path',
+        'prescription_purged_at',
         'verified_by',
         'verified_at',
         'status',
@@ -24,6 +25,7 @@ class OrderItemPrescription extends Model
     protected $casts = [
         'status' => PrescriptionStatus::class,
         'verified_at' => 'datetime',
+        'prescription_purged_at' => 'datetime',
     ];
 
     protected $appends = [
@@ -54,7 +56,7 @@ class OrderItemPrescription extends Model
 
     public function getIsReuploadedAttribute(): bool
     {
-        return (bool) ($this->updated_at && $this->created_at && $this->updated_at->gt($this->created_at));
+        return (bool) ($this->prescription_image_path && $this->updated_at && $this->created_at && $this->updated_at->gt($this->created_at));
     }
 
     public function orderItem()

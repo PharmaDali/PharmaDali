@@ -9,5 +9,6 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('inventory:check-alerts')->dailyAt('02:00');
+Schedule::command('storage:prune-sensitive-files')->dailyAt('03:00')->timezone('Asia/Manila');
 Schedule::command('orders:expire')->everyMinute();
 Schedule::command('analytics:refresh-insights')->dailyAt('23:00')->timezone('Asia/Manila');
